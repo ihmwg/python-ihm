@@ -27,11 +27,14 @@ class System(object):
         #: All entities used in the system. See :class:`Entity`.
         self.entities = []
 
+        #: All asymmetric units used in the system. See :class:`AsymUnit`.
+        self.asym_units = []
+
 
 class Software(object):
     """Software used as part of the modeling protocol.
 
-       See :memb:`System.software`."""
+       See :attr:`System.software`."""
     def __init__(self, name, classification, description, location,
                  type='program', version=None):
         self.name = name
@@ -45,7 +48,7 @@ class Software(object):
 class Entity(object):
     """Represent a CIF entity (with a unique sequence)
 
-       See :memb:`System.entities`.
+       See :attr:`System.entities`.
 
        Note that currently only standard amino acids are supported.
     """
@@ -64,3 +67,14 @@ class Entity(object):
         return self.sequence == other.sequence
     def __hash__(self):
         return hash(self.sequence)
+
+
+class AsymUnit(object):
+    """An asymmetric unit, i.e. a unique instance of an Entity that
+       was modeled.
+
+       See :attr:`System.asym_units`.
+    """
+
+    def __init__(self, entity, details=None):
+        self.entity, self.details = entity, details

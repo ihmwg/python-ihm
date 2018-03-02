@@ -2,6 +2,7 @@
 
 import re
 import ihm.format
+from . import util
 
 # Standard amino acids, mapping from 1 to 3 letter codes
 _amino_acids = {'A':'ALA', 'C':'CYS', 'D':'ASP', 'E':'GLU', 'F':'PHE',
@@ -117,6 +118,20 @@ class _EntityPolySeqDumper(_Dumper):
                     l.write(entity_id=entity.id, num=num + 1, mon_id=resid)
 
 
+class _StructAsymDumper(_Dumper):
+    def finalize(self, system):
+        # Assign asym IDs
+        for asym, asym_id in zip(system.asym_units, util._AsymIDs()):
+            asym.id = asym_id
+
+    def dump(self, system, writer):
+        with writer.loop("_struct_asym",
+                         ["id", "entity_id", "details"]) as l:
+            for asym in system.asym_units:
+                l.write(id=asym.id, entity_id=asym.entity.id,
+                        details=asym.details)
+
+
 def write(fh, systems):
     """Write out all `systems` to the mmCIF file handle `fh`"""
     dumpers = [_EntryDumper(), # must be first
@@ -124,7 +139,8 @@ def write(fh, systems):
                _ChemCompDumper(),
                _EntityDumper(),
                _EntityPolyDumper(),
-               _EntityPolySeqDumper()]
+               _EntityPolySeqDumper(),
+               _StructAsymDumper()]
     writer = ihm.format.CifWriter(fh)
     for system in systems:
         for d in dumpers:

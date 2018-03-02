@@ -166,6 +166,31 @@ _entity_poly_seq.hetero
 #
 """)
 
+    def test_struct_asym_dumper(self):
+        """Test StructAsymDumper"""
+        system = ihm.System()
+        e1 = ihm.Entity('ACGT')
+        e2 = ihm.Entity('ACC')
+        e1.id = 1
+        e2.id = 2
+        system.entities.extend((e1, e2))
+        system.asym_units.append(ihm.AsymUnit(e1, 'foo'))
+        system.asym_units.append(ihm.AsymUnit(e1, 'bar'))
+        system.asym_units.append(ihm.AsymUnit(e2, 'baz'))
+        dumper = ihm.dumper._StructAsymDumper()
+        dumper.finalize(system) # assign IDs
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_struct_asym.id
+_struct_asym.entity_id
+_struct_asym.details
+A 1 foo
+B 1 bar
+C 2 baz
+#
+""")
+
 
 if __name__ == '__main__':
     unittest.main()

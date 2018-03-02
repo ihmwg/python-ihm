@@ -18,3 +18,6 @@ The :mod:`ihm` Python module
 .. autoclass:: Entity
    :members:
 
+.. autoclass:: AsymUnit
+   :members:
+
