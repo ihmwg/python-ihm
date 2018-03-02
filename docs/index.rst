@@ -8,7 +8,9 @@ with the integrative/hybrid modeling (IHM) extension.
    :maxdepth: 2
    :caption: Contents:
 
+   main
    format
+   dumper
 
 
 Indices and tables
