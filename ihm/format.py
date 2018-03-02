@@ -6,6 +6,7 @@
 
 from __future__ import print_function
 import sys
+import textwrap
 
 # Python 3 has no 'long' type, so use 'int' instead
 if sys.version_info[0] >= 3:
