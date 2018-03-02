@@ -69,7 +69,8 @@ class _CifLoopWriter(object):
             self._empty_loop = False
         l = _LineWriter(self.writer)
         for k in self.python_keys:
-            l.write(kwargs.get(k, self.writer.omitted))
+            val = kwargs.get(k, None)
+            l.write(self.writer.omitted if val is None else val)
         self.writer.fh.write("\n")
     def __enter__(self):
         return self
@@ -118,7 +119,8 @@ class CifWriter(object):
            a single method `write` which takes keyword arguments;
            this can be called any number of times to add entries to the loop.
            Any field keys in `keys` that are not provided as arguments to
-           `write` will get the CIF omitted value ('.'), while arguments to
+           `write`, or values that are the Python value `None`,
+           will get the CIF omitted value ('.'), while arguments to
            `write` that are not present in `keys` will be ignored.
 
            For example,
