@@ -31,6 +31,12 @@ data_system23
 _entry.id 'system 2+3'
 """)
 
+    def test_dumper(self):
+        """Test Dumper base class"""
+        dumper = ihm.dumper._Dumper()
+        dumper.finalize(None)
+        dumper.dump(None, None)
+
     def test_entry_dumper(self):
         """Test EntryDumper"""
         system = ihm.System(name='test_model')
