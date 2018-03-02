@@ -56,7 +56,7 @@ class Entity(object):
     formula_weight = unknown
 
     def __init__(self, seq, description=None, details=None):
-        self.sequence = tuple(seq) # sequence should be immutable
+        self.sequence = seq
         self.description, self.details = description, details
 
     # Entities are considered identical if they have the same sequence

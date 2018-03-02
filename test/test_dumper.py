@@ -118,6 +118,54 @@ THR 'L-peptide linking'
 #
 """)
 
+    def test_entity_poly_dumper(self):
+        """Test EntityPolyDumper"""
+        system = ihm.System()
+        system.entities.append(ihm.Entity('ACGT'))
+        system.entities.append(ihm.Entity('ACC'))
+        ed = ihm.dumper._EntityDumper()
+        ed.finalize(system) # Assign IDs
+        dumper = ihm.dumper._EntityPolyDumper()
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_entity_poly.entity_id
+_entity_poly.type
+_entity_poly.nstd_linkage
+_entity_poly.nstd_monomer
+_entity_poly.pdbx_strand_id
+_entity_poly.pdbx_seq_one_letter_code
+_entity_poly.pdbx_seq_one_letter_code_can
+1 polypeptide(L) no no . ACGT ACGT
+2 polypeptide(L) no no . ACC ACC
+#
+""")
+
+    def test_entity_poly_seq_dumper(self):
+        """Test EntityPolySeqDumper"""
+        system = ihm.System()
+        system.entities.append(ihm.Entity('ACGT'))
+        system.entities.append(ihm.Entity('ACC'))
+        ed = ihm.dumper._EntityDumper()
+        ed.finalize(system) # Assign IDs
+        dumper = ihm.dumper._EntityPolySeqDumper()
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_entity_poly_seq.entity_id
+_entity_poly_seq.num
+_entity_poly_seq.mon_id
+_entity_poly_seq.hetero
+1 1 ALA .
+1 2 CYS .
+1 3 GLY .
+1 4 THR .
+2 1 ALA .
+2 2 CYS .
+2 3 CYS .
+#
+""")
+
 
 if __name__ == '__main__':
     unittest.main()

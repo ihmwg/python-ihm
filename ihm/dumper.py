@@ -87,12 +87,44 @@ class _EntityDumper(_Dumper):
 			details=entity.details)
 
 
+class _EntityPolyDumper(_Dumper):
+    # todo: we currently only support amino acid sequences here
+    def dump(self, system, writer):
+        with writer.loop("_entity_poly",
+                         ["entity_id", "type", "nstd_linkage",
+                          "nstd_monomer", "pdbx_strand_id",
+                          "pdbx_seq_one_letter_code",
+                          "pdbx_seq_one_letter_code_can"]) as l:
+            for entity in system.entities:
+                seq = entity.sequence
+                # Split into lines to get tidier CIF output
+                seq = "\n".join(seq[i:i+70] for i in range(0, len(seq), 70))
+                # todo: output pdbx_strand_id once we support asym units
+                l.write(entity_id=entity.id, type='polypeptide(L)',
+                        nstd_linkage='no', nstd_monomer='no',
+                        pdbx_seq_one_letter_code=seq,
+                        pdbx_seq_one_letter_code_can=seq)
+
+
+class _EntityPolySeqDumper(_Dumper):
+    def dump(self, system, writer):
+        with writer.loop("_entity_poly_seq",
+                         ["entity_id", "num", "mon_id", "hetero"]) as l:
+            for entity in system.entities:
+                seq = entity.sequence
+                for num, one_letter_code in enumerate(seq):
+                    resid = _amino_acids[one_letter_code]
+                    l.write(entity_id=entity.id, num=num + 1, mon_id=resid)
+
+
 def write(fh, systems):
     """Write out all `systems` to the mmCIF file handle `fh`"""
     dumpers = [_EntryDumper(), # must be first
                _SoftwareDumper(),
                _ChemCompDumper(),
-               _EntityDumper()]
+               _EntityDumper(),
+               _EntityPolyDumper(),
+               _EntityPolySeqDumper()]
     writer = ihm.format.CifWriter(fh)
     for system in systems:
         for d in dumpers:
