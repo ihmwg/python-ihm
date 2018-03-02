@@ -1,7 +1,8 @@
-"""@namespace ihm.format
-   @brief Utility classes to handle CIF format.
+"""Utility classes to handle CIF format.
 
-   This module provides classes to write out mmCIF files.
+   This module provides classes to write out mmCIF files. It is only concerned
+   with writing out syntactically correct CIF - it does not know the set of
+   tables. For that, see :mod:`ihm.dumper`.
 """
 
 from __future__ import print_function
@@ -100,11 +101,13 @@ class CifWriter(object):
     def category(self, category):
         """Return a context manager to write a CIF category.
            A CIF category is a simple list of key:value pairs.
-           `category` should be the name of the category
-           (e.g. "_struct_conf_type"). The returned object provides
-           a single method `write` which takes keyword arguments.
 
-           For example,
+           :param str category: the name of the category
+                                (e.g. "_struct_conf_type").
+           :return: an object with a single method `write` which takes
+                    keyword arguments.
+
+           For example::
 
                with writer.category("_struct_conf_type") as l:
                    l.write(id='HELX_P', criteria=writer.unknown)
@@ -113,17 +116,19 @@ class CifWriter(object):
 
     def loop(self, category, keys):
         """Return a context manager to write a CIF loop.
-           `category` should be the name of the category
-           (e.g. "_struct_conf") and `keys` a list of all the field keys
-           in that category. The returned object provides
-           a single method `write` which takes keyword arguments;
-           this can be called any number of times to add entries to the loop.
-           Any field keys in `keys` that are not provided as arguments to
-           `write`, or values that are the Python value `None`,
-           will get the CIF omitted value ('.'), while arguments to
-           `write` that are not present in `keys` will be ignored.
 
-           For example,
+           :param str category: the name of the category
+                                (e.g. "_struct_conf")
+           :param list keys: the field keys in that category
+           :return: an object with a single method `write` which takes
+                    keyword arguments; this can be called any number of
+                    times to add entries to the loop. Any field keys in `keys`
+                    that are not provided as arguments to `write`, or values
+                    that are the Python value `None`, will get the CIF
+                    omitted value ('.'), while arguments to `write` that
+                    are not present in `keys` will be ignored.
+
+           For example::
 
                with writer.loop("_struct_conf", ["id", "conf_type_id"]) as l:
                    for i in range(5):
