@@ -127,6 +127,7 @@ THR 'L-peptide linking'
         # One entity is modeled (with an asym unit) the other not; this should
         # be reflected in pdbx_strand_id
         system.asym_units.append(ihm.AsymUnit(e1, 'foo'))
+        system.asym_units.append(ihm.AsymUnit(e1, 'bar'))
         ed = ihm.dumper._EntityDumper()
         ed.finalize(system) # Assign entity IDs
         sd = ihm.dumper._StructAsymDumper()
