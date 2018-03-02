@@ -71,6 +71,53 @@ _software.location
 #
 """)
 
+    def test_entity_dumper(self):
+        """Test EntityDumper"""
+        system = ihm.System()
+        system.entities.append(ihm.Entity('ABC', description='foo'))
+        system.entities.append(ihm.Entity('ABCD', description='baz'))
+        dumper = ihm.dumper._EntityDumper()
+        dumper.finalize(system) # Assign IDs
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_entity.id
+_entity.type
+_entity.src_method
+_entity.pdbx_description
+_entity.formula_weight
+_entity.pdbx_number_of_molecules
+_entity.details
+1 polymer man foo ? 1 .
+2 polymer man baz ? 1 .
+#
+""")
+
+    def test_entity_duplicates(self):
+        """Test EntityDumper with duplicate entities"""
+        system = ihm.System()
+        system.entities.append(ihm.Entity('ABC'))
+        system.entities.append(ihm.Entity('ABC'))
+        dumper = ihm.dumper._EntityDumper()
+        self.assertRaises(ValueError, dumper.finalize, system)
+
+    def test_chem_comp_dumper(self):
+        """Test ChemCompDumper"""
+        system = ihm.System()
+        system.entities.append(ihm.Entity('ACGTTA'))
+        dumper = ihm.dumper._ChemCompDumper()
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_chem_comp.id
+_chem_comp.type
+ALA 'L-peptide linking'
+CYS 'L-peptide linking'
+GLY 'L-peptide linking'
+THR 'L-peptide linking'
+#
+""")
+
 
 if __name__ == '__main__':
     unittest.main()

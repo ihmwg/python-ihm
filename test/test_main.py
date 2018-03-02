@@ -17,6 +17,15 @@ class Tests(unittest.TestCase):
         s = ihm.System('test system')
         self.assertEqual(s.name, 'test system')
 
+    def test_entity(self):
+        """Test Entity class"""
+        e1 = ihm.Entity('ABCD', description='foo')
+        # Should compare identical if sequences are the same
+        e2 = ihm.Entity('ABCD', description='bar')
+        e3 = ihm.Entity('ABCDE', description='foo')
+        self.assertEqual(e1, e2)
+        self.assertNotEqual(e1, e3)
+
 
 if __name__ == '__main__':
     unittest.main()

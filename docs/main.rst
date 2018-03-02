@@ -7,9 +7,14 @@ The :mod:`ihm` Python module
 
 .. automodule:: ihm
 
+.. autodata:: unknown
+
 .. autoclass:: System
    :members:
 
 .. autoclass:: Software
+   :members:
+
+.. autoclass:: Entity
    :members:
 
