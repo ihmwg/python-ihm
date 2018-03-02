@@ -1,6 +1,6 @@
 .. highlight:: rest
 
-.. _format_module:
+.. _main_module:
 
 The :mod:`ihm` Python module
 ===================================
