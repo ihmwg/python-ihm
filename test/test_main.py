@@ -26,6 +26,33 @@ class Tests(unittest.TestCase):
         self.assertEqual(e1, e2)
         self.assertNotEqual(e1, e3)
 
+    def test_assembly_component_seqrange_entity(self):
+        """Test AssemblyComponent default seq range from an entity"""
+        e = ihm.Entity('ABCD')
+        c = ihm.AssemblyComponent(e)
+        self.assertEqual(c.seq_id_range, (1, 4))
+
+    def test_assembly_component_seqrange_asym_unit(self):
+        """Test AssemblyComponent default seq range from an asym unit"""
+        e = ihm.Entity('ABCD')
+        a = ihm.AsymUnit(e)
+        c = ihm.AssemblyComponent(a)
+        self.assertEqual(c.seq_id_range, (1, 4))
+
+    def test_assembly_component_given_seqrange(self):
+        """Test AssemblyComponent with a seq range"""
+        e = ihm.Entity('ABCD')
+        c = ihm.AssemblyComponent(e, (2,3))
+        self.assertEqual(c.seq_id_range, (2, 3))
+
+    def test_assembly(self):
+        """Test Assembly class"""
+        e = ihm.Entity('ABCD')
+        c = ihm.AssemblyComponent(e)
+        a = ihm.Assembly([c], name='foo', description='bar')
+        self.assertEqual(a.name, 'foo')
+        self.assertEqual(a.description, 'bar')
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -30,6 +30,9 @@ class System(object):
         #: All asymmetric units used in the system. See :class:`AsymUnit`.
         self.asym_units = []
 
+        #: All assemblies used in the system. See :class:`Assembly`.
+        self.assemblies = []
+
 
 class Software(object):
     """Software used as part of the modeling protocol.
@@ -78,3 +81,46 @@ class AsymUnit(object):
 
     def __init__(self, entity, details=None):
         self.entity, self.details = entity, details
+
+
+class AssemblyComponent(object):
+    """A single component in an :class:`Assembly`.
+
+       :param component: The part of the system. :class:`Entity` can be used
+                         here for a part that is known but has no structure.
+       :type component: :class:`AsymUnit` or :class:`Entity`
+       :param tuple seq_id_range: The subset of the sequence range to include in
+                         the assembly. This should be a two-element tuple.
+                         If `None` (the default) the entire range is included.
+    """
+
+    def __init__(self, component, seq_id_range=None):
+        self.component, self._seqrange = component, seq_id_range
+
+    def __get_seqrange(self):
+        if self._seqrange:
+            return self._seqrange
+        elif isinstance(self.component, Entity):
+            return (1, len(self.component.sequence))
+        else:
+            return (1, len(self.component.entity.sequence))
+    seq_id_range = property(__get_seqrange, doc="Sequence range")
+
+
+class Assembly(list):
+    """A collection of parts of the system that were modeled or probed
+       together.
+
+       This is implemented as a simple list of :class:`AssemblyComponent`
+       objects.
+
+       See :attr:`System.assemblies`.
+
+       Note that any duplicate assemblies will be pruned on output."""
+
+    #: Another :class:`Assembly` that is the immediate parent in a hierarchy        #: of assemblies, or `None` if no hierarchy is present.
+    parent = None
+
+    def __init__(self, elements=(), name=None, description=None):
+        super(Assembly, self).__init__(elements)
+        self.name, self.description = name, description
