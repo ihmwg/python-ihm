@@ -121,10 +121,16 @@ THR 'L-peptide linking'
     def test_entity_poly_dumper(self):
         """Test EntityPolyDumper"""
         system = ihm.System()
-        system.entities.append(ihm.Entity('ACGT'))
-        system.entities.append(ihm.Entity('ACC'))
+        e1 = ihm.Entity('ACGT')
+        e2 = ihm.Entity('ACC')
+        system.entities.extend((e1, e2))
+        # One entity is modeled (with an asym unit) the other not; this should
+        # be reflected in pdbx_strand_id
+        system.asym_units.append(ihm.AsymUnit(e1, 'foo'))
         ed = ihm.dumper._EntityDumper()
-        ed.finalize(system) # Assign IDs
+        ed.finalize(system) # Assign entity IDs
+        sd = ihm.dumper._StructAsymDumper()
+        sd.finalize(system) # Assign asym IDs
         dumper = ihm.dumper._EntityPolyDumper()
         out = _get_dumper_output(dumper, system)
         self.assertEqual(out, """#
@@ -136,7 +142,7 @@ _entity_poly.nstd_monomer
 _entity_poly.pdbx_strand_id
 _entity_poly.pdbx_seq_one_letter_code
 _entity_poly.pdbx_seq_one_letter_code_can
-1 polypeptide(L) no no . ACGT ACGT
+1 polypeptide(L) no no A ACGT ACGT
 2 polypeptide(L) no no . ACC ACC
 #
 """)

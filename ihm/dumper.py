@@ -91,6 +91,11 @@ class _EntityDumper(_Dumper):
 class _EntityPolyDumper(_Dumper):
     # todo: we currently only support amino acid sequences here
     def dump(self, system, writer):
+        # Get the first asym unit (if any) for each entity
+        strand = {}
+        for asym in system.asym_units:
+            if asym.entity.id not in strand:
+                strand[asym.entity.id] = asym.id
         with writer.loop("_entity_poly",
                          ["entity_id", "type", "nstd_linkage",
                           "nstd_monomer", "pdbx_strand_id",
@@ -100,9 +105,9 @@ class _EntityPolyDumper(_Dumper):
                 seq = entity.sequence
                 # Split into lines to get tidier CIF output
                 seq = "\n".join(seq[i:i+70] for i in range(0, len(seq), 70))
-                # todo: output pdbx_strand_id once we support asym units
                 l.write(entity_id=entity.id, type='polypeptide(L)',
                         nstd_linkage='no', nstd_monomer='no',
+                        pdbx_strand_id=strand.get(entity.id, None),
                         pdbx_seq_one_letter_code=seq,
                         pdbx_seq_one_letter_code_can=seq)
 
