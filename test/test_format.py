@@ -68,11 +68,13 @@ class Tests(unittest.TestCase):
         writer = ihm.format.CifWriter(fh)
         with writer.loop('foo', ["bar", "baz"]) as l:
             l.write(bar='x')
+            l.write(baz='y')
         self.assertEqual(fh.getvalue(), """#
 loop_
 foo.bar
 foo.baz
 x .
+. y
 #
 """)
 
