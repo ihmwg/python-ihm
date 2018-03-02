@@ -78,6 +78,19 @@ x .
 #
 """)
 
+    def test_loop_special_chars(self):
+        """Test LoopWriter class with keys containing special characters"""
+        fh = StringIO()
+        writer = ihm.format.CifWriter(fh)
+        with writer.loop('foo', ["matrix[1][1]"]) as l:
+            l.write(matrix11='x')
+        self.assertEqual(fh.getvalue(), """#
+loop_
+foo.matrix[1][1]
+x
+#
+""")
+
     def test_write_comment(self):
         """Test CifWriter.write_comment()"""
         fh = StringIO()
