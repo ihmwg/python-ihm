@@ -39,5 +39,64 @@ class Tests(unittest.TestCase):
         lw.write("foo\nbar\nbaz")
         self.assertEqual(writer.getvalue(), "\n;foo\nbar\nbaz\n;\n")
 
+    def test_line_writer_multiline_nl_term(self):
+        """Test LineWriter class given a newline-terminated multiline string"""
+        writer = StringWriter()
+        lw = ihm.format._LineWriter(writer, line_len=15)
+        lw.write("foo\nbar\nbaz\n")
+        self.assertEqual(writer.getvalue(), "\n;foo\nbar\nbaz\n;\n")
+
+    def test_category(self):
+        """Test CategoryWriter class"""
+        fh = StringIO()
+        writer = ihm.format.CifWriter(fh)
+        with writer.category('foo') as l:
+            l.write(bar='baz')
+        self.assertEqual(fh.getvalue(), "foo.bar baz\n")
+
+    def test_empty_loop(self):
+        """Test LoopWriter class with no values"""
+        fh = StringIO()
+        writer = ihm.format.CifWriter(fh)
+        with writer.loop('foo', ["bar", "baz"]) as l:
+            pass
+        self.assertEqual(fh.getvalue(), "")
+
+    def test_loop(self):
+        """Test LoopWriter class"""
+        fh = StringIO()
+        writer = ihm.format.CifWriter(fh)
+        with writer.loop('foo', ["bar", "baz"]) as l:
+            l.write(bar='x')
+        self.assertEqual(fh.getvalue(), """#
+loop_
+foo.bar
+foo.baz
+x .
+#
+""")
+
+    def test_write_comment(self):
+        """Test CifWriter.write_comment()"""
+        fh = StringIO()
+        writer = ihm.format.CifWriter(fh)
+        writer.write_comment('X' * 85)
+        self.assertEqual(fh.getvalue(), "# " + "X" * 78 + '\n# ' + "X" * 7
+                         + '\n')
+
+    def test_repr(self):
+        """Test CifWriter._repr()"""
+        w = ihm.format.CifWriter(None)
+        self.assertEqual(w._repr('foo'), 'foo')
+        self.assertEqual(w._repr('fo"o'), "'fo\"o'")
+        self.assertEqual(w._repr("fo'o"), '"fo\'o"')
+        self.assertEqual(w._repr('foo bar'), "'foo bar'")
+        self.assertEqual(w._repr(42.123456), '42.123')
+        self.assertEqual(w._repr(False), 'NO')
+        self.assertEqual(w._repr(True), 'YES')
+        if sys.version_info[0] == 2:
+            self.assertEqual(w._repr(long(4)), '4')
+
+
 if __name__ == '__main__':
     unittest.main()
