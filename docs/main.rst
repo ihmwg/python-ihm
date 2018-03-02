@@ -10,3 +10,6 @@ The :mod:`ihm` Python module
 .. autoclass:: System
    :members:
 
+.. autoclass:: Software
+   :members:
+
