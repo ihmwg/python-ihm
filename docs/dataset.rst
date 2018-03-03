@@ -37,5 +37,17 @@ The :mod:`ihm.dataset` Python module
 .. autoclass:: FileLocation
    :members:
 
+.. autoclass:: InputFileLocation
+   :members:
+
+.. autoclass:: OutputFileLocation
+   :members:
+
+.. autoclass:: WorkflowFileLocation
+   :members:
+
+.. autoclass:: VisualizationFileLocation
+   :members:
+
 .. autoclass:: Repository
    :members:
