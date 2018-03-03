@@ -9,6 +9,7 @@ with the integrative/hybrid modeling (IHM) extension.
    :caption: Contents:
 
    main
+   dataset
    format
    dumper
 
