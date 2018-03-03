@@ -104,11 +104,13 @@ class PDBLocation(DatabaseLocation):
 
 
 class FileLocation(Location):
-    """An individual file or directory.
+    """Base class for an individual file or directory stored externally.
        This may be in a repository (if `repo` is not None) or only on the
        local disk (if `repo` is None)."""
 
-    _eq_keys = Location._eq_keys + ['repo', 'path']
+    _eq_keys = Location._eq_keys + ['repo', 'path', 'content_type']
+
+    content_type = None
 
     def __init__(self, path, repo=None, details=None):
         """Constructor.
@@ -128,6 +130,26 @@ class FileLocation(Location):
             self.file_size = os.stat(path).st_size
             # Store absolute path in case the working directory changes later
             self.path = os.path.abspath(path)
+
+
+class InputFileLocation(FileLocation):
+    """An externally stored file used as input"""
+    content_type = 'Input data or restraints'
+
+
+class OutputFileLocation(FileLocation):
+    """An externally stored file used for output"""
+    content_type = "Modeling or post-processing output"
+
+
+class WorkflowFileLocation(FileLocation):
+    """An externally stored file that controls the workflow (e.g. a script)"""
+    content_type = "Modeling workflow or script"
+
+
+class VisualizationFileLocation(FileLocation):
+    """An externally stored file that is used for visualization"""
+    content_type = "Visualization script"
 
 
 class Repository(object):

@@ -79,10 +79,10 @@ class Tests(unittest.TestCase):
         with utils.temporary_directory() as tmpdir:
             fname = os.path.join(tmpdir, 'test.pdb')
             _make_test_file(fname)
-            l1 = ihm.dataset.FileLocation(fname, details='test details')
+            l1 = ihm.dataset.InputFileLocation(fname, details='test details')
             d1 = ihm.dataset.PDBDataset(l1)
 
-            l2 = ihm.dataset.FileLocation(fname, details='other details')
+            l2 = ihm.dataset.InputFileLocation(fname, details='other details')
             d2 = ihm.dataset.PDBDataset(l2)
             self.assertEqual(l1, l2)
 
@@ -99,8 +99,8 @@ class Tests(unittest.TestCase):
             fname2 = os.path.join(tmpdir, 'test2.pdb')
             _make_test_file(fname1)
             _make_test_file(fname2)
-            loc1 = ihm.dataset.FileLocation(fname1)
-            loc2 = ihm.dataset.FileLocation(fname2)
+            loc1 = ihm.dataset.InputFileLocation(fname1)
+            loc2 = ihm.dataset.InputFileLocation(fname2)
 
             # Identical datasets in the same location aren't duplicated
             pdb1 = ihm.dataset.PDBDataset(loc1)
@@ -113,25 +113,25 @@ class Tests(unittest.TestCase):
             self.assertNotEqual(pdb1, pdb2)
 
     def test_file_location_local(self):
-        """Test FileLocation with a local file"""
+        """Test InputFileLocation with a local file"""
         with utils.temporary_directory() as tmpdir:
             fname = os.path.join(tmpdir, 'test.pdb')
             _make_test_file(fname)
-            l = ihm.dataset.FileLocation(fname)
+            l = ihm.dataset.InputFileLocation(fname)
             self.assertEqual(l.path, os.path.abspath(fname))
             self.assertEqual(l.repo, None)
             self.assertEqual(l.file_size, 8)
 
     def test_file_location_local_not_exist(self):
-        """Test FileLocation with a local file that doesn't exist"""
+        """Test InputFileLocation with a local file that doesn't exist"""
         with utils.temporary_directory() as tmpdir:
             fname = os.path.join(tmpdir, 'test.pdb')
-            self.assertRaises(ValueError, ihm.dataset.FileLocation, fname)
+            self.assertRaises(ValueError, ihm.dataset.InputFileLocation, fname)
 
     def test_file_location_repo(self):
-        """Test FileLocation with a file in a repository"""
+        """Test InputFileLocation with a file in a repository"""
         r = ihm.dataset.Repository(doi='1.2.3.4')
-        l = ihm.dataset.FileLocation('foo/bar', repo=r)
+        l = ihm.dataset.InputFileLocation('foo/bar', repo=r)
         self.assertEqual(l.path, 'foo/bar')
         self.assertEqual(l.repo, r)
         self.assertEqual(l.file_size, None)
@@ -161,20 +161,20 @@ class Tests(unittest.TestCase):
             self.assertEqual(s.url, 'foo')
             self.assertEqual(s.top_directory, 'baz')
 
-            loc = ihm.dataset.FileLocation(os.path.join(subdir, 'bar'))
+            loc = ihm.dataset.InputFileLocation(os.path.join(subdir, 'bar'))
             self.assertEqual(loc.repo, None)
             ihm.dataset.Repository._update_in_repos(loc, [s])
             self.assertEqual(loc.repo.doi, '10.5281/zenodo.46266')
             self.assertEqual(loc.path, os.path.join('subdir', 'bar'))
 
             # Shouldn't touch locations that are already in repos
-            loc = ihm.dataset.FileLocation(repo='foo', path='bar')
+            loc = ihm.dataset.InputFileLocation(repo='foo', path='bar')
             self.assertEqual(loc.repo, 'foo')
             ihm.dataset.Repository._update_in_repos(loc, [s])
             self.assertEqual(loc.repo, 'foo')
 
             # Shortest match should win
-            loc = ihm.dataset.FileLocation((os.path.join(subdir, 'bar')))
+            loc = ihm.dataset.InputFileLocation((os.path.join(subdir, 'bar')))
             s2 = ihm.dataset.Repository(doi='10.5281/zenodo.46280', root=subdir,
                                         url='foo', top_directory='baz')
             # Repositories that aren't above the file shouldn't count
@@ -188,7 +188,7 @@ class Tests(unittest.TestCase):
     def test_repository_no_checkout(self):
         """Test Repository with no checkout"""
         r = ihm.dataset.Repository(doi='10.5281/zenodo.46266')
-        f = ihm.dataset.FileLocation(repo=r, path='foo')
+        f = ihm.dataset.InputFileLocation(repo=r, path='foo')
         self.assertEqual(f.repo.doi, '10.5281/zenodo.46266')
         self.assertEqual(f.path, 'foo')
 
@@ -197,6 +197,18 @@ class Tests(unittest.TestCase):
         r = ihm.dataset.Repository(doi='10.5281/zenodo.46266',
                                    top_directory='/foo')
         self.assertEqual(r._get_full_path('bar'), '/foo/bar')
+
+    def test_file_locations(self):
+        """Test FileLocation derived classes"""
+        r = ihm.dataset.Repository(doi='10.5281/zenodo.46266')
+        l = ihm.dataset.InputFileLocation(repo=r, path='foo')
+        self.assertEqual(l.content_type, 'Input data or restraints')
+        l = ihm.dataset.OutputFileLocation(repo=r, path='foo')
+        self.assertEqual(l.content_type, 'Modeling or post-processing output')
+        l = ihm.dataset.WorkflowFileLocation(repo=r, path='foo')
+        self.assertEqual(l.content_type, 'Modeling workflow or script')
+        l = ihm.dataset.VisualizationFileLocation(repo=r, path='foo')
+        self.assertEqual(l.content_type, 'Visualization script')
 
 
 if __name__ == '__main__':
