@@ -1,8 +1,10 @@
 """Utility classes to dump out information in mmCIF format"""
 
 import re
+import os
 import ihm.format
 from . import util
+from . import dataset
 
 # Standard amino acids, mapping from 1 to 3 letter codes
 _amino_acids = {'A':'ALA', 'C':'CYS', 'D':'ASP', 'E':'GLU', 'F':'PHE',
@@ -195,6 +197,81 @@ class _AssemblyDumper(_Dumper):
                             seq_id_end=seqrange[1])
                     ordinal += 1
 
+class _ExternalReferenceDumper(_Dumper):
+    """Output information on externally referenced files
+       (i.e. anything that refers to a Location that isn't
+       a DatabaseLocation)."""
+
+    class _LocalFiles(object):
+        reference_provider = None
+        reference_type = 'Supplementary Files'
+        reference = None
+        refers_to = 'Other'
+        url = None
+
+        def __init__(self, top_directory):
+            self.top_directory = top_directory
+
+        def _get_full_path(self, path):
+            return os.path.relpath(path, start=self.top_directory)
+
+    def finalize(self, system):
+        # Keep only locations that don't point into databases (these are
+        # handled elsewhere)
+        self._refs = [x for x in system.locations
+                      if not isinstance(x, dataset.DatabaseLocation)]
+        # Assign IDs to all locations and repos (including the None repo, which
+        # is for local files)
+        seen_refs = {}
+        seen_repos = {}
+        self._ref_by_id = []
+        self._repo_by_id = []
+        # Special dummy repo for repo=None (local files)
+        self._local_files = self._LocalFiles(os.getcwd())
+        for r in self._refs:
+            # todo: Update location to point to parent repository, if any
+            #dataset.Repository._update_in_repos(r)
+            # Assign a unique ID to the reference
+            util._assign_id(r, seen_refs, self._ref_by_id)
+            # Assign a unique ID to the repository
+            util._assign_id(r.repo or self._local_files,
+                            seen_repos, self._repo_by_id)
+
+    def dump(self, system, writer):
+        self.dump_repos(writer)
+        self.dump_refs(writer)
+
+    def dump_repos(self, writer):
+        with writer.loop("_ihm_external_reference_info",
+                         ["reference_id", "reference_provider",
+                          "reference_type", "reference", "refers_to",
+                          "associated_url"]) as l:
+            for repo in self._repo_by_id:
+                l.write(reference_id=repo.id,
+                        reference_provider=repo.reference_provider,
+                        reference_type=repo.reference_type,
+                        reference=repo.reference, refers_to=repo.refers_to,
+                        associated_url=repo.url)
+
+    def dump_refs(self, writer):
+        with writer.loop("_ihm_external_files",
+                         ["id", "reference_id", "file_path", "content_type",
+                          "file_size_bytes", "details"]) as l:
+            for r in self._ref_by_id:
+                repo = r.repo or self._local_files
+                file_path = self._posix_path(repo._get_full_path(r.path))
+                l.write(id=r.id, reference_id=repo.id,
+                        file_path=file_path, content_type=r.content_type,
+                        file_size_bytes=r.file_size, details=r.details)
+
+    # On Windows systems, convert native paths to POSIX-like (/-separated) paths
+    if os.sep == '/':
+        def _posix_path(self, path):
+            return path
+    else:
+        def _posix_path(self, path):
+            return path.replace(os.sep, '/')
+
 
 def write(fh, systems):
     """Write out all `systems` to the mmCIF file handle `fh`"""
@@ -205,7 +282,8 @@ def write(fh, systems):
                _EntityPolyDumper(),
                _EntityPolySeqDumper(),
                _StructAsymDumper(),
-               _AssemblyDumper()]
+               _AssemblyDumper(),
+               _ExternalReferenceDumper()]
     writer = ihm.format.CifWriter(fh)
     for system in systems:
         for d in dumpers:

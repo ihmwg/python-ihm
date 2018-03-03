@@ -41,6 +41,9 @@ class System(object):
                                           description='All known components')
         self.assemblies.append(self.complete_assembly)
 
+        #: Locations of all extra resources. See :class:`dataset.Location`.
+        self.locations = []
+
     def _make_complete_assembly(self):
         """Fill in the complete assembly with all entities/asym units"""
         # Clear out any existing components

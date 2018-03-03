@@ -292,10 +292,72 @@ _ihm_struct_assembly.seq_id_end
 #
 """)
 
+    def test_external_reference_dumper(self):
+        """Test ExternalReferenceDumper"""
+        system = ihm.System()
+        repo1 = ihm.dataset.Repository(doi="foo")
+        repo2 = ihm.dataset.Repository(doi="10.5281/zenodo.46266",
+                                       url='nup84-v1.0.zip',
+                                       top_directory=os.path.join('foo', 'bar'))
+        repo3 = ihm.dataset.Repository(doi="10.5281/zenodo.58025",
+                                       url='foo.spd')
+        l = ihm.dataset.InputFileLocation(repo=repo1, path='bar')
+        system.locations.append(l)
+        # Duplicates should be ignored
+        l = ihm.dataset.InputFileLocation(repo=repo1, path='bar')
+        system.locations.append(l)
+        # Different file, same repository
+        l = ihm.dataset.InputFileLocation(repo=repo1, path='baz')
+        system.locations.append(l)
+        # Different repository
+        l = ihm.dataset.OutputFileLocation(repo=repo2, path='baz')
+        system.locations.append(l)
+        # Repository containing a single file (not an archive)
+        l = ihm.dataset.InputFileLocation(repo=repo3, path='foo.spd',
+                                          details='EM micrographs')
+        system.locations.append(l)
 
-if __name__ == '__main__':
-    unittest.main()
+        with utils.temporary_directory('') as tmpdir:
+            bar = os.path.join(tmpdir, 'test_mmcif_extref.tmp')
+            with open(bar, 'w') as f:
+                f.write("abcd")
+            # Local file
+            system.locations.append(ihm.dataset.WorkflowFileLocation(bar))
+            # DatabaseLocations should be ignored
+            system.locations.append(ihm.dataset.PDBLocation(
+                                              '1abc', '1.0', 'test details'))
 
+            d = ihm.dumper._ExternalReferenceDumper()
+            d.finalize(system)
+            out = _get_dumper_output(d, system)
+            self.assertEqual(out, """#
+loop_
+_ihm_external_reference_info.reference_id
+_ihm_external_reference_info.reference_provider
+_ihm_external_reference_info.reference_type
+_ihm_external_reference_info.reference
+_ihm_external_reference_info.refers_to
+_ihm_external_reference_info.associated_url
+1 . DOI foo Other .
+2 Zenodo DOI 10.5281/zenodo.46266 Archive nup84-v1.0.zip
+3 Zenodo DOI 10.5281/zenodo.58025 File foo.spd
+4 . 'Supplementary Files' . Other .
+#
+#
+loop_
+_ihm_external_files.id
+_ihm_external_files.reference_id
+_ihm_external_files.file_path
+_ihm_external_files.content_type
+_ihm_external_files.file_size_bytes
+_ihm_external_files.details
+1 1 bar 'Input data or restraints' . .
+2 1 baz 'Input data or restraints' . .
+3 2 foo/bar/baz 'Modeling or post-processing output' . .
+4 3 foo.spd 'Input data or restraints' . 'EM micrographs'
+5 4 %s 'Modeling workflow or script' 4 .
+#
+""" % bar)
 
 if __name__ == '__main__':
     unittest.main()

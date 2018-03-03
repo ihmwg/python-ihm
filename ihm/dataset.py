@@ -56,7 +56,10 @@ class EMDensityDataset(Dataset):
 
 
 class Location(object):
-    """Identifies the location where a resource can be found."""
+    """Identifies the location where a resource can be found.
+
+       See :data:`ihm.System.locations`, :class:`FileLocation`,
+       :class:`DatabaseLocation`."""
 
     # 'details' can differ without affecting dataset equality
     _eq_keys = []
@@ -162,6 +165,8 @@ class Repository(object):
 
        See also :class:`FileLocation`."""
 
+    reference_type = 'DOI'
+
     # Two repositories compare equal if their DOIs and URLs are the same
     def __eq__(self, other):
         return self.doi == other.doi and self.url == other.url
@@ -189,6 +194,18 @@ class Repository(object):
         if root is not None:
             # Store absolute path in case the working directory changes later
             self._root = os.path.abspath(root)
+
+    reference = property(lambda self: self.doi)
+
+    def __get_reference_provider(self):
+        if 'zenodo' in self.reference:
+            return 'Zenodo'
+    reference_provider = property(__get_reference_provider)
+    def __get_refers_to(self):
+        if self.url:
+            return 'Archive' if self.url.endswith(".zip") else 'File'
+        return 'Other'
+    refers_to = property(__get_refers_to)
 
     @staticmethod
     def _update_in_repos(fileloc, repos):

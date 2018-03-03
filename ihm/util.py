@@ -17,3 +17,13 @@ class _AsymIDs(object):
         ids.append(chars[ind])
         return "".join(reversed(ids))
 
+
+def _assign_id(obj, seen_objs, obj_by_id):
+    """Assign a unique ID to obj, and track all ids in obj_by_id."""
+    if obj not in seen_objs:
+        if not hasattr(obj, 'id'):
+            obj_by_id.append(obj)
+            obj.id = len(obj_by_id)
+        seen_objs[obj] = obj.id
+    else:
+        obj.id = seen_objs[obj]
