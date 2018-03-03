@@ -6,7 +6,7 @@ TOPDIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 utils.set_search_paths(TOPDIR)
 import ihm.dataset
 
-def make_test_file(fname):
+def _make_test_file(fname):
     with open(fname, 'w') as fh:
         fh.write('contents')
 
@@ -78,7 +78,7 @@ class Tests(unittest.TestCase):
         """Datasets with differing details should be considered duplicates"""
         with utils.temporary_directory() as tmpdir:
             fname = os.path.join(tmpdir, 'test.pdb')
-            make_test_file(fname)
+            _make_test_file(fname)
             l1 = ihm.dataset.FileLocation(fname, details='test details')
             d1 = ihm.dataset.PDBDataset(l1)
 
@@ -95,8 +95,8 @@ class Tests(unittest.TestCase):
         with utils.temporary_directory() as tmpdir:
             fname1 = os.path.join(tmpdir, 'test1.pdb')
             fname2 = os.path.join(tmpdir, 'test2.pdb')
-            make_test_file(fname1)
-            make_test_file(fname2)
+            _make_test_file(fname1)
+            _make_test_file(fname2)
             loc1 = ihm.dataset.FileLocation(fname1)
             loc2 = ihm.dataset.FileLocation(fname2)
 
@@ -114,7 +114,7 @@ class Tests(unittest.TestCase):
         """Test FileLocation with a local file"""
         with utils.temporary_directory() as tmpdir:
             fname = os.path.join(tmpdir, 'test.pdb')
-            make_test_file(fname)
+            _make_test_file(fname)
             l = ihm.dataset.FileLocation(fname)
             self.assertEqual(l.path, os.path.abspath(fname))
             self.assertEqual(l.repo, None)
@@ -150,7 +150,7 @@ class Tests(unittest.TestCase):
             subdir = os.path.join(tmpdir, 'subdir')
             subdir2 = os.path.join(tmpdir, 'subdir2')
             os.mkdir(subdir)
-            make_test_file(os.path.join(subdir, 'bar'))
+            _make_test_file(os.path.join(subdir, 'bar'))
             s = ihm.dataset.Repository(doi='10.5281/zenodo.46266',
                                        root=tmpdir, url='foo',
                                        top_directory='baz')
