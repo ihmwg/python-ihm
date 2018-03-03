@@ -114,7 +114,10 @@ class Tests(unittest.TestCase):
 
     def test_file_location_local(self):
         """Test InputFileLocation with a local file"""
-        with utils.temporary_directory() as tmpdir:
+        # Make tmpdir under current directory, as it's not always possible to
+        # get a relative path from cwd to /tmp (e.g. on Windows where they may
+        # be on different drives)
+        with utils.temporary_directory('.') as tmpdir:
             fname = os.path.join(tmpdir, 'test.pdb')
             _make_test_file(fname)
             l = ihm.dataset.InputFileLocation(fname)
@@ -149,19 +152,23 @@ class Tests(unittest.TestCase):
 
     def test_repository(self):
         """Test Repository"""
-        with utils.temporary_directory() as tmpdir:
+        # Make tmpdir under current directory, as it's not always possible to
+        # get a relative path from cwd to /tmp (e.g. on Windows where they may
+        # be on different drives)
+        with utils.temporary_directory(os.getcwd()) as tmpdir:
             subdir = os.path.join(tmpdir, 'subdir')
             subdir2 = os.path.join(tmpdir, 'subdir2')
             os.mkdir(subdir)
             _make_test_file(os.path.join(subdir, 'bar'))
             s = ihm.dataset.Repository(doi='10.5281/zenodo.46266',
-                                       root=tmpdir, url='foo',
-                                       top_directory='baz')
+                                       root=os.path.relpath(tmpdir),
+                                       url='foo', top_directory='baz')
             self.assertEqual(s._root, tmpdir)
             self.assertEqual(s.url, 'foo')
             self.assertEqual(s.top_directory, 'baz')
 
-            loc = ihm.dataset.InputFileLocation(os.path.join(subdir, 'bar'))
+            loc = ihm.dataset.InputFileLocation(
+                                 os.path.relpath(os.path.join(subdir, 'bar')))
             self.assertEqual(loc.repo, None)
             ihm.dataset.Repository._update_in_repos(loc, [s])
             self.assertEqual(loc.repo.doi, '10.5281/zenodo.46266')
@@ -174,13 +181,15 @@ class Tests(unittest.TestCase):
             self.assertEqual(loc.repo, 'foo')
 
             # Shortest match should win
-            loc = ihm.dataset.InputFileLocation((os.path.join(subdir, 'bar')))
-            s2 = ihm.dataset.Repository(doi='10.5281/zenodo.46280', root=subdir,
+            loc = ihm.dataset.InputFileLocation(
+                                os.path.relpath(os.path.join(subdir, 'bar')))
+            s2 = ihm.dataset.Repository(doi='10.5281/zenodo.46280',
+                                        root=os.path.relpath(subdir),
                                         url='foo', top_directory='baz')
             # Repositories that aren't above the file shouldn't count
             s3 = ihm.dataset.Repository(doi='10.5281/zenodo.56280',
-                                        root=subdir2, url='foo',
-                                        top_directory='baz')
+                                        root=os.path.relpath(subdir2),
+                                        url='foo', top_directory='baz')
             ihm.dataset.Repository._update_in_repos(loc, [s2, s3, s])
             self.assertEqual(loc.repo.doi, '10.5281/zenodo.46280')
             self.assertEqual(loc.path, 'bar')

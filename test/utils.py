@@ -10,7 +10,7 @@ def set_search_paths(topdir):
     sys.path.append(topdir)
 
 @contextlib.contextmanager
-def temporary_directory():
-    _tmpdir = tempfile.mkdtemp()
+def temporary_directory(dir=None):
+    _tmpdir = tempfile.mkdtemp(dir=dir)
     yield _tmpdir
     shutil.rmtree(_tmpdir, ignore_errors=True)
