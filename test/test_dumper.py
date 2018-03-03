@@ -359,5 +359,131 @@ _ihm_external_files.details
 #
 """ % bar)
 
+    def test_dataset_dumper_duplicates_details(self):
+        """DatasetDumper ignores duplicate datasets with differing details"""
+        system = ihm.System()
+        dump = ihm.dumper._DatasetDumper()
+        l = ihm.dataset.PDBLocation('1abc', '1.0', 'test details')
+        ds1 = ihm.dataset.PDBDataset(l)
+        system.datasets.append(ds1)
+        # A duplicate dataset should be ignored even if details differ
+        l = ihm.dataset.PDBLocation('1abc', '1.0', 'other details')
+        ds2 = ihm.dataset.PDBDataset(l)
+        system.datasets.append(ds2)
+        dump.finalize(system) # Assign IDs
+        self.assertEqual(ds1.id, 1)
+        self.assertEqual(ds2.id, 1)
+        self.assertEqual(len(dump._dataset_by_id), 1)
+
+    def test_dataset_dumper_duplicates_samedata_sameloc(self):
+        """DatasetDumper doesn't duplicate same datasets in same location"""
+        system = ihm.System()
+        loc1 = ihm.dataset.DatabaseLocation("mydb", "abc", "1.0", "")
+        loc2 = ihm.dataset.DatabaseLocation("mydb", "xyz", "1.0", "")
+
+        # Identical datasets in the same location aren't duplicated
+        cx1 = ihm.dataset.CXMSDataset(loc1)
+        cx2 = ihm.dataset.CXMSDataset(loc1)
+
+        dump = ihm.dumper._DatasetDumper()
+        system.datasets.extend((cx1, cx2))
+        dump.finalize(system) # Assign IDs
+        self.assertEqual(cx1.id, 1)
+        self.assertEqual(cx2.id, 1)
+        self.assertEqual(len(dump._dataset_by_id), 1)
+
+    def test_dataset_dumper_duplicates_samedata_diffloc(self):
+        """DatasetDumper is OK with same datasets in different locations"""
+        system = ihm.System()
+        loc1 = ihm.dataset.DatabaseLocation("mydb", "abc", "1.0", "")
+        loc2 = ihm.dataset.DatabaseLocation("mydb", "xyz", "1.0", "")
+        cx1 = ihm.dataset.CXMSDataset(loc1)
+        cx2 = ihm.dataset.CXMSDataset(loc2)
+        dump = ihm.dumper._DatasetDumper()
+        system.datasets.extend((cx1, cx2))
+        dump.finalize(system) # Assign IDs
+        self.assertEqual(cx1.id, 1)
+        self.assertEqual(cx2.id, 2)
+        self.assertEqual(len(dump._dataset_by_id), 2)
+
+    def test_dataset_dumper_duplicates_diffdata_sameloc(self):
+        """DatasetDumper is OK with different datasets in same location"""
+        system = ihm.System()
+        # Different datasets in same location are OK (but odd)
+        loc2 = ihm.dataset.DatabaseLocation("mydb", "xyz", "1.0", "")
+        cx2 = ihm.dataset.CXMSDataset(loc2)
+        em3d = ihm.dataset.EMDensityDataset(loc2)
+        dump = ihm.dumper._DatasetDumper()
+        system.datasets.extend((cx2, em3d))
+        dump.finalize(system) # Assign IDs
+        self.assertEqual(cx2.id, 1)
+        self.assertEqual(em3d.id, 2)
+        self.assertEqual(len(dump._dataset_by_id), 2)
+
+    def test_dataset_dumper_allow_duplicates(self):
+        """DatasetDumper is OK with duplicates if allow_duplicates=True"""
+        system = ihm.System()
+        emloc1 = ihm.dataset.EMDBLocation("abc")
+        emloc2 = ihm.dataset.EMDBLocation("abc")
+        emloc1._allow_duplicates = True
+        em3d_1 = ihm.dataset.EMDensityDataset(emloc1)
+        em3d_2 = ihm.dataset.EMDensityDataset(emloc2)
+        dump = ihm.dumper._DatasetDumper()
+        system.datasets.extend((em3d_1, em3d_2))
+        dump.finalize(system) # Assign IDs
+        self.assertEqual(em3d_1.id, 1)
+        self.assertEqual(em3d_2.id, 2)
+        self.assertEqual(len(dump._dataset_by_id), 2)
+
+    def test_dataset_dumper_dump(self):
+        """Test DatasetDumper.dump()"""
+        system = ihm.System()
+        l = ihm.dataset.InputFileLocation(repo='foo', path='bar')
+        l.id = 97
+        ds1 = ihm.dataset.CXMSDataset(l)
+        system.datasets.append(ds1)
+
+        l = ihm.dataset.PDBLocation('1abc', '1.0', 'test details')
+        ds2 = ihm.dataset.PDBDataset(l)
+        system.datasets.append(ds2)
+        ds2.add_parent(ds1)
+
+        d = ihm.dumper._DatasetDumper()
+        d.finalize(system) # Assign IDs
+        out = _get_dumper_output(d, system)
+        self.assertEqual(out, """#
+loop_
+_ihm_dataset_list.id
+_ihm_dataset_list.data_type
+_ihm_dataset_list.database_hosted
+1 'CX-MS data' NO
+2 'Experimental model' YES
+#
+#
+loop_
+_ihm_dataset_external_reference.id
+_ihm_dataset_external_reference.dataset_list_id
+_ihm_dataset_external_reference.file_id
+1 1 97
+#
+#
+loop_
+_ihm_dataset_related_db_reference.id
+_ihm_dataset_related_db_reference.dataset_list_id
+_ihm_dataset_related_db_reference.db_name
+_ihm_dataset_related_db_reference.accession_code
+_ihm_dataset_related_db_reference.version
+_ihm_dataset_related_db_reference.details
+1 2 PDB 1abc 1.0 'test details'
+#
+#
+loop_
+_ihm_related_datasets.ordinal_id
+_ihm_related_datasets.dataset_list_id_derived
+_ihm_related_datasets.dataset_list_id_primary
+1 2 1
+#
+""")
+
 if __name__ == '__main__':
     unittest.main()

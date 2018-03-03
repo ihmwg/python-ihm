@@ -44,6 +44,9 @@ class System(object):
         #: Locations of all extra resources. See :class:`dataset.Location`.
         self.locations = []
 
+        #: All datasets used in the modeling. See :class:`dataset.Dataset`.
+        self.datasets = []
+
     def _make_complete_assembly(self):
         """Fill in the complete assembly with all entities/asym units"""
         # Clear out any existing components

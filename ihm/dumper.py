@@ -2,6 +2,7 @@
 
 import re
 import os
+import operator
 import ihm.format
 from . import util
 from . import dataset
@@ -273,6 +274,67 @@ class _ExternalReferenceDumper(_Dumper):
             return path.replace(os.sep, '/')
 
 
+class _DatasetDumper(_Dumper):
+    def finalize(self, system):
+        seen_datasets = {}
+        # Assign IDs to all datasets
+        self._dataset_by_id = []
+        for d in system.datasets:
+            util._assign_id(d, seen_datasets, self._dataset_by_id)
+        # todo: handle dataset groups
+
+    def dump(self, system, writer):
+        with writer.loop("_ihm_dataset_list",
+                         ["id", "data_type", "database_hosted"]) as l:
+            for d in self._dataset_by_id:
+                l.write(id=d.id, data_type=d.data_type,
+                        database_hosted=isinstance(d.location,
+                                                   dataset.DatabaseLocation))
+        self.dump_other((d for d in self._dataset_by_id
+                         if not isinstance(d.location,
+                                           dataset.DatabaseLocation)),
+                        writer)
+        self.dump_rel_dbs((d for d in self._dataset_by_id
+                           if isinstance(d.location,
+                                         dataset.DatabaseLocation)),
+                          writer)
+        self.dump_related(system, writer)
+
+    def dump_other(self, datasets, writer):
+        ordinal = 1
+        with writer.loop("_ihm_dataset_external_reference",
+                         ["id", "dataset_list_id", "file_id"]) as l:
+            for d in datasets:
+                l.write(id=ordinal, dataset_list_id=d.id, file_id=d.location.id)
+                ordinal += 1
+
+    def dump_rel_dbs(self, datasets, writer):
+        ordinal = 1
+        with writer.loop("_ihm_dataset_related_db_reference",
+                         ["id", "dataset_list_id", "db_name",
+                          "accession_code", "version", "details"]) as l:
+            for d in datasets:
+                l.write(id=ordinal, dataset_list_id=d.id,
+                        db_name=d.location.db_name,
+                        accession_code=d.location.access_code,
+                        version=d.location.version,
+                        details=d.location.details)
+                ordinal += 1
+
+    def dump_related(self, system, writer):
+        ordinal = 1
+        with writer.loop("_ihm_related_datasets",
+                         ["ordinal_id", "dataset_list_id_derived",
+                          "dataset_list_id_primary"]) as l:
+             for derived in self._dataset_by_id:
+                for parent in sorted(derived._parents.keys(),
+                                     key=operator.attrgetter('id')):
+                    l.write(ordinal_id=ordinal,
+                            dataset_list_id_derived=derived.id,
+                            dataset_list_id_primary=parent.id)
+                    ordinal += 1
+
+
 def write(fh, systems):
     """Write out all `systems` to the mmCIF file handle `fh`"""
     dumpers = [_EntryDumper(), # must be first
@@ -283,7 +345,8 @@ def write(fh, systems):
                _EntityPolySeqDumper(),
                _StructAsymDumper(),
                _AssemblyDumper(),
-               _ExternalReferenceDumper()]
+               _ExternalReferenceDumper(),
+               _DatasetDumper()]
     writer = ihm.format.CifWriter(fh)
     for system in systems:
         for d in dumpers:
