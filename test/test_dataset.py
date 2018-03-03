@@ -89,6 +89,8 @@ class Tests(unittest.TestCase):
     def test_location(self):
         """Test Location base class"""
         l = ihm.dataset.Location(details='foo')
+        l._allow_duplicates = True
+        self.assertEqual(l._eq_vals(), id(l))
 
     def test_duplicate_locations(self):
         """Datasets with same location should be considered duplicates"""
@@ -141,6 +143,7 @@ class Tests(unittest.TestCase):
         r3 = ihm.dataset.Repository(doi='foo', url='bar')
         r4 = ihm.dataset.Repository(doi='bar')
         self.assertEqual(r1, r2)
+        self.assertEqual(hash(r1), hash(r2))
         self.assertNotEqual(r1, r3)
         self.assertNotEqual(r1, r4)
 
@@ -188,6 +191,12 @@ class Tests(unittest.TestCase):
         f = ihm.dataset.FileLocation(repo=r, path='foo')
         self.assertEqual(f.repo.doi, '10.5281/zenodo.46266')
         self.assertEqual(f.path, 'foo')
+
+    def test_repository_get_full_path(self):
+        """Test Repository._get_full_path"""
+        r = ihm.dataset.Repository(doi='10.5281/zenodo.46266',
+                                   top_directory='/foo')
+        self.assertEqual(r._get_full_path('bar'), '/foo/bar')
 
 
 if __name__ == '__main__':
