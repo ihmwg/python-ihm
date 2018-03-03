@@ -161,7 +161,7 @@ class Assembly(list):
 
        Note that any duplicate assemblies will be pruned on output."""
 
-    #: Another :class:`Assembly` that is the immediate parent in a hierarchy        #: of assemblies, or `None` if no hierarchy is present.
+    #: :class:`Assembly` that is the immediate parent in a hierarchy, or `None`
     parent = None
 
     def __init__(self, elements=(), name=None, description=None):
