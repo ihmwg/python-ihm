@@ -26,6 +26,21 @@ class Tests(unittest.TestCase):
         self.assertEqual(e1, e2)
         self.assertNotEqual(e1, e3)
 
+    def test_assembly_component_entity(self):
+        """Test AssemblyComponent created from an entity"""
+        e = ihm.Entity('ABCD')
+        c = ihm.AssemblyComponent(e)
+        self.assertEqual(c.entity, e)
+        self.assertEqual(c.asym, None)
+
+    def test_assembly_component_asym(self):
+        """Test AssemblyComponent created from an asym unit"""
+        e = ihm.Entity('ABCD')
+        a = ihm.AsymUnit(e)
+        c = ihm.AssemblyComponent(a)
+        self.assertEqual(c.entity, e)
+        self.assertEqual(c.asym, a)
+
     def test_assembly_component_seqrange_entity(self):
         """Test AssemblyComponent default seq range from an entity"""
         e = ihm.Entity('ABCD')
@@ -47,9 +62,10 @@ class Tests(unittest.TestCase):
 
     def test_assembly(self):
         """Test Assembly class"""
-        e = ihm.Entity('ABCD')
-        c = ihm.AssemblyComponent(e)
-        a = ihm.Assembly([c], name='foo', description='bar')
+        e1 = ihm.Entity('ABCD')
+        e2 = ihm.Entity('ABC')
+        c = ihm.AssemblyComponent(e1)
+        a = ihm.Assembly([c, e2], name='foo', description='bar')
         self.assertEqual(a.name, 'foo')
         self.assertEqual(a.description, 'bar')
 

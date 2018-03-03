@@ -25,11 +25,10 @@ class Tests(unittest.TestCase):
         sys2 = ihm.System('system 2+3')
         fh = StringIO()
         ihm.dumper.write(fh, [sys1, sys2])
-        self.assertEqual(fh.getvalue(), """data_system1
-_entry.id system1
-data_system23
-_entry.id 'system 2+3'
-""")
+        lines = fh.getvalue().split('\n')
+        self.assertEqual(lines[:2], ["data_system1", "_entry.id system1"])
+        self.assertEqual(lines[9:11],
+                         ["data_system23", "_entry.id 'system 2+3'"])
 
     def test_dumper(self):
         """Test Dumper base class"""
@@ -197,6 +196,105 @@ B 1 bar
 C 2 baz
 #
 """)
+
+    def test_assembly_all_modeled(self):
+        """Test AssemblyDumper, all components modeled"""
+        system = ihm.System()
+        e1 = ihm.Entity('AAA', description='foo')
+        e2 = ihm.Entity('AA', description='baz')
+        a1 = ihm.AsymUnit(e1)
+        a2 = ihm.AsymUnit(e1)
+        a3 = ihm.AsymUnit(e2)
+        system.entities.extend((e1, e2))
+        system.asym_units.extend((a1, a2, a3))
+
+        c = ihm.AssemblyComponent(a2, seq_id_range=(2,3))
+        system.assemblies.append(ihm.Assembly((a1, c), name='foo'))
+        # Out of order assembly (should be ordered on output)
+        system.assemblies.append(ihm.Assembly((a3, a2), name='bar'))
+        # Duplicate assembly (should be ignored)
+        system.assemblies.append(ihm.Assembly((a2, a3)))
+
+        # Assign entity and asym IDs
+        ihm.dumper._EntityDumper().finalize(system)
+        ihm.dumper._StructAsymDumper().finalize(system)
+
+        d = ihm.dumper._AssemblyDumper()
+        d.finalize(system)
+        self.assertEqual([a.id for a in system.assemblies], [1,2,3,3])
+        out = _get_dumper_output(d, system)
+        self.assertEqual(out, """#
+loop_
+_ihm_struct_assembly_details.assembly_id
+_ihm_struct_assembly_details.assembly_name
+_ihm_struct_assembly_details.assembly_description
+1 'Complete assembly' 'All known components'
+2 foo .
+3 bar .
+#
+#
+loop_
+_ihm_struct_assembly.ordinal_id
+_ihm_struct_assembly.assembly_id
+_ihm_struct_assembly.parent_assembly_id
+_ihm_struct_assembly.entity_description
+_ihm_struct_assembly.entity_id
+_ihm_struct_assembly.asym_id
+_ihm_struct_assembly.seq_id_begin
+_ihm_struct_assembly.seq_id_end
+1 1 1 foo 1 A 1 3
+2 1 1 foo 1 B 1 3
+3 1 1 baz 2 C 1 2
+4 2 2 foo 1 A 1 3
+5 2 2 foo 1 B 2 3
+6 3 3 foo 1 B 1 3
+7 3 3 baz 2 C 1 2
+#
+""")
+
+    def test_assembly_subset_modeled(self):
+        """Test AssemblyDumper, subset of components modeled"""
+        system = ihm.System()
+        e1 = ihm.Entity('AAA', description='foo')
+        e2 = ihm.Entity('AA', description='bar')
+        a1 = ihm.AsymUnit(e1)
+        system.entities.extend((e1, e2))
+        system.asym_units.append(a1)
+        # Note that no asym unit uses entity e2, so the assembly
+        # should omit the chain ID ('.')
+
+        # Assign entity and asym IDs
+        ihm.dumper._EntityDumper().finalize(system)
+        ihm.dumper._StructAsymDumper().finalize(system)
+
+        d = ihm.dumper._AssemblyDumper()
+        d.finalize(system)
+        out = _get_dumper_output(d, system)
+        self.assertEqual(out, """#
+loop_
+_ihm_struct_assembly_details.assembly_id
+_ihm_struct_assembly_details.assembly_name
+_ihm_struct_assembly_details.assembly_description
+1 'Complete assembly' 'All known components'
+#
+#
+loop_
+_ihm_struct_assembly.ordinal_id
+_ihm_struct_assembly.assembly_id
+_ihm_struct_assembly.parent_assembly_id
+_ihm_struct_assembly.entity_description
+_ihm_struct_assembly.entity_id
+_ihm_struct_assembly.asym_id
+_ihm_struct_assembly.seq_id_begin
+_ihm_struct_assembly.seq_id_end
+1 1 1 foo 1 A 1 3
+2 1 1 bar 2 . 1 2
+#
+""")
+
+
+if __name__ == '__main__':
+    unittest.main()
 
 
 if __name__ == '__main__':

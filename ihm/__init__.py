@@ -33,6 +33,29 @@ class System(object):
         #: All assemblies used in the system. See :class:`Assembly`.
         self.assemblies = []
 
+        #: The assembly of the entire system. By convention this is always
+        #: the first assembly in the mmCIF file (assembly_id=1). Note that
+        #: currently this isn't filled in on output until dumper.write()
+        #: is called.
+        self.complete_assembly = Assembly((), name='Complete assembly',
+                                          description='All known components')
+        self.assemblies.append(self.complete_assembly)
+
+    def _make_complete_assembly(self):
+        """Fill in the complete assembly with all entities/asym units"""
+        # Clear out any existing components
+        self.complete_assembly[:] = []
+
+        # Include all asym units
+        seen_entities = {}
+        for asym in self.asym_units:
+            self.complete_assembly.append(AssemblyComponent(asym))
+            seen_entities[asym.entity] = None
+        # Add all entities without structure
+        for entity in self.entities:
+            if entity not in seen_entities:
+                self.complete_assembly.append(AssemblyComponent(entity))
+
 
 class Software(object):
     """Software used as part of the modeling protocol.
@@ -95,16 +118,35 @@ class AssemblyComponent(object):
     """
 
     def __init__(self, component, seq_id_range=None):
-        self.component, self._seqrange = component, seq_id_range
+        self._component, self._seqrange = component, seq_id_range
+
+    def __eq__(self, other):
+        return (self._component is other._component
+                and self.seq_id_range == other.seq_id_range)
+    def __hash__(self):
+        return hash((id(self._component), self.seq_id_range))
 
     def __get_seqrange(self):
         if self._seqrange:
+            # todo: fail if this is out of entity.sequence range
             return self._seqrange
-        elif isinstance(self.component, Entity):
-            return (1, len(self.component.sequence))
         else:
-            return (1, len(self.component.entity.sequence))
+            return (1, len(self.entity.sequence))
     seq_id_range = property(__get_seqrange, doc="Sequence range")
+
+    def __get_entity(self):
+        if isinstance(self._component, Entity):
+            return self._component
+        else:
+            return self._component.entity
+    entity = property(__get_entity,
+                      doc="The Entity for this part of the system")
+
+    def __get_asym(self):
+        if isinstance(self._component, AsymUnit):
+            return self._component
+    asym = property(__get_asym,
+                    doc="The AsymUnit for this part of the system, or None")
 
 
 class Assembly(list):
@@ -112,7 +154,8 @@ class Assembly(list):
        together.
 
        This is implemented as a simple list of :class:`AssemblyComponent`
-       objects.
+       objects. (For convenience, the constructor will also accept
+       :class:`Entity` and :class:`AsymUnit` objects in the initial list.)
 
        See :attr:`System.assemblies`.
 
@@ -122,5 +165,10 @@ class Assembly(list):
     parent = None
 
     def __init__(self, elements=(), name=None, description=None):
-        super(Assembly, self).__init__(elements)
+        def fix_element(e):
+            if isinstance(e, AssemblyComponent):
+                return e
+            else:
+                return AssemblyComponent(e)
+        super(Assembly, self).__init__(fix_element(e) for e in elements)
         self.name, self.description = name, description

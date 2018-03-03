@@ -125,9 +125,12 @@ class _EntityPolySeqDumper(_Dumper):
 
 class _StructAsymDumper(_Dumper):
     def finalize(self, system):
+        ordinal = 1
         # Assign asym IDs
         for asym, asym_id in zip(system.asym_units, util._AsymIDs()):
+            asym.ordinal = ordinal
             asym.id = asym_id
+            ordinal += 1
 
     def dump(self, system, writer):
         with writer.loop("_struct_asym",
@@ -135,6 +138,62 @@ class _StructAsymDumper(_Dumper):
             for asym in system.asym_units:
                 l.write(id=asym.id, entity_id=asym.entity.id,
                         details=asym.details)
+
+
+class _AssemblyDumper(_Dumper):
+    def finalize(self, system):
+        # Fill in complete assembly
+        system._make_complete_assembly()
+
+        # Sort each assembly by entity/asym id
+        def component_key(comp):
+            return (comp.entity.id, comp.asym.ordinal if comp.asym else 0)
+        for a in system.assemblies:
+            a.sort(key=component_key)
+
+        seen_assemblies = {}
+        # Assign IDs to all assemblies; duplicate assemblies get same ID
+        self._assembly_by_id = []
+        for a in system.assemblies:
+            # list isn't hashable but tuple is
+            hasha = tuple(a)
+            if hasha not in seen_assemblies:
+                self._assembly_by_id.append(a)
+                seen_assemblies[hasha] = a.id = len(self._assembly_by_id)
+            else:
+                a.id = seen_assemblies[hasha]
+
+    def dump_details(self, system, writer):
+        with writer.loop("_ihm_struct_assembly_details",
+                         ["assembly_id", "assembly_name",
+                          "assembly_description"]) as l:
+            for a in self._assembly_by_id:
+                l.write(assembly_id=a.id, assembly_name=a.name,
+                        assembly_description=a.description)
+
+    def dump(self, system, writer):
+        self.dump_details(system, writer)
+        ordinal = 1
+        with writer.loop("_ihm_struct_assembly",
+                         ["ordinal_id", "assembly_id", "parent_assembly_id",
+                          "entity_description",
+                          "entity_id", "asym_id", "seq_id_begin",
+                          "seq_id_end"]) as l:
+            for a in self._assembly_by_id:
+                for comp in a:
+                    entity = comp.entity
+                    seqrange = comp.seq_id_range
+                    l.write(ordinal_id=ordinal, assembly_id=a.id,
+                            # if no hierarchy then assembly is self-parent
+                            parent_assembly_id=a.parent.id if a.parent
+                                               else a.id,
+                            entity_description=entity.description,
+                            entity_id=entity.id,
+                            asym_id=comp.asym.id if comp.asym
+                                                 else writer.omitted,
+                            seq_id_begin=seqrange[0],
+                            seq_id_end=seqrange[1])
+                    ordinal += 1
 
 
 def write(fh, systems):
@@ -145,7 +204,8 @@ def write(fh, systems):
                _EntityDumper(),
                _EntityPolyDumper(),
                _EntityPolySeqDumper(),
-               _StructAsymDumper()]
+               _StructAsymDumper(),
+               _AssemblyDumper()]
     writer = ihm.format.CifWriter(fh)
     for system in systems:
         for d in dumpers:
