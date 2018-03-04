@@ -5,7 +5,7 @@ environment:
 
 install:
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
-  - "python.exe -m pip install codecov"
+  - "python.exe -m pip install codecov coverage nose"
 
 build: off
 
