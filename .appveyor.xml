@@ -12,5 +12,5 @@ build: off
 test_script:
   - "nosetests --with-coverage --cover-branches"
 
-after_success:
+on_success:
   - "codecov"
