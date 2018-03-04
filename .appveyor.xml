@@ -7,7 +7,7 @@ install:
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
   - "python.exe -m pip install codecov"
 
-build: off
+build_script:
 
 test_script:
   - "nosetests --with-coverage --cover-branches"
