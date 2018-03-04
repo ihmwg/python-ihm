@@ -357,7 +357,7 @@ _ihm_external_files.details
 4 3 foo.spd 'Input data or restraints' . 'EM micrographs'
 5 4 %s 'Modeling workflow or script' 4 .
 #
-""" % bar)
+""" % bar.replace(os.sep, '/'))
 
     def test_dataset_dumper_duplicates_details(self):
         """DatasetDumper ignores duplicate datasets with differing details"""

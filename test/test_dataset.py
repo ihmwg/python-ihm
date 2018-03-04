@@ -205,7 +205,7 @@ class Tests(unittest.TestCase):
         """Test Repository._get_full_path"""
         r = ihm.dataset.Repository(doi='10.5281/zenodo.46266',
                                    top_directory='/foo')
-        self.assertEqual(r._get_full_path('bar'), '/foo/bar')
+        self.assertEqual(r._get_full_path('bar'), '/foo%sbar' % os.sep)
 
     def test_file_locations(self):
         """Test FileLocation derived classes"""
