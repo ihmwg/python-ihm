@@ -27,20 +27,53 @@ class Tests(unittest.TestCase):
         d.add_parent(d2)
         self.assertEqual(len(d._parents), 1)
 
-    def test_experimental_datasets(self):
-        """Exercise various experimental dataset classes"""
-        l = ihm.dataset.PDBLocation('1abc', version='foo', details='bar')
-        d = ihm.dataset.CXMSDataset(l)
+    def test_cxms_dataset(self):
+        """Test CXMSDataset"""
+        loc = ihm.dataset.FileLocation(repo='mydoi', path='a')
+        d = ihm.dataset.CXMSDataset(loc)
         self.assertEqual(d.data_type, 'CX-MS data')
 
-        d = ihm.dataset.PDBDataset(l)
+    def test_mass_spec_dataset(self):
+        """Test MassSpecDataset"""
+        loc = ihm.dataset.FileLocation(repo='mydoi', path='a')
+        d = ihm.dataset.MassSpecDataset(loc)
+        self.assertEqual(d.data_type, 'Mass Spectrometry data')
+
+    def test_em_density_dataset(self):
+        """Test EMDensityDataset"""
+        loc = ihm.dataset.FileLocation(repo='mydoi', path='a')
+        d = ihm.dataset.EMDensityDataset(loc)
+        self.assertEqual(d.data_type, '3DEM volume')
+
+    def test_pdb_dataset(self):
+        """Test PDBDataset"""
+        loc = ihm.dataset.FileLocation(repo='mydoi', path='a')
+        d = ihm.dataset.PDBDataset(loc)
         self.assertEqual(d.data_type, 'Experimental model')
 
-        d = ihm.dataset.ComparativeModelDataset(l)
+    def test_comp_model_dataset(self):
+        """Test ComparativeModelDataset"""
+        loc = ihm.dataset.FileLocation(repo='mydoi', path='a')
+        d = ihm.dataset.ComparativeModelDataset(loc)
         self.assertEqual(d.data_type, 'Comparative model')
 
-        d = ihm.dataset.EMDensityDataset(l)
-        self.assertEqual(d.data_type, '3DEM volume')
+    def test_int_model_dataset(self):
+        """Test IntegrativeModelDataset"""
+        loc = ihm.dataset.FileLocation(repo='mydoi', path='a')
+        d = ihm.dataset.IntegrativeModelDataset(loc)
+        self.assertEqual(d.data_type, 'Integrative model')
+
+    def test_em2d_class_dataset(self):
+        """Test EM2DClassDataset"""
+        loc = ihm.dataset.FileLocation(repo='mydoi', path='a')
+        d = ihm.dataset.EM2DClassDataset(loc)
+        self.assertEqual(d.data_type, '2DEM class average')
+
+    def test_sas_dataset(self):
+        """Test SASDataset"""
+        loc = ihm.dataset.FileLocation(repo='mydoi', path='a')
+        d = ihm.dataset.SASDataset(loc)
+        self.assertEqual(d.data_type, 'SAS data')
 
     def test_database_location(self):
         """Test DatabaseLocation"""
@@ -73,6 +106,30 @@ class Tests(unittest.TestCase):
         self.assertEqual(l.access_code, 'EMDB-123')
         self.assertEqual(l.version, 'foo')
         self.assertEqual(l.details, 'bar')
+
+    def test_massive_location(self):
+        """Test MassIVELocation class"""
+        d = ihm.dataset.MassIVELocation('abc', version=1, details='foo')
+        self.assertEqual(d.db_name, 'MASSIVE')
+        self.assertEqual(d.access_code, 'abc')
+        self.assertEqual(d.version, 1)
+        self.assertEqual(d.details, 'foo')
+
+    def test_empiar_location(self):
+        """Test EMPIARLocation class"""
+        d = ihm.dataset.EMPIARLocation('abc', version=1, details='foo')
+        self.assertEqual(d.db_name, 'EMPIAR')
+        self.assertEqual(d.access_code, 'abc')
+        self.assertEqual(d.version, 1)
+        self.assertEqual(d.details, 'foo')
+
+    def test_sasbdb_location(self):
+        """Test SASBDBLocation class"""
+        d = ihm.dataset.SASBDBLocation('abc', version=1, details='foo')
+        self.assertEqual(d.db_name, 'SASBDB')
+        self.assertEqual(d.access_code, 'abc')
+        self.assertEqual(d.version, 1)
+        self.assertEqual(d.details, 'foo')
 
     def test_duplicate_datasets_details(self):
         """Datasets with differing details should be considered duplicates"""

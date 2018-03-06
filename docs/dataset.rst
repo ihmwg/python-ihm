@@ -13,13 +13,25 @@ The :mod:`ihm.dataset` Python module
 .. autoclass:: CXMSDataset
    :members:
 
+.. autoclass:: MassSpecDataset
+   :members:
+
 .. autoclass:: PDBDataset
    :members:
 
 .. autoclass:: ComparativeModelDataset
    :members:
 
+.. autoclass:: IntegrativeModelDataset
+   :members:
+
 .. autoclass:: EMDensityDataset
+   :members:
+
+.. autoclass:: EM2DClassDataset
+   :members:
+
+.. autoclass:: SASDataset
    :members:
 
 .. autoclass:: Location
@@ -32,6 +44,15 @@ The :mod:`ihm.dataset` Python module
    :members:
 
 .. autoclass:: PDBLocation
+   :members:
+
+.. autoclass:: MassIVELocation
+   :members:
+
+.. autoclass:: EMPIARLocation
+   :members:
+
+.. autoclass:: SASBDBLocation
    :members:
 
 .. autoclass:: FileLocation

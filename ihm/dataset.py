@@ -39,6 +39,11 @@ class CXMSDataset(Dataset):
     data_type = 'CX-MS data'
 
 
+class MassSpecDataset(Dataset):
+    """Raw mass spectrometry files such as peaklists"""
+    data_type = 'Mass Spectrometry data'
+
+
 class PDBDataset(Dataset):
     """An experimentally-determined 3D structure as a set of a coordinates,
        usually in a PDB file"""
@@ -50,9 +55,24 @@ class ComparativeModelDataset(Dataset):
     data_type = 'Comparative model'
 
 
+class IntegrativeModelDataset(Dataset):
+    """A 3D structure determined by integrative modeling"""
+    data_type = 'Integrative model'
+
+
 class EMDensityDataset(Dataset):
     """A 3D electron microscopy dataset"""
     data_type = '3DEM volume'
+
+
+class EM2DClassDataset(Dataset):
+    """2DEM class average"""
+    data_type = '2DEM class average'
+
+
+class SASDataset(Dataset):
+    """SAS data"""
+    data_type = 'SAS data'
 
 
 class Location(object):
@@ -104,6 +124,27 @@ class PDBLocation(DatabaseLocation):
     """Something stored in the PDB database."""
     def __init__(self, db_code, version=None, details=None):
         super(PDBLocation, self).__init__('PDB', db_code, version, details)
+
+
+class MassIVELocation(DatabaseLocation):
+    """Something stored in the MassIVE database."""
+    def __init__(self, db_code, version=None, details=None):
+        super(MassIVELocation, self).__init__('MASSIVE', db_code, version,
+                                              details)
+
+
+class EMPIARLocation(DatabaseLocation):
+    """Something stored in the EMPIAR database."""
+    def __init__(self, db_code, version=None, details=None):
+        super(EMPIARLocation, self).__init__('EMPIAR', db_code, version,
+                                             details)
+
+
+class SASBDBLocation(DatabaseLocation):
+    """Something stored in the SASBDB database."""
+    def __init__(self, db_code, version=None, details=None):
+        super(SASBDBLocation, self).__init__('SASBDB', db_code, version,
+                                             details)
 
 
 class FileLocation(Location):
