@@ -1,7 +1,7 @@
 """Representation of an IHM mmCIF file as a set of Python classes.
 
    Generally class names correspond to mmCIF table names and class
-   attributes to mmCIF attributes (with prefixes like pdbx_ stripped).
+   attributes to mmCIF attributes (with prefixes like `pdbx_` stripped).
    For example, the data item _entity.details is found in the
    :class:`Entity` class, as the `details` member.
 
