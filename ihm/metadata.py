@@ -1,4 +1,13 @@
 """Classes to extract metadata from various input files.
+
+   Often input files contain metadata that would be useful to include in
+   the mmCIF file, but the metadata is stored in a different way for each
+   domain-specific file type. For example, MRC files used for electron
+   microscopy maps may contain an EMDB identifier, which the mmCIF file
+   can point to in preference to the local file.
+
+   This module provides classes for each file type to extract suitable
+   metadata where available.
 """
 
 from . import location, dataset
