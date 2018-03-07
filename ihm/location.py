@@ -77,19 +77,19 @@ class SASBDBLocation(DatabaseLocation):
 
 class FileLocation(Location):
     """Base class for an individual file or directory stored externally.
-       This may be in a repository (if `repo` is not None) or only on the
-       local disk (if `repo` is None)."""
+
+       :param str path: the location of the file or directory
+       :param repo: object that describes the repository
+              containing the file, or `None` if it is stored on the local disk
+       :type repo: :class:`Repository`
+       :param str details: optional description of the file
+    """
 
     _eq_keys = Location._eq_keys + ['repo', 'path', 'content_type']
 
     content_type = None
 
     def __init__(self, path, repo=None, details=None):
-        """Constructor.
-           :param str path: the location of the file or directory
-           :param :class:`Repository` repo: object that describes the repository
-                  containing the file, or `None` if it is stored locally
-        """
         super(FileLocation, self).__init__(details)
         self.repo = repo
         if repo:
@@ -105,7 +105,10 @@ class FileLocation(Location):
 
 
 class InputFileLocation(FileLocation):
-    """An externally stored file used as input"""
+    """An externally stored file used as input.
+
+       For example, any :class:`dataset.Dataset` that isn't stored in
+       a domain-specific database would use this class."""
     content_type = 'Input data or restraints'
 
 
@@ -132,7 +135,21 @@ class Repository(object):
        used in this modeling, even if they haven't been uploaded to
        a database such as PDB or EMDB.
 
-       See also :class:`FileLocation`."""
+       See also :class:`FileLocation`.
+
+       :param str doi: the Digital Object Identifier for the repository
+       :param str root: the path on the local disk to the top-level
+              directory of the repository, or `None` if files in this
+              repository aren't checked out
+       :param str url: If given, a location that this repository can be
+              downloaded from.
+       :param str top_directory: If given, prefix all paths for files in
+              this repository with this value. This is useful when the
+              archived version of the repository is found in a subdirectory
+              at the URL or DOI (for example, GitHub repositories
+              archived at Zenodo get placed in a subdirectory named
+              for the repository and git hash).
+    """
 
     reference_type = 'DOI'
 
@@ -143,20 +160,6 @@ class Repository(object):
         return hash((self.doi, self.url))
 
     def __init__(self, doi, root=None, url=None, top_directory=None):
-        """Constructor.
-           :param str doi: the Digital Object Identifier for the repository
-           :param str root: the path on the local disk to the top-level
-                  directory of the repository, or `None` if files in this
-                  repository aren't checked out
-           :param str url: If given, a location that this repository can be
-                  downloaded from.
-           :param str top_directory: If given, prefix all paths for files in
-                  this repository with this value. This is useful when the
-                  archived version of the repository is found in a subdirectory
-                  at the URL or DOI (for example, GitHub repositories
-                  archived at Zenodo get placed in a subdirectory named
-                  for the repository and git hash).
-        """
         # todo: DOI should be optional (could also use URL, local path)
         self.doi = doi
         self.url, self.top_directory = url, top_directory

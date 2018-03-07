@@ -8,7 +8,14 @@ except ImportError:
 
 
 class Dataset(object):
-    """A set of input data, for example, a crystal structure or EM map."""
+    """A set of input data, for example, a crystal structure or EM map.
+
+       :param :class:`location.Location` location: a pointer to where the
+              dataset is stored. This is usually a subclass of
+              :class:`location.DatabaseLocation` if the dataset is deposited
+              in a database such as PDB or EMDB, or
+              :class:`location.InputFileLocation` if the dataset is stored
+              in an external file."""
 
     _eq_keys = ['location']
 
