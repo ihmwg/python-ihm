@@ -11,6 +11,7 @@ TOPDIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 utils.set_search_paths(TOPDIR)
 import ihm.dumper
 import ihm.format
+import ihm.location
 
 def _get_dumper_output(dumper, system):
     fh = StringIO()
@@ -295,26 +296,27 @@ _ihm_struct_assembly.seq_id_end
     def test_external_reference_dumper(self):
         """Test ExternalReferenceDumper"""
         system = ihm.System()
-        repo1 = ihm.dataset.Repository(doi="foo")
-        repo2 = ihm.dataset.Repository(doi="10.5281/zenodo.46266",
-                                       url='nup84-v1.0.zip',
-                                       top_directory=os.path.join('foo', 'bar'))
-        repo3 = ihm.dataset.Repository(doi="10.5281/zenodo.58025",
-                                       url='foo.spd')
-        l = ihm.dataset.InputFileLocation(repo=repo1, path='bar')
+        repo1 = ihm.location.Repository(doi="foo")
+        repo2 = ihm.location.Repository(doi="10.5281/zenodo.46266",
+                                        url='nup84-v1.0.zip',
+                                        top_directory=os.path.join('foo',
+                                                                   'bar'))
+        repo3 = ihm.location.Repository(doi="10.5281/zenodo.58025",
+                                        url='foo.spd')
+        l = ihm.location.InputFileLocation(repo=repo1, path='bar')
         system.locations.append(l)
         # Duplicates should be ignored
-        l = ihm.dataset.InputFileLocation(repo=repo1, path='bar')
+        l = ihm.location.InputFileLocation(repo=repo1, path='bar')
         system.locations.append(l)
         # Different file, same repository
-        l = ihm.dataset.InputFileLocation(repo=repo1, path='baz')
+        l = ihm.location.InputFileLocation(repo=repo1, path='baz')
         system.locations.append(l)
         # Different repository
-        l = ihm.dataset.OutputFileLocation(repo=repo2, path='baz')
+        l = ihm.location.OutputFileLocation(repo=repo2, path='baz')
         system.locations.append(l)
         # Repository containing a single file (not an archive)
-        l = ihm.dataset.InputFileLocation(repo=repo3, path='foo.spd',
-                                          details='EM micrographs')
+        l = ihm.location.InputFileLocation(repo=repo3, path='foo.spd',
+                                           details='EM micrographs')
         system.locations.append(l)
 
         with utils.temporary_directory('') as tmpdir:
@@ -322,9 +324,9 @@ _ihm_struct_assembly.seq_id_end
             with open(bar, 'w') as f:
                 f.write("abcd")
             # Local file
-            system.locations.append(ihm.dataset.WorkflowFileLocation(bar))
+            system.locations.append(ihm.location.WorkflowFileLocation(bar))
             # DatabaseLocations should be ignored
-            system.locations.append(ihm.dataset.PDBLocation(
+            system.locations.append(ihm.location.PDBLocation(
                                               '1abc', '1.0', 'test details'))
 
             d = ihm.dumper._ExternalReferenceDumper()
@@ -363,11 +365,11 @@ _ihm_external_files.details
         """DatasetDumper ignores duplicate datasets with differing details"""
         system = ihm.System()
         dump = ihm.dumper._DatasetDumper()
-        l = ihm.dataset.PDBLocation('1abc', '1.0', 'test details')
+        l = ihm.location.PDBLocation('1abc', '1.0', 'test details')
         ds1 = ihm.dataset.PDBDataset(l)
         system.datasets.append(ds1)
         # A duplicate dataset should be ignored even if details differ
-        l = ihm.dataset.PDBLocation('1abc', '1.0', 'other details')
+        l = ihm.location.PDBLocation('1abc', '1.0', 'other details')
         ds2 = ihm.dataset.PDBDataset(l)
         system.datasets.append(ds2)
         dump.finalize(system) # Assign IDs
@@ -378,8 +380,8 @@ _ihm_external_files.details
     def test_dataset_dumper_duplicates_samedata_sameloc(self):
         """DatasetDumper doesn't duplicate same datasets in same location"""
         system = ihm.System()
-        loc1 = ihm.dataset.DatabaseLocation("mydb", "abc", "1.0", "")
-        loc2 = ihm.dataset.DatabaseLocation("mydb", "xyz", "1.0", "")
+        loc1 = ihm.location.DatabaseLocation("mydb", "abc", "1.0", "")
+        loc2 = ihm.location.DatabaseLocation("mydb", "xyz", "1.0", "")
 
         # Identical datasets in the same location aren't duplicated
         cx1 = ihm.dataset.CXMSDataset(loc1)
@@ -395,8 +397,8 @@ _ihm_external_files.details
     def test_dataset_dumper_duplicates_samedata_diffloc(self):
         """DatasetDumper is OK with same datasets in different locations"""
         system = ihm.System()
-        loc1 = ihm.dataset.DatabaseLocation("mydb", "abc", "1.0", "")
-        loc2 = ihm.dataset.DatabaseLocation("mydb", "xyz", "1.0", "")
+        loc1 = ihm.location.DatabaseLocation("mydb", "abc", "1.0", "")
+        loc2 = ihm.location.DatabaseLocation("mydb", "xyz", "1.0", "")
         cx1 = ihm.dataset.CXMSDataset(loc1)
         cx2 = ihm.dataset.CXMSDataset(loc2)
         dump = ihm.dumper._DatasetDumper()
@@ -410,7 +412,7 @@ _ihm_external_files.details
         """DatasetDumper is OK with different datasets in same location"""
         system = ihm.System()
         # Different datasets in same location are OK (but odd)
-        loc2 = ihm.dataset.DatabaseLocation("mydb", "xyz", "1.0", "")
+        loc2 = ihm.location.DatabaseLocation("mydb", "xyz", "1.0", "")
         cx2 = ihm.dataset.CXMSDataset(loc2)
         em3d = ihm.dataset.EMDensityDataset(loc2)
         dump = ihm.dumper._DatasetDumper()
@@ -423,8 +425,8 @@ _ihm_external_files.details
     def test_dataset_dumper_allow_duplicates(self):
         """DatasetDumper is OK with duplicates if allow_duplicates=True"""
         system = ihm.System()
-        emloc1 = ihm.dataset.EMDBLocation("abc")
-        emloc2 = ihm.dataset.EMDBLocation("abc")
+        emloc1 = ihm.location.EMDBLocation("abc")
+        emloc2 = ihm.location.EMDBLocation("abc")
         emloc1._allow_duplicates = True
         em3d_1 = ihm.dataset.EMDensityDataset(emloc1)
         em3d_2 = ihm.dataset.EMDensityDataset(emloc2)
@@ -438,12 +440,12 @@ _ihm_external_files.details
     def test_dataset_dumper_dump(self):
         """Test DatasetDumper.dump()"""
         system = ihm.System()
-        l = ihm.dataset.InputFileLocation(repo='foo', path='bar')
+        l = ihm.location.InputFileLocation(repo='foo', path='bar')
         l.id = 97
         ds1 = ihm.dataset.CXMSDataset(l)
         system.datasets.append(ds1)
 
-        l = ihm.dataset.PDBLocation('1abc', '1.0', 'test details')
+        l = ihm.location.PDBLocation('1abc', '1.0', 'test details')
         ds2 = ihm.dataset.PDBDataset(l)
         system.datasets.append(ds2)
         ds2.add_parent(ds1)

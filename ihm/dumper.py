@@ -5,7 +5,7 @@ import os
 import operator
 import ihm.format
 from . import util
-from . import dataset
+from . import location
 
 # Standard amino acids, mapping from 1 to 3 letter codes
 _amino_acids = {'A':'ALA', 'C':'CYS', 'D':'ASP', 'E':'GLU', 'F':'PHE',
@@ -220,7 +220,7 @@ class _ExternalReferenceDumper(_Dumper):
         # Keep only locations that don't point into databases (these are
         # handled elsewhere)
         self._refs = [x for x in system.locations
-                      if not isinstance(x, dataset.DatabaseLocation)]
+                      if not isinstance(x, location.DatabaseLocation)]
         # Assign IDs to all locations and repos (including the None repo, which
         # is for local files)
         seen_refs = {}
@@ -231,7 +231,7 @@ class _ExternalReferenceDumper(_Dumper):
         self._local_files = self._LocalFiles(os.getcwd())
         for r in self._refs:
             # todo: Update location to point to parent repository, if any
-            #dataset.Repository._update_in_repos(r)
+            #location.Repository._update_in_repos(r)
             # Assign a unique ID to the reference
             util._assign_id(r, seen_refs, self._ref_by_id)
             # Assign a unique ID to the repository
@@ -289,14 +289,14 @@ class _DatasetDumper(_Dumper):
             for d in self._dataset_by_id:
                 l.write(id=d.id, data_type=d.data_type,
                         database_hosted=isinstance(d.location,
-                                                   dataset.DatabaseLocation))
+                                                   location.DatabaseLocation))
         self.dump_other((d for d in self._dataset_by_id
                          if not isinstance(d.location,
-                                           dataset.DatabaseLocation)),
+                                           location.DatabaseLocation)),
                         writer)
         self.dump_rel_dbs((d for d in self._dataset_by_id
                            if isinstance(d.location,
-                                         dataset.DatabaseLocation)),
+                                         location.DatabaseLocation)),
                           writer)
         self.dump_related(system, writer)
 
