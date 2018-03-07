@@ -41,10 +41,12 @@ class System(object):
                                           description='All known components')
         self.assemblies.append(self.complete_assembly)
 
-        #: Locations of all extra resources. See :class:`location.Location`.
+        #: Locations of all extra resources.
+        #: See :class:`~ihm.location.Location`.
         self.locations = []
 
-        #: All datasets used in the modeling. See :class:`dataset.Dataset`.
+        #: All datasets used in the modeling.
+        #: See :class:`~ihm.dataset.Dataset`.
         self.datasets = []
 
     def _make_complete_assembly(self):

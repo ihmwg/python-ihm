@@ -31,7 +31,7 @@ class Parser(object):
 
            :param str filename: the file to extract metadata from.
            :return: a dict with extracted metadata (generally including
-                    a :class:`dataset.Dataset`)."""
+                    a :class:`~ihm.dataset.Dataset`)."""
         pass
 
 

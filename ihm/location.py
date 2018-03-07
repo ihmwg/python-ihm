@@ -107,7 +107,7 @@ class FileLocation(Location):
 class InputFileLocation(FileLocation):
     """An externally stored file used as input.
 
-       For example, any :class:`dataset.Dataset` that isn't stored in
+       For example, any :class:`~ihm.dataset.Dataset` that isn't stored in
        a domain-specific database would use this class."""
     content_type = 'Input data or restraints'
 
