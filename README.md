@@ -4,7 +4,8 @@
 [![codecov](https://codecov.io/gh/ihmwg/python-ihm/branch/master/graph/badge.svg)](https://codecov.io/gh/ihmwg/python-ihm)
 
 This is a Python package to assist in handling mmCIF files compliant
-with the integrative/hybrid modeling (IHM) extension.
+with the integrative/hybrid modeling (IHM) extension. It works with Python 2.6
+or later (Python 3 is fully supported).
 
 Please [see the documentation](https://python-ihm.readthedocs.org/) for
 more details.
