@@ -17,20 +17,26 @@ import ihm.metadata
 
 class Tests(unittest.TestCase):
 
+    def test_parser(self):
+        """Test Parser base class"""
+        p = ihm.metadata.Parser()
+        p.parse_file(None) # does nothing
+
     def test_mrc_parser_local_mrc(self):
         """Test MRCParser pointing to a locally-available MRC file"""
         p = ihm.metadata.MRCParser()
-        # Note that this is not a complete MRC file (only the header),
+        # Note that this are not complete MRC files (only the headers),
         # to save space in the repository
-        fname = utils.get_input_file_name(TOPDIR, 'Rpb8.mrc-header')
-        d = p.parse_file(fname)
-        self.assertEqual(list(d.keys()), ['dataset'])
-        dataset = d['dataset']
-        self.assertEqual(dataset.data_type, '3DEM volume')
-        self.assertEqual(dataset.location.path, fname)
-        self.assertEqual(dataset.location.details,
-                         'Electron microscopy density map')
-        self.assertEqual(dataset.location.repo, None)
+        for input_file in ('Rpb8.mrc-header', 'emptylabel.mrc-header'):
+            fname = utils.get_input_file_name(TOPDIR, input_file)
+            d = p.parse_file(fname)
+            self.assertEqual(list(d.keys()), ['dataset'])
+            dataset = d['dataset']
+            self.assertEqual(dataset.data_type, '3DEM volume')
+            self.assertEqual(dataset.location.path, fname)
+            self.assertEqual(dataset.location.details,
+                             'Electron microscopy density map')
+            self.assertEqual(dataset.location.repo, None)
 
     def test_mrc_parser_emdb(self):
         """Test MRCParser pointing to an MRC in EMDB"""
