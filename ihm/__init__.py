@@ -41,7 +41,7 @@ class System(object):
                                           description='All known components')
         self.assemblies.append(self.complete_assembly)
 
-        #: Locations of all extra resources. See :class:`dataset.Location`.
+        #: Locations of all extra resources. See :class:`location.Location`.
         self.locations = []
 
         #: All datasets used in the modeling. See :class:`dataset.Dataset`.
