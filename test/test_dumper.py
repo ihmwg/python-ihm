@@ -487,5 +487,52 @@ _ihm_related_datasets.dataset_list_id_primary
 #
 """)
 
+
+    def test_model_representation_dump(self):
+        """Test ModelRepresentationDumper"""
+        system = ihm.System()
+        e1 = ihm.Entity('AAAA', description='bar')
+        system.entities.append(e1)
+        asym = ihm.AsymUnit(e1, 'foo')
+        system.asym_units.append(asym)
+
+        s1 = ihm.RepresentationSegment(asym_unit=asym, seq_id_range=(1,2),
+                                       primitive='sphere', starting_model=None,
+                                       rigid=True, granularity='by-residue',
+                                       count=2)
+        s2 = ihm.RepresentationSegment(asym_unit=asym, seq_id_range=(3,4),
+                                       primitive='sphere', starting_model=None,
+                                       rigid=False, granularity='by-feature',
+                                       count=None)
+        r = ihm.Representation([s1, s2])
+        system.representations.append(r)
+
+        e1.id = 42
+        asym.id = 'X'
+
+        dumper = ihm.dumper._ModelRepresentationDumper()
+        dumper.finalize(system) # assign IDs
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_ihm_model_representation.ordinal_id
+_ihm_model_representation.representation_id
+_ihm_model_representation.segment_id
+_ihm_model_representation.entity_id
+_ihm_model_representation.entity_description
+_ihm_model_representation.entity_asym_id
+_ihm_model_representation.seq_id_begin
+_ihm_model_representation.seq_id_end
+_ihm_model_representation.model_object_primitive
+_ihm_model_representation.starting_model_id
+_ihm_model_representation.model_mode
+_ihm_model_representation.model_granularity
+_ihm_model_representation.model_object_count
+1 1 1 42 bar X 1 2 sphere . rigid by-residue 2
+2 1 2 42 bar X 3 4 sphere . flexible by-feature .
+#
+""")
+
+
 if __name__ == '__main__':
     unittest.main()

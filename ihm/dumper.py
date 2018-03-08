@@ -334,6 +334,42 @@ class _DatasetDumper(_Dumper):
                             dataset_list_id_primary=parent.id)
                     ordinal += 1
 
+class _ModelRepresentationDumper(_Dumper):
+    def finalize(self, system):
+        # Assign IDs to representations and segments
+        for nr, r in enumerate(system.representations):
+            r.id = nr + 1
+            for ns, s in enumerate(r):
+                s.id = ns + 1
+
+    def dump(self, system, writer):
+        ordinal_id = 1
+        with writer.loop("_ihm_model_representation",
+                         ["ordinal_id", "representation_id",
+                          "segment_id", "entity_id", "entity_description",
+                          "entity_asym_id",
+                          "seq_id_begin", "seq_id_end",
+                          "model_object_primitive", "starting_model_id",
+                          "model_mode", "model_granularity",
+                          "model_object_count"]) as l:
+            for r in system.representations:
+                for segment in r:
+                    entity = segment.asym_unit.entity
+                    l.write(ordinal_id=ordinal_id, representation_id=r.id,
+                            segment_id=segment.id, entity_id=entity.id,
+                            entity_description=entity.description,
+                            entity_asym_id=segment.asym_unit.id,
+                            seq_id_begin=segment.seq_id_range[0],
+                            seq_id_end=segment.seq_id_range[1],
+                            model_object_primitive=segment.primitive,
+                            starting_model_id=segment.starting_model.id
+                                                  if segment.starting_model
+                                                  else None,
+                            model_mode='rigid' if segment.rigid else 'flexible',
+                            model_granularity=segment.granularity,
+                            model_object_count=segment.count)
+                    ordinal_id += 1
+
 
 def write(fh, systems):
     """Write out all `systems` to the mmCIF file handle `fh`"""
@@ -346,7 +382,8 @@ def write(fh, systems):
                _StructAsymDumper(),
                _AssemblyDumper(),
                _ExternalReferenceDumper(),
-               _DatasetDumper()]
+               _DatasetDumper(),
+               _ModelRepresentationDumper()]
     writer = ihm.format.CifWriter(fh)
     for system in systems:
         for d in dumpers:

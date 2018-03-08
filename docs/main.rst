@@ -26,3 +26,9 @@ The :mod:`ihm` Python module
 
 .. autoclass:: Assembly
    :members:
+
+.. autoclass:: RepresentationSegment
+   :members:
+
+.. autoclass:: Representation
+   :members:
