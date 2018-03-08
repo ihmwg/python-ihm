@@ -71,6 +71,45 @@ class UnknownSource(Source):
         self.chain_id = chain
 
 
+class StartingModel(object):
+    """A starting guess for modeling of an asymmetric unit
+
+       See :attr:`~ihm.System.starting_models`.
+
+       :param asym_unit: The asymmetric unit this model represents.
+       :type asym_unit: :class:`~ihm.AsymUnit`
+       :param dataset: Pointer to where this model is stored.
+       :type dataset: :class:`~ihm.dataset.Dataset`
+       :param str asym_id: The asymmetric unit (chain) to use from the starting
+              model.
+       :param list sources: A list of :class:`Source` objects.
+       :param int offset: Offset between the residue numbering in the dataset
+              and the IHM model (the offset is added to the starting model
+              numbering to give the IHM model numbering).
+    """
+    def __init__(self, asym_unit, dataset, asym_id, sources, offset=0):
+        self.asym_unit, self.sources = asym_unit, sources
+        self.dataset, self.asym_id, self.offset = dataset, asym_id, offset
+
+    def get_seq_id_range_all_sources(self):
+        """Get the seq_id range covered by all sources in this starting
+           model. Where there are multiple sources (to date, this can only
+           mean multiple templates for a comparative model) consolidate
+           them; template info is given in starting_comparative_models."""
+        class FullSeqIdRange(object):
+            pass
+        s = FullSeqIdRange()
+        s.seq_id_begin = 1
+        s.seq_id_end = len(self.asym_unit.entity.sequence)
+        source0 = self.sources[0]
+        seq_id_begin, seq_id_end = source0.get_seq_id_range(s)
+        for source in self.sources[1:]:
+            this_begin, this_end = source.get_seq_id_range(s)
+            seq_id_begin = min(seq_id_begin, this_begin)
+            seq_id_end = max(seq_id_end, this_end)
+        return seq_id_begin, seq_id_end
+
+
 class PDBHelix(object):
     """Represent a HELIX record from a PDB file."""
     def __init__(self, line):

@@ -19,5 +19,8 @@ The :mod:`ihm.startmodel` Python module
 .. autoclass:: UnknownSource
    :members:
 
+.. autoclass:: StartingModel
+   :members:
+
 .. autoclass:: PDBHelix
    :members:

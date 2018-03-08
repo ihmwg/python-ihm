@@ -371,6 +371,36 @@ class _ModelRepresentationDumper(_Dumper):
                             model_object_count=segment.count)
                     ordinal_id += 1
 
+class _StartingModelDumper(_Dumper):
+    def finalize(self, system):
+        # Assign IDs to starting models
+        for nm, m in enumerate(system.starting_models):
+            m._id = nm + 1
+
+    def dump(self, system, writer):
+        self.dump_details(system, writer)
+
+    def dump_details(self, system, writer):
+        with writer.loop("_ihm_starting_model_details",
+                     ["starting_model_id", "entity_id", "entity_description",
+                      "asym_id", "seq_id_begin",
+                      "seq_id_end", "starting_model_source",
+                      "starting_model_auth_asym_id",
+                      "starting_model_sequence_offset",
+                      "dataset_list_id"]) as l:
+             for sm in system.starting_models:
+                seq_id_begin, seq_id_end = sm.get_seq_id_range_all_sources()
+                l.write(starting_model_id=sm._id,
+                        entity_id=sm.asym_unit.entity._id,
+                        entity_description=sm.asym_unit.entity.description,
+                        asym_id=sm.asym_unit._id,
+                        seq_id_begin=seq_id_begin,
+                        seq_id_end=seq_id_end,
+                        starting_model_source=sm.sources[0].source,
+                        starting_model_auth_asym_id=sm.asym_id,
+                        dataset_list_id=sm.dataset._id,
+                        starting_model_sequence_offset=sm.offset)
+
 
 def write(fh, systems):
     """Write out all `systems` to the mmCIF file handle `fh`"""
@@ -384,7 +414,8 @@ def write(fh, systems):
                _AssemblyDumper(),
                _ExternalReferenceDumper(),
                _DatasetDumper(),
-               _ModelRepresentationDumper()]
+               _ModelRepresentationDumper(),
+               _StartingModelDumper()]
     writer = ihm.format.CifWriter(fh)
     for system in systems:
         for d in dumpers:

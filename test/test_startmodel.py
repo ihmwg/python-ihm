@@ -81,6 +81,16 @@ class Tests(unittest.TestCase):
         self.assertEqual(p.helix_class, 1)
         self.assertEqual(p.length, 18)
 
+    def test_starting_model(self):
+        """Test StartingModel class"""
+        e1 = ihm.Entity('AAAA')
+        asym = ihm.AsymUnit(e1)
+        s1 = ihm.startmodel.PDBSource('1abc', 'C', [])
+        s2 = ihm.startmodel.PDBSource('2xyz', 'D', [])
+        s = ihm.startmodel.StartingModel(asym, 'mock_dataset', 'A',
+                                         [s1, s2], offset=10)
+        self.assertEqual(s.get_seq_id_range_all_sources(), (1,4))
+
 
 if __name__ == '__main__':
     unittest.main()

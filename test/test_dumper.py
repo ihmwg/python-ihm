@@ -13,6 +13,7 @@ import ihm.dumper
 import ihm.format
 import ihm.location
 import ihm.representation
+import ihm.startmodel
 
 def _get_dumper_output(dumper, system):
     fh = StringIO()
@@ -540,6 +541,44 @@ _ihm_model_representation.model_object_count
 4 2 2 42 bar X 3 4 other . rigid by-feature 3
 #
 """)
+
+    def test_starting_model_dumper(self):
+        """Test StartingModelDumper"""
+        system = ihm.System()
+        e1 = ihm.Entity('AAA', description='foo')
+        system.entities.append(e1)
+        asym = ihm.AsymUnit(e1, 'bar')
+        system.asym_units.append(asym)
+        l = ihm.location.PDBLocation('1abc', '1.0', 'test details')
+        ds1 = ihm.dataset.PDBDataset(l)
+        system.datasets.append(ds1)
+
+        s1 = ihm.startmodel.PDBSource('1abc', 'C', [])
+        sm = ihm.startmodel.StartingModel(asym, ds1, 'A', [s1], offset=10)
+        system.starting_models.append(sm)
+
+        e1._id = 42
+        asym._id = 99
+        ds1._id = 101
+        dumper = ihm.dumper._StartingModelDumper()
+        dumper.finalize(system) # assign IDs
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_ihm_starting_model_details.starting_model_id
+_ihm_starting_model_details.entity_id
+_ihm_starting_model_details.entity_description
+_ihm_starting_model_details.asym_id
+_ihm_starting_model_details.seq_id_begin
+_ihm_starting_model_details.seq_id_end
+_ihm_starting_model_details.starting_model_source
+_ihm_starting_model_details.starting_model_auth_asym_id
+_ihm_starting_model_details.starting_model_sequence_offset
+_ihm_starting_model_details.dataset_list_id
+1 42 foo 99 1 3 'experimental model' A 10 101
+#
+""")
+
 
 
 if __name__ == '__main__':

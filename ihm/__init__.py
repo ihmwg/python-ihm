@@ -53,6 +53,10 @@ class System(object):
         #: See :class:`~ihm.representation.Representation`.
         self.representations = []
 
+        #: All starting models for the system.
+        #: See :class:`~ihm.startmodel.StartingModel`.
+        self.starting_models = []
+
     def _make_complete_assembly(self):
         """Fill in the complete assembly with all entities/asym units"""
         # Clear out any existing components
