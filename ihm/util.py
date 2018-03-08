@@ -22,12 +22,12 @@ class _AsymIDs(object):
 def _assign_id(obj, seen_objs, obj_by_id):
     """Assign a unique ID to obj, and track all ids in obj_by_id."""
     if obj not in seen_objs:
-        if not hasattr(obj, 'id'):
+        if not hasattr(obj, '_id'):
             obj_by_id.append(obj)
-            obj.id = len(obj_by_id)
-        seen_objs[obj] = obj.id
+            obj._id = len(obj_by_id)
+        seen_objs[obj] = obj._id
     else:
-        obj.id = seen_objs[obj]
+        obj._id = seen_objs[obj]
 
 def _get_relative_path(reference, path):
     """Return `path` interpreted relative to `reference`"""

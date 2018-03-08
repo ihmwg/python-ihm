@@ -34,13 +34,13 @@ class Tests(unittest.TestCase):
         obj1b = DummyObj(42)
         obj2 = DummyObj(34)
         obj3 = DummyObj(23) # obj3 already has an id
-        obj3.id = 'foo'
+        obj3._id = 'foo'
         for obj in (obj1a, obj1b, obj2, obj3):
             ihm.util._assign_id(obj, seen_objs, obj_by_id)
-        self.assertEqual(obj1a.id, 1)
-        self.assertEqual(obj1b.id, 1)
-        self.assertEqual(obj2.id, 2)
-        self.assertEqual(obj3.id, 'foo')
+        self.assertEqual(obj1a._id, 1)
+        self.assertEqual(obj1b._id, 1)
+        self.assertEqual(obj2._id, 2)
+        self.assertEqual(obj3._id, 'foo')
         self.assertEqual(obj_by_id, [obj1a, obj2])
 
     def test_get_relative_path(self):

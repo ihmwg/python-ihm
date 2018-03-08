@@ -74,7 +74,7 @@ class _EntityDumper(_Dumper):
         for num, entity in enumerate(system.entities):
             if entity in seen:
                 raise ValueError("Duplicate entity %s found" % entity)
-            entity.id = num + 1
+            entity._id = num + 1
             seen[entity] = None
 
     def dump(self, system, writer):
@@ -83,7 +83,7 @@ class _EntityDumper(_Dumper):
                           "formula_weight", "pdbx_number_of_molecules",
                           "details"]) as l:
             for entity in system.entities:
-                l.write(id=entity.id, type=entity.type,
+                l.write(id=entity._id, type=entity.type,
 			src_method=entity.src_method,
                         pdbx_description=entity.description,
                         formula_weight=entity.formula_weight,
@@ -97,8 +97,8 @@ class _EntityPolyDumper(_Dumper):
         # Get the first asym unit (if any) for each entity
         strand = {}
         for asym in system.asym_units:
-            if asym.entity.id not in strand:
-                strand[asym.entity.id] = asym.id
+            if asym.entity._id not in strand:
+                strand[asym.entity._id] = asym._id
         with writer.loop("_entity_poly",
                          ["entity_id", "type", "nstd_linkage",
                           "nstd_monomer", "pdbx_strand_id",
@@ -108,9 +108,9 @@ class _EntityPolyDumper(_Dumper):
                 seq = entity.sequence
                 # Split into lines to get tidier CIF output
                 seq = "\n".join(seq[i:i+70] for i in range(0, len(seq), 70))
-                l.write(entity_id=entity.id, type='polypeptide(L)',
+                l.write(entity_id=entity._id, type='polypeptide(L)',
                         nstd_linkage='no', nstd_monomer='no',
-                        pdbx_strand_id=strand.get(entity.id, None),
+                        pdbx_strand_id=strand.get(entity._id, None),
                         pdbx_seq_one_letter_code=seq,
                         pdbx_seq_one_letter_code_can=seq)
 
@@ -123,7 +123,7 @@ class _EntityPolySeqDumper(_Dumper):
                 seq = entity.sequence
                 for num, one_letter_code in enumerate(seq):
                     resid = _amino_acids[one_letter_code]
-                    l.write(entity_id=entity.id, num=num + 1, mon_id=resid)
+                    l.write(entity_id=entity._id, num=num + 1, mon_id=resid)
 
 
 class _StructAsymDumper(_Dumper):
@@ -132,14 +132,14 @@ class _StructAsymDumper(_Dumper):
         # Assign asym IDs
         for asym, asym_id in zip(system.asym_units, util._AsymIDs()):
             asym.ordinal = ordinal
-            asym.id = asym_id
+            asym._id = asym_id
             ordinal += 1
 
     def dump(self, system, writer):
         with writer.loop("_struct_asym",
                          ["id", "entity_id", "details"]) as l:
             for asym in system.asym_units:
-                l.write(id=asym.id, entity_id=asym.entity.id,
+                l.write(id=asym._id, entity_id=asym.entity._id,
                         details=asym.details)
 
 
@@ -150,7 +150,7 @@ class _AssemblyDumper(_Dumper):
 
         # Sort each assembly by entity/asym id
         def component_key(comp):
-            return (comp.entity.id, comp.asym.ordinal if comp.asym else 0)
+            return (comp.entity._id, comp.asym.ordinal if comp.asym else 0)
         for a in system.assemblies:
             a.sort(key=component_key)
 
@@ -162,16 +162,16 @@ class _AssemblyDumper(_Dumper):
             hasha = tuple(a)
             if hasha not in seen_assemblies:
                 self._assembly_by_id.append(a)
-                seen_assemblies[hasha] = a.id = len(self._assembly_by_id)
+                seen_assemblies[hasha] = a._id = len(self._assembly_by_id)
             else:
-                a.id = seen_assemblies[hasha]
+                a._id = seen_assemblies[hasha]
 
     def dump_details(self, system, writer):
         with writer.loop("_ihm_struct_assembly_details",
                          ["assembly_id", "assembly_name",
                           "assembly_description"]) as l:
             for a in self._assembly_by_id:
-                l.write(assembly_id=a.id, assembly_name=a.name,
+                l.write(assembly_id=a._id, assembly_name=a.name,
                         assembly_description=a.description)
 
     def dump(self, system, writer):
@@ -186,14 +186,14 @@ class _AssemblyDumper(_Dumper):
                 for comp in a:
                     entity = comp.entity
                     seqrange = comp.seq_id_range
-                    l.write(ordinal_id=ordinal, assembly_id=a.id,
+                    l.write(ordinal_id=ordinal, assembly_id=a._id,
                             # if no hierarchy then assembly is self-parent
-                            parent_assembly_id=a.parent.id if a.parent
-                                               else a.id,
+                            parent_assembly_id=a.parent._id if a.parent
+                                               else a._id,
                             entity_description=entity.description,
-                            entity_id=entity.id,
-                            asym_id=comp.asym.id if comp.asym
-                                                 else writer.omitted,
+                            entity_id=entity._id,
+                            asym_id=comp.asym._id if comp.asym
+                                                  else writer.omitted,
                             seq_id_begin=seqrange[0],
                             seq_id_end=seqrange[1])
                     ordinal += 1
@@ -248,7 +248,7 @@ class _ExternalReferenceDumper(_Dumper):
                           "reference_type", "reference", "refers_to",
                           "associated_url"]) as l:
             for repo in self._repo_by_id:
-                l.write(reference_id=repo.id,
+                l.write(reference_id=repo._id,
                         reference_provider=repo.reference_provider,
                         reference_type=repo.reference_type,
                         reference=repo.reference, refers_to=repo.refers_to,
@@ -261,7 +261,7 @@ class _ExternalReferenceDumper(_Dumper):
             for r in self._ref_by_id:
                 repo = r.repo or self._local_files
                 file_path = self._posix_path(repo._get_full_path(r.path))
-                l.write(id=r.id, reference_id=repo.id,
+                l.write(id=r._id, reference_id=repo._id,
                         file_path=file_path, content_type=r.content_type,
                         file_size_bytes=r.file_size, details=r.details)
 
@@ -287,7 +287,7 @@ class _DatasetDumper(_Dumper):
         with writer.loop("_ihm_dataset_list",
                          ["id", "data_type", "database_hosted"]) as l:
             for d in self._dataset_by_id:
-                l.write(id=d.id, data_type=d.data_type,
+                l.write(id=d._id, data_type=d.data_type,
                         database_hosted=isinstance(d.location,
                                                    location.DatabaseLocation))
         self.dump_other((d for d in self._dataset_by_id
@@ -305,7 +305,8 @@ class _DatasetDumper(_Dumper):
         with writer.loop("_ihm_dataset_external_reference",
                          ["id", "dataset_list_id", "file_id"]) as l:
             for d in datasets:
-                l.write(id=ordinal, dataset_list_id=d.id, file_id=d.location.id)
+                l.write(id=ordinal, dataset_list_id=d._id,
+                        file_id=d.location._id)
                 ordinal += 1
 
     def dump_rel_dbs(self, datasets, writer):
@@ -314,7 +315,7 @@ class _DatasetDumper(_Dumper):
                          ["id", "dataset_list_id", "db_name",
                           "accession_code", "version", "details"]) as l:
             for d in datasets:
-                l.write(id=ordinal, dataset_list_id=d.id,
+                l.write(id=ordinal, dataset_list_id=d._id,
                         db_name=d.location.db_name,
                         accession_code=d.location.access_code,
                         version=d.location.version,
@@ -328,19 +329,19 @@ class _DatasetDumper(_Dumper):
                           "dataset_list_id_primary"]) as l:
              for derived in self._dataset_by_id:
                 for parent in sorted(derived._parents.keys(),
-                                     key=operator.attrgetter('id')):
+                                     key=operator.attrgetter('_id')):
                     l.write(ordinal_id=ordinal,
-                            dataset_list_id_derived=derived.id,
-                            dataset_list_id_primary=parent.id)
+                            dataset_list_id_derived=derived._id,
+                            dataset_list_id_primary=parent._id)
                     ordinal += 1
 
 class _ModelRepresentationDumper(_Dumper):
     def finalize(self, system):
         # Assign IDs to representations and segments
         for nr, r in enumerate(system.representations):
-            r.id = nr + 1
+            r._id = nr + 1
             for ns, s in enumerate(r):
-                s.id = ns + 1
+                s._id = ns + 1
 
     def dump(self, system, writer):
         ordinal_id = 1
@@ -355,14 +356,14 @@ class _ModelRepresentationDumper(_Dumper):
             for r in system.representations:
                 for segment in r:
                     entity = segment.asym_unit.entity
-                    l.write(ordinal_id=ordinal_id, representation_id=r.id,
-                            segment_id=segment.id, entity_id=entity.id,
+                    l.write(ordinal_id=ordinal_id, representation_id=r._id,
+                            segment_id=segment._id, entity_id=entity._id,
                             entity_description=entity.description,
-                            entity_asym_id=segment.asym_unit.id,
+                            entity_asym_id=segment.asym_unit._id,
                             seq_id_begin=segment.seq_id_range[0],
                             seq_id_end=segment.seq_id_range[1],
                             model_object_primitive=segment.primitive,
-                            starting_model_id=segment.starting_model.id
+                            starting_model_id=segment.starting_model._id
                                                   if segment.starting_model
                                                   else None,
                             model_mode='rigid' if segment.rigid else 'flexible',

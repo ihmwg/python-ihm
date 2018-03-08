@@ -179,8 +179,8 @@ _entity_poly_seq.hetero
         system = ihm.System()
         e1 = ihm.Entity('ACGT')
         e2 = ihm.Entity('ACC')
-        e1.id = 1
-        e2.id = 2
+        e1._id = 1
+        e2._id = 2
         system.entities.extend((e1, e2))
         system.asym_units.append(ihm.AsymUnit(e1, 'foo'))
         system.asym_units.append(ihm.AsymUnit(e1, 'bar'))
@@ -223,7 +223,7 @@ C 2 baz
 
         d = ihm.dumper._AssemblyDumper()
         d.finalize(system)
-        self.assertEqual([a.id for a in system.assemblies], [1,2,3,3])
+        self.assertEqual([a._id for a in system.assemblies], [1,2,3,3])
         out = _get_dumper_output(d, system)
         self.assertEqual(out, """#
 loop_
@@ -374,8 +374,8 @@ _ihm_external_files.details
         ds2 = ihm.dataset.PDBDataset(l)
         system.datasets.append(ds2)
         dump.finalize(system) # Assign IDs
-        self.assertEqual(ds1.id, 1)
-        self.assertEqual(ds2.id, 1)
+        self.assertEqual(ds1._id, 1)
+        self.assertEqual(ds2._id, 1)
         self.assertEqual(len(dump._dataset_by_id), 1)
 
     def test_dataset_dumper_duplicates_samedata_sameloc(self):
@@ -391,8 +391,8 @@ _ihm_external_files.details
         dump = ihm.dumper._DatasetDumper()
         system.datasets.extend((cx1, cx2))
         dump.finalize(system) # Assign IDs
-        self.assertEqual(cx1.id, 1)
-        self.assertEqual(cx2.id, 1)
+        self.assertEqual(cx1._id, 1)
+        self.assertEqual(cx2._id, 1)
         self.assertEqual(len(dump._dataset_by_id), 1)
 
     def test_dataset_dumper_duplicates_samedata_diffloc(self):
@@ -405,8 +405,8 @@ _ihm_external_files.details
         dump = ihm.dumper._DatasetDumper()
         system.datasets.extend((cx1, cx2))
         dump.finalize(system) # Assign IDs
-        self.assertEqual(cx1.id, 1)
-        self.assertEqual(cx2.id, 2)
+        self.assertEqual(cx1._id, 1)
+        self.assertEqual(cx2._id, 2)
         self.assertEqual(len(dump._dataset_by_id), 2)
 
     def test_dataset_dumper_duplicates_diffdata_sameloc(self):
@@ -419,8 +419,8 @@ _ihm_external_files.details
         dump = ihm.dumper._DatasetDumper()
         system.datasets.extend((cx2, em3d))
         dump.finalize(system) # Assign IDs
-        self.assertEqual(cx2.id, 1)
-        self.assertEqual(em3d.id, 2)
+        self.assertEqual(cx2._id, 1)
+        self.assertEqual(em3d._id, 2)
         self.assertEqual(len(dump._dataset_by_id), 2)
 
     def test_dataset_dumper_allow_duplicates(self):
@@ -434,15 +434,15 @@ _ihm_external_files.details
         dump = ihm.dumper._DatasetDumper()
         system.datasets.extend((em3d_1, em3d_2))
         dump.finalize(system) # Assign IDs
-        self.assertEqual(em3d_1.id, 1)
-        self.assertEqual(em3d_2.id, 2)
+        self.assertEqual(em3d_1._id, 1)
+        self.assertEqual(em3d_2._id, 2)
         self.assertEqual(len(dump._dataset_by_id), 2)
 
     def test_dataset_dumper_dump(self):
         """Test DatasetDumper.dump()"""
         system = ihm.System()
         l = ihm.location.InputFileLocation(repo='foo', path='bar')
-        l.id = 97
+        l._id = 97
         ds1 = ihm.dataset.CXMSDataset(l)
         system.datasets.append(ds1)
 
@@ -513,8 +513,8 @@ _ihm_related_datasets.dataset_list_id_primary
         r2 = ihm.representation.Representation((s3, s4))
         system.representations.extend((r1, r2))
 
-        e1.id = 42
-        asym.id = 'X'
+        e1._id = 42
+        asym._id = 'X'
 
         dumper = ihm.dumper._ModelRepresentationDumper()
         dumper.finalize(system) # assign IDs
