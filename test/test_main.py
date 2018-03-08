@@ -69,24 +69,5 @@ class Tests(unittest.TestCase):
         self.assertEqual(a.name, 'foo')
         self.assertEqual(a.description, 'bar')
 
-    def test_representation_segment(self):
-        """Test RepresentationSegment class"""
-        s = ihm.RepresentationSegment(asym_unit='foo', seq_id_range=(1,10),
-                                      primitive='sphere', starting_model=None,
-                                      rigid=True, granularity='by-residue',
-                                      count=10)
-        self.assertEqual(s.rigid, True)
-
-    def test_representation(self):
-        """Test Representation class"""
-        s = ihm.RepresentationSegment(asym_unit='foo', seq_id_range=(1,10),
-                                      primitive='sphere', starting_model=None,
-                                      rigid=True, granularity='by-residue',
-                                      count=10)
-        r = ihm.Representation()
-        r.append(s)
-        self.assertEqual(len(r), 1)
-
-
 if __name__ == '__main__':
     unittest.main()

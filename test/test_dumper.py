@@ -12,6 +12,7 @@ utils.set_search_paths(TOPDIR)
 import ihm.dumper
 import ihm.format
 import ihm.location
+import ihm.representation
 
 def _get_dumper_output(dumper, system):
     fh = StringIO()
@@ -491,21 +492,26 @@ _ihm_related_datasets.dataset_list_id_primary
     def test_model_representation_dump(self):
         """Test ModelRepresentationDumper"""
         system = ihm.System()
-        e1 = ihm.Entity('AAAA', description='bar')
+        e1 = ihm.Entity('AAAAAAAA', description='bar')
         system.entities.append(e1)
         asym = ihm.AsymUnit(e1, 'foo')
         system.asym_units.append(asym)
 
-        s1 = ihm.RepresentationSegment(asym_unit=asym, seq_id_range=(1,2),
-                                       primitive='sphere', starting_model=None,
-                                       rigid=True, granularity='by-residue',
-                                       count=2)
-        s2 = ihm.RepresentationSegment(asym_unit=asym, seq_id_range=(3,4),
-                                       primitive='sphere', starting_model=None,
-                                       rigid=False, granularity='by-feature',
-                                       count=None)
-        r = ihm.Representation([s1, s2])
-        system.representations.append(r)
+        s1 = ihm.representation.AtomicSegment(
+                    asym_unit=asym, seq_id_range=(1,2), starting_model=None,
+                    rigid=True)
+        s2 = ihm.representation.ResidueSegment(
+                    asym_unit=asym, seq_id_range=(3,4), starting_model=None,
+                    rigid=False, primitive='sphere')
+        s3 = ihm.representation.MultiResidueSegment(
+                    asym_unit=asym, seq_id_range=(1,2), starting_model=None,
+                    rigid=False, primitive='gaussian')
+        s4 = ihm.representation.FeatureSegment(
+                    asym_unit=asym, seq_id_range=(3,4), starting_model=None,
+                    rigid=True, primitive='other', count=3)
+        r1 = ihm.representation.Representation((s1, s2))
+        r2 = ihm.representation.Representation((s3, s4))
+        system.representations.extend((r1, r2))
 
         e1.id = 42
         asym.id = 'X'
@@ -528,8 +534,10 @@ _ihm_model_representation.starting_model_id
 _ihm_model_representation.model_mode
 _ihm_model_representation.model_granularity
 _ihm_model_representation.model_object_count
-1 1 1 42 bar X 1 2 sphere . rigid by-residue 2
-2 1 2 42 bar X 3 4 sphere . flexible by-feature .
+1 1 1 42 bar X 1 2 atomistic . rigid by-atom .
+2 1 2 42 bar X 3 4 sphere . flexible by-residue .
+3 2 1 42 bar X 1 2 gaussian . flexible multi-residue .
+4 2 2 42 bar X 3 4 other . rigid by-feature 3
 #
 """)
 

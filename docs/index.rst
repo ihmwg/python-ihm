@@ -13,6 +13,7 @@ with the integrative/hybrid modeling (IHM) extension.
    dataset
    metadata
    startmodel
+   representation
    format
    dumper
 

@@ -50,7 +50,7 @@ class System(object):
         self.datasets = []
 
         #: All representations of the system.
-        #: See :class:`Representation`.
+        #: See :class:`~ihm.representation.Representation`.
         self.representations = []
 
     def _make_complete_assembly(self):
@@ -184,46 +184,3 @@ class Assembly(list):
                 return AssemblyComponent(e)
         super(Assembly, self).__init__(fix_element(e) for e in elements)
         self.name, self.description = name, description
-
-
-class RepresentationSegment(object):
-    """Part of a :class:`ModelRepresentation`.
-
-       :param asym_unit: The asymmetric unit this segment represents.
-       :type asym_unit: :class:`AsymUnit`
-       :param tuple seq_id_range: The sequence range within the asym_unit this
-              segment represents.
-       :param str primitive: The type of object used to represent this segment.
-       :param starting_model: initial coordinates used for the segment
-              (or None).
-       :param bool rigid: Whether internal coordinates of the segment were
-              fixed during modeling.
-       :param str granularity: Level of detail
-       :param int count: Number of primitive objects used in the representation.
-    """
-
-    # todo: provide separate classes for by-feature, by-residue etc (e.g.
-    # count only makes sense for by-feature)
-
-    # todo: provide a class to handle asym_unit+seq_id_range
-    def __init__(self, asym_unit, seq_id_range, primitive, starting_model,
-                 rigid, granularity, count):
-        # todo: check enum for primitive, check seq_id_range against asym_unit
-        self.asym_unit, self.seq_id_range = asym_unit, seq_id_range
-        self.starting_model = starting_model
-        self.granularity = granularity
-        self.primitive, self.rigid, self.count = primitive, rigid, count
-
-
-class Representation(list):
-    """Part of the system modeled as a set of geometric objects, such as
-       spheres or atoms. This is implemented as a simple list of
-       :class:`RepresentationSegment` objects.
-
-       See :attr:`System.representations`.
-
-       Multiple representations of the same system are possible (multi-scale).
-    """
-
-    # todo: use set rather than list?
-    pass
