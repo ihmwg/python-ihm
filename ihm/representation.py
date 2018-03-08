@@ -14,7 +14,7 @@ class AtomicSegment(object):
        a :class:`Representation`.
 
        :param asym_unit: The asymmetric unit this segment represents.
-       :type asym_unit: :class:`AsymUnit`
+       :type asym_unit: :class:`~ihm.AsymUnit`
        :param tuple seq_id_range: The sequence range within the asym_unit this
               segment represents.
        :param bool rigid: Whether internal coordinates of the segment were
@@ -39,7 +39,7 @@ class ResidueSegment(object):
        a :class:`Representation`.
 
        :param asym_unit: The asymmetric unit this segment represents.
-       :type asym_unit: :class:`AsymUnit`
+       :type asym_unit: :class:`~ihm.AsymUnit`
        :param tuple seq_id_range: The sequence range within the asym_unit this
               segment represents.
        :param bool rigid: Whether internal coordinates of the segment were
@@ -65,7 +65,7 @@ class MultiResidueSegment(object):
        range of residues, stored in a :class:`Representation`.
 
        :param asym_unit: The asymmetric unit this segment represents.
-       :type asym_unit: :class:`AsymUnit`
+       :type asym_unit: :class:`~ihm.AsymUnit`
        :param tuple seq_id_range: The sequence range within the asym_unit this
               segment represents.
        :param bool rigid: Whether internal coordinates of the segment were
@@ -91,7 +91,7 @@ class FeatureSegment(object):
        stored in a :class:`Representation`.
 
        :param asym_unit: The asymmetric unit this segment represents.
-       :type asym_unit: :class:`AsymUnit`
+       :type asym_unit: :class:`~ihm.AsymUnit`
        :param tuple seq_id_range: The sequence range within the asym_unit this
               segment represents.
        :param bool rigid: Whether internal coordinates of the segment were
