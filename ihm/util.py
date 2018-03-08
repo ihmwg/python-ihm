@@ -1,6 +1,7 @@
 """Utility classes"""
 
 import string
+import os
 
 class _AsymIDs(object):
     """Map indices to multi-character asym (chain) IDs.
@@ -27,3 +28,10 @@ def _assign_id(obj, seen_objs, obj_by_id):
         seen_objs[obj] = obj.id
     else:
         obj.id = seen_objs[obj]
+
+def _get_relative_path(reference, path):
+    """Return `path` interpreted relative to `reference`"""
+    if os.path.isabs(path):
+        return path
+    else:
+        return os.path.join(os.path.dirname(reference), path)

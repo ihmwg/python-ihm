@@ -43,6 +43,14 @@ class Tests(unittest.TestCase):
         self.assertEqual(obj3.id, 'foo')
         self.assertEqual(obj_by_id, [obj1a, obj2])
 
+    def test_get_relative_path(self):
+        """Test get_relative_path()"""
+        if os.path.sep == '/':
+            self.assertEqual(ihm.util._get_relative_path('/foo/bar',
+                                                         '/foo/bar'),
+                             '/foo/bar')
+            self.assertEqual(ihm.util._get_relative_path('/foo/bar', 'baz'),
+                             '/foo/baz')
 
 if __name__ == '__main__':
     unittest.main()
