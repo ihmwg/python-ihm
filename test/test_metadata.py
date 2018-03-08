@@ -74,6 +74,8 @@ class Tests(unittest.TestCase):
         s, = p['sources']
         self.assertEqual(s.db_code, '2HBJ')
         self.assertEqual(s.chain_id, 'A')
+        self.assertEqual(len(s.metadata), 1)
+        self.assertEqual(s.metadata[0].helix_id, '10')
         dataset = p['dataset']
         self.assertEqual(dataset.data_type, 'Experimental model')
         self.assertEqual(dataset.location.db_name, 'PDB')
@@ -172,7 +174,7 @@ class Tests(unittest.TestCase):
         return p
 
     def test_modeller_local(self):
-        "Test PDBMetadataParser when given a Modeller model with local template"
+        "Test PDBParser when given a Modeller model with local template"
         pdbname = utils.get_input_file_name(TOPDIR, 'modeller_model_local.pdb')
         p = self._parse_pdb(pdbname, 'A')
         s, = p['sources']
@@ -188,7 +190,7 @@ class Tests(unittest.TestCase):
                          utils.get_input_file_name(TOPDIR, '15133C.pdb'))
 
     def test_phyre2_model(self):
-        """Test PDBMetadataParser when given a Phyre2 model."""
+        """Test PDBParser when given a Phyre2 model."""
         pdbname = utils.get_input_file_name(TOPDIR, 'phyre2_model.pdb')
         p = self._parse_pdb(pdbname, 'A')
         s, = p['sources']
@@ -209,6 +211,20 @@ class Tests(unittest.TestCase):
         self.assertEqual(parent.location.version, None)
         self.assertEqual(parent.location.details, None)
         self.assertEqual(p['software'], {'phyre2': '?'})
+
+    def test_unknown_model(self):
+        """Test PDBParser when given an unknown model."""
+        pdbname = utils.get_input_file_name(TOPDIR, 'unknown_model.pdb')
+        p = self._parse_pdb(pdbname, 'A')
+        s, = p['sources']
+        self.assertEqual(s.db_code, None)
+        self.assertEqual(s.chain_id, 'A')
+        dataset = p['dataset']
+        self.assertEqual(dataset.data_type, 'Comparative model')
+        self.assertEqual(dataset.location.path, pdbname)
+        self.assertEqual(dataset.location.repo, None)
+        self.assertEqual(dataset.location.details,
+                         'Starting model structure')
 
 
 if __name__ == '__main__':
