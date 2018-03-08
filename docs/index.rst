@@ -12,6 +12,7 @@ with the integrative/hybrid modeling (IHM) extension.
    location
    dataset
    metadata
+   startmodel
    format
    dumper
 
