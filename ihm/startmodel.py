@@ -57,7 +57,7 @@ class TemplateSource(Source):
 
 class UnknownSource(Source):
     """Part of a starting model from an unknown source"""
-    db_code = CifWriter.unknown
+    db_code = None
     db_name = CifWriter.unknown
     chain_id = CifWriter.unknown
     sequence_identity = CifWriter.unknown
@@ -69,3 +69,17 @@ class UnknownSource(Source):
     def __init__(self, dataset, chain):
         self.source = self._source_map[dataset.data_type]
         self.chain_id = chain
+
+
+class PDBHelix(object):
+    """Represent a HELIX record from a PDB file."""
+    def __init__(self, line):
+        self.helix_id = line[11:14].strip()
+        self.start_resnam = line[14:18].strip()
+        self.start_asym = line[19]
+        self.start_resnum = int(line[21:25])
+        self.end_resnam = line[27:30].strip()
+        self.end_asym = line[31]
+        self.end_resnum = int(line[33:37])
+        self.helix_class = int(line[38:40])
+        self.length = int(line[71:76])
