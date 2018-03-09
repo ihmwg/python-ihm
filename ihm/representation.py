@@ -20,6 +20,7 @@ class AtomicSegment(object):
               fixed during modeling.
        :param starting_model: initial coordinates used for the segment
               (or None).
+       :type starting_model: :class:`~ihm.startmodel.StartingModel`
     """
 
     primitive = 'atomistic'
@@ -44,6 +45,7 @@ class ResidueSegment(object):
               (sphere/gaussian/other).
        :param starting_model: initial coordinates used for the segment
               (or None).
+       :type starting_model: :class:`~ihm.startmodel.StartingModel`
     """
 
     count = None
@@ -68,6 +70,7 @@ class MultiResidueSegment(object):
               (sphere/gaussian/other).
        :param starting_model: initial coordinates used for the segment
               (or None).
+       :type starting_model: :class:`~ihm.startmodel.StartingModel`
     """
 
     count = None
@@ -93,6 +96,7 @@ class FeatureSegment(object):
        :param int count: The number of objects used to represent this segment.
        :param starting_model: initial coordinates used for the segment
               (or None).
+       :type starting_model: :class:`~ihm.startmodel.StartingModel`
     """
 
     granularity = 'by-feature'
