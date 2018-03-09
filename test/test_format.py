@@ -113,6 +113,15 @@ x
         self.assertEqual(w._repr(True), 'YES')
         if sys.version_info[0] == 2:
             self.assertEqual(w._repr(long(4)), '4')
+        # data_ should be quoted to distinguish from data blocks
+        self.assertEqual(w._repr('data_foo'), "'data_foo'")
+        self.assertEqual(w._repr('data_'), "'data_'")
+        # [ is a reserved character and cannot start a nonquoted string
+        self.assertEqual(w._repr('[foo'), "'[foo'")
+        # Reserved words must be quoted (but just a prefix is OK)
+        for word in ('save', 'loop', 'stop', 'global'):
+            self.assertEqual(w._repr('%s_foo' % word), '%s_foo' % word)
+            self.assertEqual(w._repr('%s_' % word), "'%s_'" % word)
 
 
 if __name__ == '__main__':
