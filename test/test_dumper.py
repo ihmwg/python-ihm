@@ -499,16 +499,15 @@ _ihm_related_datasets.dataset_list_id_primary
         system.asym_units.append(asym)
 
         s1 = ihm.representation.AtomicSegment(
-                    asym_unit=asym, seq_id_range=(1,2), starting_model=None,
-                    rigid=True)
+                    asym(1,2), starting_model=None, rigid=True)
         s2 = ihm.representation.ResidueSegment(
-                    asym_unit=asym, seq_id_range=(3,4), starting_model=None,
+                    asym(3,4), starting_model=None,
                     rigid=False, primitive='sphere')
         s3 = ihm.representation.MultiResidueSegment(
-                    asym_unit=asym, seq_id_range=(1,2), starting_model=None,
+                    asym(1,2), starting_model=None,
                     rigid=False, primitive='gaussian')
         s4 = ihm.representation.FeatureSegment(
-                    asym_unit=asym, seq_id_range=(3,4), starting_model=None,
+                    asym(3,4), starting_model=None,
                     rigid=True, primitive='other', count=3)
         r1 = ihm.representation.Representation((s1, s2))
         r2 = ihm.representation.Representation((s3, s4))

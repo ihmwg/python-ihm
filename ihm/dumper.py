@@ -360,8 +360,8 @@ class _ModelRepresentationDumper(_Dumper):
                             segment_id=segment._id, entity_id=entity._id,
                             entity_description=entity.description,
                             entity_asym_id=segment.asym_unit._id,
-                            seq_id_begin=segment.seq_id_range[0],
-                            seq_id_end=segment.seq_id_range[1],
+                            seq_id_begin=segment.asym_unit.seq_id_range[0],
+                            seq_id_end=segment.asym_unit.seq_id_range[1],
                             model_object_primitive=segment.primitive,
                             starting_model_id=segment.starting_model._id
                                                   if segment.starting_model

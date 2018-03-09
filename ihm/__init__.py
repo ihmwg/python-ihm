@@ -120,10 +120,12 @@ class AsymUnitRange(object):
     """
     def __init__(self, asym, seq_id_begin, seq_id_end):
         self.asym = asym
+        # todo: check range for validity (at property read time)
         self.seq_id_range = (seq_id_begin, seq_id_end)
 
-    # Use same ID as the original asym unit
+    # Use same ID and entity as the original asym unit
     _id = property(lambda self: self.asym._id)
+    entity = property(lambda self: self.asym.entity)
 
 
 class AsymUnit(object):

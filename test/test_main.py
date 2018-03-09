@@ -35,6 +35,7 @@ class Tests(unittest.TestCase):
         r = a(3,4)
         self.assertEqual(r.seq_id_range, (3,4))
         self.assertEqual(r._id, 42)
+        self.assertEqual(r.entity, e)
 
     def test_assembly_component_entity(self):
         """Test AssemblyComponent created from an entity"""

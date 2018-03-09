@@ -14,9 +14,10 @@ class Tests(unittest.TestCase):
 
     def test_atomic_segment(self):
         """Test AtomicSegment class"""
+        asym = ihm.AsymUnit(ihm.Entity('A'*30))
         s = ihm.representation.AtomicSegment(
-                asym_unit='foo', seq_id_range=(1,10),
-                rigid=True, starting_model=None)
+                asym_unit=asym(1,10), rigid=True, starting_model=None)
+        self.assertEqual(s.asym_unit.seq_id_range, (1,10))
         self.assertEqual(s.primitive, 'atomistic')
         self.assertEqual(s.granularity, 'by-atom')
         self.assertEqual(s.count, None)
@@ -24,9 +25,10 @@ class Tests(unittest.TestCase):
 
     def test_residue_segment(self):
         """Test ResidueSegment class"""
+        asym = ihm.AsymUnit(ihm.Entity('AAAA'))
         s = ihm.representation.ResidueSegment(
-                asym_unit='foo', seq_id_range=(1,10),
-                rigid=True, primitive='sphere')
+                asym_unit=asym, rigid=True, primitive='sphere')
+        self.assertEqual(s.asym_unit.seq_id_range, (1,4))
         self.assertEqual(s.primitive, 'sphere')
         self.assertEqual(s.granularity, 'by-residue')
         self.assertEqual(s.count, None)
@@ -34,9 +36,9 @@ class Tests(unittest.TestCase):
 
     def test_multi_residue_segment(self):
         """Test MultiResidueSegment class"""
+        asym = ihm.AsymUnit(ihm.Entity('AAAA'))
         s = ihm.representation.MultiResidueSegment(
-                asym_unit='foo', seq_id_range=(1,10),
-                rigid=True, primitive='sphere')
+                asym_unit=asym, rigid=True, primitive='sphere')
         self.assertEqual(s.primitive, 'sphere')
         self.assertEqual(s.granularity, 'multi-residue')
         self.assertEqual(s.count, None)
@@ -44,9 +46,9 @@ class Tests(unittest.TestCase):
 
     def test_feature_segment(self):
         """Test FeatureSegment class"""
+        asym = ihm.AsymUnit(ihm.Entity('AAAA'))
         s = ihm.representation.FeatureSegment(
-                asym_unit='foo', seq_id_range=(1,10),
-                rigid=True, primitive='sphere', count=4)
+                asym_unit=asym, rigid=True, primitive='sphere', count=4)
         self.assertEqual(s.primitive, 'sphere')
         self.assertEqual(s.granularity, 'by-feature')
         self.assertEqual(s.count, 4)
@@ -54,8 +56,8 @@ class Tests(unittest.TestCase):
 
     def test_representation(self):
         """Test Representation class"""
-        s = ihm.representation.AtomicSegment(
-                            asym_unit='foo', seq_id_range=(1,10), rigid=True)
+        asym = ihm.AsymUnit(ihm.Entity('AAAA'))
+        s = ihm.representation.AtomicSegment(asym_unit=asym, rigid=True)
         r = ihm.representation.Representation()
         r.append(s)
         self.assertEqual(len(r), 1)
