@@ -21,6 +21,9 @@ The :mod:`ihm` Python module
 .. autoclass:: AsymUnit
    :members:
 
+.. autoclass:: AsymUnitRange
+   :members:
+
 .. autoclass:: AssemblyComponent
    :members:
 

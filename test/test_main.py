@@ -26,6 +26,16 @@ class Tests(unittest.TestCase):
         self.assertEqual(e1, e2)
         self.assertNotEqual(e1, e3)
 
+    def test_asym_range(self):
+        """Test AsymUnitRange class"""
+        e = ihm.Entity('ABCDAB')
+        a = ihm.AsymUnit(e)
+        a._id = 42
+        self.assertEqual(a.seq_id_range, (1,6))
+        r = a(3,4)
+        self.assertEqual(r.seq_id_range, (3,4))
+        self.assertEqual(r._id, 42)
+
     def test_assembly_component_entity(self):
         """Test AssemblyComponent created from an entity"""
         e = ihm.Entity('ABCD')

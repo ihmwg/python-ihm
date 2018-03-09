@@ -110,6 +110,21 @@ class Entity(object):
     def __hash__(self):
         return hash(self.sequence)
 
+class AsymUnitRange(object):
+    """Part of an asymmetric unit. Usually these objects are created from
+       an :class:`AsymUnit`, e.g. to get a range covering residues 4 through
+       7 in `asym` use::
+
+           asym = ihm.AsymUnit(entity)
+           rng = asym(4,7)
+    """
+    def __init__(self, asym, seq_id_begin, seq_id_end):
+        self.asym = asym
+        self.seq_id_range = (seq_id_begin, seq_id_end)
+
+    # Use same ID as the original asym unit
+    _id = property(lambda self: self.asym._id)
+
 
 class AsymUnit(object):
     """An asymmetric unit, i.e. a unique instance of an Entity that
@@ -120,6 +135,12 @@ class AsymUnit(object):
 
     def __init__(self, entity, details=None):
         self.entity, self.details = entity, details
+
+    def __call__(self, seq_id_begin, seq_id_end):
+        return AsymUnitRange(self, seq_id_begin, seq_id_end)
+
+    seq_id_range = property(lambda self: (1, len(self.entity.sequence)),
+                            doc="Sequence range")
 
 
 class AssemblyComponent(object):
