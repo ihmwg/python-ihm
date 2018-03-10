@@ -1,12 +1,6 @@
 """Classes for handling experimental datasets used by mmCIF models.
 """
 
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ._compat_collections import OrderedDict
-
-
 class Dataset(object):
     """A set of input data, for example, a crystal structure or EM map.
 
@@ -34,12 +28,10 @@ class Dataset(object):
     data_type = 'unspecified'
     def __init__(self, location):
         self.location = location
-        self._parents = OrderedDict()
 
-    def add_parent(self, dataset):
-        """Add another :class:`Dataset` from which this one was derived.
-           For example, a 3D EM map may be derived from a set of 2D images."""
-        self._parents[dataset] = None
+        #: A list of :class:`Dataset` objects from which this one was derived.
+        #: For example, a 3D EM map may be derived from a set of 2D images.
+        self.parents = []
 
 
 class DatasetGroup(list):

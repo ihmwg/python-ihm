@@ -350,12 +350,12 @@ class _DatasetDumper(_Dumper):
         with writer.loop("_ihm_related_datasets",
                          ["ordinal_id", "dataset_list_id_derived",
                           "dataset_list_id_primary"]) as l:
-             for derived in self._dataset_by_id:
-                for parent in sorted(derived._parents.keys(),
-                                     key=operator.attrgetter('_id')):
+            for derived in self._dataset_by_id:
+                # Don't duplicate IDs, and output in sorted order
+                for parent_id in sorted(set(d._id for d in derived.parents)):
                     l.write(ordinal_id=ordinal,
                             dataset_list_id_derived=derived._id,
-                            dataset_list_id_primary=parent._id)
+                            dataset_list_id_primary=parent_id)
                     ordinal += 1
 
 class _ModelRepresentationDumper(_Dumper):

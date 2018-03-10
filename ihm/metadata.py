@@ -159,7 +159,7 @@ class PDBParser(Parser):
         local_file.details = self._parse_details(fh)
         db_code = first_line[27:].strip()
         d = dataset.PDBDataset(local_file)
-        d.add_parent(dataset.PDBDataset(location.PDBLocation(db_code)))
+        d.parents.append(dataset.PDBDataset(location.PDBLocation(db_code)))
         ret['dataset'] = d
         ret['sources'] = [startmodel.UnknownSource(d, chain)]
 
@@ -173,8 +173,7 @@ class PDBParser(Parser):
         # todo: better specify an unknown path
         orig_loc = location.InputFileLocation(repo=repo, path='.',
                           details="Starting comparative model structure")
-        parent = dataset.ComparativeModelDataset(orig_loc)
-        d.add_parent(parent)
+        d.parents.append(dataset.ComparativeModelDataset(orig_loc))
         ret['dataset'] = d
         ret['sources'] = [startmodel.UnknownSource(d, chain)]
 
@@ -251,7 +250,7 @@ class PDBParser(Parser):
                 l = location.PDBLocation(t.tm_db_code)
             d = dataset.PDBDataset(l)
             t.tm_dataset = d
-            ret['dataset'].add_parent(d)
+            ret['dataset'].parents.append(d)
 
         # Sort by starting residue, then ending residue
         return(sorted(templates,

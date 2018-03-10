@@ -101,7 +101,7 @@ class Tests(unittest.TestCase):
                          'MED7C AND MED21 STRUCTURES FROM PDB ENTRY 1YKH, '
                          'ROTATED AND TRANSLATED TO ALIGN WITH THE '
                          'MED4-MED9 MODEL')
-        parent, = dataset._parents
+        parent, = dataset.parents
         self.assertEqual(parent.data_type, 'Experimental model')
         self.assertEqual(parent.location.db_name, 'PDB')
         self.assertEqual(parent.location.access_code, '1YKH')
@@ -124,7 +124,7 @@ class Tests(unittest.TestCase):
                          'ET AL, NUCLEIC ACIDS RESEARCH. 2013;41:9266-9273. '
                          'DOI: 10.1093/nar/gkt704. THE MED10 STRUCTURE ALSO '
                          'PROPOSED IN THAT WORK IS NOT USED IN THIS STUDY.')
-        parent, = dataset._parents
+        parent, = dataset.parents
         self.assertEqual(parent.data_type, 'Comparative model')
         self.assertEqual(parent.location.path, '.')
         self.assertEqual(parent.location.repo.doi, '10.1093/nar/gkt704')
@@ -162,7 +162,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(dataset.location.repo, None)
         self.assertEqual(dataset.location.details,
                          'Starting model structure')
-        p1, p2 = dataset._parents
+        p1, p2 = dataset.parents
         self.assertEqual(p1.data_type, 'Experimental model')
         self.assertEqual(p1.location.db_name, 'PDB')
         self.assertEqual(p1.location.access_code, '3JRO')
@@ -182,7 +182,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(s.chain_id, 'A')
         self.assertEqual(s.tm_db_code, None)
         self.assertEqual(s.tm_chain_id, 'C')
-        parent, = p['dataset']._parents
+        parent, = p['dataset'].parents
         self.assertEqual(parent.data_type, 'Experimental model')
         self.assertEqual(parent.location.details,
                          'Template for comparative modeling')
@@ -204,7 +204,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(dataset.location.repo, None)
         self.assertEqual(dataset.location.details,
                          'Starting model structure')
-        parent, = dataset._parents
+        parent, = dataset.parents
         self.assertEqual(parent.data_type, 'Experimental model')
         self.assertEqual(parent.location.db_name, 'PDB')
         self.assertEqual(parent.location.access_code, '4BZK')

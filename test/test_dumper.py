@@ -480,7 +480,9 @@ _ihm_external_files.details
         l = ihm.location.PDBLocation('1abc', '1.0', 'test details')
         ds3 = ihm.dataset.PDBDataset(l)
         system.datasets.append(ds3)
-        ds3.add_parent(ds2)
+        ds3.parents.append(ds2)
+        # Ignore duplicates
+        ds3.parents.append(ds2)
 
         d = ihm.dumper._DatasetDumper()
         d.finalize(system) # Assign IDs

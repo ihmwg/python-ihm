@@ -17,16 +17,13 @@ class Tests(unittest.TestCase):
         """Test Dataset base class"""
         l = ihm.location.PDBLocation('1abc', version='foo', details='bar')
         d = ihm.dataset.Dataset(l)
-        self.assertEqual(len(d._parents), 0)
+        self.assertEqual(len(d.parents), 0)
 
         l2 = ihm.location.PDBLocation('1xyz', version='foo', details='bar')
         d2 = ihm.dataset.Dataset(l2)
-        d.add_parent(d2)
-        self.assertEqual(len(d._parents), 1)
+        d.parents.append(d2)
+        self.assertEqual(len(d.parents), 1)
         self.assertNotEqual(d, d2)
-        # Ignore duplicates
-        d.add_parent(d2)
-        self.assertEqual(len(d._parents), 1)
 
     def test_cxms_dataset(self):
         """Test CXMSDataset"""
