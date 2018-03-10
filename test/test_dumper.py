@@ -439,6 +439,23 @@ _ihm_external_files.details
         self.assertEqual(em3d_2._id, 2)
         self.assertEqual(len(dump._dataset_by_id), 2)
 
+    def test_dataset_dumper_group_finalize(self):
+        """Test DatasetDumper finalize of dataset groups"""
+        system = ihm.System()
+        l = ihm.location.InputFileLocation(repo='foo', path='baz')
+        ds1 = ihm.dataset.CXMSDataset(l)
+        group1 = ihm.dataset.DatasetGroup([ds1])
+        # Duplicate group
+        group2 = ihm.dataset.DatasetGroup([ds1])
+
+        system.datasets.append(ds1)
+        system.dataset_groups.extend((group1, group2))
+
+        d = ihm.dumper._DatasetDumper()
+        d.finalize(system) # Assign IDs
+        self.assertEqual(len(d._dataset_by_id), 1)
+        self.assertEqual(len(d._dataset_group_by_id), 1)
+
     def test_dataset_dumper_dump(self):
         """Test DatasetDumper.dump()"""
         system = ihm.System()
@@ -447,10 +464,23 @@ _ihm_external_files.details
         ds1 = ihm.dataset.CXMSDataset(l)
         system.datasets.append(ds1)
 
-        l = ihm.location.PDBLocation('1abc', '1.0', 'test details')
-        ds2 = ihm.dataset.PDBDataset(l)
+        # group1 contains just the first dataset (but duplicated)
+        group1 = ihm.dataset.DatasetGroup([ds1, ds1])
+        system.dataset_groups.append(group1)
+
+        l = ihm.location.InputFileLocation(repo='foo2', path='bar2')
+        l._id = 98
+        ds2 = ihm.dataset.CXMSDataset(l)
         system.datasets.append(ds2)
-        ds2.add_parent(ds1)
+
+        # group2 contains all datasets so far (ds1 & ds2)
+        group2 = ihm.dataset.DatasetGroup(system.datasets)
+        system.dataset_groups.append(group2)
+
+        l = ihm.location.PDBLocation('1abc', '1.0', 'test details')
+        ds3 = ihm.dataset.PDBDataset(l)
+        system.datasets.append(ds3)
+        ds3.add_parent(ds2)
 
         d = ihm.dumper._DatasetDumper()
         d.finalize(system) # Assign IDs
@@ -461,7 +491,17 @@ _ihm_dataset_list.id
 _ihm_dataset_list.data_type
 _ihm_dataset_list.database_hosted
 1 'CX-MS data' NO
-2 'Experimental model' YES
+2 'CX-MS data' NO
+3 'Experimental model' YES
+#
+#
+loop_
+_ihm_dataset_group.ordinal_id
+_ihm_dataset_group.group_id
+_ihm_dataset_group.dataset_list_id
+1 1 1
+2 2 1
+3 2 2
 #
 #
 loop_
@@ -469,6 +509,7 @@ _ihm_dataset_external_reference.id
 _ihm_dataset_external_reference.dataset_list_id
 _ihm_dataset_external_reference.file_id
 1 1 97
+2 2 98
 #
 #
 loop_
@@ -478,17 +519,16 @@ _ihm_dataset_related_db_reference.db_name
 _ihm_dataset_related_db_reference.accession_code
 _ihm_dataset_related_db_reference.version
 _ihm_dataset_related_db_reference.details
-1 2 PDB 1abc 1.0 'test details'
+1 3 PDB 1abc 1.0 'test details'
 #
 #
 loop_
 _ihm_related_datasets.ordinal_id
 _ihm_related_datasets.dataset_list_id_derived
 _ihm_related_datasets.dataset_list_id_primary
-1 2 1
+1 3 2
 #
 """)
-
 
     def test_model_representation_dump(self):
         """Test ModelRepresentationDumper"""

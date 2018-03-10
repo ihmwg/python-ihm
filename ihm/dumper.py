@@ -281,7 +281,18 @@ class _DatasetDumper(_Dumper):
         self._dataset_by_id = []
         for d in system.datasets:
             util._assign_id(d, seen_datasets, self._dataset_by_id)
-        # todo: handle dataset groups
+
+        # Assign IDs to all groups and remove duplicates
+        seen_group_ids = {}
+        self._dataset_group_by_id = []
+        for g in system.dataset_groups:
+            ids = tuple(sorted(d._id for d in g))
+            if ids not in seen_group_ids:
+                self._dataset_group_by_id.append(g)
+                g._id = len(self._dataset_group_by_id)
+                seen_group_ids[ids] = g
+            else:
+                g._id = seen_group_ids[ids]._id
 
     def dump(self, system, writer):
         with writer.loop("_ihm_dataset_list",
@@ -290,6 +301,7 @@ class _DatasetDumper(_Dumper):
                 l.write(id=d._id, data_type=d.data_type,
                         database_hosted=isinstance(d.location,
                                                    location.DatabaseLocation))
+        self.dump_groups(writer)
         self.dump_other((d for d in self._dataset_by_id
                          if not isinstance(d.location,
                                            location.DatabaseLocation)),
@@ -299,6 +311,17 @@ class _DatasetDumper(_Dumper):
                                          location.DatabaseLocation)),
                           writer)
         self.dump_related(system, writer)
+
+    def dump_groups(self, writer):
+        ordinal = 1
+        with writer.loop("_ihm_dataset_group",
+                         ["ordinal_id", "group_id", "dataset_list_id"]) as l:
+            for g in self._dataset_group_by_id:
+                # Don't duplicate IDs, and output in sorted order
+                for dataset_id in sorted(set(d._id for d in g)):
+                    l.write(ordinal_id=ordinal, group_id=g._id,
+                            dataset_list_id=dataset_id)
+                    ordinal += 1
 
     def dump_other(self, datasets, writer):
         ordinal = 1

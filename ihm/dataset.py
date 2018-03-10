@@ -42,6 +42,15 @@ class Dataset(object):
         self._parents[dataset] = None
 
 
+class DatasetGroup(list):
+    """A set of :class:`Dataset` objects that are handled together.
+       This is implemented as a simple list.
+
+       See :`~ihm.dataset_groups`.
+    """
+    pass
+
+
 class CXMSDataset(Dataset):
     """Processed crosslinks from a CX-MS experiment"""
     data_type = 'CX-MS data'

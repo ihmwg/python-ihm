@@ -49,6 +49,10 @@ class System(object):
         #: See :class:`~ihm.dataset.Dataset`.
         self.datasets = []
 
+        #: All groups of datasets.
+        #: See :class:`~ihm.dataset.DatasetGroup`.
+        self.dataset_groups = []
+
         #: All representations of the system.
         #: See :class:`~ihm.representation.Representation`.
         self.representations = []
