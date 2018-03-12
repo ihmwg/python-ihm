@@ -14,6 +14,8 @@ with the integrative/hybrid modeling (IHM) extension.
    metadata
    startmodel
    representation
+   protocol
+   analysis
    format
    dumper
 

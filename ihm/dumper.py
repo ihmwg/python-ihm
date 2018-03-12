@@ -425,6 +425,70 @@ class _StartingModelDumper(_Dumper):
                         starting_model_sequence_offset=sm.offset)
 
 
+class _ProtocolDumper(_Dumper):
+    def finalize(self, system):
+        # Assign IDs to protocols and steps
+        for np, p in enumerate(system.protocols):
+            p._id = np + 1
+            for ns, s in enumerate(p.steps):
+                s._id = ns + 1
+
+    def dump(self, system, writer):
+        ordinal = 1
+        with writer.loop("_ihm_modeling_protocol",
+                         ["ordinal_id", "protocol_id", "step_id",
+                          "struct_assembly_id", "dataset_group_id",
+                          "struct_assembly_description", "protocol_name",
+                          "step_name", "step_method", "num_models_begin",
+                          "num_models_end", "multi_scale_flag",
+                          "multi_state_flag", "time_ordered_flag"]) as l:
+            for p in system.protocols:
+                for s in p.steps:
+                    l.write(ordinal_id=ordinal, protocol_id=p._id,
+                            step_id=s._id,
+                            struct_assembly_id=s.assembly._id,
+                            dataset_group_id=s.dataset_group._id,
+                            struct_assembly_description=s.assembly.description,
+                            protocol_name=p.name,
+                            step_name=s.name, step_method=s.method,
+                            num_models_begin=s.num_models_begin,
+                            num_models_end=s.num_models_end,
+                            multi_state_flag=s.multi_state,
+                            time_ordered_flag=s.ordered,
+                            multi_scale_flag=s.multi_scale)
+                    ordinal += 1
+
+
+class _PostProcessDumper(_Dumper):
+    def finalize(self, system):
+        pp_id = 1
+        # Assign IDs to analyses and steps
+        # todo: handle case where one analysis is referred to from multiple
+        # protocols
+        for p in system.protocols:
+            for na, a in enumerate(p.analyses):
+                a._id = na + 1
+                for ns, s in enumerate(a.steps):
+                    s._id = ns + 1
+                    # Assign globally unique postproc id
+                    s._post_proc_id = pp_id
+                    pp_id += 1
+
+    def dump(self, system, writer):
+        with writer.loop("_ihm_modeling_post_process",
+                         ["id", "protocol_id", "analysis_id", "step_id",
+                          "type", "feature", "num_models_begin",
+                          "num_models_end"]) as l:
+            for p in system.protocols:
+                for a in p.analyses:
+                    for s in a.steps:
+                        l.write(id=s._post_proc_id, protocol_id=p._id,
+                                analysis_id=a._id, step_id=s._id, type=s.type,
+                                feature=s.feature,
+                                num_models_begin=s.num_models_begin,
+                                num_models_end=s.num_models_end)
+
+
 def write(fh, systems):
     """Write out all `systems` to the mmCIF file handle `fh`"""
     dumpers = [_EntryDumper(), # must be first
@@ -438,7 +502,9 @@ def write(fh, systems):
                _ExternalReferenceDumper(),
                _DatasetDumper(),
                _ModelRepresentationDumper(),
-               _StartingModelDumper()]
+               _StartingModelDumper(),
+               _ProtocolDumper(),
+               _PostProcessDumper()]
     writer = ihm.format.CifWriter(fh)
     for system in systems:
         for d in dumpers:

@@ -61,6 +61,10 @@ class System(object):
         #: See :class:`~ihm.startmodel.StartingModel`.
         self.starting_models = []
 
+        #: All modeling protocols.
+        # See :class:`~ihm.protocol.Protocol`.
+        self.protocols = []
+
     def _make_complete_assembly(self):
         """Fill in the complete assembly with all entities/asym units"""
         # Clear out any existing components

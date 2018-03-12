@@ -14,6 +14,9 @@ import ihm.format
 import ihm.location
 import ihm.representation
 import ihm.startmodel
+import ihm.dataset
+import ihm.protocol
+import ihm.analysis
 
 def _get_dumper_output(dumper, system):
     fh = StringIO()
@@ -620,6 +623,98 @@ _ihm_starting_model_details.dataset_list_id
 #
 """)
 
+    def test_modeling_protocol(self):
+        """Test ProtocolDumper"""
+        class MockObject(object):
+            pass
+        system = ihm.System()
+        p1 = ihm.protocol.Protocol('equilibration')
+        assembly = ihm.Assembly(description='foo')
+        assembly._id = 42
+        dsg = MockObject()
+        dsg._id = 99
+        dsg2 = MockObject()
+        dsg2._id = 101
+        p1.steps.append(ihm.protocol.Step(assembly=assembly, dataset_group=dsg,
+                               method='Monte Carlo', num_models_begin=0,
+                               num_models_end=500, multi_scale=True, name='s1'))
+        p1.steps.append(ihm.protocol.Step(assembly=assembly, dataset_group=dsg,
+                               method='Replica exchange', num_models_begin=500,
+                               num_models_end=2000, multi_scale=True))
+        system.protocols.append(p1)
+
+        p2 = ihm.protocol.Protocol('sampling')
+        p2.steps.append(ihm.protocol.Step(assembly=assembly, dataset_group=dsg2,
+                               method='Replica exchange', num_models_begin=2000,
+                               num_models_end=1000, multi_scale=True))
+        system.protocols.append(p2)
+
+        dumper = ihm.dumper._ProtocolDumper()
+        dumper.finalize(system) # assign IDs
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_ihm_modeling_protocol.ordinal_id
+_ihm_modeling_protocol.protocol_id
+_ihm_modeling_protocol.step_id
+_ihm_modeling_protocol.struct_assembly_id
+_ihm_modeling_protocol.dataset_group_id
+_ihm_modeling_protocol.struct_assembly_description
+_ihm_modeling_protocol.protocol_name
+_ihm_modeling_protocol.step_name
+_ihm_modeling_protocol.step_method
+_ihm_modeling_protocol.num_models_begin
+_ihm_modeling_protocol.num_models_end
+_ihm_modeling_protocol.multi_scale_flag
+_ihm_modeling_protocol.multi_state_flag
+_ihm_modeling_protocol.time_ordered_flag
+1 1 1 42 99 foo equilibration s1 'Monte Carlo' 0 500 YES NO NO
+2 1 2 42 99 foo equilibration . 'Replica exchange' 500 2000 YES NO NO
+3 2 1 42 101 foo sampling . 'Replica exchange' 2000 1000 YES NO NO
+#
+""")
+
+    def test_post_process(self):
+        """Test PostProcessDumper"""
+        class MockObject(object):
+            pass
+        system = ihm.System()
+        p1 = ihm.protocol.Protocol('refinement')
+        system.protocols.append(p1)
+
+        a1 = ihm.analysis.Analysis()
+        a1.steps.append(ihm.analysis.EmptyStep())
+        a2 = ihm.analysis.Analysis()
+        a2.steps.append(ihm.analysis.FilterStep(
+                             feature='energy/score', num_models_begin=1000,
+                             num_models_end=200))
+        a2.steps.append(ihm.analysis.ClusterStep(
+                             feature='RMSD', num_models_begin=200,
+                             num_models_end=42))
+        p1.analyses.extend((a1, a2))
+
+        dumper = ihm.dumper._ProtocolDumper()
+        dumper.finalize(system) # assign protocol IDs
+
+        dumper = ihm.dumper._PostProcessDumper()
+        dumper.finalize(system) # assign analysis IDs
+
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_ihm_modeling_post_process.id
+_ihm_modeling_post_process.protocol_id
+_ihm_modeling_post_process.analysis_id
+_ihm_modeling_post_process.step_id
+_ihm_modeling_post_process.type
+_ihm_modeling_post_process.feature
+_ihm_modeling_post_process.num_models_begin
+_ihm_modeling_post_process.num_models_end
+1 1 1 1 none none . .
+2 1 2 1 filter energy/score 1000 200
+3 1 2 2 cluster RMSD 200 42
+#
+""")
 
 
 if __name__ == '__main__':
