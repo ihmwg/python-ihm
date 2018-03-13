@@ -737,6 +737,8 @@ _ihm_modeling_post_process.num_models_end
         model3 = ihm.model.Model(assembly=assembly, protocol=protocol,
                                  representation=representation,
                                  name='test model3')
+        # Existing IDs should be overwritten
+        model3._id = 999
         # Group contains multiple copies of model - should be pruned on output
         group = ihm.model.ModelGroup([model, model, model2], name='Group1')
         system.model_groups.append(group)
