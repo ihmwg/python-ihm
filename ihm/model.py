@@ -25,6 +25,27 @@ class Sphere(object):
         self.radius, self.rmsf = radius, rmsf
 
 
+class Atom(object):
+    """Coordinates of part of the model represented by an atom.
+
+       :param asym_unit: The asymmetric unit that this sphere represents
+       :type asym_unit: :class:`ihm.AsymUnit`
+       :param int seq_id: The residue index represented by this atom
+       :param str atom_id: The name of the atom in the residue
+       :param float x: x coordinate of the atom
+       :param float y: y coordinate of the atom
+       :param float z: z coordinate of the atom
+    """
+
+    # Reduce memory usage
+    __slots__ = ['asym_unit', 'seq_id', 'atom_id', 'x', 'y', 'z']
+
+    def __init__(self, asym_unit, seq_id, atom_id, x, y, z):
+        self.asym_unit = asym_unit
+        self.seq_id, self.atom_id = seq_id, atom_id
+        self.x, self.y, self.z = x, y, z
+
+
 class Model(object):
     """A single set of coordinates (conformation).
 
@@ -42,6 +63,7 @@ class Model(object):
     def __init__(self, assembly, protocol, representation, name=None):
         self.assembly, self.protocol = assembly, protocol
         self.representation, self.name = representation, name
+        self._atoms = []
         self._spheres = []
 
     def get_spheres(self):
@@ -67,6 +89,22 @@ class Model(object):
            See :meth:`get_spheres` for more details.
         """
         self._spheres = [s for s in spheregen]
+
+    def get_atoms(self):
+        """Yield :class:`Atom` objects that represent this model.
+
+           See :meth:`get_spheres` for more details.
+        """
+        for a in self._atoms:
+            yield a
+
+    def set_atoms(self, atomgen):
+        """Populate the model's set of :class:`Atom` objects from the
+           given Python generator.
+
+           See :meth:`get_spheres` for more details.
+        """
+        self._atoms = [a for a in atomgen]
 
 
 class ModelGroup(list):

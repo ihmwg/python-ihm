@@ -10,6 +10,9 @@ The :mod:`ihm.model` Python module
 .. autoclass:: Sphere
    :members:
 
+.. autoclass:: Atom
+   :members:
+
 .. autoclass:: Model
    :members:
 

@@ -763,8 +763,7 @@ _ihm_model_list.representation_id
 #
 """)
 
-    def test_model_dumper_spheres(self):
-        """Test ModelDumper with spheres"""
+    def _make_test_model(self):
         class MockObject(object):
             pass
         system = ihm.System()
@@ -783,15 +782,20 @@ _ihm_model_list.representation_id
         model = ihm.model.Model(assembly=assembly, protocol=protocol,
                                 representation=representation,
                                 name='test model')
+
+        group = ihm.model.ModelGroup([model])
+        system.model_groups.append(group)
+        return system, model, asym
+
+    def test_model_dumper_spheres(self):
+        """Test ModelDumper with spheres"""
+        system, model, asym = self._make_test_model()
         model._spheres = [ihm.model.Sphere(asym_unit=asym,
                                            seq_id_range=(1,5), x=1.0,
                                            y=2.0, z=3.0, radius=4.0),
                           ihm.model.Sphere(asym_unit=asym,
                                            seq_id_range=(6,6), x=4.0,
                                            y=5.0, z=6.0, radius=1.0, rmsf=8.0)]
-
-        group = ihm.model.ModelGroup([model])
-        system.model_groups.append(group)
 
         dumper = ihm.dumper._ModelDumper()
         dumper.finalize(system) # assign model/group IDs
@@ -824,6 +828,50 @@ _ihm_sphere_obj_site.rmsf
 _ihm_sphere_obj_site.model_id
 1 9 1 5 X 1.000 2.000 3.000 4.000 . 1
 2 9 6 6 X 4.000 5.000 6.000 1.000 8.000 1
+#
+""")
+
+    def test_model_dumper_atoms(self):
+        """Test ModelDumper with atoms"""
+        system, model, asym = self._make_test_model()
+        model._atoms = [ihm.model.Atom(asym_unit=asym, seq_id=1, atom_id='C',
+                                       x=1.0, y=2.0, z=3.0),
+                        ihm.model.Atom(asym_unit=asym, seq_id=1, atom_id='CA',
+                                       x=10.0, y=20.0, z=30.0),
+                        ihm.model.Atom(asym_unit=asym, seq_id=2, atom_id='N',
+                                       x=4.0, y=5.0, z=6.0)]
+
+        dumper = ihm.dumper._ModelDumper()
+        dumper.finalize(system) # assign model/group IDs
+
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_ihm_model_list.ordinal_id
+_ihm_model_list.model_id
+_ihm_model_list.model_group_id
+_ihm_model_list.model_name
+_ihm_model_list.model_group_name
+_ihm_model_list.assembly_id
+_ihm_model_list.protocol_id
+_ihm_model_list.representation_id
+1 1 1 'test model' . 99 42 32
+#
+#
+loop_
+_atom_site.id
+_atom_site.label_atom_id
+_atom_site.label_comp_id
+_atom_site.label_seq_id
+_atom_site.label_asym_id
+_atom_site.Cartn_x
+_atom_site.Cartn_y
+_atom_site.Cartn_z
+_atom_site.label_entity_id
+_atom_site.model_id
+1 C ALA 1 X 1.000 2.000 3.000 9 1
+2 CA ALA 1 X 10.000 20.000 30.000 9 1
+3 N CYS 2 X 4.000 5.000 6.000 9 1
 #
 """)
 

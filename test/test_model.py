@@ -16,6 +16,13 @@ class Tests(unittest.TestCase):
         self.assertEqual(s.asym_unit, 'foo')
         self.assertEqual(s.seq_id_range, (1,5))
 
+    def test_atom(self):
+        """Test Atom class"""
+        s = ihm.model.Atom(asym_unit='foo', seq_id=1, atom_id='N', x=1.0,
+                             y=2.0, z=3.0)
+        self.assertEqual(s.asym_unit, 'foo')
+        self.assertEqual(s.seq_id, 1)
+
     def test_model(self):
         """Test Model class"""
         m = ihm.model.Model(assembly='foo', protocol='bar',
@@ -42,6 +49,26 @@ class Tests(unittest.TestCase):
                             representation='baz')
         m.set_spheres(spheregen())
         self.assertEqual(m._spheres, spheres)
+
+    def test_model_get_atoms(self):
+        """Test Model.get_atoms()"""
+        m = ihm.model.Model(assembly='foo', protocol='bar',
+                            representation='baz')
+        atoms = ['atom1', 'atom2']
+        m._atoms = atoms[:]
+        new_atoms = [a for a in m.get_atoms()]
+        self.assertEqual(new_atoms, atoms)
+
+    def test_model_set_atoms(self):
+        """Test Model.set_atoms()"""
+        atoms = ['atom1', 'atom2']
+        def atomgen():
+            for a in atoms:
+                yield a
+        m = ihm.model.Model(assembly='foo', protocol='bar',
+                            representation='baz')
+        m.set_atoms(atomgen())
+        self.assertEqual(m._atoms, atoms)
 
     def test_model_group(self):
         """Test ModelGroup class"""

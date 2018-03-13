@@ -506,6 +506,7 @@ class _ModelDumper(object):
 
     def dump(self, system, writer):
         self.dump_model_list(system, writer)
+        self.dump_atoms(system, writer)
         self.dump_spheres(system, writer)
 
     def _all_models(self, system):
@@ -533,6 +534,27 @@ class _ModelDumper(object):
                         protocol_id=model.protocol._id,
                         representation_id=model.representation._id)
                 ordinal += 1
+
+    def dump_atoms(self, system, writer):
+        ordinal = 1
+        with writer.loop("_atom_site",
+                         ["id", "label_atom_id", "label_comp_id",
+                          "label_seq_id",
+                          "label_asym_id", "Cartn_x",
+                          "Cartn_y", "Cartn_z", "label_entity_id",
+                          "model_id"]) as l:
+            for group, model in self._all_models(system):
+                for atom in model.get_atoms():
+                    oneletter = atom.asym_unit.entity.sequence[atom.seq_id-1]
+                    l.write(id=ordinal,
+                            label_atom_id=atom.atom_id,
+                            label_comp_id=_amino_acids[oneletter],
+                            label_asym_id=atom.asym_unit._id,
+                            label_entity_id=atom.asym_unit.entity._id,
+                            label_seq_id=atom.seq_id,
+                            Cartn_x=atom.x, Cartn_y=atom.y, Cartn_z=atom.z,
+                            model_id=model._id)
+                    ordinal += 1
 
     def dump_spheres(self, system, writer):
         ordinal = 1
