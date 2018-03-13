@@ -921,6 +921,45 @@ _ihm_ensemble_info.ensemble_file_id
 #
 """)
 
+    def test_density_dumper(self):
+        """Test DensityDumper"""
+        class MockObject(object):
+            pass
+        system = ihm.System()
+        e1 = ihm.Entity('ABCD')
+        e1._id = 9
+        asym = ihm.AsymUnit(e1)
+        asym._id = 'X'
+
+        group = MockObject()
+        group._id = 42
+        ens = ihm.model.Ensemble(model_group=group, num_models=10)
+
+        loc = ihm.location.OutputFileLocation(repo='foo', path='bar')
+        loc._id = 3
+        ens.densities.append(ihm.model.LocalizationDensity(loc, asym(1,2)))
+        ens.densities.append(ihm.model.LocalizationDensity(loc, asym))
+        ens._id = 5
+        system.ensembles.append(ens)
+
+        dumper = ihm.dumper._DensityDumper()
+        dumper.finalize(system) # assign IDs
+
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_ihm_localization_density_files.id
+_ihm_localization_density_files.file_id
+_ihm_localization_density_files.ensemble_id
+_ihm_localization_density_files.entity_id
+_ihm_localization_density_files.asym_id
+_ihm_localization_density_files.seq_id_begin
+_ihm_localization_density_files.seq_id_end
+1 3 5 9 X 1 2
+2 3 5 9 X 1 4
+#
+""")
+
 
 if __name__ == '__main__':
     unittest.main()

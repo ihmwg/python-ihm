@@ -86,6 +86,13 @@ class Tests(unittest.TestCase):
         self.assertEqual(e.precision, None)
         self.assertEqual(e.num_models, 10)
         self.assertEqual(e.num_models_deposited, 3)
+        self.assertEqual(e.densities, [])
+
+    def test_density(self):
+        """Test LocalizationDensity class"""
+        e = ihm.model.LocalizationDensity(file='foo', asym_unit='bar')
+        self.assertEqual(e.file, 'foo')
+        self.assertEqual(e.asym_unit, 'bar')
 
 
 if __name__ == '__main__':

@@ -604,6 +604,27 @@ class _EnsembleDumper(object):
                         ensemble_file_id=e.file._id if e.file else None)
 
 
+class _DensityDumper(object):
+    def finalize(self, system):
+        # Assign IDs
+        for e in system.ensembles:
+            for nd, d in enumerate(e.densities):
+                d._id = nd + 1
+
+    def dump(self, system, writer):
+        with writer.loop("_ihm_localization_density_files",
+                         ["id", "file_id", "ensemble_id", "entity_id",
+                          "asym_id", "seq_id_begin", "seq_id_end"]) as l:
+            for ensemble in system.ensembles:
+                for density in ensemble.densities:
+                    l.write(id=density._id, file_id=density.file._id,
+                            ensemble_id=ensemble._id,
+                            entity_id=density.asym_unit.entity._id,
+                            asym_id=density.asym_unit._id,
+                            seq_id_begin=density.asym_unit.seq_id_range[0],
+                            seq_id_end=density.asym_unit.seq_id_range[1])
+
+
 def write(fh, systems):
     """Write out all `systems` to the mmCIF file handle `fh`"""
     dumpers = [_EntryDumper(), # must be first
@@ -621,7 +642,8 @@ def write(fh, systems):
                _ProtocolDumper(),
                _PostProcessDumper(),
                _ModelDumper(),
-               _EnsembleDumper()]
+               _EnsembleDumper(),
+               _DensityDumper()]
     writer = ihm.format.CifWriter(fh)
     for system in systems:
         for d in dumpers:

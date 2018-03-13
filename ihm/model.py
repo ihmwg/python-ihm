@@ -152,6 +152,27 @@ class Ensemble(object):
         self.clustering_feature = clustering_feature
         self.name, self.precision, self.file = name, precision, file
 
+        #: All localization densities for this ensemble, as
+        #: :class:`LocalizationDensity` objects
+        self.densities = []
+
     num_models_deposited = property(lambda self: len(self.model_group),
                                     doc="Number of models in this ensemble "
                                         "that are in the mmCIF file")
+
+
+class LocalizationDensity(object):
+    """Localization density of part of the system, over all models
+       in an ensemble.
+
+       See :attr:`Ensemble.densities`.
+
+       :param file: A reference to an external file containing the density,
+              for example as an MRC file.
+       :type file: :class:`ihm.location.OutputFileLocation`
+       :param asym_unit: The asymmetric unit (or part of one) that
+              this density represents.
+       :type asym_unit: :class:`~ihm.AsymUnit` or :class:`~ihm.AsymUnitRange`
+    """
+    def __init__(self, file, asym_unit):
+        self.file, self.asym_unit = file, asym_unit
