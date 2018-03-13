@@ -62,8 +62,12 @@ class System(object):
         self.starting_models = []
 
         #: All modeling protocols.
-        # See :class:`~ihm.protocol.Protocol`.
+        #: See :class:`~ihm.protocol.Protocol`.
         self.protocols = []
+
+        #: All model groups.
+        #: See :class:`~ihm.model.ModelGroup`.
+        self.model_groups = []
 
     def _make_complete_assembly(self):
         """Fill in the complete assembly with all entities/asym units"""

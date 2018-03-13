@@ -488,6 +488,47 @@ class _PostProcessDumper(_Dumper):
                                 num_models_begin=s.num_models_begin,
                                 num_models_end=s.num_models_end)
 
+class _ModelDumper(object):
+    def finalize(self, system):
+        # Remove any existing ID
+        for g in system.model_groups:
+            for m in g:
+                if hasattr(m, '_id'):
+                    del m._id
+        model_id = 1
+        # Assign IDs to models and groups
+        for ng, g in enumerate(system.model_groups):
+            g._id = ng + 1
+            for m in g:
+                if not hasattr(m, '_id'):
+                    m._id = model_id
+                    model_id += 1
+
+    def dump(self, system, writer):
+        self.dump_model_list(system, writer)
+
+    def dump_model_list(self, system, writer):
+        ordinal = 1
+        with writer.loop("_ihm_model_list",
+                         ["ordinal_id", "model_id", "model_group_id",
+                          "model_name", "model_group_name", "assembly_id",
+                          "protocol_id", "representation_id"]) as l:
+            seen_ids = {}
+            for group in system.model_groups:
+                for model in group:
+                    # Skip duplicate models
+                    if model._id in seen_ids:
+                        continue
+                    seen_ids[model._id] = None
+                    l.write(ordinal_id=ordinal, model_id=model._id,
+                            model_group_id=group._id,
+                            model_name=model.name,
+                            model_group_name=group.name,
+                            assembly_id=model.assembly._id,
+                            protocol_id=model.protocol._id,
+                            representation_id=model.representation._id)
+                    ordinal += 1
+
 
 def write(fh, systems):
     """Write out all `systems` to the mmCIF file handle `fh`"""
@@ -504,7 +545,8 @@ def write(fh, systems):
                _ModelRepresentationDumper(),
                _StartingModelDumper(),
                _ProtocolDumper(),
-               _PostProcessDumper()]
+               _PostProcessDumper(),
+               _ModelDumper()]
     writer = ihm.format.CifWriter(fh)
     for system in systems:
         for d in dumpers:

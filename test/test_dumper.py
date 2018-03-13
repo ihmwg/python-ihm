@@ -17,6 +17,7 @@ import ihm.startmodel
 import ihm.dataset
 import ihm.protocol
 import ihm.analysis
+import ihm.model
 
 def _get_dumper_output(dumper, system):
     fh = StringIO()
@@ -713,6 +714,52 @@ _ihm_modeling_post_process.num_models_end
 1 1 1 1 none none . .
 2 1 2 1 filter energy/score 1000 200
 3 1 2 2 cluster RMSD 200 42
+#
+""")
+
+    def test_model_dumper(self):
+        """Test ModelDumper"""
+        class MockObject(object):
+            pass
+        system = ihm.System()
+        protocol = MockObject()
+        protocol._id = 42
+        assembly = MockObject()
+        assembly._id = 99
+        representation = MockObject()
+        representation._id = 32
+        model = ihm.model.Model(assembly=assembly, protocol=protocol,
+                                representation=representation,
+                                name='test model')
+        model2 = ihm.model.Model(assembly=assembly, protocol=protocol,
+                                 representation=representation,
+                                 name='test model2')
+        model3 = ihm.model.Model(assembly=assembly, protocol=protocol,
+                                 representation=representation,
+                                 name='test model3')
+        # Group contains multiple copies of model - should be pruned on output
+        group = ihm.model.ModelGroup([model, model, model2], name='Group1')
+        system.model_groups.append(group)
+        group2 = ihm.model.ModelGroup([model3], name='Group 2')
+        system.model_groups.append(group2)
+
+        dumper = ihm.dumper._ModelDumper()
+        dumper.finalize(system) # assign model/group IDs
+
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_ihm_model_list.ordinal_id
+_ihm_model_list.model_id
+_ihm_model_list.model_group_id
+_ihm_model_list.model_name
+_ihm_model_list.model_group_name
+_ihm_model_list.assembly_id
+_ihm_model_list.protocol_id
+_ihm_model_list.representation_id
+1 1 1 'test model' Group1 99 42 32
+2 2 1 'test model2' Group1 99 42 32
+3 3 2 'test model3' 'Group 2' 99 42 32
 #
 """)
 

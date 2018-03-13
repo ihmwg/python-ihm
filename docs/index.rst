@@ -16,6 +16,7 @@ with the integrative/hybrid modeling (IHM) extension.
    representation
    protocol
    analysis
+   model
    format
    dumper
 
