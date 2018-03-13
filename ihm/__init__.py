@@ -65,13 +65,13 @@ class System(object):
         #: See :class:`~ihm.protocol.Protocol`.
         self.protocols = []
 
-        #: All model groups.
-        #: See :class:`~ihm.model.ModelGroup`.
-        self.model_groups = []
-
         #: All ensembles.
         #: See :class:`~ihm.model.Ensemble`.
         self.ensembles = []
+
+        #: All state groups (collections of models).
+        #: See :class:`~ihm.model.StateGroup`.
+        self.state_groups = []
 
     def _make_complete_assembly(self):
         """Fill in the complete assembly with all entities/asym units"""

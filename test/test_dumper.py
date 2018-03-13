@@ -722,6 +722,8 @@ _ihm_modeling_post_process.num_models_end
         class MockObject(object):
             pass
         system = ihm.System()
+        state = ihm.model.State()
+        system.state_groups.append(ihm.model.StateGroup([state]))
         protocol = MockObject()
         protocol._id = 42
         assembly = MockObject()
@@ -741,9 +743,9 @@ _ihm_modeling_post_process.num_models_end
         model3._id = 999
         # Group contains multiple copies of model - should be pruned on output
         group = ihm.model.ModelGroup([model, model, model2], name='Group1')
-        system.model_groups.append(group)
+        state.append(group)
         group2 = ihm.model.ModelGroup([model3], name='Group 2')
-        system.model_groups.append(group2)
+        state.append(group2)
 
         dumper = ihm.dumper._ModelDumper()
         dumper.finalize(system) # assign model/group IDs
@@ -769,6 +771,8 @@ _ihm_model_list.representation_id
         class MockObject(object):
             pass
         system = ihm.System()
+        state = ihm.model.State()
+        system.state_groups.append(ihm.model.StateGroup([state]))
         e1 = ihm.Entity('ACGT')
         e1._id = 9
         system.entities.append(e1)
@@ -786,7 +790,7 @@ _ihm_model_list.representation_id
                                 name='test model')
 
         group = ihm.model.ModelGroup([model])
-        system.model_groups.append(group)
+        state.append(group)
         return system, model, asym
 
     def test_model_dumper_spheres(self):
@@ -957,6 +961,67 @@ _ihm_localization_density_files.seq_id_begin
 _ihm_localization_density_files.seq_id_end
 1 3 5 9 X 1 2
 2 3 5 9 X 1 4
+#
+""")
+
+    def test_single_state(self):
+        """Test MultiStateDumper with a single state"""
+        system = ihm.System()
+        state = ihm.model.State()
+        system.state_groups.append(ihm.model.StateGroup([state]))
+
+        dumper = ihm.dumper._MultiStateDumper()
+        dumper.finalize(system) # assign IDs
+
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, "")
+
+    def test_multi_state(self):
+        """Test MultiStateDumper with multiple states"""
+        system = ihm.System()
+        state = ihm.model.State()
+        sg1 = ihm.model.StateGroup()
+        sg2 = ihm.model.StateGroup()
+        system.state_groups.extend((sg1, sg2))
+
+        state1 = ihm.model.State(type='complex formation', name='unbound',
+                                 experiment_type="Fraction of bulk",
+                                 details="Unbound molecule 1")
+        state1.append(ihm.model.ModelGroup(name="group1"))
+        state1.append(ihm.model.ModelGroup(name="group2"))
+
+        state2 = ihm.model.State(type='complex formation', name='bound',
+                                 experiment_type="Fraction of bulk",
+                                 details="Unbound molecule 2")
+        state2.append(ihm.model.ModelGroup(name="group3"))
+        sg1.extend((state1, state2))
+
+        state3 = ihm.model.State(population_fraction=0.4)
+        state3.append(ihm.model.ModelGroup(name="group4"))
+        sg2.append(state3)
+
+        dumper = ihm.dumper._ModelDumper()
+        dumper.finalize(system) # assign model group IDs
+
+        dumper = ihm.dumper._MultiStateDumper()
+        dumper.finalize(system) # assign IDs
+
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_ihm_multi_state_modeling.ordinal_id
+_ihm_multi_state_modeling.state_id
+_ihm_multi_state_modeling.state_group_id
+_ihm_multi_state_modeling.population_fraction
+_ihm_multi_state_modeling.state_type
+_ihm_multi_state_modeling.state_name
+_ihm_multi_state_modeling.model_group_id
+_ihm_multi_state_modeling.experiment_type
+_ihm_multi_state_modeling.details
+1 1 1 . 'complex formation' unbound 1 'Fraction of bulk' 'Unbound molecule 1'
+2 1 1 . 'complex formation' unbound 2 'Fraction of bulk' 'Unbound molecule 1'
+3 2 1 . 'complex formation' bound 3 'Fraction of bulk' 'Unbound molecule 2'
+4 3 2 0.400 . . 4 . .
 #
 """)
 

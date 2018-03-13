@@ -19,6 +19,12 @@ The :mod:`ihm.model` Python module
 .. autoclass:: ModelGroup
    :members:
 
+.. autoclass:: State
+   :members:
+
+.. autoclass:: StateGroup
+   :members:
+
 .. autoclass:: Ensemble
    :members:
 

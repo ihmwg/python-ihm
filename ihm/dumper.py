@@ -489,15 +489,21 @@ class _PostProcessDumper(_Dumper):
                                 num_models_end=s.num_models_end)
 
 class _ModelDumper(object):
+    def _all_model_groups(self, system):
+        for state_group in system.state_groups:
+            for state in state_group:
+                for model_group in state:
+                    yield model_group
+
     def finalize(self, system):
         # Remove any existing ID
-        for g in system.model_groups:
+        for g in self._all_model_groups(system):
             for m in g:
                 if hasattr(m, '_id'):
                     del m._id
         model_id = 1
         # Assign IDs to models and groups
-        for ng, g in enumerate(system.model_groups):
+        for ng, g in enumerate(self._all_model_groups(system)):
             g._id = ng + 1
             for m in g:
                 if not hasattr(m, '_id'):
@@ -511,7 +517,7 @@ class _ModelDumper(object):
 
     def _all_models(self, system):
         seen_ids = {}
-        for group in system.model_groups:
+        for group in self._all_model_groups(system):
             for model in group:
                 # Skip duplicate models
                 if model._id in seen_ids:
@@ -625,6 +631,39 @@ class _DensityDumper(object):
                             seq_id_end=density.asym_unit.seq_id_range[1])
 
 
+class _MultiStateDumper(object):
+    def finalize(self, system):
+        state_id = 1
+        # Assign IDs
+        for ng, g in enumerate(system.state_groups):
+            g._id = ng + 1
+            for state in g:
+                state._id = state_id
+                state_id += 1
+
+    def dump(self, system, writer):
+        # Nothing to do for single state modeling
+        if len(system.state_groups) == 1 and len(system.state_groups[0]) <= 1:
+            return
+        with writer.loop("_ihm_multi_state_modeling",
+                         ["ordinal_id", "state_id", "state_group_id",
+                          "population_fraction", "state_type", "state_name",
+                          "model_group_id", "experiment_type", "details"]) as l:
+            ordinal = 1
+            for state_group in system.state_groups:
+                for state in state_group:
+                    for model_group in state:
+                        l.write(ordinal_id=ordinal, state_id=state._id,
+                                state_group_id=state_group._id,
+                                population_fraction=state.population_fraction,
+                                model_group_id=model_group._id,
+                                state_type=state.type,
+                                state_name=state.name,
+                                experiment_type=state.experiment_type,
+                                details=state.details)
+                        ordinal += 1
+
+
 def write(fh, systems):
     """Write out all `systems` to the mmCIF file handle `fh`"""
     dumpers = [_EntryDumper(), # must be first
@@ -643,7 +682,8 @@ def write(fh, systems):
                _PostProcessDumper(),
                _ModelDumper(),
                _EnsembleDumper(),
-               _DensityDumper()]
+               _DensityDumper(),
+               _MultiStateDumper()]
     writer = ihm.format.CifWriter(fh)
     for system in systems:
         for d in dumpers:

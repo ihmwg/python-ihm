@@ -94,6 +94,17 @@ class Tests(unittest.TestCase):
         self.assertEqual(e.file, 'foo')
         self.assertEqual(e.asym_unit, 'bar')
 
+    def test_state(self):
+        """Test State class"""
+        s = ihm.model.State(name='foo')
+        self.assertEqual(s.name, 'foo')
+        self.assertEqual(s, [])
+
+    def test_state_group(self):
+        """Test StateGroup class"""
+        s = ihm.model.StateGroup()
+        self.assertEqual(s, [])
+
 
 if __name__ == '__main__':
     unittest.main()

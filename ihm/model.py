@@ -1,4 +1,5 @@
-"""Classes for handling models (sets of coordinates).
+"""Classes for handling models (sets of coordinates) as well as
+   groups of models.
 """
 
 class Sphere(object):
@@ -109,7 +110,7 @@ class Model(object):
 
 class ModelGroup(list):
     """A set of related models. See :class:`Model` and
-       :attr:`ihm.System.model_groups`. It is implemented as a simple
+       :attr:`State.model_groups`. It is implemented as a simple
        list of the models.
 
        :param elements: Initial set of models in the group.
@@ -118,6 +119,33 @@ class ModelGroup(list):
     def __init__(self, elements=(), name=None):
         self.name = name
         super(ModelGroup, self).__init__(elements)
+
+
+class State(list):
+    """A set of model groups that constitute a single state of the system.
+       It is implemented as a simple list of the model groups.
+       See :class:`StateGroup`.
+
+       :param elements: The initial set of :class:`ModelGroup` objects in
+              this state.
+    """
+    def __init__(self, type=None, elements=(), name=None, details=None,
+                 experiment_type=None, population_fraction=None):
+        self.type, self.name, self.details = type, name, details
+        self.experiment_type = experiment_type
+        self.population_fraction = population_fraction
+        super(State, self).__init__(elements)
+
+
+class StateGroup(list):
+    """A set of related states. See :class:`State` and
+       :attr:`ihm.System.state_groups`. It is implemented as a simple
+       list of the states.
+
+       :param elements: Initial set of states in the group.
+    """
+    def __init__(self, elements=()):
+        super(StateGroup, self).__init__(elements)
 
 
 class Ensemble(object):
