@@ -506,6 +506,17 @@ class _ModelDumper(object):
 
     def dump(self, system, writer):
         self.dump_model_list(system, writer)
+        self.dump_spheres(system, writer)
+
+    def _all_models(self, system):
+        seen_ids = {}
+        for group in system.model_groups:
+            for model in group:
+                # Skip duplicate models
+                if model._id in seen_ids:
+                    continue
+                seen_ids[model._id] = None
+                yield group, model
 
     def dump_model_list(self, system, writer):
         ordinal = 1
@@ -513,20 +524,33 @@ class _ModelDumper(object):
                          ["ordinal_id", "model_id", "model_group_id",
                           "model_name", "model_group_name", "assembly_id",
                           "protocol_id", "representation_id"]) as l:
-            seen_ids = {}
-            for group in system.model_groups:
-                for model in group:
-                    # Skip duplicate models
-                    if model._id in seen_ids:
-                        continue
-                    seen_ids[model._id] = None
-                    l.write(ordinal_id=ordinal, model_id=model._id,
-                            model_group_id=group._id,
-                            model_name=model.name,
-                            model_group_name=group.name,
-                            assembly_id=model.assembly._id,
-                            protocol_id=model.protocol._id,
-                            representation_id=model.representation._id)
+            for group, model in self._all_models(system):
+                l.write(ordinal_id=ordinal, model_id=model._id,
+                        model_group_id=group._id,
+                        model_name=model.name,
+                        model_group_name=group.name,
+                        assembly_id=model.assembly._id,
+                        protocol_id=model.protocol._id,
+                        representation_id=model.representation._id)
+                ordinal += 1
+
+    def dump_spheres(self, system, writer):
+        ordinal = 1
+        with writer.loop("_ihm_sphere_obj_site",
+                         ["ordinal_id", "entity_id", "seq_id_begin",
+                          "seq_id_end", "asym_id", "Cartn_x",
+                          "Cartn_y", "Cartn_z", "object_radius", "rmsf",
+                          "model_id"]) as l:
+            for group, model in self._all_models(system):
+                for sphere in model.get_spheres():
+                    l.write(ordinal_id=ordinal,
+                            entity_id=sphere.asym_unit.entity._id,
+                            seq_id_begin=sphere.seq_id_range[0],
+                            seq_id_end=sphere.seq_id_range[1],
+                            asym_id=sphere.asym_unit._id,
+                            Cartn_x=sphere.x, Cartn_y=sphere.y,
+                            Cartn_z=sphere.z, object_radius=sphere.radius,
+                            rmsf=sphere.rmsf, model_id=model._id)
                     ordinal += 1
 
 

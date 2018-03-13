@@ -763,6 +763,70 @@ _ihm_model_list.representation_id
 #
 """)
 
+    def test_model_dumper_spheres(self):
+        """Test ModelDumper with spheres"""
+        class MockObject(object):
+            pass
+        system = ihm.System()
+        e1 = ihm.Entity('ACGT')
+        e1._id = 9
+        system.entities.append(e1)
+        asym = ihm.AsymUnit(e1, 'foo')
+        asym._id = 'X'
+        system.asym_units.append(asym)
+        protocol = MockObject()
+        protocol._id = 42
+        assembly = MockObject()
+        assembly._id = 99
+        representation = MockObject()
+        representation._id = 32
+        model = ihm.model.Model(assembly=assembly, protocol=protocol,
+                                representation=representation,
+                                name='test model')
+        model._spheres = [ihm.model.Sphere(asym_unit=asym,
+                                           seq_id_range=(1,5), x=1.0,
+                                           y=2.0, z=3.0, radius=4.0),
+                          ihm.model.Sphere(asym_unit=asym,
+                                           seq_id_range=(6,6), x=4.0,
+                                           y=5.0, z=6.0, radius=1.0, rmsf=8.0)]
+
+        group = ihm.model.ModelGroup([model])
+        system.model_groups.append(group)
+
+        dumper = ihm.dumper._ModelDumper()
+        dumper.finalize(system) # assign model/group IDs
+
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_ihm_model_list.ordinal_id
+_ihm_model_list.model_id
+_ihm_model_list.model_group_id
+_ihm_model_list.model_name
+_ihm_model_list.model_group_name
+_ihm_model_list.assembly_id
+_ihm_model_list.protocol_id
+_ihm_model_list.representation_id
+1 1 1 'test model' . 99 42 32
+#
+#
+loop_
+_ihm_sphere_obj_site.ordinal_id
+_ihm_sphere_obj_site.entity_id
+_ihm_sphere_obj_site.seq_id_begin
+_ihm_sphere_obj_site.seq_id_end
+_ihm_sphere_obj_site.asym_id
+_ihm_sphere_obj_site.Cartn_x
+_ihm_sphere_obj_site.Cartn_y
+_ihm_sphere_obj_site.Cartn_z
+_ihm_sphere_obj_site.object_radius
+_ihm_sphere_obj_site.rmsf
+_ihm_sphere_obj_site.model_id
+1 9 1 5 X 1.000 2.000 3.000 4.000 . 1
+2 9 6 6 X 4.000 5.000 6.000 1.000 8.000 1
+#
+""")
+
 
 if __name__ == '__main__':
     unittest.main()

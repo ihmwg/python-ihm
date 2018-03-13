@@ -7,6 +7,9 @@ The :mod:`ihm.model` Python module
 
 .. automodule:: ihm.model
 
+.. autoclass:: Sphere
+   :members:
+
 .. autoclass:: Model
    :members:
 
