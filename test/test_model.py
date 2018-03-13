@@ -78,6 +78,15 @@ class Tests(unittest.TestCase):
         self.assertEqual(g.name, 'foo')
         self.assertEqual(g[0].protocol, 'bar')
 
+    def test_ensemble(self):
+        """Test Ensemble class"""
+        e = ihm.model.Ensemble(model_group=['m1', 'm2', 'm3'],
+                               num_models=10, name='bar')
+        self.assertEqual(e.name, 'bar')
+        self.assertEqual(e.precision, None)
+        self.assertEqual(e.num_models, 10)
+        self.assertEqual(e.num_models_deposited, 3)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -69,6 +69,10 @@ class System(object):
         #: See :class:`~ihm.model.ModelGroup`.
         self.model_groups = []
 
+        #: All ensembles.
+        #: See :class:`~ihm.model.Ensemble`.
+        self.ensembles = []
+
     def _make_complete_assembly(self):
         """Fill in the complete assembly with all entities/asym units"""
         # Clear out any existing components

@@ -576,6 +576,34 @@ class _ModelDumper(object):
                     ordinal += 1
 
 
+class _EnsembleDumper(object):
+    def finalize(self, system):
+        # Assign IDs
+        for ne, e in enumerate(system.ensembles):
+            e._id = ne + 1
+
+    def dump(self, system, writer):
+        with writer.loop("_ihm_ensemble_info",
+                         ["ensemble_id", "ensemble_name", "post_process_id",
+                          "model_group_id", "ensemble_clustering_method",
+                          "ensemble_clustering_feature",
+                          "num_ensemble_models",
+                          "num_ensemble_models_deposited",
+                          "ensemble_precision_value",
+                          "ensemble_file_id"]) as l:
+            for e in system.ensembles:
+                l.write(ensemble_id=e._id, ensemble_name=e.name,
+                        post_process_id=e.post_process._id if e.post_process
+                                        else None,
+                        model_group_id=e.model_group._id,
+                        ensemble_clustering_method=e.clustering_method,
+                        ensemble_clustering_feature=e.clustering_feature,
+                        num_ensemble_models=e.num_models,
+                        num_ensemble_models_deposited=e.num_models_deposited,
+                        ensemble_precision_value=e.precision,
+                        ensemble_file_id=e.file._id if e.file else None)
+
+
 def write(fh, systems):
     """Write out all `systems` to the mmCIF file handle `fh`"""
     dumpers = [_EntryDumper(), # must be first
@@ -592,7 +620,8 @@ def write(fh, systems):
                _StartingModelDumper(),
                _ProtocolDumper(),
                _PostProcessDumper(),
-               _ModelDumper()]
+               _ModelDumper(),
+               _EnsembleDumper()]
     writer = ihm.format.CifWriter(fh)
     for system in systems:
         for d in dumpers:

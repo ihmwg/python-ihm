@@ -877,6 +877,50 @@ _atom_site.model_id
 #
 """)
 
+    def test_ensemble_dumper(self):
+        """Test EnsembleDumper"""
+        class MockObject(object):
+            pass
+        pp = MockObject()
+        pp._id = 99
+        system = ihm.System()
+        m1 = ihm.model.Model(assembly='a1', protocol='p1', representation='r1')
+        m2 = ihm.model.Model(assembly='a2', protocol='p2', representation='r2')
+        group = ihm.model.ModelGroup([m1, m2])
+        group._id = 42
+
+        e1 = ihm.model.Ensemble(model_group=group, num_models=10,
+                                post_process=pp, name='cluster1',
+                                clustering_method='Hierarchical',
+                                clustering_feature='RMSD',
+                                precision=4.2)
+        loc = ihm.location.OutputFileLocation(repo='foo', path='bar')
+        loc._id = 3
+        e2 = ihm.model.Ensemble(model_group=group, num_models=10,
+                                file=loc)
+        system.ensembles.extend((e1, e2))
+
+        dumper = ihm.dumper._EnsembleDumper()
+        dumper.finalize(system) # assign IDs
+
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_ihm_ensemble_info.ensemble_id
+_ihm_ensemble_info.ensemble_name
+_ihm_ensemble_info.post_process_id
+_ihm_ensemble_info.model_group_id
+_ihm_ensemble_info.ensemble_clustering_method
+_ihm_ensemble_info.ensemble_clustering_feature
+_ihm_ensemble_info.num_ensemble_models
+_ihm_ensemble_info.num_ensemble_models_deposited
+_ihm_ensemble_info.ensemble_precision_value
+_ihm_ensemble_info.ensemble_file_id
+1 cluster1 99 42 Hierarchical RMSD 10 2 4.200 .
+2 . . 42 . . 10 2 . 3
+#
+""")
+
 
 if __name__ == '__main__':
     unittest.main()
