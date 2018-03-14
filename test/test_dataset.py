@@ -67,6 +67,12 @@ class Tests(unittest.TestCase):
         d = ihm.dataset.EM2DClassDataset(loc)
         self.assertEqual(d.data_type, '2DEM class average')
 
+    def test_em_micrographs_dataset(self):
+        """Test EMMicrographsDataset"""
+        loc = ihm.location.FileLocation(repo='mydoi', path='a')
+        d = ihm.dataset.EMMicrographsDataset(loc)
+        self.assertEqual(d.data_type, 'EM raw micrographs')
+
     def test_sas_dataset(self):
         """Test SASDataset"""
         loc = ihm.location.FileLocation(repo='mydoi', path='a')

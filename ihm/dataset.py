@@ -74,6 +74,11 @@ class EMDensityDataset(Dataset):
     data_type = '3DEM volume'
 
 
+class EMMicrographsDataset(Dataset):
+    """Raw 2D eletron micrographs"""
+    data_type = 'EM raw micrographs'
+
+
 class EM2DClassDataset(Dataset):
     """2DEM class average"""
     data_type = '2DEM class average'

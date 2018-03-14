@@ -31,6 +31,9 @@ The :mod:`ihm.dataset` Python module
 .. autoclass:: EMDensityDataset
    :members:
 
+.. autoclass:: EMMicrographsDataset
+   :members:
+
 .. autoclass:: EM2DClassDataset
    :members:
 
