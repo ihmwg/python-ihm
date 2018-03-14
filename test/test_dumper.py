@@ -1116,6 +1116,78 @@ _ihm_sas_restraint.details
 #
 """)
 
+    def test_em2d_restraint_dumper(self):
+        """Test EM2DRestraintDumper"""
+        class MockObject(object):
+            pass
+        system = ihm.System()
+
+        dataset = MockObject()
+        dataset._id = 97
+        assembly = MockObject()
+        assembly._id = 99
+        r = ihm.restraint.EM2DRestraint(dataset=dataset, assembly=assembly,
+                       segment=False, number_raw_micrographs=400,
+                       pixel_size_width=0.6, pixel_size_height=0.5,
+                       image_resolution=30.0, number_of_projections=100,
+                       details='Test fit')
+        m = ihm.model.Model(assembly='foo', protocol='bar',
+                            representation='baz')
+        m._id = 42
+        m2 = ihm.model.Model(assembly='foo', protocol='bar',
+                            representation='baz')
+        m2._id = 44
+        system.restraints.extend((r, MockObject()))
+
+        r.fits[m] = ihm.restraint.EM2DRestraintFit(
+                      cross_correlation_coefficient=0.4,
+                      rot_matrix=[[-0.64,0.09,0.77],[0.76,-0.12,0.64],
+                                  [0.15,0.99,0.01]],
+                      tr_vector=[1.,2.,3.])
+        r.fits[m2] = ihm.restraint.EM2DRestraintFit()
+
+        dumper = ihm.dumper._EM2DDumper()
+        dumper.finalize(system) # assign IDs
+
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_ihm_2dem_class_average_restraint.id
+_ihm_2dem_class_average_restraint.dataset_list_id
+_ihm_2dem_class_average_restraint.number_raw_micrographs
+_ihm_2dem_class_average_restraint.pixel_size_width
+_ihm_2dem_class_average_restraint.pixel_size_height
+_ihm_2dem_class_average_restraint.image_resolution
+_ihm_2dem_class_average_restraint.image_segment_flag
+_ihm_2dem_class_average_restraint.number_of_projections
+_ihm_2dem_class_average_restraint.struct_assembly_id
+_ihm_2dem_class_average_restraint.details
+1 97 400 0.600 0.500 30.000 NO 100 99 'Test fit'
+#
+#
+loop_
+_ihm_2dem_class_average_fitting.ordinal_id
+_ihm_2dem_class_average_fitting.restraint_id
+_ihm_2dem_class_average_fitting.model_id
+_ihm_2dem_class_average_fitting.cross_correlation_coefficient
+_ihm_2dem_class_average_fitting.rot_matrix[1][1]
+_ihm_2dem_class_average_fitting.rot_matrix[2][1]
+_ihm_2dem_class_average_fitting.rot_matrix[3][1]
+_ihm_2dem_class_average_fitting.rot_matrix[1][2]
+_ihm_2dem_class_average_fitting.rot_matrix[2][2]
+_ihm_2dem_class_average_fitting.rot_matrix[3][2]
+_ihm_2dem_class_average_fitting.rot_matrix[1][3]
+_ihm_2dem_class_average_fitting.rot_matrix[2][3]
+_ihm_2dem_class_average_fitting.rot_matrix[3][3]
+_ihm_2dem_class_average_fitting.tr_vector[1]
+_ihm_2dem_class_average_fitting.tr_vector[2]
+_ihm_2dem_class_average_fitting.tr_vector[3]
+1 1 42 0.400 -0.640000 0.760000 0.150000 0.090000 -0.120000 0.990000 0.770000
+0.640000 0.010000 1.000 2.000 3.000
+2 1 44 . . . . . . . . . . . . .
+#
+""")
+
 
 if __name__ == '__main__':
     unittest.main()

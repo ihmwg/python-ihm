@@ -20,7 +20,7 @@ class EM3DRestraint(Restraint):
        :param str fitting_method: The method used to fit the model into the map.
        :param int number_of_gaussians: Number of Gaussians used to represent
               the map as a Gaussian Mixture Model (GMM), if applicable.
-       :param str details: Addition details regarding the fitting.
+       :param str details: Additional details regarding the fitting.
     """
 
     def __init__(self, dataset, assembly, segment=None, fitting_method=None,
@@ -65,7 +65,7 @@ class SASRestraint(Restraint):
        :param bool multi_state: Whether multiple state fitting was done.
        :param float radius_of_gyration: Radius of gyration obtained from the
               SAS profile, if used as part of the restraint.
-       :param str details: Addition details regarding the fitting.
+       :param str details: Additional details regarding the fitting.
     """
 
     def __init__(self, dataset, assembly, segment=None, fitting_method=None,
@@ -94,3 +94,65 @@ class SASRestraintFit(object):
 
     def __init__(self, chi_value=None):
         self.chi_value = chi_value
+
+
+class EM2DRestraint(Restraint):
+    """Restrain part of the system to match an electron microscopy class
+       average.
+
+       :param dataset: Reference to the class average data (usually
+              an :class:`~ihm.dataset.EM2DClassDataset`).
+       :type dataset: :class:`~ihm.dataset.Dataset`
+       :param assembly: The part of the system that is fit against the class.
+       :type assembly: :class:`~ihm.Assembly`
+       :param bool segment: True iff the image has been segmented.
+       :param int number_raw_micrographs: The number of particles picked from
+              the original raw micrographs that were used to create the
+              class average.
+       :param float pixel_size_width: Width of each pixel in the image, in
+              angstroms.
+       :param float pixel_size_height: Height of each pixel in the image, in
+              angstroms.
+       :param float image_resolution: Resolution of the image, in angstroms.
+       :param int number_of_projections: Number of projections of the assembly
+              used to fit against the image, if applicable.
+       :param str details: Additional details regarding the fitting.
+    """
+
+    def __init__(self, dataset, assembly, segment=None,
+                 number_raw_micrographs=None, pixel_size_width=None,
+                 pixel_size_height=None, image_resolution=None,
+                 number_of_projections=None, details=None):
+        self.dataset, self.assembly = dataset, assembly
+        self.segment = segment
+        self.number_raw_micrographs = number_raw_micrographs
+        self.pixel_size_width = pixel_size_width
+        self.pixel_size_height = pixel_size_height
+        self.image_resolution = image_resolution
+        self.number_of_projections = number_of_projections
+        self.details = details
+
+        #: Information about the fit of each model to this restraint's data.
+        #: This is a Python dict where keys are :class:`~ihm.model.Model`
+        #: objects and values are :class:`EM2DRestraintFit` objects.
+        self.fits = {}
+
+
+class EM2DRestraintFit(object):
+    """Information on the fit of a model to an :class:`EM2DRestraint`.
+       See :attr:`EM2DRestaint.fits`.
+
+       :param float cross_correlation_coefficient: The fit between the model
+              and the class average.
+       :param rot_matrix: Rotation matrix (as a 3x3 array of floats) that
+              places the model on the image.
+       :param tr_vector: Translation vector (as a 3-element float list) that
+              places the model on the image.
+    """
+    __slots__ = ["cross_correlation_coefficient",
+                 "rot_matrix", "tr_vector"] # Reduce memory usage
+
+    def __init__(self, cross_correlation_coefficient=None,
+                 rot_matrix=None, tr_vector=None):
+        self.cross_correlation_coefficient = cross_correlation_coefficient
+        self.rot_matrix, self.tr_vector = rot_matrix, tr_vector

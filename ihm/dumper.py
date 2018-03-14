@@ -695,6 +695,75 @@ class _EM3DDumper(_Dumper):
                     ordinal += 1
 
 
+class _EM2DDumper(_Dumper):
+    def _all_restraints(self, system):
+        return [r for r in system.restraints
+                if isinstance(r, restraint.EM2DRestraint)]
+
+    def finalize(self, system):
+        for nr, r in enumerate(self._all_restraints(system)):
+            r._id = nr + 1
+
+    def dump(self, system, writer):
+        self.dump_restraint(system, writer)
+        self.dump_fitting(system, writer)
+
+    def dump_restraint(self, system, writer):
+        with writer.loop("_ihm_2dem_class_average_restraint",
+                         ["id", "dataset_list_id", "number_raw_micrographs",
+                          "pixel_size_width", "pixel_size_height",
+                          "image_resolution", "image_segment_flag",
+                          "number_of_projections", "struct_assembly_id",
+                          "details"]) as l:
+            for r in self._all_restraints(system):
+                l.write(id=r._id, dataset_list_id=r.dataset._id,
+                        number_raw_micrographs=r.number_raw_micrographs,
+                        pixel_size_width=r.pixel_size_width,
+                        pixel_size_height=r.pixel_size_height,
+                        image_resolution=r.image_resolution,
+                        number_of_projections=r.number_of_projections,
+                        struct_assembly_id=r.assembly._id,
+                        image_segment_flag=r.segment,
+                        details=r.details)
+
+    def dump_fitting(self, system, writer):
+        ordinal = 1
+        with writer.loop("_ihm_2dem_class_average_fitting",
+                ["ordinal_id", "restraint_id", "model_id",
+                 "cross_correlation_coefficient", "rot_matrix[1][1]",
+                 "rot_matrix[2][1]", "rot_matrix[3][1]", "rot_matrix[1][2]",
+                 "rot_matrix[2][2]", "rot_matrix[3][2]", "rot_matrix[1][3]",
+                 "rot_matrix[2][3]", "rot_matrix[3][3]", "tr_vector[1]",
+                 "tr_vector[2]", "tr_vector[3]"]) as l:
+            for r in self._all_restraints(system):
+                # all fits ordered by model ID
+                for model, fit in sorted(r.fits.items(),
+                                         key=lambda i: i[0]._id):
+                    ccc = fit.cross_correlation_coefficient
+                    if fit.tr_vector is None:
+                        t = [None] * 3
+                    else:
+                        t = fit.tr_vector
+                    if fit.rot_matrix is None:
+                        rm = [[None] * 3] * 3
+                    else:
+                        # mmCIF writer usually outputs floats to 3 decimal
+                        # places, but we need more precision for rotation
+                        # matrices
+                        rm = [["%.6f" % e for e in fit.rot_matrix[i]]
+                              for i in range(3)]
+                    l.write(ordinal_id=ordinal, restraint_id=r._id,
+                            model_id=model._id,
+                            cross_correlation_coefficient=ccc,
+                            rot_matrix11=rm[0][0], rot_matrix21=rm[1][0],
+                            rot_matrix31=rm[2][0], rot_matrix12=rm[0][1],
+                            rot_matrix22=rm[1][1], rot_matrix32=rm[2][1],
+                            rot_matrix13=rm[0][2], rot_matrix23=rm[1][2],
+                            rot_matrix33=rm[2][2], tr_vector1=t[0],
+                            tr_vector2=t[1], tr_vector3=t[2])
+                    ordinal += 1
+
+
 class _SASDumper(_Dumper):
     def _all_restraints(self, system):
         return [r for r in system.restraints
@@ -748,6 +817,7 @@ def write(fh, systems):
                _ProtocolDumper(),
                _PostProcessDumper(),
                _EM3DDumper(),
+               _EM2DDumper(),
                _SASDumper(),
                _ModelDumper(),
                _EnsembleDumper(),

@@ -37,6 +37,20 @@ class Tests(unittest.TestCase):
         self.assertEqual(f.assembly, 'bar')
         self.assertEqual(f.fits, {})
 
+    def test_em2d_restraint_fit(self):
+        """Test EM2DRestraintFit class"""
+        f = ihm.restraint.EM2DRestraintFit(0.4)
+        self.assertAlmostEqual(f.cross_correlation_coefficient, 0.4, places=1)
+        self.assertEqual(f.rot_matrix, None)
+        self.assertEqual(f.tr_vector, None)
+
+    def test_em2d_restraint(self):
+        """Test EM2DRestraint class"""
+        f = ihm.restraint.EM2DRestraint(dataset='foo', assembly='bar')
+        self.assertEqual(f.dataset, 'foo')
+        self.assertEqual(f.assembly, 'bar')
+        self.assertEqual(f.fits, {})
+
 
 if __name__ == '__main__':
     unittest.main()
