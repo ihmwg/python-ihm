@@ -695,6 +695,42 @@ class _EM3DDumper(_Dumper):
                     ordinal += 1
 
 
+class _SASDumper(_Dumper):
+    def _all_restraints(self, system):
+        return [r for r in system.restraints
+                if isinstance(r, restraint.SASRestraint)]
+
+    def finalize(self, system):
+        for nr, r in enumerate(self._all_restraints(system)):
+            r._id = nr + 1
+
+    def dump(self, system, writer):
+        ordinal = 1
+        with writer.loop("_ihm_sas_restraint",
+                         ["ordinal_id", "dataset_list_id", "model_id",
+                          "struct_assembly_id", "profile_segment_flag",
+                          "fitting_atom_type", "fitting_method",
+                          "fitting_state", "radius_of_gyration",
+                          "chi_value", "details"]) as l:
+            for r in self._all_restraints(system):
+                # all fits ordered by model ID
+                for model, fit in sorted(r.fits.items(),
+                                         key=lambda i: i[0]._id):
+                    l.write(ordinal_id=ordinal,
+                            dataset_list_id=r.dataset._id,
+                            fitting_method=r.fitting_method,
+                            fitting_atom_type=r.fitting_atom_type,
+                            fitting_state='Multiple' if r.multi_state
+                                                     else 'Single',
+                            profile_segment_flag=r.segment,
+                            radius_of_gyration=r.radius_of_gyration,
+                            struct_assembly_id=r.assembly._id,
+                            model_id=model._id,
+                            chi_value=fit.chi_value,
+                            details=r.details)
+                    ordinal += 1
+
+
 def write(fh, systems):
     """Write out all `systems` to the mmCIF file handle `fh`"""
     dumpers = [_EntryDumper(), # must be first
@@ -712,6 +748,7 @@ def write(fh, systems):
                _ProtocolDumper(),
                _PostProcessDumper(),
                _EM3DDumper(),
+               _SASDumper(),
                _ModelDumper(),
                _EnsembleDumper(),
                _DensityDumper(),

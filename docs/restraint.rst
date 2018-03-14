@@ -15,3 +15,9 @@ The :mod:`ihm.restraint` Python module
 
 .. autoclass:: EM3DRestraintFit
    :members:
+
+.. autoclass:: SASRestraint
+   :members:
+
+.. autoclass:: SASRestraintFit
+   :members:

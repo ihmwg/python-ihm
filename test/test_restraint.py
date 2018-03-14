@@ -25,6 +25,18 @@ class Tests(unittest.TestCase):
         self.assertEqual(f.assembly, 'bar')
         self.assertEqual(f.fits, {})
 
+    def test_sas_restraint_fit(self):
+        """Test SASRestraintFit class"""
+        f = ihm.restraint.SASRestraintFit(0.4)
+        self.assertAlmostEqual(f.chi_value, 0.4, places=1)
+
+    def test_sas_restraint(self):
+        """Test SASRestraint class"""
+        f = ihm.restraint.SASRestraint(dataset='foo', assembly='bar')
+        self.assertEqual(f.dataset, 'foo')
+        self.assertEqual(f.assembly, 'bar')
+        self.assertEqual(f.fits, {})
+
 
 if __name__ == '__main__':
     unittest.main()

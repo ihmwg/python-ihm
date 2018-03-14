@@ -1068,6 +1068,54 @@ _ihm_3dem_restraint.cross_correlation_coefficient
 #
 """)
 
+    def test_sas_restraint_dumper(self):
+        """Test SASRestraintDumper"""
+        class MockObject(object):
+            pass
+        system = ihm.System()
+
+        dataset = MockObject()
+        dataset._id = 97
+        assembly = MockObject()
+        assembly._id = 99
+        r = ihm.restraint.SASRestraint(dataset=dataset, assembly=assembly,
+                       segment=False, fitting_method='FoXS',
+                       fitting_atom_type='Heavy atoms',
+                       multi_state=False,
+                       radius_of_gyration=21.07, details='FoXS fitting')
+        m = ihm.model.Model(assembly='foo', protocol='bar',
+                            representation='baz')
+        m._id = 42
+        m2 = ihm.model.Model(assembly='foo', protocol='bar',
+                            representation='baz')
+        m2._id = 44
+        system.restraints.extend((r, MockObject()))
+
+        r.fits[m] = ihm.restraint.SASRestraintFit(4.69)
+        r.fits[m2] = ihm.restraint.SASRestraintFit()
+
+        dumper = ihm.dumper._SASDumper()
+        dumper.finalize(system) # assign IDs
+
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_ihm_sas_restraint.ordinal_id
+_ihm_sas_restraint.dataset_list_id
+_ihm_sas_restraint.model_id
+_ihm_sas_restraint.struct_assembly_id
+_ihm_sas_restraint.profile_segment_flag
+_ihm_sas_restraint.fitting_atom_type
+_ihm_sas_restraint.fitting_method
+_ihm_sas_restraint.fitting_state
+_ihm_sas_restraint.radius_of_gyration
+_ihm_sas_restraint.chi_value
+_ihm_sas_restraint.details
+1 97 42 99 NO 'Heavy atoms' FoXS Single 21.070 4.690 'FoXS fitting'
+2 97 44 99 NO 'Heavy atoms' FoXS Single 21.070 . 'FoXS fitting'
+#
+""")
+
 
 if __name__ == '__main__':
     unittest.main()
