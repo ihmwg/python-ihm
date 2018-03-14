@@ -18,6 +18,7 @@ import ihm.dataset
 import ihm.protocol
 import ihm.analysis
 import ihm.model
+import ihm.restraint
 
 def _get_dumper_output(dumper, system):
     fh = StringIO()
@@ -1022,6 +1023,48 @@ _ihm_multi_state_modeling.details
 2 1 1 . 'complex formation' unbound 2 'Fraction of bulk' 'Unbound molecule 1'
 3 2 1 . 'complex formation' bound 3 'Fraction of bulk' 'Unbound molecule 2'
 4 3 2 0.400 . . 4 . .
+#
+""")
+
+    def test_em3d_restraint_dumper(self):
+        """Test EM3DRestraintDumper"""
+        class MockObject(object):
+            pass
+        system = ihm.System()
+
+        dataset = MockObject()
+        dataset._id = 97
+        assembly = MockObject()
+        assembly._id = 99
+        r = ihm.restraint.EM3DRestraint(dataset=dataset, assembly=assembly,
+                       segment=False, fitting_method='Gaussian mixture model',
+                       number_of_gaussians=40, details='GMM fitting')
+        m = ihm.model.Model(assembly='foo', protocol='bar',
+                            representation='baz')
+        m._id = 42
+        m2 = ihm.model.Model(assembly='foo', protocol='bar',
+                            representation='baz')
+        m2._id = 44
+        system.restraints.extend((r, MockObject()))
+
+        r.fits[m] = ihm.restraint.EM3DRestraintFit(0.4)
+        r.fits[m2] = ihm.restraint.EM3DRestraintFit()
+
+        dumper = ihm.dumper._EM3DDumper()
+        dumper.finalize(system) # assign IDs
+
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_ihm_3dem_restraint.ordinal_id
+_ihm_3dem_restraint.dataset_list_id
+_ihm_3dem_restraint.fitting_method
+_ihm_3dem_restraint.struct_assembly_id
+_ihm_3dem_restraint.number_of_gaussians
+_ihm_3dem_restraint.model_id
+_ihm_3dem_restraint.cross_correlation_coefficient
+1 97 'Gaussian mixture model' 99 40 42 0.400
+2 97 'Gaussian mixture model' 99 40 44 .
 #
 """)
 

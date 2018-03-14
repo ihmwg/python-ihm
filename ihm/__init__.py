@@ -61,6 +61,10 @@ class System(object):
         #: See :class:`~ihm.startmodel.StartingModel`.
         self.starting_models = []
 
+        #: All restraints on the system.
+        #: See :class:`~ihm.restraint.Restraint`.
+        self.restraints = []
+
         #: All modeling protocols.
         #: See :class:`~ihm.protocol.Protocol`.
         self.protocols = []

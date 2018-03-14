@@ -14,6 +14,7 @@ with the integrative/hybrid modeling (IHM) extension.
    metadata
    startmodel
    representation
+   restraint
    protocol
    analysis
    model

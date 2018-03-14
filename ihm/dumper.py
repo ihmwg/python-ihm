@@ -6,6 +6,7 @@ import operator
 import ihm.format
 from . import util
 from . import location
+from . import restraint
 
 # Standard amino acids, mapping from 1 to 3 letter codes
 _amino_acids = {'A':'ALA', 'C':'CYS', 'D':'ASP', 'E':'GLU', 'F':'PHE',
@@ -663,6 +664,36 @@ class _MultiStateDumper(object):
                                 details=state.details)
                         ordinal += 1
 
+class _EM3DDumper(_Dumper):
+    def _all_restraints(self, system):
+        return [r for r in system.restraints
+                if isinstance(r, restraint.EM3DRestraint)]
+
+    def finalize(self, system):
+        for nr, r in enumerate(self._all_restraints(system)):
+            r._id = nr + 1
+
+    def dump(self, system, writer):
+        ordinal = 1
+        with writer.loop("_ihm_3dem_restraint",
+                         ["ordinal_id", "dataset_list_id", "fitting_method",
+                          "struct_assembly_id",
+                          "number_of_gaussians", "model_id",
+                          "cross_correlation_coefficient"]) as l:
+            for r in self._all_restraints(system):
+                # all fits ordered by model ID
+                for model, fit in sorted(r.fits.items(),
+                                         key=lambda i: i[0]._id):
+                    ccc = fit.cross_correlation_coefficient
+                    l.write(ordinal_id=ordinal,
+                            dataset_list_id=r.dataset._id,
+                            fitting_method=r.fitting_method,
+                            struct_assembly_id=r.assembly._id,
+                            number_of_gaussians=r.number_of_gaussians,
+                            model_id=model._id,
+                            cross_correlation_coefficient=ccc)
+                    ordinal += 1
+
 
 def write(fh, systems):
     """Write out all `systems` to the mmCIF file handle `fh`"""
@@ -680,6 +711,7 @@ def write(fh, systems):
                _StartingModelDumper(),
                _ProtocolDumper(),
                _PostProcessDumper(),
+               _EM3DDumper(),
                _ModelDumper(),
                _EnsembleDumper(),
                _DensityDumper(),
