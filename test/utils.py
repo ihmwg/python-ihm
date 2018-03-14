@@ -6,7 +6,8 @@ import shutil
 
 def set_search_paths(topdir):
     """Set search paths so that we can import Python modules"""
-    os.environ['PYTHONPATH'] = topdir + ':' + os.environ.get('PYTHONPATH', '')
+    os.environ['PYTHONPATH'] = topdir + os.pathsep \
+                               + os.environ.get('PYTHONPATH', '')
     sys.path.append(topdir)
 
 def get_input_file_name(topdir, fname):
