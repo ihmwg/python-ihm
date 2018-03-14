@@ -129,7 +129,7 @@ class State(list):
        :param elements: The initial set of :class:`ModelGroup` objects in
               this state.
     """
-    def __init__(self, type=None, elements=(), name=None, details=None,
+    def __init__(self, elements=(), type=None, name=None, details=None,
                  experiment_type=None, population_fraction=None):
         self.type, self.name, self.details = type, name, details
         self.experiment_type = experiment_type
