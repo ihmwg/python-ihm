@@ -136,6 +136,23 @@ class System(object):
                   (step.dataset_group for step in all_protocol_steps()
                                       if step.dataset_group))
 
+    def _all_locations(self):
+        """Iterate over all Locations in the system.
+           This includes all Locations referenced from other objects, plus
+           any referenced from the top-level system.
+           Duplicates may be present."""
+        # todo: also check alignment_file from comparative starting models
+        def all_densities():
+            for ensemble in self.ensembles:
+                for density in ensemble.densities:
+                    yield density
+        return itertools.chain(
+                self.locations,
+                (dataset.location for dataset in self.datasets
+                          if hasattr(dataset, 'location') and dataset.location),
+                (ensemble.file for ensemble in self.ensembles if ensemble.file),
+                (density.file for density in all_densities() if density.file))
+
     def _make_complete_assembly(self):
         """Fill in the complete assembly with all entities/asym units"""
         # Clear out any existing components

@@ -34,7 +34,6 @@ system.locations.append(l)
 # Datasets are the most common users of external files. For example, to refer
 # to an input PDB file in the current directory:
 l = ihm.location.InputFileLocation("simple.pdb", details="Input PDB file")
-system.locations.append(l) # todo: remove
 d = ihm.dataset.PDBDataset(l)
 # Add to set of all datasets
 system.datasets.append(d)
@@ -43,7 +42,6 @@ system.datasets.append(d)
 # We can point to such a database using a subclass of DatabaseLocation, for
 # example to point to PDB:
 l = ihm.location.PDBLocation('1abc')
-system.locations.append(l) # todo: remove
 system.datasets.append(ihm.dataset.PDBDataset(l))
 
 # Write out everything to an mmCIF file

@@ -155,5 +155,32 @@ class Tests(unittest.TestCase):
         # duplicates should not be filtered
         self.assertEqual(list(s._all_dataset_groups()), [dg1, dg2, dg1])
 
+    def test_all_locations(self):
+        """Test _all_locations() method"""
+        class MockObject(object):
+            pass
+        loc1 = MockObject()
+        loc2 = MockObject()
+
+        s = ihm.System()
+        dataset1 = MockObject()
+        dataset2 = MockObject()
+        dataset2.location = None
+        dataset3 = MockObject()
+        dataset3.location = loc1
+
+        s.locations.append(loc1)
+        s.datasets.extend((dataset1, dataset2, dataset3))
+
+        ensemble = MockObject()
+        ensemble.file = loc2
+        density = MockObject()
+        density.file = loc1
+        ensemble.densities = [density]
+        s.ensembles.append(ensemble)
+
+        # duplicates should not be filtered
+        self.assertEqual(list(s._all_locations()), [loc1, loc1, loc2, loc1])
+
 if __name__ == '__main__':
     unittest.main()

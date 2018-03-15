@@ -220,7 +220,7 @@ class _ExternalReferenceDumper(_Dumper):
     def finalize(self, system):
         # Keep only locations that don't point into databases (these are
         # handled elsewhere)
-        self._refs = [x for x in system.locations
+        self._refs = [x for x in system._all_locations()
                       if not isinstance(x, location.DatabaseLocation)]
         # Assign IDs to all locations and repos (including the None repo, which
         # is for local files)
