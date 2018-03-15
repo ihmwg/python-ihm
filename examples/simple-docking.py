@@ -97,7 +97,6 @@ protocol.steps.append(ihm.protocol.Step(
                         name='Production sampling',
                         num_models_begin=0,
                         num_models_end=1000, multi_scale=True))
-system.protocols.append(protocol) # todo: remove
 
 # Finally we can add coordinates for the deposited models. Typically these
 # will be stored in our own software's data structures somewhere (for this

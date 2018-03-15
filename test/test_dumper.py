@@ -643,13 +643,13 @@ _ihm_starting_model_details.dataset_list_id
         p1.steps.append(ihm.protocol.Step(assembly=assembly, dataset_group=dsg,
                                method='Replica exchange', num_models_begin=500,
                                num_models_end=2000, multi_scale=True))
-        system.protocols.append(p1)
+        system.orphan_protocols.append(p1)
 
         p2 = ihm.protocol.Protocol('sampling')
         p2.steps.append(ihm.protocol.Step(assembly=assembly, dataset_group=dsg2,
                                method='Replica exchange', num_models_begin=2000,
                                num_models_end=1000, multi_scale=True))
-        system.protocols.append(p2)
+        system.orphan_protocols.append(p2)
 
         dumper = ihm.dumper._ProtocolDumper()
         dumper.finalize(system) # assign IDs
@@ -682,7 +682,7 @@ _ihm_modeling_protocol.time_ordered_flag
             pass
         system = ihm.System()
         p1 = ihm.protocol.Protocol('refinement')
-        system.protocols.append(p1)
+        system.orphan_protocols.append(p1)
 
         a1 = ihm.analysis.Analysis()
         a1.steps.append(ihm.analysis.EmptyStep())

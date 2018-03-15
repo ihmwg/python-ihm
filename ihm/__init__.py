@@ -9,11 +9,23 @@
    pointers to objects are used).
 """
 
+import itertools
 from .format import CifWriter
 
 #: A value that isn't known. Note that this is distinct from a value that
 #: is deliberately omitted, which is represented by Python None.
 unknown = CifWriter.unknown
+
+def _remove_identical(gen):
+    """Return only unique objects from `gen`.
+       Objects that are identical are only returned once, although multiple
+       non-identical objects that compare equal may be returned."""
+    seen_objs = {}
+    for obj in gen:
+        if id(obj) in seen_objs:
+            continue
+        seen_objs[id(obj)] = None
+        yield obj
 
 class System(object):
     """Top-level class representing a complete modeled system"""
@@ -65,9 +77,12 @@ class System(object):
         #: See :class:`~ihm.restraint.Restraint`.
         self.restraints = []
 
-        #: All modeling protocols.
+        #: All orphaned modeling protocols.
+        #: This can be used to keep track of all protocols that are not
+        #: otherwise used - normally a protocol is assigned to a
+        #: :class:`~ihm.model.Model`.
         #: See :class:`~ihm.protocol.Protocol`.
-        self.protocols = []
+        self.orphan_protocols = []
 
         #: All ensembles.
         #: See :class:`~ihm.model.Ensemble`.
@@ -76,6 +91,34 @@ class System(object):
         #: All state groups (collections of models).
         #: See :class:`~ihm.model.StateGroup`.
         self.state_groups = []
+
+    def _all_model_groups(self):
+        """Iterate over all ModelGroups in the system"""
+        # todo: raise an error if a modelgroup is present in multiple states
+        for state_group in self.state_groups:
+            for state in state_group:
+                for model_group in state:
+                    yield model_group
+
+    def _all_models(self):
+        """Iterate over all Models in the system"""
+        # todo: raise an error if a model is present in multiple groups
+        for group in self._all_model_groups():
+            seen_models = {}
+            for model in group:
+                if model in seen_models:
+                    continue
+                seen_models[model] = None
+                yield group, model
+
+    def _all_protocols(self):
+        """Iterate over all Protocols in the system.
+           This includes all Protocols referenced from other objects, plus
+           any orphaned Protocols. Duplicates are filtered out."""
+        return _remove_identical(itertools.chain(
+                        self.orphan_protocols,
+                        (model.protocol for group, model in self._all_models()
+                                        if model.protocol)))
 
     def _make_complete_assembly(self):
         """Fill in the complete assembly with all entities/asym units"""

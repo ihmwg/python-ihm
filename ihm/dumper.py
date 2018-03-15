@@ -434,7 +434,7 @@ class _StartingModelDumper(_Dumper):
 class _ProtocolDumper(_Dumper):
     def finalize(self, system):
         # Assign IDs to protocols and steps
-        for np, p in enumerate(system.protocols):
+        for np, p in enumerate(system._all_protocols()):
             p._id = np + 1
             for ns, s in enumerate(p.steps):
                 s._id = ns + 1
@@ -448,7 +448,7 @@ class _ProtocolDumper(_Dumper):
                           "step_name", "step_method", "num_models_begin",
                           "num_models_end", "multi_scale_flag",
                           "multi_state_flag", "time_ordered_flag"]) as l:
-            for p in system.protocols:
+            for p in system._all_protocols():
                 for s in p.steps:
                     l.write(ordinal_id=ordinal, protocol_id=p._id,
                             step_id=s._id,
@@ -471,7 +471,7 @@ class _PostProcessDumper(_Dumper):
         # Assign IDs to analyses and steps
         # todo: handle case where one analysis is referred to from multiple
         # protocols
-        for p in system.protocols:
+        for p in system._all_protocols():
             for na, a in enumerate(p.analyses):
                 a._id = na + 1
                 for ns, s in enumerate(a.steps):
@@ -485,7 +485,7 @@ class _PostProcessDumper(_Dumper):
                          ["id", "protocol_id", "analysis_id", "step_id",
                           "type", "feature", "num_models_begin",
                           "num_models_end"]) as l:
-            for p in system.protocols:
+            for p in system._all_protocols():
                 for a in p.analyses:
                     for s in a.steps:
                         l.write(id=s._post_proc_id, protocol_id=p._id,
@@ -495,21 +495,16 @@ class _PostProcessDumper(_Dumper):
                                 num_models_end=s.num_models_end)
 
 class _ModelDumper(object):
-    def _all_model_groups(self, system):
-        for state_group in system.state_groups:
-            for state in state_group:
-                for model_group in state:
-                    yield model_group
 
     def finalize(self, system):
         # Remove any existing ID
-        for g in self._all_model_groups(system):
+        for g in system._all_model_groups():
             for m in g:
                 if hasattr(m, '_id'):
                     del m._id
         model_id = 1
         # Assign IDs to models and groups
-        for ng, g in enumerate(self._all_model_groups(system)):
+        for ng, g in enumerate(system._all_model_groups()):
             g._id = ng + 1
             for m in g:
                 if not hasattr(m, '_id'):
@@ -521,23 +516,13 @@ class _ModelDumper(object):
         self.dump_atoms(system, writer)
         self.dump_spheres(system, writer)
 
-    def _all_models(self, system):
-        seen_ids = {}
-        for group in self._all_model_groups(system):
-            for model in group:
-                # Skip duplicate models
-                if model._id in seen_ids:
-                    continue
-                seen_ids[model._id] = None
-                yield group, model
-
     def dump_model_list(self, system, writer):
         ordinal = 1
         with writer.loop("_ihm_model_list",
                          ["ordinal_id", "model_id", "model_group_id",
                           "model_name", "model_group_name", "assembly_id",
                           "protocol_id", "representation_id"]) as l:
-            for group, model in self._all_models(system):
+            for group, model in system._all_models():
                 l.write(ordinal_id=ordinal, model_id=model._id,
                         model_group_id=group._id,
                         model_name=model.name,
@@ -555,7 +540,7 @@ class _ModelDumper(object):
                           "label_asym_id", "Cartn_x",
                           "Cartn_y", "Cartn_z", "label_entity_id",
                           "model_id"]) as l:
-            for group, model in self._all_models(system):
+            for group, model in system._all_models():
                 for atom in model.get_atoms():
                     oneletter = atom.asym_unit.entity.sequence[atom.seq_id-1]
                     l.write(id=ordinal,
@@ -575,7 +560,7 @@ class _ModelDumper(object):
                           "seq_id_end", "asym_id", "Cartn_x",
                           "Cartn_y", "Cartn_z", "object_radius", "rmsf",
                           "model_id"]) as l:
-            for group, model in self._all_models(system):
+            for group, model in system._all_models():
                 for sphere in model.get_spheres():
                     l.write(ordinal_id=ordinal,
                             entity_id=sphere.asym_unit.entity._id,
