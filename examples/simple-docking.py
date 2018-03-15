@@ -34,7 +34,6 @@ system.datasets.extend((saxsA_dataset, saxsB_dataset))
 # back to that primary data. In this case, let's say the EM density was
 # derived from a set of EM micrographs, deposited in the EMPIAR database:
 m = ihm.dataset.EMMicrographsDataset(ihm.location.EMPIARLocation('EMPIAR-123'))
-system.datasets.append(m) # todo: remove
 em_dataset.parents.append(m)
 
 # Next, define the entities for each unique sequence in the system

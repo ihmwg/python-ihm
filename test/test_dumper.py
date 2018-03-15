@@ -476,10 +476,10 @@ _ihm_external_files.details
         l = ihm.location.InputFileLocation(repo='foo2', path='bar2')
         l._id = 98
         ds2 = ihm.dataset.CXMSDataset(l)
-        system.datasets.append(ds2)
+        # Don't need to add to system.datasets since ds2 is ref'd by ds3
 
         # group2 contains all datasets so far (ds1 & ds2)
-        group2 = ihm.dataset.DatasetGroup(system.datasets)
+        group2 = ihm.dataset.DatasetGroup([ds1, ds2])
         system.dataset_groups.append(group2)
 
         l = ihm.location.PDBLocation('1abc', '1.0', 'test details')
