@@ -10,6 +10,7 @@ else:
 TOPDIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 utils.set_search_paths(TOPDIR)
 import ihm
+import ihm.location
 
 class Tests(unittest.TestCase):
     def test_system(self):
@@ -181,6 +182,15 @@ class Tests(unittest.TestCase):
 
         # duplicates should not be filtered
         self.assertEqual(list(s._all_locations()), [loc1, loc1, loc2, loc1])
+
+    def test_update_locations_in_repositories(self):
+        """Test update_locations_in_repositories() method"""
+        s = ihm.System()
+        loc = ihm.location.InputFileLocation(path='foo', repo='bar')
+        s.locations.append(loc)
+        r = ihm.location.Repository(doi='foo', root='..')
+        s.update_locations_in_repositories([r])
+
 
 if __name__ == '__main__':
     unittest.main()

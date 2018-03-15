@@ -95,6 +95,35 @@ class System(object):
         #: See :class:`~ihm.model.StateGroup`.
         self.state_groups = []
 
+    def update_locations_in_repositories(self, repos):
+        """Update all :class:`Location` objects in the system that lie within
+           a checked-out :class:`Repository` to point to that repository.
+
+           This is intended for the use case where the current working directory
+           is a checkout of a repository which is archived somewhere with a DOI.
+           Locations can then be simply constructed pointing to local files,
+           and retroactively updated with this method to point to the DOI if
+           appropriate.
+
+           For each Location, if it points to a local file that is below the
+           `root` of one of the `repos`, update it to point to that repository.
+           If is under multiple roots, pick the one that gives the shortest
+           path. For example, if run in a subdirectory `foo` of a repository
+           archived as `repo.zip`, the local path `simple.pdb` will
+           be updated to be `repo-top/foo/simple.pdb` in `repo.zip`::
+
+               l = ihm.location.InputFileLocation("simple.pdb")
+               system.locations.append(l)
+
+               r = ihm.location.Repository(doi='1.2.3.4',
+                         url='https://example.com/repo.zip',)
+                         top_directory="repo-top", root="..")
+               system.update_locations_in_repositories([r])
+        """
+        for loc in self._all_locations():
+            if isinstance(loc, location.FileLocation):
+                location.Repository._update_in_repos(loc, repos)
+
     def _all_model_groups(self):
         """Iterate over all ModelGroups in the system"""
         # todo: raise an error if a modelgroup is present in multiple states

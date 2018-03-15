@@ -44,6 +44,17 @@ system.datasets.append(d)
 l = ihm.location.PDBLocation('1abc')
 system.datasets.append(ihm.dataset.PDBDataset(l))
 
+# If the current working directory is itself a checkout of a repository which
+# is archived at a DOI, we can retroactively update all 'local' paths added
+# above to point to this DOI. After calling update_locations_in_repositories(),
+# all files under the parent directory (..) are assumed to be available in
+# the python-ihm.zip archive. For example, simple.pdb can be found as
+# python-ihm-v0.1/examples/simple.pdb in the archive.
+r = ihm.location.Repository(doi='10.5281/zenodo.802915',
+        url='https://zenodo.org/record/802915/files/python-ihm.zip',
+        top_directory="python-ihm-v0.1", root="..")
+system.update_locations_in_repositories([r])
+
 # Write out everything to an mmCIF file
 with open('output.cif', 'w') as fh:
     ihm.dumper.write(fh, [system])
