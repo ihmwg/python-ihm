@@ -88,7 +88,6 @@ system.restraints.append(em_rsr)
 # system using all of the experimental data:
 all_datasets = ihm.dataset.DatasetGroup((em_dataset, saxsA_dataset,
                                          saxsB_dataset))
-system.dataset_groups.append(all_datasets) # todo: remove
 protocol = ihm.protocol.Protocol(name='Modeling')
 protocol.steps.append(ihm.protocol.Step(
                         assembly=modeled_assembly,

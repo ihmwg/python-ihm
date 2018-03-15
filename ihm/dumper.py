@@ -291,7 +291,7 @@ class _DatasetDumper(_Dumper):
         # Assign IDs to all groups and remove duplicates
         seen_group_ids = {}
         self._dataset_group_by_id = []
-        for g in system.dataset_groups:
+        for g in system._all_dataset_groups():
             ids = tuple(sorted(d._id for d in g))
             if ids not in seen_group_ids:
                 self._dataset_group_by_id.append(g)

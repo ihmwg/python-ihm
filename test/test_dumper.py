@@ -454,7 +454,7 @@ _ihm_external_files.details
         group2 = ihm.dataset.DatasetGroup([ds1])
 
         system.datasets.append(ds1)
-        system.dataset_groups.extend((group1, group2))
+        system.orphan_dataset_groups.extend((group1, group2))
 
         d = ihm.dumper._DatasetDumper()
         d.finalize(system) # Assign IDs
@@ -471,7 +471,7 @@ _ihm_external_files.details
 
         # group1 contains just the first dataset (but duplicated)
         group1 = ihm.dataset.DatasetGroup([ds1, ds1])
-        system.dataset_groups.append(group1)
+        system.orphan_dataset_groups.append(group1)
 
         l = ihm.location.InputFileLocation(repo='foo2', path='bar2')
         l._id = 98
@@ -480,7 +480,7 @@ _ihm_external_files.details
 
         # group2 contains all datasets so far (ds1 & ds2)
         group2 = ihm.dataset.DatasetGroup([ds1, ds2])
-        system.dataset_groups.append(group2)
+        system.orphan_dataset_groups.append(group2)
 
         l = ihm.location.PDBLocation('1abc', '1.0', 'test details')
         ds3 = ihm.dataset.PDBDataset(l)

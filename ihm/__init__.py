@@ -61,9 +61,12 @@ class System(object):
         #: See :class:`~ihm.dataset.Dataset`.
         self.datasets = []
 
-        #: All groups of datasets.
+        #: All orphaned groups of datasets.
+        #: This can be used to keep track of all dataset groups that are not
+        #: otherwise used - normally a group is assigned to a
+        #: :class:`~ihm.protocol.Protocol`.
         #: See :class:`~ihm.dataset.DatasetGroup`.
-        self.dataset_groups = []
+        self.orphan_dataset_groups = []
 
         #: All representations of the system.
         #: See :class:`~ihm.representation.Representation`.
@@ -119,6 +122,19 @@ class System(object):
                         self.orphan_protocols,
                         (model.protocol for group, model in self._all_models()
                                         if model.protocol)))
+
+    def _all_dataset_groups(self):
+        """Iterate over all DatasetGroups in the system.
+           This includes all DatasetGroups referenced from other objects, plus
+           any orphaned groups. Duplicates may be present."""
+        def all_protocol_steps():
+            for protocol in self._all_protocols():
+                for step in protocol.steps:
+                    yield step
+        return itertools.chain(
+                  self.orphan_dataset_groups,
+                  (step.dataset_group for step in all_protocol_steps()
+                                      if step.dataset_group))
 
     def _make_complete_assembly(self):
         """Fill in the complete assembly with all entities/asym units"""

@@ -135,5 +135,25 @@ class Tests(unittest.TestCase):
         # duplicates should be filtered globally
         self.assertEqual(list(s._all_protocols()), [p1, p2])
 
+    def test_all_dataset_groups(self):
+        """Test _all_dataset_groups() method"""
+        class MockObject(object):
+            pass
+        dg1 = MockObject()
+        dg2 = MockObject()
+        s = ihm.System()
+        s.orphan_dataset_groups.append(dg1)
+        step1 = MockObject()
+        step2 = MockObject()
+        step3 = MockObject()
+        step1.dataset_group = None
+        step2.dataset_group = dg2
+        step3.dataset_group = dg1
+        protocol1 = MockObject()
+        protocol1.steps = [step1, step2, step3]
+        s.orphan_protocols.append(protocol1)
+        # duplicates should not be filtered
+        self.assertEqual(list(s._all_dataset_groups()), [dg1, dg2, dg1])
+
 if __name__ == '__main__':
     unittest.main()

@@ -38,7 +38,9 @@ class DatasetGroup(list):
     """A set of :class:`Dataset` objects that are handled together.
        This is implemented as a simple list.
 
-       See :`~ihm.dataset_groups`.
+       Normally a group is passed to one or more :class:`~ihm.protocol.Protocol`
+       objects, although unused groups can still be included in the file
+       if desired by adding them to :attr:`ihm.System.orphan_dataset_groups`.
     """
     pass
 
