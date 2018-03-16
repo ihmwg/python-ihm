@@ -38,12 +38,17 @@ class _EntryDumper(_Dumper):
 class _SoftwareDumper(_Dumper):
     def dump(self, system, writer):
         ordinal = 1
+        seen_software = {}
         # todo: specify these attributes in only one place (e.g. in the Software
         # class)
         with writer.loop("_software",
                          ["pdbx_ordinal", "name", "classification",
                           "description", "version", "type", "location"]) as l:
             for s in system.software:
+                # Remove duplicates
+                if s in seen_software:
+                    continue
+                seen_software[s] = None
                 l.write(pdbx_ordinal=ordinal, name=s.name,
                         classification=s.classification,
                         description=s.description, version=s.version,

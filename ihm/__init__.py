@@ -216,6 +216,14 @@ class Software(object):
         self.type = type
         self.version = version
 
+    # Software compares equal if the names and versions are the same
+    def _eq_vals(self):
+        return (self.name, self.version)
+    def __eq__(self, other):
+        return self._eq_vals() == other._eq_vals()
+    def __hash__(self):
+        return hash(self._eq_vals())
+
 
 class Entity(object):
     """Represent a CIF entity (with a unique sequence)

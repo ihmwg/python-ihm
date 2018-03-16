@@ -27,6 +27,22 @@ class Tests(unittest.TestCase):
         self.assertEqual(e1, e2)
         self.assertNotEqual(e1, e3)
 
+    def test_software(self):
+        """Test Software class"""
+        s1 = ihm.Software(name='foo', version='1.0',
+                          classification='1', description='2', location='3')
+        s2 = ihm.Software(name='foo', version='2.0',
+                          classification='4', description='5', location='6')
+        s3 = ihm.Software(name='foo', version='1.0',
+                          classification='7', description='8', location='9')
+        s4 = ihm.Software(name='bar', version='1.0',
+                          classification='a', description='b', location='c')
+        # Should compare equal iff name and version both match
+        self.assertEqual(s1, s3)
+        self.assertEqual(hash(s1), hash(s3))
+        self.assertNotEqual(s1, s2)
+        self.assertNotEqual(s1, s4)
+
     def test_asym_range(self):
         """Test AsymUnitRange class"""
         e = ihm.Entity('ABCDAB')

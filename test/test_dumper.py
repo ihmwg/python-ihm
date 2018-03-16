@@ -62,6 +62,10 @@ class Tests(unittest.TestCase):
                           name='foo', classification='test code',
                           description='Other test program',
                           location='http://test2.org'))
+        # Duplicate should be removed
+        system.software.append(ihm.Software(
+                          name='foo', classification='x',
+                          description='y', location='z'))
         dumper = ihm.dumper._SoftwareDumper()
         out = _get_dumper_output(dumper, system)
         self.assertEqual(out, """#
