@@ -166,8 +166,10 @@ class Tests(unittest.TestCase):
         self.assertEqual(p1.location.version, None)
         self.assertEqual(p1.location.details, None)
         self.assertEqual(p2.location.access_code, '3F3F')
-        self.assertEqual(p['software'],
-                         {'modeller': ['9.18', '2017/02/10 22:21:34\n']})
+        s, = p['software']
+        self.assertEqual(s.name, 'MODELLER')
+        self.assertEqual(s.version, '9.18')
+        self.assertTrue('2017/02/10 22:21:34' in s.description)
         return p
 
     def test_modeller_local(self):
@@ -201,14 +203,16 @@ class Tests(unittest.TestCase):
         self.assertEqual(parent.location.access_code, '4BZK')
         self.assertEqual(parent.location.version, None)
         self.assertEqual(parent.location.details, None)
-        self.assertEqual(p['software'], {'phyre2': '?'})
+        s, = p['software']
+        self.assertEqual(s.name, 'Phyre2')
+        self.assertEqual(s.version, '2.0')
 
     def test_unknown_model(self):
         """Test PDBParser when given an unknown model."""
         pdbname = utils.get_input_file_name(TOPDIR, 'unknown_model.pdb')
         p = self._parse_pdb(pdbname)
         self.assertEqual(p['templates'], [])
-        self.assertEqual(p['software'], {})
+        self.assertEqual(p['software'], [])
         self.assertEqual(p['metadata'], [])
         dataset = p['dataset']
         self.assertEqual(dataset.data_type, 'Comparative model')
