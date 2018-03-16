@@ -591,21 +591,35 @@ _ihm_model_representation.model_object_count
     def test_starting_model_dumper(self):
         """Test StartingModelDumper"""
         system = ihm.System()
-        e1 = ihm.Entity('AAA', description='foo')
+        e1 = ihm.Entity('A' * 20, description='foo')
         system.entities.append(e1)
         asym = ihm.AsymUnit(e1, 'bar')
         system.asym_units.append(asym)
         l = ihm.location.PDBLocation('1abc', '1.0', 'test details')
-        ds1 = ihm.dataset.PDBDataset(l)
-        system.datasets.append(ds1)
+        dstemplate = ihm.dataset.PDBDataset(l)
+        l = ihm.location.PDBLocation('2xyz', '1.0', 'test details')
+        dstarget = ihm.dataset.PDBDataset(l)
+        ali = ihm.location.InputFileLocation(repo='foo', path='test.ali')
 
-        s1 = ihm.startmodel.PDBSource('1abc', 'C', [])
-        sm = ihm.startmodel.StartingModel(asym, ds1, 'A', [s1], offset=10)
+        s1 = ihm.startmodel.Template(dataset=dstemplate, asym_id='C',
+                             seq_id_range=(1,10),
+                             template_seq_id_range=(101,110),
+                             sequence_identity=30.)
+        s2 = ihm.startmodel.Template(dataset=dstemplate, asym_id='D',
+                             seq_id_range=(5,12),
+                             template_seq_id_range=(201,210),
+                             sequence_identity=40.,
+                             alignment_file=ali)
+
+        sm = ihm.startmodel.StartingModel(asym(1,15), dstarget, 'A',
+                                          [s1, s2], offset=10)
         system.starting_models.append(sm)
 
         e1._id = 42
         asym._id = 99
-        ds1._id = 101
+        dstemplate._id = 101
+        dstarget._id = 102
+        ali._id = 5
         dumper = ihm.dumper._StartingModelDumper()
         dumper.finalize(system) # assign IDs
         out = _get_dumper_output(dumper, system)
@@ -621,7 +635,24 @@ _ihm_starting_model_details.starting_model_source
 _ihm_starting_model_details.starting_model_auth_asym_id
 _ihm_starting_model_details.starting_model_sequence_offset
 _ihm_starting_model_details.dataset_list_id
-1 42 foo 99 1 3 'experimental model' A 10 101
+1 42 foo 99 1 12 'experimental model' A 10 102
+#
+#
+loop_
+_ihm_starting_comparative_models.ordinal_id
+_ihm_starting_comparative_models.starting_model_id
+_ihm_starting_comparative_models.starting_model_auth_asym_id
+_ihm_starting_comparative_models.starting_model_seq_id_begin
+_ihm_starting_comparative_models.starting_model_seq_id_end
+_ihm_starting_comparative_models.template_auth_asym_id
+_ihm_starting_comparative_models.template_seq_id_begin
+_ihm_starting_comparative_models.template_seq_id_end
+_ihm_starting_comparative_models.template_sequence_identity
+_ihm_starting_comparative_models.template_sequence_identity_denominator
+_ihm_starting_comparative_models.template_dataset_list_id
+_ihm_starting_comparative_models.alignment_file_id
+1 1 A 1 10 C 101 110 30.000 1 101 .
+2 1 A 5 12 D 201 210 40.000 1 101 5
 #
 """)
 

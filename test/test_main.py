@@ -162,6 +162,7 @@ class Tests(unittest.TestCase):
             pass
         loc1 = MockObject()
         loc2 = MockObject()
+        loc3 = MockObject()
 
         s = ihm.System()
         dataset1 = MockObject()
@@ -180,8 +181,15 @@ class Tests(unittest.TestCase):
         ensemble.densities = [density]
         s.ensembles.append(ensemble)
 
+        start_model = MockObject()
+        template = MockObject()
+        template.alignment_file = loc3
+        start_model.templates = [template]
+        s.starting_models.append(start_model)
+
         # duplicates should not be filtered
-        self.assertEqual(list(s._all_locations()), [loc1, loc1, loc2, loc1])
+        self.assertEqual(list(s._all_locations()), [loc1, loc1, loc2,
+                                                    loc1, loc3])
 
     def test_update_locations_in_repositories(self):
         """Test update_locations_in_repositories() method"""

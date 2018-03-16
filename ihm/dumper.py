@@ -398,6 +398,7 @@ class _ModelRepresentationDumper(_Dumper):
                             model_object_count=segment.count)
                     ordinal_id += 1
 
+
 class _StartingModelDumper(_Dumper):
     def finalize(self, system):
         # Assign IDs to starting models
@@ -406,8 +407,14 @@ class _StartingModelDumper(_Dumper):
 
     def dump(self, system, writer):
         self.dump_details(system, writer)
+        self.dump_comparative(system, writer)
+        # todo: handle seq_id, coords
 
     def dump_details(self, system, writer):
+        # Map dataset types to starting model sources
+        source_map = {'Comparative model': 'comparative model',
+                      'Integrative model': 'integrative model',
+                      'Experimental model': 'experimental model'}
         with writer.loop("_ihm_starting_model_details",
                      ["starting_model_id", "entity_id", "entity_description",
                       "asym_id", "seq_id_begin",
@@ -416,17 +423,49 @@ class _StartingModelDumper(_Dumper):
                       "starting_model_sequence_offset",
                       "dataset_list_id"]) as l:
              for sm in system.starting_models:
-                seq_id_begin, seq_id_end = sm.get_seq_id_range_all_sources()
+                seq_id_range = sm.get_seq_id_range_all_templates()
                 l.write(starting_model_id=sm._id,
                         entity_id=sm.asym_unit.entity._id,
                         entity_description=sm.asym_unit.entity.description,
                         asym_id=sm.asym_unit._id,
-                        seq_id_begin=seq_id_begin,
-                        seq_id_end=seq_id_end,
-                        starting_model_source=sm.sources[0].source,
+                        seq_id_begin=seq_id_range[0],
+                        seq_id_end=seq_id_range[1],
+                        starting_model_source=source_map[sm.dataset.data_type],
                         starting_model_auth_asym_id=sm.asym_id,
                         dataset_list_id=sm.dataset._id,
                         starting_model_sequence_offset=sm.offset)
+
+    def dump_comparative(self, system, writer):
+        """Dump details on comparative models."""
+        with writer.loop("_ihm_starting_comparative_models",
+                     ["ordinal_id", "starting_model_id",
+                      "starting_model_auth_asym_id",
+                      "starting_model_seq_id_begin",
+                      "starting_model_seq_id_end",
+                      "template_auth_asym_id", "template_seq_id_begin",
+                      "template_seq_id_end", "template_sequence_identity",
+                      "template_sequence_identity_denominator",
+                      "template_dataset_list_id",
+                      "alignment_file_id"]) as l:
+            ordinal = 1
+            for sm in system.starting_models:
+                for template in sm.templates:
+                    denom = template.sequence_identity_denominator
+                    l.write(ordinal_id=ordinal,
+                      starting_model_id=sm._id,
+                      starting_model_auth_asym_id=sm.asym_id,
+                      starting_model_seq_id_begin=template.seq_id_range[0],
+                      starting_model_seq_id_end=template.seq_id_range[1],
+                      template_auth_asym_id=template.asym_id,
+                      template_seq_id_begin=template.template_seq_id_range[0],
+                      template_seq_id_end=template.template_seq_id_range[1],
+                      template_sequence_identity=template.sequence_identity,
+                      template_sequence_identity_denominator=denom,
+                      template_dataset_list_id=template.dataset._id
+                                               if template.dataset else None,
+                      alignment_file_id=template.alignment_file._id
+                                        if template.alignment_file else None)
+                    ordinal += 1
 
 
 class _ProtocolDumper(_Dumper):

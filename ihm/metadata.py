@@ -108,15 +108,11 @@ class PDBParser(Parser):
            :param str filename: the file to extract metadata from.
            :param str chain: the ID of the chain to use from the PDB file.
            :return: a dict with key `dataset` pointing to the PDB dataset;
-                    'sources' pointing to a list of model sources (such as
-                    comparative model templates) as
-                    :class:`ihm.startmodel.Source` objects;
+                    'templates' pointing to a list of comparative model
+                    templates as :class:`ihm.startmodel.Template` objects;
                     'software' pointing to a dict with keys the name of
                     comparative modeling packages used and values their
-                    versions;
-                    'alignment' pointing to the comparative modeling
-                    alignment if available
-                    (as a :class:`ihm.location.Location`).
+                    versions.
         """
         ret = {'alignment':None, 'software':{}}
         with open(filename) as fh:
