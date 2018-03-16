@@ -231,8 +231,6 @@ class _ExternalReferenceDumper(_Dumper):
         # Special dummy repo for repo=None (local files)
         self._local_files = self._LocalFiles(os.getcwd())
         for r in self._refs:
-            # todo: Update location to point to parent repository, if any
-            #location.Repository._update_in_repos(r)
             # Assign a unique ID to the reference
             util._assign_id(r, seen_refs, self._ref_by_id)
             # Assign a unique ID to the repository
