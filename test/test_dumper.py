@@ -82,6 +82,92 @@ _software.location
 #
 """)
 
+    def test_citation(self):
+        """Test CitationDumper"""
+        system = ihm.System()
+        c1 = ihm.Citation(
+              pmid='25161197',
+              title="Structural characterization by cross-linking reveals the\n"
+                    "detailed architecture of a coatomer-related heptameric\n"
+                    "module from the nuclear pore complex.",
+              journal="Mol Cell Proteomics", volume=13, page_range=(2927,2943),
+              year=2014,
+              authors=['Shi Y', 'Fernandez-Martinez J', 'Tjioe E', 'Pellarin R',
+                       'Kim SJ', 'Williams R', 'Schneidman-Duhovny D', 'Sali A',
+                       'Rout MP', 'Chait BT'],
+              doi='10.1074/mcp.M114.041673')
+        system.citations.extend((c1, c1)) # duplicates should be removed
+        dumper = ihm.dumper._CitationDumper()
+        dumper.finalize(system) # Assign IDs
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_citation.id
+_citation.title
+_citation.journal_abbrev
+_citation.journal_volume
+_citation.page_first
+_citation.page_last
+_citation.year
+_citation.pdbx_database_id_PubMed
+_citation.pdbx_database_id_DOI
+1
+;Structural characterization by cross-linking reveals the
+detailed architecture of a coatomer-related heptameric
+module from the nuclear pore complex.
+;
+'Mol Cell Proteomics' 13 2927 2943 2014 25161197 10.1074/mcp.M114.041673
+#
+#
+loop_
+_citation_author.citation_id
+_citation_author.name
+_citation_author.ordinal
+1 'Shi Y' 1
+1 'Fernandez-Martinez J' 2
+1 'Tjioe E' 3
+1 'Pellarin R' 4
+1 'Kim SJ' 5
+1 'Williams R' 6
+1 'Schneidman-Duhovny D' 7
+1 'Sali A' 8
+1 'Rout MP' 9
+1 'Chait BT' 10
+#
+""")
+        # Handle no last page
+        c1.page_range = 'e1637'
+        dumper = ihm.dumper._CitationDumper()
+        out = _get_dumper_output(dumper, system)
+        self.assertTrue("'Mol Cell Proteomics' 13 e1637 . 2014 " in out)
+
+    def test_audit_author(self):
+        """Test AuditAuthorDumper"""
+        system = ihm.System()
+
+        c1 = ihm.Citation(pmid='25161197', title='foo',
+              journal="Mol Cell Proteomics", volume=13, page_range=(2927,2943),
+              year=2014, authors=['auth1', 'auth2', 'auth3'], doi='doi1')
+        c2 = ihm.Citation(pmid='45161197', title='bar',
+              journal="Mol Cell Proteomics", volume=13, page_range=(2927,2943),
+              year=2014, authors=['auth2', 'auth4'], doi='doi2')
+        system.citations.extend((c1, c2))
+
+        dumper = ihm.dumper._AuditAuthorDumper()
+        out = _get_dumper_output(dumper, system)
+        # auth2 is repeated in the input; we should see it only once in the
+        # output
+        self.assertEqual(out, """#
+loop_
+_audit_author.name
+_audit_author.pdbx_ordinal
+auth1 1
+auth2 2
+auth3 3
+auth4 4
+#
+""")
+
     def test_entity_dumper(self):
         """Test EntityDumper"""
         system = ihm.System()
@@ -1069,21 +1155,30 @@ _ihm_multi_state_modeling.details
 
         dataset = MockObject()
         dataset._id = 97
+        dataset2 = MockObject()
+        dataset2._id = 87
         assembly = MockObject()
         assembly._id = 99
+        citation = MockObject()
+        citation._id = 8
         r = ihm.restraint.EM3DRestraint(dataset=dataset, assembly=assembly,
                        segment=False, fitting_method='Gaussian mixture model',
                        number_of_gaussians=40, details='GMM fitting')
+        r2 = ihm.restraint.EM3DRestraint(dataset=dataset2, assembly=assembly,
+                       segment=False, fitting_method='Gaussian mixture model',
+                       fitting_method_citation=citation,
+                       number_of_gaussians=30, details='GMM fitting')
         m = ihm.model.Model(assembly='foo', protocol='bar',
                             representation='baz')
         m._id = 42
         m2 = ihm.model.Model(assembly='foo', protocol='bar',
                             representation='baz')
         m2._id = 44
-        system.restraints.extend((r, MockObject()))
+        system.restraints.extend((r, r2, MockObject()))
 
         r.fits[m] = ihm.restraint.EM3DRestraintFit(0.4)
         r.fits[m2] = ihm.restraint.EM3DRestraintFit()
+        r2.fits[m2] = ihm.restraint.EM3DRestraintFit()
 
         dumper = ihm.dumper._EM3DDumper()
         dumper.finalize(system) # assign IDs
@@ -1094,12 +1189,14 @@ loop_
 _ihm_3dem_restraint.ordinal_id
 _ihm_3dem_restraint.dataset_list_id
 _ihm_3dem_restraint.fitting_method
+_ihm_3dem_restraint.fitting_method_citation
 _ihm_3dem_restraint.struct_assembly_id
 _ihm_3dem_restraint.number_of_gaussians
 _ihm_3dem_restraint.model_id
 _ihm_3dem_restraint.cross_correlation_coefficient
-1 97 'Gaussian mixture model' 99 40 42 0.400
-2 97 'Gaussian mixture model' 99 40 44 .
+1 97 'Gaussian mixture model' . 99 40 42 0.400
+2 97 'Gaussian mixture model' . 99 40 44 .
+3 87 'Gaussian mixture model' 8 99 30 44 .
 #
 """)
 

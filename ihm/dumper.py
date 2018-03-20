@@ -56,6 +56,62 @@ class _SoftwareDumper(_Dumper):
                 ordinal += 1
 
 
+class _CitationDumper(_Dumper):
+    def finalize(self, system):
+        for nc, c in enumerate(system._all_citations()):
+            c._id = nc + 1
+
+    def dump(self, system, writer):
+        citations = list(system._all_citations())
+        self.dump_citations(citations, writer)
+        self.dump_authors(citations, writer)
+
+    def dump_citations(self, citations, writer):
+        with writer.loop("_citation",
+                         ["id", "title", "journal_abbrev", "journal_volume",
+                          "page_first", "page_last", "year",
+                          "pdbx_database_id_PubMed",
+                          "pdbx_database_id_DOI"]) as l:
+            for c in citations:
+                if isinstance(c.page_range, (tuple, list)):
+                    page_first, page_last = c.page_range
+                else:
+                    page_first = c.page_range
+                    page_last = None
+                l.write(id=c._id, title=c.title, journal_abbrev=c.journal,
+                        journal_volume=c.volume, page_first=page_first,
+                        page_last=page_last, year=c.year,
+                        pdbx_database_id_PubMed=c.pmid,
+                        pdbx_database_id_DOI=c.doi)
+
+    def dump_authors(self, citations, writer):
+        with writer.loop("_citation_author",
+                         ["citation_id", "name", "ordinal"]) as l:
+            ordinal = 1
+            for c in citations:
+                for a in c.authors:
+                    l.write(citation_id=c._id, name=a, ordinal=ordinal)
+                    ordinal += 1
+
+
+class _AuditAuthorDumper(_Dumper):
+    """Populate the mmCIF audit_author category (a list of the people that
+       authored this mmCIF file; here we assume that's just the authors of
+       any associated publications)"""
+
+    def dump(self, system, writer):
+        seen_authors = {}
+        with writer.loop("_audit_author",
+                         ["name", "pdbx_ordinal"]) as l:
+            ordinal = 1
+            for c in system._all_citations():
+                for a in c.authors:
+                    if a not in seen_authors:
+                        seen_authors[a] = None
+                        l.write(name=a, pdbx_ordinal=ordinal)
+                        ordinal += 1
+
+
 class _ChemCompDumper(_Dumper):
     def dump(self, system, writer):
         seen = {}
@@ -709,10 +765,15 @@ class _EM3DDumper(_Dumper):
         ordinal = 1
         with writer.loop("_ihm_3dem_restraint",
                          ["ordinal_id", "dataset_list_id", "fitting_method",
+                          "fitting_method_citation",
                           "struct_assembly_id",
                           "number_of_gaussians", "model_id",
                           "cross_correlation_coefficient"]) as l:
             for r in self._all_restraints(system):
+                if r.fitting_method_citation:
+                    citation_id = r.fitting_method_citation._id
+                else:
+                    citation_id = None
                 # all fits ordered by model ID
                 for model, fit in sorted(r.fits.items(),
                                          key=lambda i: i[0]._id):
@@ -720,6 +781,7 @@ class _EM3DDumper(_Dumper):
                     l.write(ordinal_id=ordinal,
                             dataset_list_id=r.dataset._id,
                             fitting_method=r.fitting_method,
+                            fitting_method_citation=citation_id,
                             struct_assembly_id=r.assembly._id,
                             number_of_gaussians=r.number_of_gaussians,
                             model_id=model._id,
@@ -836,6 +898,8 @@ def write(fh, systems):
     """Write out all `systems` to the mmCIF file handle `fh`"""
     dumpers = [_EntryDumper(), # must be first
                _SoftwareDumper(),
+               _CitationDumper(),
+               _AuditAuthorDumper(),
                _ChemCompDumper(),
                _EntityDumper(),
                _EntityPolyDumper(),

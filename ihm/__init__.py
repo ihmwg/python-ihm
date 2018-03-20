@@ -36,6 +36,9 @@ class System(object):
         #: List of all software used in the modeling. See :class:`Software`.
         self.software = []
 
+        #: List of all citations. See :class:`Citation`.
+        self.citations = []
+
         #: All entities used in the system. See :class:`Entity`.
         self.entities = []
 
@@ -187,6 +190,18 @@ class System(object):
                 (template.alignment_file for template in all_templates()
                                          if template.alignment_file))
 
+    def _all_citations(self):
+        """Iterate over all Citations in the system.
+           This includes all Citations referenced from other objects, plus
+           any referenced from the top-level system.
+           Duplicates are filtered out."""
+        return _remove_identical(itertools.chain(
+                        self.citations,
+                        (restraint.fitting_method_citation_id
+                            for restraint in self.restraints
+                            if hasattr(restraint, 'fitting_method_citation_id')
+                            and restraint.fitting_method_citation_id)))
+
     def _make_complete_assembly(self):
         """Fill in the complete assembly with all entities/asym units"""
         # Clear out any existing components
@@ -223,6 +238,29 @@ class Software(object):
         return self._eq_vals() == other._eq_vals()
     def __hash__(self):
         return hash(self._eq_vals())
+
+
+class Citation(object):
+    """A publication that describes the modeling.
+
+       See :attr:`System.citations`.
+
+       :param str pmid: The PubMed ID.
+       :param str title: Full title of the publication.
+       :param str journal: Abbreviated journal name.
+       :param int volume: Journal volume number.
+       :param page_range: The page (int) or page range (as a 2-element
+              int tuple).
+       :param int year: Year of publication.
+       :param authors: All authors in order, as a list of strings (last name
+              followed by initials, e.g. "Smith AJ").
+       :param str doi: Digitial Object Identifier of the publication.
+    """
+    def __init__(self, pmid, title, journal, volume, page_range, year, authors,
+                 doi):
+        self.title, self.journal, self.volume = title, journal, volume
+        self.page_range, self.year = page_range, year
+        self.pmid, self.authors, self.doi = pmid, authors, doi
 
 
 class Entity(object):

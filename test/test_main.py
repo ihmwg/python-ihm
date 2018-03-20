@@ -43,6 +43,15 @@ class Tests(unittest.TestCase):
         self.assertNotEqual(s1, s2)
         self.assertNotEqual(s1, s4)
 
+    def test_citation(self):
+        """Test Citation class"""
+        s = ihm.Citation(title='Test paper', journal='J Mol Biol',
+                         volume=45, page_range=(1,20), year=2016,
+                         authors=['Smith A', 'Jones B'],
+                         doi='10.2345/S1384107697000225',
+                         pmid='1234')
+        self.assertEqual(s.title, 'Test paper')
+
     def test_asym_range(self):
         """Test AsymUnitRange class"""
         e = ihm.Entity('ABCDAB')
@@ -151,6 +160,33 @@ class Tests(unittest.TestCase):
         model3.protocol = p1
         # duplicates should be filtered globally
         self.assertEqual(list(s._all_protocols()), [p1, p2])
+
+    def test_all_citations(self):
+        """Test _all_citations() method"""
+        class MockObject(object):
+            pass
+
+        c1 = ihm.Citation(title='Test paper', journal='J Mol Biol',
+                          volume=45, page_range=(1,20), year=2016,
+                          authors=['Smith A', 'Jones B'],
+                          doi='10.2345/S1384107697000225',
+                          pmid='1234')
+        c2 = ihm.Citation(title='Test paper', journal='J Mol Biol',
+                          volume=45, page_range=(1,20), year=2016,
+                          authors=['Smith A', 'Jones B'],
+                          doi='1.2.3.4',
+                          pmid='1234')
+        rsr1 = MockObject() # Not a 3dem restraint
+        rsr2 = MockObject() # 3dem but with no provided citation
+        rsr2.fitting_method_citation_id = None
+        rsr3 = MockObject()
+        rsr2.fitting_method_citation_id = c1
+
+        s = ihm.System()
+        s.restraints.extend((rsr1, rsr2, rsr3))
+        s.citations.extend((c2, c2))
+        # duplicates should be filtered globally
+        self.assertEqual(list(s._all_citations()), [c2, c1])
 
     def test_all_dataset_groups(self):
         """Test _all_dataset_groups() method"""
