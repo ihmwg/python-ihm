@@ -421,7 +421,7 @@ class _DatasetDumper(_Dumper):
 class _ModelRepresentationDumper(_Dumper):
     def finalize(self, system):
         # Assign IDs to representations and segments
-        for nr, r in enumerate(system.representations):
+        for nr, r in enumerate(system._all_representations()):
             r._id = nr + 1
             for ns, s in enumerate(r):
                 s._id = ns + 1
@@ -436,7 +436,7 @@ class _ModelRepresentationDumper(_Dumper):
                           "model_object_primitive", "starting_model_id",
                           "model_mode", "model_granularity",
                           "model_object_count"]) as l:
-            for r in system.representations:
+            for r in system._all_representations():
                 for segment in r:
                     entity = segment.asym_unit.entity
                     l.write(ordinal_id=ordinal_id, representation_id=r._id,

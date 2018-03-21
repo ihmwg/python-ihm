@@ -647,7 +647,7 @@ _ihm_related_datasets.dataset_list_id_primary
                     rigid=True, primitive='other', count=3)
         r1 = ihm.representation.Representation((s1, s2))
         r2 = ihm.representation.Representation((s3, s4))
-        system.representations.extend((r1, r2))
+        system.orphan_representations.extend((r1, r2))
 
         e1._id = 42
         asym._id = 'X'

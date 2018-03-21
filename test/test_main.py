@@ -161,6 +161,25 @@ class Tests(unittest.TestCase):
         # duplicates should be filtered globally
         self.assertEqual(list(s._all_protocols()), [p1, p2])
 
+    def test_all_representations(self):
+        """Test _all_representations() method"""
+        class MockObject(object):
+            pass
+        model1 = MockObject()
+        model2 = MockObject()
+        model3 = MockObject()
+        model_group1 = [model1, model2, model3]
+        s = ihm.System()
+        s.state_groups.append([[model_group1]])
+        r1 = MockObject()
+        r2 = MockObject()
+        s.orphan_representations.append(r1)
+        model1.representation = None
+        model2.representation = r2
+        model3.representation = r1
+        # duplicates should be filtered globally
+        self.assertEqual(list(s._all_representations()), [r1, r2])
+
     def test_all_citations(self):
         """Test _all_citations() method"""
         class MockObject(object):

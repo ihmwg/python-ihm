@@ -65,7 +65,6 @@ rep = ihm.representation.Representation(
         [ihm.representation.AtomicSegment(asymA, rigid=True),
          ihm.representation.FeatureSegment(asymB, rigid=False,
                                            primitive='sphere', count=3)])
-system.representations.append(rep)
 
 # Set up restraints on the system. First, two on the subunits that use
 # the SAXS data; we'll say we used the FoXS software to do this fit:

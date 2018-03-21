@@ -78,9 +78,12 @@ class System(object):
         #: See :class:`~ihm.dataset.DatasetGroup`.
         self.orphan_dataset_groups = []
 
-        #: All representations of the system.
+        #: All orphaned representations of the system.
+        #: This can be used to keep track of all representations that are not
+        #: otherwise used - normally ion is assigned to a
+        #: :class:`~ihm.model.Model`.
         #: See :class:`~ihm.representation.Representation`.
-        self.representations = []
+        self.orphan_representations = []
 
         #: All starting models for the system.
         #: See :class:`~ihm.startmodel.StartingModel`.
@@ -152,6 +155,15 @@ class System(object):
                     continue
                 seen_models[model] = None
                 yield group, model
+
+    def _all_representations(self):
+        """Iterate over all Representations in the system.
+           This includes all Representations referenced from other objects, plus
+           any orphaned Representations. Duplicates are filtered out."""
+        return _remove_identical(itertools.chain(
+                   self.orphan_representations,
+                   (model.representation for group, model in self._all_models()
+                                         if model.representation)))
 
     def _all_protocols(self):
         """Iterate over all Protocols in the system.
