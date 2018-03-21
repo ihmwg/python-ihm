@@ -213,13 +213,13 @@ class _AssemblyDumper(_Dumper):
         # Sort each assembly by entity/asym id
         def component_key(comp):
             return (comp.entity._id, comp.asym.ordinal if comp.asym else 0)
-        for a in system.assemblies:
+        for a in system._all_assemblies():
             a.sort(key=component_key)
 
         seen_assemblies = {}
         # Assign IDs to all assemblies; duplicate assemblies get same ID
         self._assembly_by_id = []
-        for a in system.assemblies:
+        for a in system._all_assemblies():
             # list isn't hashable but tuple is
             hasha = tuple(a)
             if hasha not in seen_assemblies:

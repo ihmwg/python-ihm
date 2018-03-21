@@ -307,11 +307,11 @@ C 2 baz
         system.asym_units.extend((a1, a2, a3))
 
         c = ihm.AssemblyComponent(a2, seq_id_range=(2,3))
-        system.assemblies.append(ihm.Assembly((a1, c), name='foo'))
+        system.orphan_assemblies.append(ihm.Assembly((a1, c), name='foo'))
         # Out of order assembly (should be ordered on output)
-        system.assemblies.append(ihm.Assembly((a3, a2), name='bar'))
+        system.orphan_assemblies.append(ihm.Assembly((a3, a2), name='bar'))
         # Duplicate assembly (should be ignored)
-        system.assemblies.append(ihm.Assembly((a2, a3)))
+        system.orphan_assemblies.append(ihm.Assembly((a2, a3)))
 
         # Assign entity and asym IDs
         ihm.dumper._EntityDumper().finalize(system)
@@ -319,7 +319,8 @@ C 2 baz
 
         d = ihm.dumper._AssemblyDumper()
         d.finalize(system)
-        self.assertEqual([a._id for a in system.assemblies], [1,2,3,3])
+        self.assertEqual(system.complete_assembly._id, 1)
+        self.assertEqual([a._id for a in system.orphan_assemblies], [2,3,3])
         out = _get_dumper_output(d, system)
         self.assertEqual(out, """#
 loop_

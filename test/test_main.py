@@ -180,6 +180,35 @@ class Tests(unittest.TestCase):
         # duplicates should be filtered globally
         self.assertEqual(list(s._all_representations()), [r1, r2])
 
+    def test_all_assemblies(self):
+        """Test _all_assemblies() method"""
+        class MockObject(object):
+            pass
+        model1 = MockObject()
+        model2 = MockObject()
+        model_group1 = [model1, model2]
+        s = ihm.System()
+        s.state_groups.append([[model_group1]])
+        asmb1 = MockObject()
+        asmb2 = MockObject()
+        s.orphan_assemblies.append(asmb1)
+        model1.assembly = None
+        model1.protocol = None
+        model2.assembly = asmb2
+        step = MockObject()
+        step.assembly = asmb1
+        prot = MockObject()
+        prot.steps = [step]
+        model2.protocol = prot
+        rsr1 = MockObject()
+        rsr1.assembly = asmb2
+        rsr2 = MockObject()
+        rsr2.assembly = None
+        s.restraints.extend((rsr1, rsr2))
+        # duplicates should be present; complete assembly is always first
+        self.assertEqual(list(s._all_assemblies()),
+                         [s.complete_assembly, asmb1, asmb2, asmb1, asmb2])
+
     def test_all_citations(self):
         """Test _all_citations() method"""
         class MockObject(object):

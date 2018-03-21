@@ -45,8 +45,13 @@ class System(object):
         #: All asymmetric units used in the system. See :class:`AsymUnit`.
         self.asym_units = []
 
-        #: All assemblies used in the system. See :class:`Assembly`.
-        self.assemblies = []
+        #: All orphaned assemblies in the system. See :class:`Assembly`.
+        #: This can be used to keep track of all assemblies that are not
+        #: otherwise used - normally one is assigned to a
+        #: :class:`~ihm.model.Model`,
+        #: :class:`ihm.protocol.Step`, or
+        #: :class:`~ihm.restraint.Restraint`.
+        self.orphan_assemblies = []
 
         #: The assembly of the entire system. By convention this is always
         #: the first assembly in the mmCIF file (assembly_id=1). Note that
@@ -54,7 +59,6 @@ class System(object):
         #: is called.
         self.complete_assembly = Assembly((), name='Complete assembly',
                                           description='All known components')
-        self.assemblies.append(self.complete_assembly)
 
         #: Locations of all extra resources.
         #: See :class:`~ihm.location.Location`.
@@ -174,17 +178,33 @@ class System(object):
                         (model.protocol for group, model in self._all_models()
                                         if model.protocol)))
 
+    def _all_protocol_steps(self):
+        for protocol in self._all_protocols():
+            for step in protocol.steps:
+                yield step
+
+    def _all_assemblies(self):
+        """Iterate over all Assemblies in the system.
+           This includes all Assemblies referenced from other objects, plus
+           any orphaned Assemblies. Duplicates may be present."""
+        return itertools.chain(
+                        # Complete assembly is always first
+                        (self.complete_assembly,),
+                        self.orphan_assemblies,
+                        (model.assembly for group, model in self._all_models()
+                                        if model.assembly),
+                        (step.assembly for step in self._all_protocol_steps()
+                                       if step.assembly),
+                        (restraint.assembly for restraint in self.restraints
+                                            if restraint.assembly))
+
     def _all_dataset_groups(self):
         """Iterate over all DatasetGroups in the system.
            This includes all DatasetGroups referenced from other objects, plus
            any orphaned groups. Duplicates may be present."""
-        def all_protocol_steps():
-            for protocol in self._all_protocols():
-                for step in protocol.steps:
-                    yield step
         return itertools.chain(
                   self.orphan_dataset_groups,
-                  (step.dataset_group for step in all_protocol_steps()
+                  (step.dataset_group for step in self._all_protocol_steps()
                                       if step.dataset_group))
 
     def _all_templates(self):

@@ -56,7 +56,6 @@ system.asym_units.extend((asymA, asymB))
 modeled_assembly = ihm.Assembly((asymA, asymB), name='Modeled assembly')
 assemblyA = ihm.Assembly((asymA,), name='Subunit A')
 assemblyB = ihm.Assembly((asymB,), name='Subunit B')
-system.assemblies.extend((modeled_assembly, assemblyA, assemblyB))
 
 # Define how the system was represented. Multiple representations of the
 # system are possible, and can overlap. Here we'll say we represent A
