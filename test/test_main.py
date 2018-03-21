@@ -212,19 +212,21 @@ class Tests(unittest.TestCase):
         """Test _all_locations() method"""
         class MockObject(object):
             pass
+        class MockDataset(object):
+            parents = []
         loc1 = MockObject()
         loc2 = MockObject()
         loc3 = MockObject()
 
         s = ihm.System()
-        dataset1 = MockObject()
-        dataset2 = MockObject()
+        dataset1 = MockDataset()
+        dataset2 = MockDataset()
         dataset2.location = None
-        dataset3 = MockObject()
+        dataset3 = MockDataset()
         dataset3.location = loc1
 
         s.locations.append(loc1)
-        s.datasets.extend((dataset1, dataset2, dataset3))
+        s.orphan_datasets.extend((dataset1, dataset2, dataset3))
 
         ensemble = MockObject()
         ensemble.file = loc2
@@ -234,7 +236,9 @@ class Tests(unittest.TestCase):
         s.ensembles.append(ensemble)
 
         start_model = MockObject()
+        start_model.dataset = None
         template = MockObject()
+        template.dataset = None
         template.alignment_file = loc3
         start_model.templates = [template]
         s.starting_models.append(start_model)
@@ -242,6 +246,46 @@ class Tests(unittest.TestCase):
         # duplicates should not be filtered
         self.assertEqual(list(s._all_locations()), [loc1, loc1, loc2,
                                                     loc1, loc3])
+
+    def test_all_datasets(self):
+        """Test _all_datasets() method"""
+        class MockObject(object):
+            pass
+        class MockDataset(object):
+            parents = []
+
+        s = ihm.System()
+        d1 = MockDataset()
+        d2 = MockDataset()
+        d3 = MockDataset()
+        d4 = MockDataset()
+
+        s.orphan_datasets.append(d1)
+
+        dg1 = [d2]
+        s.orphan_dataset_groups.append(dg1)
+
+        start_model1 = MockObject()
+        start_model1.dataset = None
+
+        start_model2 = MockObject()
+        start_model2.dataset = d3
+
+        template = MockObject()
+        template.dataset = None
+        start_model1.templates = [template]
+        start_model2.templates = []
+        s.starting_models.extend((start_model1, start_model2))
+
+        rsr1 = MockObject()
+        rsr1.dataset = d4
+        d4.parents = [d2]
+        d2.parents = [d1]
+        d1.parents = d3.parents = []
+        s.restraints.append(rsr1)
+
+        # duplicates should not be filtered
+        self.assertEqual(list(s._all_datasets()), [d1, d1, d2, d3, d1, d2, d4])
 
     def test_update_locations_in_repositories(self):
         """Test update_locations_in_repositories() method"""

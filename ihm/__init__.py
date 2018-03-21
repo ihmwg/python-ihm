@@ -60,9 +60,16 @@ class System(object):
         #: See :class:`~ihm.location.Location`.
         self.locations = []
 
-        #: All datasets used in the modeling.
+        #: All orphaned datasets.
+        #: This can be used to keep track of all datasets that are not
+        #: otherwise used - normally a dataset is assigned to a
+        #: :class:`~ihm.dataset.DatasetGroup`,
+        #: :class:`~ihm.startmodel.StartingModel`,
+        #: :class:`~ihm.restraint.Restraint`,
+        #: :class:`~ihm.startmodel.Template`,
+        #: or as the parent of another :class:`~ihm.dataset.Dataset`.
         #: See :class:`~ihm.dataset.Dataset`.
-        self.datasets = []
+        self.orphan_datasets = []
 
         #: All orphaned groups of datasets.
         #: This can be used to keep track of all dataset groups that are not
@@ -168,6 +175,41 @@ class System(object):
                   (step.dataset_group for step in all_protocol_steps()
                                       if step.dataset_group))
 
+    def _all_templates(self):
+        """Iterate over all Templates in the system."""
+        for startmodel in self.starting_models:
+            for template in startmodel.templates:
+                yield template
+
+    def _all_datasets_except_parents(self):
+        """Iterate over all Datasets except those referenced only
+           as the parent of another Dataset. Duplicates may be present."""
+        def _all_datasets_in_groups():
+            for dg in self._all_dataset_groups():
+                for d in dg:
+                    yield d
+        return itertools.chain(
+                  self.orphan_datasets,
+                  _all_datasets_in_groups(),
+                  (sm.dataset for sm in self.starting_models if sm.dataset),
+                  (restraint.dataset for restraint in self.restraints
+                                     if restraint.dataset),
+                  (template.dataset for template in self._all_templates()
+                                    if template.dataset))
+
+    def _all_datasets(self):
+        """Iterate over all Datasets in the system.
+           This includes all Datasets referenced from other objects, plus
+           any orphaned datasets. Duplicates may be present."""
+        def _all_datasets_and_parents(d):
+            for p in d.parents:
+                for alld in _all_datasets_and_parents(p):
+                    yield alld
+            yield d
+        for d in self._all_datasets_except_parents():
+            for alld in _all_datasets_and_parents(d):
+                yield alld
+
     def _all_locations(self):
         """Iterate over all Locations in the system.
            This includes all Locations referenced from other objects, plus
@@ -177,17 +219,13 @@ class System(object):
             for ensemble in self.ensembles:
                 for density in ensemble.densities:
                     yield density
-        def all_templates():
-            for startmodel in self.starting_models:
-                for template in startmodel.templates:
-                    yield template
         return itertools.chain(
                 self.locations,
-                (dataset.location for dataset in self.datasets
+                (dataset.location for dataset in self._all_datasets()
                           if hasattr(dataset, 'location') and dataset.location),
                 (ensemble.file for ensemble in self.ensembles if ensemble.file),
                 (density.file for density in all_densities() if density.file),
-                (template.alignment_file for template in all_templates()
+                (template.alignment_file for template in self._all_templates()
                                          if template.alignment_file))
 
     def _all_citations(self):

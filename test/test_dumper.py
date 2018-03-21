@@ -464,11 +464,11 @@ _ihm_external_files.details
         dump = ihm.dumper._DatasetDumper()
         l = ihm.location.PDBLocation('1abc', '1.0', 'test details')
         ds1 = ihm.dataset.PDBDataset(l)
-        system.datasets.append(ds1)
+        system.orphan_datasets.append(ds1)
         # A duplicate dataset should be ignored even if details differ
         l = ihm.location.PDBLocation('1abc', '1.0', 'other details')
         ds2 = ihm.dataset.PDBDataset(l)
-        system.datasets.append(ds2)
+        system.orphan_datasets.append(ds2)
         dump.finalize(system) # Assign IDs
         self.assertEqual(ds1._id, 1)
         self.assertEqual(ds2._id, 1)
@@ -485,7 +485,7 @@ _ihm_external_files.details
         cx2 = ihm.dataset.CXMSDataset(loc1)
 
         dump = ihm.dumper._DatasetDumper()
-        system.datasets.extend((cx1, cx2))
+        system.orphan_datasets.extend((cx1, cx2))
         dump.finalize(system) # Assign IDs
         self.assertEqual(cx1._id, 1)
         self.assertEqual(cx2._id, 1)
@@ -499,7 +499,7 @@ _ihm_external_files.details
         cx1 = ihm.dataset.CXMSDataset(loc1)
         cx2 = ihm.dataset.CXMSDataset(loc2)
         dump = ihm.dumper._DatasetDumper()
-        system.datasets.extend((cx1, cx2))
+        system.orphan_datasets.extend((cx1, cx2))
         dump.finalize(system) # Assign IDs
         self.assertEqual(cx1._id, 1)
         self.assertEqual(cx2._id, 2)
@@ -513,7 +513,7 @@ _ihm_external_files.details
         cx2 = ihm.dataset.CXMSDataset(loc2)
         em3d = ihm.dataset.EMDensityDataset(loc2)
         dump = ihm.dumper._DatasetDumper()
-        system.datasets.extend((cx2, em3d))
+        system.orphan_datasets.extend((cx2, em3d))
         dump.finalize(system) # Assign IDs
         self.assertEqual(cx2._id, 1)
         self.assertEqual(em3d._id, 2)
@@ -528,7 +528,7 @@ _ihm_external_files.details
         em3d_1 = ihm.dataset.EMDensityDataset(emloc1)
         em3d_2 = ihm.dataset.EMDensityDataset(emloc2)
         dump = ihm.dumper._DatasetDumper()
-        system.datasets.extend((em3d_1, em3d_2))
+        system.orphan_datasets.extend((em3d_1, em3d_2))
         dump.finalize(system) # Assign IDs
         self.assertEqual(em3d_1._id, 1)
         self.assertEqual(em3d_2._id, 2)
@@ -543,7 +543,7 @@ _ihm_external_files.details
         # Duplicate group
         group2 = ihm.dataset.DatasetGroup([ds1])
 
-        system.datasets.append(ds1)
+        system.orphan_datasets.append(ds1)
         system.orphan_dataset_groups.extend((group1, group2))
 
         d = ihm.dumper._DatasetDumper()
@@ -557,7 +557,7 @@ _ihm_external_files.details
         l = ihm.location.InputFileLocation(repo='foo', path='bar')
         l._id = 97
         ds1 = ihm.dataset.CXMSDataset(l)
-        system.datasets.append(ds1)
+        system.orphan_datasets.append(ds1)
 
         # group1 contains just the first dataset (but duplicated)
         group1 = ihm.dataset.DatasetGroup([ds1, ds1])
@@ -566,7 +566,6 @@ _ihm_external_files.details
         l = ihm.location.InputFileLocation(repo='foo2', path='bar2')
         l._id = 98
         ds2 = ihm.dataset.CXMSDataset(l)
-        # Don't need to add to system.datasets since ds2 is ref'd by ds3
 
         # group2 contains all datasets so far (ds1 & ds2)
         group2 = ihm.dataset.DatasetGroup([ds1, ds2])
@@ -574,7 +573,7 @@ _ihm_external_files.details
 
         l = ihm.location.PDBLocation('1abc', '1.0', 'test details')
         ds3 = ihm.dataset.PDBDataset(l)
-        system.datasets.append(ds3)
+        system.orphan_datasets.append(ds3)
         ds3.parents.append(ds2)
         # Ignore duplicates
         ds3.parents.append(ds2)

@@ -18,17 +18,15 @@ import ihm.dumper
 # cases we use just one:
 system = ihm.System()
 
-# Next, we add the input data we used to the system.
+# Next, we describe the input data we used, using dataset classes.
 # Each source of data has a location, such as a file on disk or a database
 # entry, and a type. In this example we used EM density data, which we'll
 # say lives in the EMDB database:
 l = ihm.location.EMDBLocation('EMDB-1234')
 em_dataset = ihm.dataset.EMDensityDataset(l)
-system.datasets.append(em_dataset)
 # We also used two SAXS profiles, which we'll say live in SASBDB:
 saxsA_dataset = ihm.dataset.SASDataset(ihm.location.SASBDBLocation('SASDB123'))
 saxsB_dataset = ihm.dataset.SASDataset(ihm.location.SASBDBLocation('SASDB456'))
-system.datasets.extend((saxsA_dataset, saxsB_dataset))
 
 # Where datasets are derived from some other data, it is helpful to also point
 # back to that primary data. In this case, let's say the EM density was

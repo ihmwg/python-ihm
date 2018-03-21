@@ -336,15 +336,10 @@ class _ExternalReferenceDumper(_Dumper):
 
 class _DatasetDumper(_Dumper):
     def finalize(self, system):
-        def flatten(dataset_list):
-            for d in dataset_list:
-                for p in flatten(d.parents):
-                    yield p
-                yield d
         seen_datasets = {}
         # Assign IDs to all datasets
         self._dataset_by_id = []
-        for d in flatten(system.datasets):
+        for d in system._all_datasets():
             util._assign_id(d, seen_datasets, self._dataset_by_id)
 
         # Assign IDs to all groups and remove duplicates
