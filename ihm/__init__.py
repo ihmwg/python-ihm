@@ -442,7 +442,12 @@ class Assembly(list):
        objects. (For convenience, the constructor will also accept
        :class:`Entity` and :class:`AsymUnit` objects in the initial list.)
 
-       See :attr:`System.assemblies`.
+       An Assembly is typically assigned to one or more of
+         - class:`~ihm.model.Model`
+         - :class:`ihm.protocol.Step`
+         - :class:`~ihm.restraint.Restraint`
+
+       See also :attr:`System.orphan_assemblies`.
 
        Note that any duplicate assemblies will be pruned on output."""
 
