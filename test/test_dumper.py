@@ -51,6 +51,16 @@ class Tests(unittest.TestCase):
         out = _get_dumper_output(dumper, system)
         self.assertEqual(out, "data_test_model\n_entry.id test_model\n")
 
+    def test_comment_dumper(self):
+        """Test CommentDumper"""
+        system = ihm.System()
+        system.comments.extend(("Comment 1", "Comment 2"))
+        dumper = ihm.dumper._CommentDumper()
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """# Comment 1
+# Comment 2
+""")
+
     def test_software(self):
         """Test SoftwareDumper"""
         system = ihm.System()

@@ -33,6 +33,10 @@ class System(object):
     def __init__(self, name='model'):
         self.name = name
 
+        #: List of plain text comments. These will be added to the top of
+        #: the mmCIF file.
+        self.comments = []
+
         #: List of all software used in the modeling. See :class:`Software`.
         self.software = []
 

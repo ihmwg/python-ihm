@@ -35,6 +35,12 @@ class _EntryDumper(_Dumper):
             l.write(id=system.name)
 
 
+class _CommentDumper(_Dumper):
+    def dump(self, system, writer):
+        for comment in system.comments:
+            writer.write_comment(comment)
+
+
 class _SoftwareDumper(_Dumper):
     def dump(self, system, writer):
         ordinal = 1
@@ -892,6 +898,7 @@ class _SASDumper(_Dumper):
 def write(fh, systems):
     """Write out all `systems` to the mmCIF file handle `fh`"""
     dumpers = [_EntryDumper(), # must be first
+               _CommentDumper(),
                _SoftwareDumper(),
                _CitationDumper(),
                _AuditAuthorDumper(),
