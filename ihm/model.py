@@ -36,15 +36,20 @@ class Atom(object):
        :param float x: x coordinate of the atom
        :param float y: y coordinate of the atom
        :param float z: z coordinate of the atom
+       :param bool het: True for HETATM sites, False (default) for ATOM
+       :param float biso: Temperature factor or equivalent (if applicable)
     """
 
     # Reduce memory usage
-    __slots__ = ['asym_unit', 'seq_id', 'atom_id', 'x', 'y', 'z']
+    __slots__ = ['asym_unit', 'seq_id', 'atom_id', 'x', 'y', 'z', 'het',
+                 'biso']
 
-    def __init__(self, asym_unit, seq_id, atom_id, x, y, z):
+    def __init__(self, asym_unit, seq_id, atom_id, x, y, z, het=False,
+                 biso=None):
         self.asym_unit = asym_unit
         self.seq_id, self.atom_id = seq_id, atom_id
         self.x, self.y, self.z = x, y, z
+        self.het, self.biso = het, biso
 
 
 class Model(object):

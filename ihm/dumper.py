@@ -636,21 +636,23 @@ class _ModelDumper(object):
     def dump_atoms(self, system, writer):
         ordinal = 1
         with writer.loop("_atom_site",
-                         ["id", "label_atom_id", "label_comp_id",
+                         ["group_PDB", "id", "label_atom_id", "label_comp_id",
                           "label_seq_id",
                           "label_asym_id", "Cartn_x",
                           "Cartn_y", "Cartn_z", "label_entity_id",
-                          "model_id"]) as l:
+                          "B_iso_or_equiv", "model_id"]) as l:
             for group, model in system._all_models():
                 for atom in model.get_atoms():
                     oneletter = atom.asym_unit.entity.sequence[atom.seq_id-1]
                     l.write(id=ordinal,
+                            group_PDB='HETATM' if atom.het else 'ATOM',
                             label_atom_id=atom.atom_id,
                             label_comp_id=_amino_acids[oneletter],
                             label_asym_id=atom.asym_unit._id,
                             label_entity_id=atom.asym_unit.entity._id,
                             label_seq_id=atom.seq_id,
                             Cartn_x=atom.x, Cartn_y=atom.y, Cartn_z=atom.z,
+                            B_iso_or_equiv=atom.biso,
                             model_id=model._id)
                     ordinal += 1
 
