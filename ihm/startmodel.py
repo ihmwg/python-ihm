@@ -64,6 +64,31 @@ class StartingModel(object):
         self.dataset, self.asym_id, self.offset = dataset, asym_id, offset
         self.metadata = metadata
 
+    def get_atoms(self):
+        """Yield :class:`~ihm.model.Atom` objects that represent this
+           starting model. This allows the starting model coordinates to
+           be embedded in the mmCIF file, which is useful if the starting
+           model is not available elsewhere (or it has been modified).
+
+           The default implementation returns no atoms; it is necessary
+           to subclass and override this method.
+
+           Note that the returned atoms should be those used in modeling,
+           not those stored in the file. In particular, the numbering scheme
+           should be that used in the IHM model (add `offset` to the dataset
+           numbering). If any residues were changed (for example it is common
+           to mutate MSE in the dataset to MET in the modeling) the final
+           mutated name should be used (MET in this case) and
+           :meth:`get_seq_dif` overridden to note the change.
+        """
+        return []
+
+    def get_seq_dif(self):
+        """Yield :class:`SeqDif` objects for any sequence changes between
+           the dataset and the starting model. See :meth:`get_atoms`.
+        """
+        return []
+
     def get_seq_id_range_all_templates(self):
         """Get the seq_id range covered by all templates in this starting
            model. Where there are multiple templates, consolidate
@@ -96,3 +121,28 @@ class PDBHelix(object):
         self.end_resnum = int(line[33:37])
         self.helix_class = int(line[38:40])
         self.length = int(line[71:76])
+
+
+class SeqDif(object):
+    """Annotate a sequence difference between a dataset and starting model.
+       See :meth:`StartingModel.get_seq_dif` and :class:`MSESeqDif`.
+
+       :param int db_seq_id: The residue index in the dataset.
+       :param int seq_id: The residue index in the starting model. This should
+              normally be `db_seq_id + offset`.
+       :param str db_comp_id: The name of the residue in the dataset.
+       :param str details: Descriptive text for the sequence difference.
+    """
+    def __init__(self, db_seq_id, seq_id, db_comp_id, details=None):
+        self.db_seq_id, self.seq_id = db_seq_id, seq_id
+        self.db_comp_id, self.details = db_comp_id, details
+
+
+class MSESeqDif(object):
+    """Denote that a residue was mutated from MSE to MET.
+       See :class:`SeqDif` for a description of the parameters.
+    """
+    def __init__(self, db_seq_id, seq_id,
+                 details="Conversion of modified residue MSE to MET"):
+        self.db_seq_id, self.seq_id = db_seq_id, seq_id
+        self.db_comp_id, self.details = 'MSE', details

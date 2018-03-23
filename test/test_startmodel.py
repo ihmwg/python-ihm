@@ -37,6 +37,8 @@ class Tests(unittest.TestCase):
         asym = ihm.AsymUnit(e1)
         s = ihm.startmodel.StartingModel(asym, 'mock_dataset', 'A', offset=10)
         self.assertEqual(s.get_seq_id_range_all_templates(), (1,4))
+        self.assertEqual(s.get_atoms(), [])
+        self.assertEqual(s.get_seq_dif(), [])
 
     def test_starting_model_templates(self):
         """Test StartingModel class, with templates"""
@@ -56,6 +58,18 @@ class Tests(unittest.TestCase):
         s = ihm.startmodel.StartingModel(asym(5,25), 'mock_dataset', 'A',
                                          [s1, s2], offset=10)
         self.assertEqual(s.get_seq_id_range_all_templates(), (5,20))
+
+    def test_seq_dif(self):
+        """Test SeqDif class"""
+        sd = ihm.startmodel.SeqDif(db_seq_id=10, seq_id=20, db_comp_id='PHE')
+        self.assertEqual(sd.db_seq_id, 10)
+
+    def test_mse_seq_dif(self):
+        """Test MSESeqDif class"""
+        sd = ihm.startmodel.MSESeqDif(db_seq_id=10, seq_id=20)
+        self.assertEqual(sd.db_comp_id, 'MSE')
+        self.assertEqual(sd.details,
+                         'Conversion of modified residue MSE to MET')
 
 
 if __name__ == '__main__':
