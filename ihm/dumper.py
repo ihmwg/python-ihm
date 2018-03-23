@@ -552,7 +552,8 @@ class _ProtocolDumper(_Dumper):
                     l.write(ordinal_id=ordinal, protocol_id=p._id,
                             step_id=s._id,
                             struct_assembly_id=s.assembly._id,
-                            dataset_group_id=s.dataset_group._id,
+                            dataset_group_id=s.dataset_group._id
+                                             if s.dataset_group else None,
                             struct_assembly_description=s.assembly.description,
                             protocol_name=p.name,
                             step_name=s.name, step_method=s.method,
