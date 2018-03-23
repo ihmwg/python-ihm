@@ -627,7 +627,8 @@ class _ModelDumper(object):
                         model_name=model.name,
                         model_group_name=group.name,
                         assembly_id=model.assembly._id,
-                        protocol_id=model.protocol._id,
+                        protocol_id=model.protocol._id
+                                    if model.protocol else None,
                         representation_id=model.representation._id)
                 ordinal += 1
 
