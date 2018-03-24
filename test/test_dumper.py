@@ -694,7 +694,8 @@ _ihm_model_representation.model_object_count
             def get_atoms(self):
                 asym = self.asym_unit
                 return [ihm.model.Atom(asym_unit=asym, seq_id=1, atom_id='CA',
-                                       x=-8.0, y=-5.0, z=91.0, biso=42.)]
+                                       type_symbol='C', x=-8.0, y=-5.0, z=91.0,
+                                       biso=42.)]
             def get_seq_dif(self):
                 return [ihm.startmodel.MSESeqDif(db_seq_id=5, seq_id=7)]
 
@@ -777,7 +778,7 @@ _ihm_starting_model_coord.Cartn_y
 _ihm_starting_model_coord.Cartn_z
 _ihm_starting_model_coord.B_iso_or_equiv
 _ihm_starting_model_coord.ordinal_id
-1 ATOM 1 . CA ALA 42 99 1 -8.000 -5.000 91.000 42.000 1
+1 ATOM 1 C CA ALA 42 99 1 -8.000 -5.000 91.000 42.000 1
 #
 #
 loop_
@@ -1012,11 +1013,13 @@ _ihm_sphere_obj_site.model_id
         """Test ModelDumper with atoms"""
         system, model, asym = self._make_test_model()
         model._atoms = [ihm.model.Atom(asym_unit=asym, seq_id=1, atom_id='C',
-                                       x=1.0, y=2.0, z=3.0),
+                                       type_symbol='C', x=1.0, y=2.0, z=3.0),
                         ihm.model.Atom(asym_unit=asym, seq_id=1, atom_id='CA',
-                                       x=10.0, y=20.0, z=30.0, het=True),
+                                       type_symbol='C', x=10.0, y=20.0, z=30.0,
+                                       het=True),
                         ihm.model.Atom(asym_unit=asym, seq_id=2, atom_id='N',
-                                       x=4.0, y=5.0, z=6.0, biso=42.0)]
+                                       type_symbol='N', x=4.0, y=5.0, z=6.0,
+                                       biso=42.0)]
 
         dumper = ihm.dumper._ModelDumper()
         dumper.finalize(system) # assign model/group IDs
@@ -1038,6 +1041,7 @@ _ihm_model_list.representation_id
 loop_
 _atom_site.group_PDB
 _atom_site.id
+_atom_site.type_symbol
 _atom_site.label_atom_id
 _atom_site.label_comp_id
 _atom_site.label_seq_id
@@ -1048,9 +1052,9 @@ _atom_site.Cartn_z
 _atom_site.label_entity_id
 _atom_site.B_iso_or_equiv
 _atom_site.model_id
-ATOM 1 C ALA 1 X 1.000 2.000 3.000 9 . 1
-HETATM 2 CA ALA 1 X 10.000 20.000 30.000 9 . 1
-ATOM 3 N CYS 2 X 4.000 5.000 6.000 9 42.000 1
+ATOM 1 C C ALA 1 X 1.000 2.000 3.000 9 . 1
+HETATM 2 C CA ALA 1 X 10.000 20.000 30.000 9 . 1
+ATOM 3 N N CYS 2 X 4.000 5.000 6.000 9 42.000 1
 #
 """)
 

@@ -545,6 +545,7 @@ class _StartingModelDumper(_Dumper):
                     l.write(starting_model_id=model._id,
                             group_PDB='HETATM' if atom.het else 'ATOM',
                             id=natom+1,
+                            type_symbol=atom.type_symbol,
                             atom_id=atom.atom_id,
                             comp_id=_amino_acids[oneletter],
                             asym_id=atom.asym_unit._id,
@@ -682,7 +683,8 @@ class _ModelDumper(object):
     def dump_atoms(self, system, writer):
         ordinal = 1
         with writer.loop("_atom_site",
-                         ["group_PDB", "id", "label_atom_id", "label_comp_id",
+                         ["group_PDB", "id", "type_symbol",
+                          "label_atom_id", "label_comp_id",
                           "label_seq_id",
                           "label_asym_id", "Cartn_x",
                           "Cartn_y", "Cartn_z", "label_entity_id",
@@ -691,6 +693,7 @@ class _ModelDumper(object):
                 for atom in model.get_atoms():
                     oneletter = atom.asym_unit.entity.sequence[atom.seq_id-1]
                     l.write(id=ordinal,
+                            type_symbol=atom.type_symbol,
                             group_PDB='HETATM' if atom.het else 'ATOM',
                             label_atom_id=atom.atom_id,
                             label_comp_id=_amino_acids[oneletter],
