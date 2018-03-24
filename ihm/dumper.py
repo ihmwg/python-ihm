@@ -470,7 +470,8 @@ class _StartingModelDumper(_Dumper):
     def dump(self, system, writer):
         self.dump_details(system, writer)
         self.dump_comparative(system, writer)
-        # todo: handle seq_id, coords
+        self.dump_coords(system, writer)
+        self.dump_seq_dif(system, writer)
 
     def dump_details(self, system, writer):
         # Map dataset types to starting model sources
@@ -528,6 +529,51 @@ class _StartingModelDumper(_Dumper):
                       alignment_file_id=template.alignment_file._id
                                         if template.alignment_file else None)
                     ordinal += 1
+
+    def dump_coords(self, system, writer):
+        """Write out coordinate information"""
+        ordinal = 1
+        with writer.loop("_ihm_starting_model_coord",
+                     ["starting_model_id", "group_PDB", "id", "type_symbol",
+                      "atom_id", "comp_id", "entity_id", "asym_id",
+                      "seq_id", "Cartn_x",
+                      "Cartn_y", "Cartn_z", "B_iso_or_equiv",
+                      "ordinal_id"]) as l:
+            for model in system.starting_models:
+                for natom, atom in enumerate(model.get_atoms()):
+                    oneletter = atom.asym_unit.entity.sequence[atom.seq_id-1]
+                    l.write(starting_model_id=model._id,
+                            group_PDB='HETATM' if atom.het else 'ATOM',
+                            id=natom+1,
+                            atom_id=atom.atom_id,
+                            comp_id=_amino_acids[oneletter],
+                            asym_id=atom.asym_unit._id,
+                            entity_id=atom.asym_unit.entity._id,
+                            seq_id=atom.seq_id,
+                            Cartn_x=atom.x, Cartn_y=atom.y, Cartn_z=atom.z,
+                            B_iso_or_equiv=atom.biso,
+                            ordinal_id=ordinal)
+                    ordinal += 1
+
+    def dump_seq_dif(self, system, writer):
+        """Write out sequence difference information"""
+        ordinal = 1
+        with writer.loop("_ihm_starting_model_seq_dif",
+                     ["ordinal_id", "entity_id", "asym_id",
+                      "seq_id", "comp_id", "starting_model_id",
+                      "db_asym_id", "db_seq_id", "db_comp_id",
+                      "details"]) as l:
+            for model in system.starting_models:
+                for sd in model.get_seq_dif():
+                    oneletter = model.asym_unit.entity.sequence[sd.seq_id-1]
+                    l.write(ordinal_id=ordinal,
+                        entity_id=model.asym_unit.entity._id,
+                        asym_id=model.asym_unit._id,
+                        seq_id=sd.seq_id, comp_id=_amino_acids[oneletter],
+                        db_asym_id=model.asym_id, db_seq_id=sd.db_seq_id,
+                        db_comp_id=sd.db_comp_id, starting_model_id=model._id,
+                        details=sd.details)
+                ordinal += 1
 
 
 class _ProtocolDumper(_Dumper):

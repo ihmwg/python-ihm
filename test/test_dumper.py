@@ -690,8 +690,16 @@ _ihm_model_representation.model_object_count
 
     def test_starting_model_dumper(self):
         """Test StartingModelDumper"""
+        class TestStartingModel(ihm.startmodel.StartingModel):
+            def get_atoms(self):
+                asym = self.asym_unit
+                return [ihm.model.Atom(asym_unit=asym, seq_id=1, atom_id='CA',
+                                       x=-8.0, y=-5.0, z=91.0, biso=42.)]
+            def get_seq_dif(self):
+                return [ihm.startmodel.MSESeqDif(db_seq_id=5, seq_id=7)]
+
         system = ihm.System()
-        e1 = ihm.Entity('A' * 20, description='foo')
+        e1 = ihm.Entity('A' * 6 + 'M' + 'A' * 13, description='foo')
         system.entities.append(e1)
         asym = ihm.AsymUnit(e1, 'bar')
         system.asym_units.append(asym)
@@ -711,8 +719,7 @@ _ihm_model_representation.model_object_count
                              sequence_identity=40.,
                              alignment_file=ali)
 
-        sm = ihm.startmodel.StartingModel(asym(1,15), dstarget, 'A',
-                                          [s1, s2], offset=10)
+        sm = TestStartingModel(asym(1,15), dstarget, 'A', [s1, s2], offset=10)
         system.starting_models.append(sm)
 
         e1._id = 42
@@ -753,6 +760,38 @@ _ihm_starting_comparative_models.template_dataset_list_id
 _ihm_starting_comparative_models.alignment_file_id
 1 1 A 1 10 C 101 110 30.000 1 101 .
 2 1 A 5 12 D 201 210 40.000 1 101 5
+#
+#
+loop_
+_ihm_starting_model_coord.starting_model_id
+_ihm_starting_model_coord.group_PDB
+_ihm_starting_model_coord.id
+_ihm_starting_model_coord.type_symbol
+_ihm_starting_model_coord.atom_id
+_ihm_starting_model_coord.comp_id
+_ihm_starting_model_coord.entity_id
+_ihm_starting_model_coord.asym_id
+_ihm_starting_model_coord.seq_id
+_ihm_starting_model_coord.Cartn_x
+_ihm_starting_model_coord.Cartn_y
+_ihm_starting_model_coord.Cartn_z
+_ihm_starting_model_coord.B_iso_or_equiv
+_ihm_starting_model_coord.ordinal_id
+1 ATOM 1 . CA ALA 42 99 1 -8.000 -5.000 91.000 42.000 1
+#
+#
+loop_
+_ihm_starting_model_seq_dif.ordinal_id
+_ihm_starting_model_seq_dif.entity_id
+_ihm_starting_model_seq_dif.asym_id
+_ihm_starting_model_seq_dif.seq_id
+_ihm_starting_model_seq_dif.comp_id
+_ihm_starting_model_seq_dif.starting_model_id
+_ihm_starting_model_seq_dif.db_asym_id
+_ihm_starting_model_seq_dif.db_seq_id
+_ihm_starting_model_seq_dif.db_comp_id
+_ihm_starting_model_seq_dif.details
+1 42 99 7 MET 1 A 5 MSE 'Conversion of modified residue MSE to MET'
 #
 """)
 
