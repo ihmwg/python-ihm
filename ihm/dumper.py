@@ -688,7 +688,8 @@ class _ModelDumper(object):
                           "label_seq_id",
                           "label_asym_id", "Cartn_x",
                           "Cartn_y", "Cartn_z", "label_entity_id",
-                          "B_iso_or_equiv", "model_id"]) as l:
+                          "B_iso_or_equiv", "pdbx_PDB_model_num",
+                          "ihm_model_id"]) as l:
             for group, model in system._all_models():
                 for atom in model.get_atoms():
                     oneletter = atom.asym_unit.entity.sequence[atom.seq_id-1]
@@ -702,7 +703,8 @@ class _ModelDumper(object):
                             label_seq_id=atom.seq_id,
                             Cartn_x=atom.x, Cartn_y=atom.y, Cartn_z=atom.z,
                             B_iso_or_equiv=atom.biso,
-                            model_id=model._id)
+                            pdbx_PDB_model_num=model._id,
+                            ihm_model_id=model._id)
                     ordinal += 1
 
     def dump_spheres(self, system, writer):
