@@ -684,10 +684,11 @@ class _ModelDumper(object):
         ordinal = 1
         with writer.loop("_atom_site",
                          ["group_PDB", "id", "type_symbol",
-                          "label_atom_id", "label_comp_id",
+                          "label_atom_id", "label_alt_id", "label_comp_id",
                           "label_seq_id",
                           "label_asym_id", "Cartn_x",
                           "Cartn_y", "Cartn_z", "label_entity_id",
+                          "auth_asym_id",
                           "B_iso_or_equiv", "pdbx_PDB_model_num",
                           "ihm_model_id"]) as l:
             for group, model in system._all_models():
@@ -701,6 +702,7 @@ class _ModelDumper(object):
                             label_asym_id=atom.asym_unit._id,
                             label_entity_id=atom.asym_unit.entity._id,
                             label_seq_id=atom.seq_id,
+                            auth_asym_id=atom.asym_unit._id,
                             Cartn_x=atom.x, Cartn_y=atom.y, Cartn_z=atom.z,
                             B_iso_or_equiv=atom.biso,
                             pdbx_PDB_model_num=model._id,
