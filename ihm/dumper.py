@@ -194,6 +194,25 @@ class _EntityPolySeqDumper(_Dumper):
                     l.write(entity_id=entity._id, num=num + 1, mon_id=resid)
 
 
+class _PolySeqSchemeDumper(_Dumper):
+    """Output the _pdbx_poly_seq_scheme table.
+       This is needed because it is a parent category of atom_site.
+       For now we assume we're using auth_seq_id==seq_id."""
+    def dump(self, system, writer):
+        with writer.loop("_pdbx_poly_seq_scheme",
+                         ["asym_id", "entity_id", "seq_id", "mon_id",
+                          "pdb_seq_num", "auth_seq_num", "pdb_mon_id",
+                          "auth_mon_id"]) as l:
+            for asym in system.asym_units:
+                entity = asym.entity
+                seq = entity.sequence
+                for num, one_letter_code in enumerate(seq):
+                    resid = _amino_acids[one_letter_code]
+                    l.write(asym_id=asym._id, entity_id=entity._id,
+                            seq_id=num+1, pdb_seq_num=num+1, auth_seq_num=num+1,
+                            mon_id=resid, pdb_mon_id=resid, auth_mon_id=resid)
+
+
 class _StructAsymDumper(_Dumper):
     def finalize(self, system):
         ordinal = 1
@@ -963,6 +982,7 @@ def write(fh, systems):
                _EntityDumper(),
                _EntityPolyDumper(),
                _EntityPolySeqDumper(),
+               _PolySeqSchemeDumper(),
                _StructAsymDumper(),
                _AssemblyDumper(),
                _ExternalReferenceDumper(),

@@ -280,6 +280,38 @@ _entity_poly_seq.hetero
 #
 """)
 
+    def test_poly_seq_scheme_dumper(self):
+        """Test PolySeqSchemeDumper"""
+        system = ihm.System()
+        e1 = ihm.Entity('ACGT')
+        e2 = ihm.Entity('ACC')
+        system.entities.extend((e1, e2))
+        system.asym_units.append(ihm.AsymUnit(e1, 'foo'))
+        system.asym_units.append(ihm.AsymUnit(e2, 'bar'))
+        ihm.dumper._EntityDumper().finalize(system)
+        ihm.dumper._StructAsymDumper().finalize(system)
+        dumper = ihm.dumper._PolySeqSchemeDumper()
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_pdbx_poly_seq_scheme.asym_id
+_pdbx_poly_seq_scheme.entity_id
+_pdbx_poly_seq_scheme.seq_id
+_pdbx_poly_seq_scheme.mon_id
+_pdbx_poly_seq_scheme.pdb_seq_num
+_pdbx_poly_seq_scheme.auth_seq_num
+_pdbx_poly_seq_scheme.pdb_mon_id
+_pdbx_poly_seq_scheme.auth_mon_id
+A 1 1 ALA 1 1 ALA ALA
+A 1 2 CYS 2 2 CYS CYS
+A 1 3 GLY 3 3 GLY GLY
+A 1 4 THR 4 4 THR THR
+B 2 1 ALA 1 1 ALA ALA
+B 2 2 CYS 2 2 CYS CYS
+B 2 3 CYS 3 3 CYS CYS
+#
+""")
+
     def test_struct_asym_dumper(self):
         """Test StructAsymDumper"""
         system = ihm.System()
