@@ -840,7 +840,7 @@ _ihm_modeling_protocol.num_models_begin
 _ihm_modeling_protocol.num_models_end
 _ihm_modeling_protocol.multi_scale_flag
 _ihm_modeling_protocol.multi_state_flag
-_ihm_modeling_protocol.time_ordered_flag
+_ihm_modeling_protocol.ordered_flag
 1 1 1 42 99 foo equilibration s1 'Monte Carlo' 0 500 YES NO NO
 2 1 2 42 99 foo equilibration . 'Replica exchange' 500 2000 YES NO NO
 3 2 1 42 101 foo sampling . 'Replica exchange' 2000 1000 YES NO NO

@@ -593,7 +593,7 @@ class _ProtocolDumper(_Dumper):
                           "struct_assembly_description", "protocol_name",
                           "step_name", "step_method", "num_models_begin",
                           "num_models_end", "multi_scale_flag",
-                          "multi_state_flag", "time_ordered_flag"]) as l:
+                          "multi_state_flag", "ordered_flag"]) as l:
             for p in system._all_protocols():
                 for s in p.steps:
                     l.write(ordinal_id=ordinal, protocol_id=p._id,
@@ -607,7 +607,7 @@ class _ProtocolDumper(_Dumper):
                             num_models_begin=s.num_models_begin,
                             num_models_end=s.num_models_end,
                             multi_state_flag=s.multi_state,
-                            time_ordered_flag=s.ordered,
+                            ordered_flag=s.ordered,
                             multi_scale_flag=s.multi_scale)
                     ordinal += 1
 
