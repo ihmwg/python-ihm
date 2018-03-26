@@ -302,13 +302,14 @@ _pdbx_poly_seq_scheme.pdb_seq_num
 _pdbx_poly_seq_scheme.auth_seq_num
 _pdbx_poly_seq_scheme.pdb_mon_id
 _pdbx_poly_seq_scheme.auth_mon_id
-A 1 1 ALA 1 1 ALA ALA
-A 1 2 CYS 2 2 CYS CYS
-A 1 3 GLY 3 3 GLY GLY
-A 1 4 THR 4 4 THR THR
-B 2 1 ALA 1 1 ALA ALA
-B 2 2 CYS 2 2 CYS CYS
-B 2 3 CYS 3 3 CYS CYS
+_pdbx_poly_seq_scheme.pdb_strand_id
+A 1 1 ALA 1 1 ALA ALA A
+A 1 2 CYS 2 2 CYS CYS A
+A 1 3 GLY 3 3 GLY GLY A
+A 1 4 THR 4 4 THR THR A
+B 2 1 ALA 1 1 ALA ALA B
+B 2 2 CYS 2 2 CYS CYS B
+B 2 3 CYS 3 3 CYS CYS B
 #
 """)
 

@@ -202,13 +202,14 @@ class _PolySeqSchemeDumper(_Dumper):
         with writer.loop("_pdbx_poly_seq_scheme",
                          ["asym_id", "entity_id", "seq_id", "mon_id",
                           "pdb_seq_num", "auth_seq_num", "pdb_mon_id",
-                          "auth_mon_id"]) as l:
+                          "auth_mon_id", "pdb_strand_id"]) as l:
             for asym in system.asym_units:
                 entity = asym.entity
                 seq = entity.sequence
                 for num, one_letter_code in enumerate(seq):
                     resid = _amino_acids[one_letter_code]
-                    l.write(asym_id=asym._id, entity_id=entity._id,
+                    l.write(asym_id=asym._id, pdb_strand_id=asym._id,
+                            entity_id=entity._id,
                             seq_id=num+1, pdb_seq_num=num+1, auth_seq_num=num+1,
                             mon_id=resid, pdb_mon_id=resid, auth_mon_id=resid)
 
