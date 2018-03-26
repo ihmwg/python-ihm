@@ -15,7 +15,7 @@ Any data used anywhere in the modeling (including in validation) can be
 referenced with an :class:`ihm.dataset.Dataset`. For example,
 electron microscopy data is referenced with
 :class:`ihm.dataset.EMDensityDataset` and small angle scattering data with
-:class:`ihm.dataset.SASDataset`. A dataset uses a
+:class:`ihm.dataset.SASDataset`. A dataset uses an
 :class:`ihm.location.Location` object to describe where it is stored.
 Typically this is an :class:`ihm.location.DatabaseLocation` for something
 that's deposited in a experiment-specific database such as PDB, EMDB, PRIDE,
@@ -26,7 +26,7 @@ supplementary information. See the
 `locations example <https://github.com/ihmwg/python-ihm/blob/master/examples/locations.py>`_
 for more examples.
 
-The architecture of the system is described with a number of classes
+The architecture of the system is described with a number of classes:
 
  - :class:`ihm.Entity` describes each unique sequence.
  - :class:`ihm.AsymUnit` describes each asymmetric unit (chain) in the system.
@@ -34,14 +34,17 @@ The architecture of the system is described with a number of classes
    pointing to the same entity, while a heterodimer contains two entities.
    It is also possible for an entity to exist with no asymmetric units pointing
    to it - this typically corresponds to something seen in an experiment (such
-   as a cross-linking study) which was not modeled.
+   as a cross-linking study) which was not modeled. Note that the IHM
+   extension currently contains no support for symmetry, so two chains that
+   are symmetrically related should each be represented as an "asymmetric"
+   unit.
  - :class:`ihm.Assembly` groups asymmetric units and/or entities, or parts of
    them. Assemblies are used to describe which parts of the system correspond
    to each input source of data, or that were modeled.
  - :class:`ihm.representation.Representation` describes how each part of the
    system was represented in the modeling, for example
-   :class:`as atoms <ihm.representation.AtomicSegment` or
-   :class:`as coarse-grained spheres <ihm.representation.FeatureSegment`.
+   :class:`as atoms <ihm.representation.AtomicSegment>` or
+   :class:`as coarse-grained spheres <ihm.representation.FeatureSegment>`.
 
 Restraints, that score or otherwise fit the computational model against
 the input data, can be created as :class:`ihm.restraint.Restraint` objects.
