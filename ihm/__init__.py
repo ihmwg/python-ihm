@@ -459,6 +459,7 @@ class Assembly(list):
        An Assembly is typically assigned to one or more of
          - class:`~ihm.model.Model`
          - :class:`ihm.protocol.Step`
+         - :class:`ihm.analysis.Step`
          - :class:`~ihm.restraint.Restraint`
 
        See also :attr:`System.orphan_assemblies`.
