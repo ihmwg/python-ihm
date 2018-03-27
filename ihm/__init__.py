@@ -294,12 +294,12 @@ class System(object):
         # Include all asym units
         seen_entities = {}
         for asym in self.asym_units:
-            self.complete_assembly.append(AssemblyComponent(asym))
+            self.complete_assembly.append(asym)
             seen_entities[asym.entity] = None
         # Add all entities without structure
         for entity in self.entities:
             if entity not in seen_entities:
-                self.complete_assembly.append(AssemblyComponent(entity))
+                self.complete_assembly.append(entity)
 
 
 class Software(object):
@@ -421,6 +421,7 @@ class AsymUnitRange(object):
 
     # Use same ID and entity as the original asym unit
     _id = property(lambda self: self.asym._id)
+    _ordinal = property(lambda self: self.asym._ordinal)
     entity = property(lambda self: self.asym.entity)
 
 
@@ -441,56 +442,14 @@ class AsymUnit(object):
                             doc="Sequence range")
 
 
-class AssemblyComponent(object):
-    """A single component in an :class:`Assembly`.
-
-       :param component: The part of the system. :class:`Entity` can be used
-                         here for a part that is known but has no structure.
-       :type component: :class:`AsymUnit` or :class:`Entity`
-       :param tuple seq_id_range: The subset of the sequence range to include in
-                         the assembly. This should be a two-element tuple.
-                         If `None` (the default) the entire range is included.
-    """
-
-    def __init__(self, component, seq_id_range=None):
-        self._component, self._seqrange = component, seq_id_range
-
-    def __eq__(self, other):
-        return (self._component is other._component
-                and self.seq_id_range == other.seq_id_range)
-    def __hash__(self):
-        return hash((id(self._component), self.seq_id_range))
-
-    def __get_seqrange(self):
-        if self._seqrange:
-            # todo: fail if this is out of entity.sequence range
-            return self._seqrange
-        else:
-            return (1, len(self.entity.sequence))
-    seq_id_range = property(__get_seqrange, doc="Sequence range")
-
-    def __get_entity(self):
-        if isinstance(self._component, Entity):
-            return self._component
-        else:
-            return self._component.entity
-    entity = property(__get_entity,
-                      doc="The Entity for this part of the system")
-
-    def __get_asym(self):
-        if isinstance(self._component, AsymUnit):
-            return self._component
-    asym = property(__get_asym,
-                    doc="The AsymUnit for this part of the system, or None")
-
-
 class Assembly(list):
     """A collection of parts of the system that were modeled or probed
        together.
 
-       This is implemented as a simple list of :class:`AssemblyComponent`
-       objects. (For convenience, the constructor will also accept
-       :class:`Entity` and :class:`AsymUnit` objects in the initial list.)
+       This is implemented as a simple list of asymmetric units (or parts of
+       them) and/or entities (or parts of them), i.e. a list of
+       :class:`AsymUnit`, :class:`AsymUnitRange`,
+       :class:`Entity`, and :class:`EntityRange` objects.
 
        An Assembly is typically assigned to one or more of
          - class:`~ihm.model.Model`
@@ -506,10 +465,5 @@ class Assembly(list):
     parent = None
 
     def __init__(self, elements=(), name=None, description=None):
-        def fix_element(e):
-            if isinstance(e, AssemblyComponent):
-                return e
-            else:
-                return AssemblyComponent(e)
-        super(Assembly, self).__init__(fix_element(e) for e in elements)
+        super(Assembly, self).__init__(elements)
         self.name, self.description = name, description

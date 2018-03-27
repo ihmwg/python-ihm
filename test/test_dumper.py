@@ -349,8 +349,7 @@ C 2 baz
         system.entities.extend((e1, e2))
         system.asym_units.extend((a1, a2, a3))
 
-        c = ihm.AssemblyComponent(a2, seq_id_range=(2,3))
-        system.orphan_assemblies.append(ihm.Assembly((a1, c), name='foo'))
+        system.orphan_assemblies.append(ihm.Assembly((a1, a2(2,3)), name='foo'))
         # Out of order assembly (should be ordered on output)
         system.orphan_assemblies.append(ihm.Assembly((a3, a2), name='bar'))
         # Duplicate assembly (should be ignored)

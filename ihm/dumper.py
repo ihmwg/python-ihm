@@ -219,7 +219,7 @@ class _StructAsymDumper(_Dumper):
         ordinal = 1
         # Assign asym IDs
         for asym, asym_id in zip(system.asym_units, util._AsymIDs()):
-            asym.ordinal = ordinal
+            asym._ordinal = ordinal
             asym._id = asym_id
             ordinal += 1
 
@@ -236,9 +236,12 @@ class _AssemblyDumper(_Dumper):
         # Fill in complete assembly
         system._make_complete_assembly()
 
-        # Sort each assembly by entity/asym id
+        # Sort each assembly by entity/asym id/range
         def component_key(comp):
-            return (comp.entity._id, comp.asym.ordinal if comp.asym else 0)
+            if hasattr(comp, 'entity'): # asymmetric unit or range
+                return (comp.entity._id, comp._ordinal, comp.seq_id_range)
+            else: # entity or range
+                return (comp._id, 0, comp.seq_id_range)
         for a in system._all_assemblies():
             a.sort(key=component_key)
 
@@ -272,7 +275,7 @@ class _AssemblyDumper(_Dumper):
                           "seq_id_end"]) as l:
             for a in self._assembly_by_id:
                 for comp in a:
-                    entity = comp.entity
+                    entity = comp.entity if hasattr(comp, 'entity') else comp
                     seqrange = comp.seq_id_range
                     l.write(ordinal_id=ordinal, assembly_id=a._id,
                             # if no hierarchy then assembly is self-parent
@@ -280,8 +283,8 @@ class _AssemblyDumper(_Dumper):
                                                else a._id,
                             entity_description=entity.description,
                             entity_id=entity._id,
-                            asym_id=comp.asym._id if comp.asym
-                                                  else writer.omitted,
+                            asym_id=comp._id if hasattr(comp, 'entity')
+                                             else None,
                             seq_id_begin=seqrange[0],
                             seq_id_end=seqrange[1])
                     ordinal += 1
