@@ -10,9 +10,9 @@ class Location(object):
        disk or at a DOI) - for this use one of the subclasses of
        :class:`FileLocation`. Alternatively the resource may be found in
        an experiment-specific database such as PDB or EMDB - for this use
-       :class:`DatabaseLocation` or one of its subclasses.
+       :class:`DatabaseLocation` or one of its subclasses. A Location may
+       be passed to
 
-       A Location may be passed to
          - a :class:`~ihm.dataset.Dataset` to point to where an
            experimental dataset may be found;
          - an :class:`~ihm.model.Ensemble` to point to coordinates for an
@@ -24,6 +24,9 @@ class Location(object):
            (:class:`WorkflowFileLocation`) or a command script for a
            visualization package such as ChimeraX
            (:class:`VisualizationFileLocation`).
+
+       :param str details: Additional details about the dataset, if known.
+
     """
 
     # 'details' can differ without affecting dataset equality
@@ -143,7 +146,12 @@ class InputFileLocation(FileLocation):
 
 class OutputFileLocation(FileLocation):
     """An externally stored file used for output.
-       See :class:`FileLocation` for a description of the parameters."""
+       See :class:`FileLocation` for a description of the parameters.
+
+       For example, this can be used to point to an externally-stored
+       :class:`model ensemble <ihm.model.Ensemble>` or a
+       :class:`localization density <ihm.model.LocalizationDensity>`.
+    """
 
     content_type = "Modeling or post-processing output"
 
