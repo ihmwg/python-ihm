@@ -894,12 +894,15 @@ _ihm_modeling_protocol.ordered_flag
         a2.steps.append(ihm.analysis.FilterStep(
                              feature='energy/score', num_models_begin=1000,
                              num_models_end=200))
+        a2.steps.append(ihm.analysis.ClusterStep(
+                             feature='RMSD', num_models_begin=200,
+                             num_models_end=42))
         asmb1 = MockObject()
         asmb1._id = 101
         dg1 = MockObject()
         dg1._id = 301
-        a2.steps.append(ihm.analysis.ClusterStep(
-                             feature='RMSD', num_models_begin=200,
+        a2.steps.append(ihm.analysis.ValidationStep(
+                             feature='energy/score', num_models_begin=42,
                              num_models_end=42,
                              assembly=asmb1, dataset_group=dg1))
         p1.analyses.extend((a1, a2))
@@ -925,7 +928,8 @@ _ihm_modeling_post_process.struct_assembly_id
 _ihm_modeling_post_process.dataset_group_id
 1 1 1 1 none none . . . .
 2 1 2 1 filter energy/score 1000 200 . .
-3 1 2 2 cluster RMSD 200 42 101 301
+3 1 2 2 cluster RMSD 200 42 . .
+4 1 2 3 validation energy/score 42 42 101 301
 #
 """)
 
