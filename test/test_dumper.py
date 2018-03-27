@@ -755,7 +755,7 @@ _ihm_model_representation.model_object_count
                              alignment_file=ali)
 
         sm = TestStartingModel(asym(1,15), dstarget, 'A', [s1, s2], offset=10)
-        system.starting_models.append(sm)
+        system.orphan_starting_models.append(sm)
 
         e1._id = 42
         asym._id = 99

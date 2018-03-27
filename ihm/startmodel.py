@@ -41,7 +41,8 @@ class Template(object):
 class StartingModel(object):
     """A starting guess for modeling of an asymmetric unit
 
-       See :attr:`~ihm.System.starting_models`.
+       See :class:`ihm.representation.Segment` and
+       :attr:`ihm.System.orphan_starting_models`.
 
        :param asym_unit: The asymmetric unit (or part of one) this starting
               model represents.

@@ -292,7 +292,7 @@ class Tests(unittest.TestCase):
         template.dataset = None
         template.alignment_file = loc3
         start_model.templates = [template]
-        s.starting_models.append(start_model)
+        s.orphan_starting_models.append(start_model)
 
         # duplicates should not be filtered
         self.assertEqual(list(s._all_locations()), [loc1, loc1, loc2,
@@ -326,7 +326,7 @@ class Tests(unittest.TestCase):
         template.dataset = None
         start_model1.templates = [template]
         start_model2.templates = []
-        s.starting_models.extend((start_model1, start_model2))
+        s.orphan_starting_models.extend((start_model1, start_model2))
 
         rsr1 = MockObject()
         rsr1.dataset = d4
@@ -337,6 +337,27 @@ class Tests(unittest.TestCase):
 
         # duplicates should not be filtered
         self.assertEqual(list(s._all_datasets()), [d1, d1, d2, d3, d1, d2, d4])
+
+    def test_all_starting_models(self):
+        """Test _all_starting_models() method"""
+        class MockObject(object):
+            pass
+
+        s = ihm.System()
+        sm1 = MockObject()
+        sm2 = MockObject()
+        s.orphan_starting_models.append(sm1)
+        rep = ihm.representation.Representation()
+        seg1 = ihm.representation.Segment()
+        seg1.starting_model = None
+        seg2 = ihm.representation.Segment()
+        seg2.starting_model = sm2
+        seg3 = ihm.representation.Segment()
+        seg3.starting_model = sm2
+        rep.extend((seg1, seg2, seg3))
+        s.orphan_representations.append(rep)
+        # duplicates should be filtered
+        self.assertEqual(list(s._all_starting_models()), [sm1, sm2])
 
     def test_update_locations_in_repositories(self):
         """Test update_locations_in_repositories() method"""

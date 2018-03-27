@@ -500,7 +500,7 @@ class _ModelRepresentationDumper(_Dumper):
 class _StartingModelDumper(_Dumper):
     def finalize(self, system):
         # Assign IDs to starting models
-        for nm, m in enumerate(system.starting_models):
+        for nm, m in enumerate(system._all_starting_models()):
             m._id = nm + 1
 
     def dump(self, system, writer):
@@ -521,7 +521,7 @@ class _StartingModelDumper(_Dumper):
                       "starting_model_auth_asym_id",
                       "starting_model_sequence_offset",
                       "dataset_list_id"]) as l:
-             for sm in system.starting_models:
+             for sm in system._all_starting_models():
                 seq_id_range = sm.get_seq_id_range_all_templates()
                 l.write(starting_model_id=sm._id,
                         entity_id=sm.asym_unit.entity._id,
@@ -547,7 +547,7 @@ class _StartingModelDumper(_Dumper):
                       "template_dataset_list_id",
                       "alignment_file_id"]) as l:
             ordinal = 1
-            for sm in system.starting_models:
+            for sm in system._all_starting_models():
                 for template in sm.templates:
                     denom = template.sequence_identity_denominator
                     l.write(ordinal_id=ordinal,
@@ -575,7 +575,7 @@ class _StartingModelDumper(_Dumper):
                       "seq_id", "Cartn_x",
                       "Cartn_y", "Cartn_z", "B_iso_or_equiv",
                       "ordinal_id"]) as l:
-            for model in system.starting_models:
+            for model in system._all_starting_models():
                 for natom, atom in enumerate(model.get_atoms()):
                     oneletter = atom.asym_unit.entity.sequence[atom.seq_id-1]
                     l.write(starting_model_id=model._id,
@@ -600,7 +600,7 @@ class _StartingModelDumper(_Dumper):
                       "seq_id", "comp_id", "starting_model_id",
                       "db_asym_id", "db_seq_id", "db_comp_id",
                       "details"]) as l:
-            for model in system.starting_models:
+            for model in system._all_starting_models():
                 for sd in model.get_seq_dif():
                     oneletter = model.asym_unit.entity.sequence[sd.seq_id-1]
                     l.write(ordinal_id=ordinal,

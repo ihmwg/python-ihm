@@ -88,14 +88,17 @@ class System(object):
 
         #: All orphaned representations of the system.
         #: This can be used to keep track of all representations that are not
-        #: otherwise used - normally ion is assigned to a
+        #: otherwise used - normally one is assigned to a
         #: :class:`~ihm.model.Model`.
         #: See :class:`~ihm.representation.Representation`.
         self.orphan_representations = []
 
-        #: All starting models for the system.
+        #: All orphaned starting models for the system.
+        #: This can be used to keep track of all starting models that are not
+        #: otherwise used - normally one is assigned to an
+        #: :class:`ihm.representation.Segment`.
         #: See :class:`~ihm.startmodel.StartingModel`.
-        self.starting_models = []
+        self.orphan_starting_models = []
 
         #: All restraints on the system.
         #: See :class:`~ihm.restraint.Restraint`.
@@ -173,6 +176,20 @@ class System(object):
                    (model.representation for group, model in self._all_models()
                                          if model.representation)))
 
+    def _all_segments(self):
+        for representation in self._all_representations():
+            for segment in representation:
+                yield segment
+
+    def _all_starting_models(self):
+        """Iterate over all StartingModels in the system.
+           This includes all StartingModels referenced from other objects, plus
+           any orphaned StartingModels. Duplicates are filtered out."""
+        return _remove_identical(itertools.chain(
+                   self.orphan_starting_models,
+                   (segment.starting_model for segment in self._all_segments()
+                                           if segment.starting_model)))
+
     def _all_protocols(self):
         """Iterate over all Protocols in the system.
            This includes all Protocols referenced from other objects, plus
@@ -223,7 +240,7 @@ class System(object):
 
     def _all_templates(self):
         """Iterate over all Templates in the system."""
-        for startmodel in self.starting_models:
+        for startmodel in self._all_starting_models():
             for template in startmodel.templates:
                 yield template
 
@@ -237,7 +254,8 @@ class System(object):
         return itertools.chain(
                   self.orphan_datasets,
                   _all_datasets_in_groups(),
-                  (sm.dataset for sm in self.starting_models if sm.dataset),
+                  (sm.dataset for sm in self._all_starting_models()
+                              if sm.dataset),
                   (restraint.dataset for restraint in self.restraints
                                      if restraint.dataset),
                   (template.dataset for template in self._all_templates()
