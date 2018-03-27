@@ -58,11 +58,11 @@ model the data corresponds to. For example, there are restraints for
 from the input data. A protocol can consist of
 :class:`multiple steps <ihm.protocol.Step>`, such as molecular dynamics or
 Monte Carlo, followed by one or more analyses, such as clustering, filtering,
-or rescoring, described by :class:`ihm.analysis.Analysis` objects.
+rescoring, or validation, described by :class:`ihm.analysis.Analysis` objects.
 These objects generally take an :class:`~ihm.Assembly` to indicate what part
-of the system was modeled and a
+of the system was considered and a
 :class:`group of datasets <ihm.dataset.DatasetGroup>` to show which data
-guided the modeling.
+guided the modeling or analysis.
 
 :class:`ihm.model.Model` objects give the actual coordinates of the final
 generated models. These point to the :class:`~ihm.Assembly` of what was
