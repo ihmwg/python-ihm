@@ -54,6 +54,23 @@ class Tests(unittest.TestCase):
                          pmid='1234')
         self.assertEqual(s.title, 'Test paper')
 
+    def test_entity_residue(self):
+        """Test Residue derived from an Entity"""
+        e = ihm.Entity('ABCDAB')
+        r = e.residue(3)
+        self.assertEqual(r.entity, e)
+        self.assertEqual(r.asym, None)
+        self.assertEqual(r.seq_id, 3)
+
+    def test_asym_unit_residue(self):
+        """Test Residue derived from an AsymUnit"""
+        e = ihm.Entity('ABCDAB')
+        a = ihm.AsymUnit(e)
+        r = a.residue(3)
+        self.assertEqual(r.entity, None)
+        self.assertEqual(r.asym, a)
+        self.assertEqual(r.seq_id, 3)
+
     def test_entity_range(self):
         """Test EntityRange class"""
         e = ihm.Entity('ABCDAB')

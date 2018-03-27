@@ -391,6 +391,18 @@ class EntityRange(object):
     _id = property(lambda self: self.entity._id)
 
 
+class Residue(object):
+    """A single residue in an entity or asymmetric unit. Usually these objects
+       are created by calling :meth:`Entity.residue` or
+       :meth:`AsymUnit.residue`.
+    """
+    def __init__(self, seq_id, entity=None, asym=None):
+        self.entity = entity
+        self.asym = asym
+        # todo: check id for validity (at property read time)
+        self.seq_id = seq_id
+
+
 class Entity(object):
     """Represent a CIF entity (with a unique sequence)
 
@@ -407,6 +419,10 @@ class Entity(object):
     def __init__(self, seq, description=None, details=None):
         self.sequence = seq
         self.description, self.details = description, details
+
+    def residue(self, seq_id):
+        """Get a :class:`Residue` at the given sequence position"""
+        return Residue(entity=self, seq_id=seq_id)
 
     # Entities are considered identical if they have the same sequence
     def __eq__(self, other):
@@ -461,6 +477,10 @@ class AsymUnit(object):
 
     def __call__(self, seq_id_begin, seq_id_end):
         return AsymUnitRange(self, seq_id_begin, seq_id_end)
+
+    def residue(self, seq_id):
+        """Get a :class:`Residue` at the given sequence position"""
+        return Residue(asym=self, seq_id=seq_id)
 
     seq_id_range = property(lambda self: (1, len(self.entity.sequence)),
                             doc="Sequence range")
