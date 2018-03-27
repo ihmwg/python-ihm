@@ -351,9 +351,11 @@ C 2 baz
 
         system.orphan_assemblies.append(ihm.Assembly((a1, a2(2,3)), name='foo'))
         # Out of order assembly (should be ordered on output)
-        system.orphan_assemblies.append(ihm.Assembly((a3, a2), name='bar'))
+        system.orphan_assemblies.append(ihm.Assembly((a3, a2), name='bar',
+                                                     description='desc1'))
         # Duplicate assembly (should be ignored)
-        system.orphan_assemblies.append(ihm.Assembly((a2, a3)))
+        system.orphan_assemblies.append(ihm.Assembly((a2, a3),
+                                                     description='desc2'))
 
         # Assign entity and asym IDs
         ihm.dumper._EntityDumper().finalize(system)
@@ -371,7 +373,7 @@ _ihm_struct_assembly_details.assembly_name
 _ihm_struct_assembly_details.assembly_description
 1 'Complete assembly' 'All known components'
 2 foo .
-3 bar .
+3 bar 'desc1 & desc2'
 #
 #
 loop_

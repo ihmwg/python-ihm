@@ -248,14 +248,27 @@ class _AssemblyDumper(_Dumper):
         seen_assemblies = {}
         # Assign IDs to all assemblies; duplicate assemblies get same ID
         self._assembly_by_id = []
-        for a in system._all_assemblies():
+        description_by_id = {}
+        all_assemblies = list(system._all_assemblies())
+        for a in all_assemblies:
             # list isn't hashable but tuple is
             hasha = tuple(a)
             if hasha not in seen_assemblies:
                 self._assembly_by_id.append(a)
                 seen_assemblies[hasha] = a._id = len(self._assembly_by_id)
+                description_by_id[a._id] = []
             else:
                 a._id = seen_assemblies[hasha]
+            if a.description:
+                description_by_id[a._id].append(a.description)
+
+        # If multiple assemblies map to the same ID, give them all the same
+        # composite description
+        for a_id, description in description_by_id.items():
+            description_by_id[a_id] = ' & '.join(description) \
+                                      if description else None
+        for a in all_assemblies:
+            a.description = description_by_id[a._id]
 
     def dump_details(self, system, writer):
         with writer.loop("_ihm_struct_assembly_details",
