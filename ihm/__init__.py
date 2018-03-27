@@ -361,8 +361,11 @@ class EntityRange(object):
         self.seq_id_range = (seq_id_begin, seq_id_end)
 
     def __eq__(self, other):
-        return (self.entity is other.entity
-                and self.seq_id_range == other.seq_id_range)
+        try:
+            return (self.entity is other.entity
+                    and self.seq_id_range == other.seq_id_range)
+        except AttributeError:
+            return False
     def __hash__(self):
         return hash((id(self.entity), self.seq_id_range))
 
@@ -414,8 +417,11 @@ class AsymUnitRange(object):
         self.seq_id_range = (seq_id_begin, seq_id_end)
 
     def __eq__(self, other):
-        return (self.asym is other.asym
-                and self.seq_id_range == other.seq_id_range)
+        try:
+            return (self.asym is other.asym
+                    and self.seq_id_range == other.seq_id_range)
+        except AttributeError:
+            return False
     def __hash__(self):
         return hash((id(self.asym), self.seq_id_range))
 

@@ -66,7 +66,7 @@ class Tests(unittest.TestCase):
         otherr = e(2,4)
         self.assertEqual(r, samer)
         self.assertNotEqual(r, otherr)
-        self.assertNotEqual(r, e)
+        self.assertNotEqual(r, e) # entity_range != entity
 
     def test_asym_range(self):
         """Test AsymUnitRange class"""
@@ -82,9 +82,9 @@ class Tests(unittest.TestCase):
         otherr = a(2,4)
         self.assertEqual(r, samer)
         self.assertNotEqual(r, otherr)
-        self.assertNotEqual(r, a)
-        self.assertNotEqual(r, a(3,4))
-        self.assertNotEqual(r, e)
+        self.assertNotEqual(r, a)      # asym_range != asym
+        self.assertNotEqual(r, e(3,4)) # asym_range != entity_range
+        self.assertNotEqual(r, e)      # asym_range != entity
 
     def test_assembly(self):
         """Test Assembly class"""
