@@ -199,6 +199,13 @@ class Tests(unittest.TestCase):
         step.assembly = asmb1
         prot = MockObject()
         prot.steps = [step]
+
+        analysis1 = MockObject()
+        astep1 = MockObject()
+        astep1.assembly = asmb2
+        analysis1.steps = [astep1]
+        prot.analyses = [analysis1]
+
         model2.protocol = prot
         rsr1 = MockObject()
         rsr1.assembly = asmb2
@@ -207,7 +214,8 @@ class Tests(unittest.TestCase):
         s.restraints.extend((rsr1, rsr2))
         # duplicates should be present; complete assembly is always first
         self.assertEqual(list(s._all_assemblies()),
-                         [s.complete_assembly, asmb1, asmb2, asmb1, asmb2])
+                         [s.complete_assembly, asmb1, asmb2, asmb1,
+                          asmb2, asmb2])
 
     def test_all_citations(self):
         """Test _all_citations() method"""
@@ -252,9 +260,14 @@ class Tests(unittest.TestCase):
         step3.dataset_group = dg1
         protocol1 = MockObject()
         protocol1.steps = [step1, step2, step3]
+        analysis1 = MockObject()
+        astep1 = MockObject()
+        astep1.dataset_group = dg2
+        analysis1.steps = [astep1]
+        protocol1.analyses = [analysis1]
         s.orphan_protocols.append(protocol1)
         # duplicates should not be filtered
-        self.assertEqual(list(s._all_dataset_groups()), [dg1, dg2, dg1])
+        self.assertEqual(list(s._all_dataset_groups()), [dg1, dg2, dg1, dg2])
 
     def test_all_locations(self):
         """Test _all_locations() method"""

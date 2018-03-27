@@ -651,7 +651,8 @@ class _PostProcessDumper(_Dumper):
         with writer.loop("_ihm_modeling_post_process",
                          ["id", "protocol_id", "analysis_id", "step_id",
                           "type", "feature", "num_models_begin",
-                          "num_models_end"]) as l:
+                          "num_models_end", "struct_assembly_id",
+                          "dataset_group_id"]) as l:
             for p in system._all_protocols():
                 for a in p.analyses:
                     for s in a.steps:
@@ -659,7 +660,12 @@ class _PostProcessDumper(_Dumper):
                                 analysis_id=a._id, step_id=s._id, type=s.type,
                                 feature=s.feature,
                                 num_models_begin=s.num_models_begin,
-                                num_models_end=s.num_models_end)
+                                num_models_end=s.num_models_end,
+                                struct_assembly_id=s.assembly._id if s.assembly
+                                                                  else None,
+                                dataset_group_id=s.dataset_group._id
+                                                 if s.dataset_group else None)
+
 
 class _ModelDumper(object):
 

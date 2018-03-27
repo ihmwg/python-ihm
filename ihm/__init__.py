@@ -187,6 +187,12 @@ class System(object):
             for step in protocol.steps:
                 yield step
 
+    def _all_analysis_steps(self):
+        for protocol in self._all_protocols():
+            for analysis in protocol.analyses:
+                for step in analysis.steps:
+                    yield step
+
     def _all_assemblies(self):
         """Iterate over all Assemblies in the system.
            This includes all Assemblies referenced from other objects, plus
@@ -199,6 +205,8 @@ class System(object):
                                         if model.assembly),
                         (step.assembly for step in self._all_protocol_steps()
                                        if step.assembly),
+                        (step.assembly for step in self._all_analysis_steps()
+                                       if step.assembly),
                         (restraint.assembly for restraint in self.restraints
                                             if restraint.assembly))
 
@@ -209,6 +217,8 @@ class System(object):
         return itertools.chain(
                   self.orphan_dataset_groups,
                   (step.dataset_group for step in self._all_protocol_steps()
+                                      if step.dataset_group),
+                  (step.dataset_group for step in self._all_analysis_steps()
                                       if step.dataset_group))
 
     def _all_templates(self):
