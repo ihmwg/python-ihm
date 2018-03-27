@@ -1423,6 +1423,56 @@ _ihm_2dem_class_average_fitting.tr_vector[3]
 #
 """)
 
+    def test_cross_link_restraint_dumper(self):
+        """Test CrossLinkRestraintDumper"""
+        class MockObject(object):
+            pass
+        system = ihm.System()
+        e1 = ihm.Entity('ATC', description='foo')
+        e2 = ihm.Entity('DEF', description='bar')
+        system.entities.extend((e1, e2))
+
+        dataset = MockObject()
+        dataset._id = 97
+        r = ihm.restraint.CrossLinkRestraint(dataset=dataset, linker_type='DSS')
+        # intra, unambiguous
+        xl1 = ihm.restraint.ExperimentalCrossLink(e1.residue(2), e1.residue(3))
+        # inter, ambiguous
+        xl2 = ihm.restraint.ExperimentalCrossLink(e1.residue(2), e2.residue(3))
+        xl3 = ihm.restraint.ExperimentalCrossLink(e1.residue(2), e2.residue(2))
+        # duplicate crosslink, should be combined with the original (xl2)
+        xl4 = ihm.restraint.ExperimentalCrossLink(e1.residue(2), e2.residue(3))
+        # should end up in own group, not with xl4 (since xl4==xl2)
+        xl5 = ihm.restraint.ExperimentalCrossLink(e1.residue(1), e2.residue(1))
+        r.experimental_cross_links.extend(([xl1], [xl2, xl3], [xl4, xl5]))
+        system.restraints.extend((r, MockObject()))
+
+        ihm.dumper._EntityDumper().finalize(system) # assign entity IDs
+        dumper = ihm.dumper._CrossLinkDumper()
+        dumper.finalize(system) # assign IDs
+
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_ihm_cross_link_list.id
+_ihm_cross_link_list.group_id
+_ihm_cross_link_list.entity_description_1
+_ihm_cross_link_list.entity_id_1
+_ihm_cross_link_list.seq_id_1
+_ihm_cross_link_list.comp_id_1
+_ihm_cross_link_list.entity_description_2
+_ihm_cross_link_list.entity_id_2
+_ihm_cross_link_list.seq_id_2
+_ihm_cross_link_list.comp_id_2
+_ihm_cross_link_list.linker_type
+_ihm_cross_link_list.dataset_list_id
+1 1 foo 1 2 THR foo 1 3 CYS DSS 97
+2 2 foo 1 2 THR bar 2 3 PHE DSS 97
+3 2 foo 1 2 THR bar 2 2 GLU DSS 97
+4 3 foo 1 1 ALA bar 2 1 ASP DSS 97
+#
+""")
+
 
 if __name__ == '__main__':
     unittest.main()

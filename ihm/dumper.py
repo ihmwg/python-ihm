@@ -852,6 +852,63 @@ class _MultiStateDumper(object):
                                 details=state.details)
                         ordinal += 1
 
+
+class _CrossLinkDumper(_Dumper):
+    def _all_restraints(self, system):
+        return [r for r in system.restraints
+                if isinstance(r, restraint.CrossLinkRestraint)]
+
+    def finalize(self, system):
+        self.finalize_experimental(system)
+
+    def finalize_experimental(self, system):
+        seen_cross_links = {}
+        seen_group_ids = {}
+        xl_id = 1
+        self._ex_xls_by_id = []
+        for r in self._all_restraints(system):
+            for g in r.experimental_cross_links:
+                for xl in g:
+                    # Assign identical cross-links the same ID and group ID
+                    sig = (xl.residue1.entity, xl.residue1.seq_id,
+                           xl.residue2.entity, xl.residue2.seq_id,
+                           r.linker_type)
+                    if sig in seen_cross_links:
+                        xl._id, xl._group_id = seen_cross_links[sig]
+                    else:
+                        if id(g) not in seen_group_ids:
+                            seen_group_ids[id(g)] = len(seen_group_ids) + 1
+                        xl._group_id = seen_group_ids[id(g)]
+                        xl._id = xl_id
+                        xl_id += 1
+                        self._ex_xls_by_id.append((r, xl))
+                        seen_cross_links[sig] = xl._id, xl._group_id
+
+    def dump(self, system, writer):
+        with writer.loop("_ihm_cross_link_list",
+                         ["id", "group_id", "entity_description_1",
+                          "entity_id_1", "seq_id_1", "comp_id_1",
+                          "entity_description_2",
+                          "entity_id_2", "seq_id_2", "comp_id_2",
+                          "linker_type", "dataset_list_id"]) as l:
+            for r, xl in self._ex_xls_by_id:
+                entity1 = xl.residue1.entity
+                entity2 = xl.residue2.entity
+                seq1 = entity1.sequence
+                seq2 = entity2.sequence
+                l.write(id=xl._id, group_id=xl._group_id,
+                        entity_description_1=entity1.description,
+                        entity_id_1=entity1._id,
+                        seq_id_1=xl.residue1.seq_id,
+                        comp_id_1=_amino_acids[seq1[xl.residue1.seq_id-1]],
+                        entity_description_2=entity2.description,
+                        entity_id_2=entity2._id,
+                        seq_id_2=xl.residue2.seq_id,
+                        comp_id_2=_amino_acids[seq2[xl.residue2.seq_id-1]],
+                        linker_type=r.linker_type,
+                        dataset_list_id=r.dataset._id)
+
+
 class _EM3DDumper(_Dumper):
     def _all_restraints(self, system):
         return [r for r in system.restraints
@@ -1014,6 +1071,7 @@ def write(fh, systems):
                _StartingModelDumper(),
                _ProtocolDumper(),
                _PostProcessDumper(),
+               _CrossLinkDumper(),
                _EM3DDumper(),
                _EM2DDumper(),
                _SASDumper(),

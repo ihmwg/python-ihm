@@ -161,3 +161,41 @@ class EM2DRestraintFit(object):
                  rot_matrix=None, tr_vector=None):
         self.cross_correlation_coefficient = cross_correlation_coefficient
         self.rot_matrix, self.tr_vector = rot_matrix, tr_vector
+
+
+class CrossLinkRestraint(Restraint):
+    """Restrain part of the system to match a set of cross-links.
+
+       :param dataset: Reference to the cross-link data (usually
+              a :class:`~ihm.dataset.CXMSDataset`).
+       :type dataset: :class:`~ihm.dataset.Dataset`
+       :param str linker_type: The type of chemical linker used.
+    """
+
+    assembly = None # no struct_assembly_id for XL restraints
+
+    def __init__(self, dataset, linker_type):
+        self.dataset, self.linker_type = dataset, linker_type
+
+        #: All cross-links identified in the experiment, as a simple list
+        #: of lists of :class:`ExperimentalCrossLink` objects. All cross-links
+        #: in the same sublist are treated as experimentally ambiguous. For
+        #: example, xl2 and xl3 here are considered ambiguous::
+        #:
+        #:     restraint.experimental_cross_links.append([xl1])
+        #:     restraint.experimental_cross_links.append([xl2, xl3])
+        self.experimental_cross_links = []
+
+        #: All cross-links used in the modeling
+        self.cross_links = []
+
+
+class ExperimentalCrossLink(object):
+    """A cross-link identified in the experiment.
+       :param residue1: The first residue linked by the cross-link.
+       :type residue1: :class:`ihm.Residue`
+       :param residue2: The second residue linked by the cross-link.
+       :type residue2: :class:`ihm.Residue`
+    """
+    def __init__(self, residue1, residue2):
+        self.residue1, self.residue2 = residue1, residue2

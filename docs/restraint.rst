@@ -21,3 +21,9 @@ The :mod:`ihm.restraint` Python module
 
 .. autoclass:: SASRestraintFit
    :members:
+
+.. autoclass:: CrossLinkRestraint
+   :members:
+
+.. autoclass:: ExperimentalCrossLink
+   :members:

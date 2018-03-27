@@ -57,7 +57,7 @@ class DatasetGroup(list):
 
 
 class CXMSDataset(Dataset):
-    """Processed crosslinks from a CX-MS experiment"""
+    """Processed cross-links from a CX-MS experiment"""
     data_type = 'CX-MS data'
 
 

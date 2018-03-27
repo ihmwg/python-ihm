@@ -51,6 +51,19 @@ class Tests(unittest.TestCase):
         self.assertEqual(f.assembly, 'bar')
         self.assertEqual(f.fits, {})
 
+    def test_cross_link_restraint(self):
+        """Test CrossLinkRestraint class"""
+        f = ihm.restraint.CrossLinkRestraint(dataset='foo', linker_type='DSS')
+        self.assertEqual(f.dataset, 'foo')
+        self.assertEqual(f.linker_type, 'DSS')
+        self.assertEqual(f.experimental_cross_links, [])
+
+    def test_experimental_cross_link(self):
+        """Test ExperimentalCrossLink class"""
+        f = ihm.restraint.ExperimentalCrossLink('res1', 'res2')
+        self.assertEqual(f.residue1, 'res1')
+        self.assertEqual(f.residue2, 'res2')
+
 
 if __name__ == '__main__':
     unittest.main()
