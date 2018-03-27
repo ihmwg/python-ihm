@@ -62,6 +62,10 @@ class Tests(unittest.TestCase):
         r = e(3,4)
         self.assertEqual(r.seq_id_range, (3,4))
         self.assertEqual(r._id, 42)
+        samer = e(3,4)
+        otherr = e(2,4)
+        self.assertEqual(r, samer)
+        self.assertNotEqual(r, otherr)
 
     def test_asym_range(self):
         """Test AsymUnitRange class"""
@@ -73,6 +77,10 @@ class Tests(unittest.TestCase):
         self.assertEqual(r.seq_id_range, (3,4))
         self.assertEqual(r._id, 42)
         self.assertEqual(r.entity, e)
+        samer = a(3,4)
+        otherr = a(2,4)
+        self.assertEqual(r, samer)
+        self.assertNotEqual(r, otherr)
 
     def test_assembly_component_entity(self):
         """Test AssemblyComponent created from an entity"""

@@ -360,6 +360,12 @@ class EntityRange(object):
         # todo: check range for validity (at property read time)
         self.seq_id_range = (seq_id_begin, seq_id_end)
 
+    def __eq__(self, other):
+        return (self.entity is other.entity
+                and self.seq_id_range == other.seq_id_range)
+    def __hash__(self):
+        return hash((id(self.entity), self.seq_id_range))
+
     # Use same ID as the original entity
     _id = property(lambda self: self.entity._id)
 
@@ -406,6 +412,12 @@ class AsymUnitRange(object):
         self.asym = asym
         # todo: check range for validity (at property read time)
         self.seq_id_range = (seq_id_begin, seq_id_end)
+
+    def __eq__(self, other):
+        return (self.asym is other.asym
+                and self.seq_id_range == other.seq_id_range)
+    def __hash__(self):
+        return hash((id(self.asym), self.seq_id_range))
 
     # Use same ID and entity as the original asym unit
     _id = property(lambda self: self.asym._id)
