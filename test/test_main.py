@@ -65,6 +65,7 @@ class Tests(unittest.TestCase):
         samer = e(3,4)
         otherr = e(2,4)
         self.assertEqual(r, samer)
+        self.assertEqual(hash(r), hash(samer))
         self.assertNotEqual(r, otherr)
         self.assertNotEqual(r, e) # entity_range != entity
 
@@ -81,6 +82,7 @@ class Tests(unittest.TestCase):
         samer = a(3,4)
         otherr = a(2,4)
         self.assertEqual(r, samer)
+        self.assertEqual(hash(r), hash(samer))
         self.assertNotEqual(r, otherr)
         self.assertNotEqual(r, a)      # asym_range != asym
         self.assertNotEqual(r, e(3,4)) # asym_range != entity_range
