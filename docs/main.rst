@@ -21,6 +21,9 @@ The :mod:`ihm` Python module
 .. autoclass:: Entity
    :members:
 
+.. autoclass:: EntityRange
+   :members:
+
 .. autoclass:: AsymUnit
    :members:
 

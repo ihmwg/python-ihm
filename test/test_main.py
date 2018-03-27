@@ -54,6 +54,15 @@ class Tests(unittest.TestCase):
                          pmid='1234')
         self.assertEqual(s.title, 'Test paper')
 
+    def test_entity_range(self):
+        """Test EntityRange class"""
+        e = ihm.Entity('ABCDAB')
+        e._id = 42
+        self.assertEqual(e.seq_id_range, (1,6))
+        r = e(3,4)
+        self.assertEqual(r.seq_id_range, (3,4))
+        self.assertEqual(r._id, 42)
+
     def test_asym_range(self):
         """Test AsymUnitRange class"""
         e = ihm.Entity('ABCDAB')

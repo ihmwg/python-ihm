@@ -347,6 +347,23 @@ class Citation(object):
         self.pmid, self.authors, self.doi = pmid, authors, doi
 
 
+class EntityRange(object):
+    """Part of an entity. Usually these objects are created from
+       an :class:`Entity`, e.g. to get a range covering residues 4 through
+       7 in `entity` use::
+
+           entity = ihm.Entity(seq=...)
+           rng = entity(4,7)
+    """
+    def __init__(self, entity, seq_id_begin, seq_id_end):
+        self.entity = entity
+        # todo: check range for validity (at property read time)
+        self.seq_id_range = (seq_id_begin, seq_id_end)
+
+    # Use same ID as the original entity
+    _id = property(lambda self: self.entity._id)
+
+
 class Entity(object):
     """Represent a CIF entity (with a unique sequence)
 
@@ -369,6 +386,9 @@ class Entity(object):
         return self.sequence == other.sequence
     def __hash__(self):
         return hash(self.sequence)
+
+    def __call__(self, seq_id_begin, seq_id_end):
+        return EntityRange(self, seq_id_begin, seq_id_end)
 
     seq_id_range = property(lambda self: (1, len(self.sequence)),
                             doc="Sequence range")
