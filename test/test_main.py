@@ -26,6 +26,8 @@ class Tests(unittest.TestCase):
         e3 = ihm.Entity('ABCDE', description='foo')
         self.assertEqual(e1, e2)
         self.assertNotEqual(e1, e3)
+        self.assertEqual(e1.seq_id_range, (1,4))
+        self.assertEqual(e3.seq_id_range, (1,5))
 
     def test_software(self):
         """Test Software class"""

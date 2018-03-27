@@ -370,6 +370,10 @@ class Entity(object):
     def __hash__(self):
         return hash(self.sequence)
 
+    seq_id_range = property(lambda self: (1, len(self.sequence)),
+                            doc="Sequence range")
+
+
 class AsymUnitRange(object):
     """Part of an asymmetric unit. Usually these objects are created from
        an :class:`AsymUnit`, e.g. to get a range covering residues 4 through
