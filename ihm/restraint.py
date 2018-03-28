@@ -192,6 +192,7 @@ class CrossLinkRestraint(Restraint):
 
 class ExperimentalCrossLink(object):
     """A cross-link identified in the experiment.
+
        :param residue1: The first residue linked by the cross-link.
        :type residue1: :class:`ihm.Residue`
        :param residue2: The second residue linked by the cross-link.
@@ -199,3 +200,144 @@ class ExperimentalCrossLink(object):
     """
     def __init__(self, residue1, residue2):
         self.residue1, self.residue2 = residue1, residue2
+
+class DistanceRestraint(object):
+    """Base class for all distance restraints.
+       See :class:`HarmonicDistanceRestraint`,
+       :class:`UpperBoundDistanceRestraint`,
+       and :class:`LowerBoundDistanceRestraint`."""
+    pass
+
+
+class HarmonicDistanceRestraint(object):
+    """Harmonically restrain two objects to be close to a given distance apart.
+
+       :param float distance: Equilibrium distance
+    """
+    restraint_type = 'harmonic'
+    def __init__(self, distance):
+        self.distance = distance
+
+
+class UpperBoundDistanceRestraint(object):
+    """Harmonically restrain two objects to be below a given distance apart.
+
+       :param float distance: Distance threshold
+    """
+    restraint_type = 'upper bound'
+    def __init__(self, distance):
+        self.distance = distance
+
+
+class LowerBoundDistanceRestraint(object):
+    """Harmonically restrain two objects to be above a given distance apart.
+
+       :param float distance: Distance threshold
+    """
+    restraint_type = 'lower bound'
+    def __init__(self, distance):
+        self.distance = distance
+
+
+class CrossLink(object):
+    """Base class for all cross-links used in the modeling.
+       See :class:`ResidueCrossLink`, :class:`AtomCrossLink`,
+       :class:`FeatureCrossLink`."""
+    pass
+
+
+class ResidueCrossLink(object):
+    """A cross-link used in the modeling, applied to residue alpha carbon atoms.
+
+       :param experimental_cross_link: The corresponding cross-link identified
+              by experiment. Multiple cross-links can map to a single
+              experimental identification.
+       :type experimental_cross_link: :class:`ExperimentalCrossLink`
+       :param asym1: The asymmetric unit containing the first linked residue.
+       :type asym1: :class:`ihm.AsymUnit`
+       :param asym2: The asymmetric unit containing the second linked residue.
+       :type asym2: :class:`ihm.AsymUnit`
+       :param distance: Restraint on the distance.
+       :type distance: :class:`DistanceRestraint`
+       :param float psi: Initial uncertainty in the experimental data.
+       :param float sigma1: Initial uncertainty in the position of the first
+              residue.
+       :param float sigma2: Initial uncertainty in the position of the second
+              residue.
+       :param bool restrain_all: If True, all cross-links are restrained.
+    """
+    granularity = 'by-residue'
+    atom1 = atom2 = None
+
+    def __init__(self, experimental_cross_link, asym1, asym2, distance,
+                 psi=None, sigma1=None, sigma2=None, restrain_all=None):
+        self.experimental_cross_link = experimental_cross_link
+        self.asym1, self.asym2 = asym1, asym2
+        self.psi, self.sigma1, self.sigma2 = psi, sigma1, sigma2
+        self.distance, self.restrain_all = distance, restrain_all
+
+
+class FeatureCrossLink(object):
+    """A cross-link used in the modeling, applied to the closest primitive
+       object with the highest resolution.
+
+       :param experimental_cross_link: The corresponding cross-link identified
+              by experiment. Multiple cross-links can map to a single
+              experimental identification.
+       :type experimental_cross_link: :class:`ExperimentalCrossLink`
+       :param asym1: The asymmetric unit containing the first linked residue.
+       :type asym1: :class:`ihm.AsymUnit`
+       :param asym2: The asymmetric unit containing the second linked residue.
+       :type asym2: :class:`ihm.AsymUnit`
+       :param distance: Restraint on the distance.
+       :type distance: :class:`DistanceRestraint`
+       :param float psi: Initial uncertainty in the experimental data.
+       :param float sigma1: Initial uncertainty in the position of the first
+              residue.
+       :param float sigma2: Initial uncertainty in the position of the second
+              residue.
+       :param bool restrain_all: If True, all cross-links are restrained.
+    """
+    granularity = 'by-feature'
+    atom1 = atom2 = None
+
+    def __init__(self, experimental_cross_link, asym1, asym2, distance,
+                 psi=None, sigma1=None, sigma2=None, restrain_all=None):
+        self.experimental_cross_link = experimental_cross_link
+        self.asym1, self.asym2 = asym1, asym2
+        self.psi, self.sigma1, self.sigma2 = psi, sigma1, sigma2
+        self.distance, self.restrain_all = distance, restrain_all
+
+
+class AtomCrossLink(object):
+    """A cross-link used in the modeling, applied to the specified atoms.
+
+       :param experimental_cross_link: The corresponding cross-link identified
+              by experiment. Multiple cross-links can map to a single
+              experimental identification.
+       :type experimental_cross_link: :class:`ExperimentalCrossLink`
+       :param asym1: The asymmetric unit containing the first linked residue.
+       :type asym1: :class:`ihm.AsymUnit`
+       :param asym2: The asymmetric unit containing the second linked residue.
+       :type asym2: :class:`ihm.AsymUnit`
+       :param str atom1: The name of the first linked atom.
+       :param str atom2: The name of the second linked atom.
+       :param distance: Restraint on the distance.
+       :type distance: :class:`DistanceRestraint`
+       :param float psi: Initial uncertainty in the experimental data.
+       :param float sigma1: Initial uncertainty in the position of the first
+              residue.
+       :param float sigma2: Initial uncertainty in the position of the second
+              residue.
+       :param bool restrain_all: If True, all cross-links are restrained.
+    """
+    granularity = 'by-atom'
+
+    def __init__(self, experimental_cross_link, asym1, asym2, atom1, atom2,
+                 distance, psi=None, sigma1=None, sigma2=None,
+                 restrain_all=None):
+        self.experimental_cross_link = experimental_cross_link
+        self.asym1, self.asym2 = asym1, asym2
+        self.atom1, self.atom2 = atom1, atom2
+        self.psi, self.sigma1, self.sigma2 = psi, sigma1, sigma2
+        self.distance, self.restrain_all = distance, restrain_all
