@@ -1431,23 +1431,39 @@ _ihm_2dem_class_average_fitting.tr_vector[3]
         e1 = ihm.Entity('ATC', description='foo')
         e2 = ihm.Entity('DEF', description='bar')
         system.entities.extend((e1, e2))
+        asym1 = ihm.AsymUnit(e1)
+        asym2 = ihm.AsymUnit(e2)
+        system.asym_units.extend((asym1, asym2))
 
         dataset = MockObject()
         dataset._id = 97
         r = ihm.restraint.CrossLinkRestraint(dataset=dataset, linker_type='DSS')
         # intra, unambiguous
-        xl1 = ihm.restraint.ExperimentalCrossLink(e1.residue(2), e1.residue(3))
+        xxl1 = ihm.restraint.ExperimentalCrossLink(e1.residue(2), e1.residue(3))
         # inter, ambiguous
-        xl2 = ihm.restraint.ExperimentalCrossLink(e1.residue(2), e2.residue(3))
-        xl3 = ihm.restraint.ExperimentalCrossLink(e1.residue(2), e2.residue(2))
-        # duplicate crosslink, should be combined with the original (xl2)
-        xl4 = ihm.restraint.ExperimentalCrossLink(e1.residue(2), e2.residue(3))
-        # should end up in own group, not with xl4 (since xl4==xl2)
-        xl5 = ihm.restraint.ExperimentalCrossLink(e1.residue(1), e2.residue(1))
-        r.experimental_cross_links.extend(([xl1], [xl2, xl3], [xl4, xl5]))
+        xxl2 = ihm.restraint.ExperimentalCrossLink(e1.residue(2), e2.residue(3))
+        xxl3 = ihm.restraint.ExperimentalCrossLink(e1.residue(2), e2.residue(2))
+        # duplicate crosslink, should be combined with the original (xxl2)
+        xxl4 = ihm.restraint.ExperimentalCrossLink(e1.residue(2), e2.residue(3))
+        # should end up in own group, not with xxl4 (since xxl4==xxl2)
+        xxl5 = ihm.restraint.ExperimentalCrossLink(e1.residue(1), e2.residue(1))
+        r.experimental_cross_links.extend(([xxl1], [xxl2, xxl3], [xxl4, xxl5]))
         system.restraints.extend((r, MockObject()))
 
+        d = ihm.restraint.UpperBoundDistanceRestraint(25.0)
+        xl1 = ihm.restraint.ResidueCrossLink(xxl1, asym1, asym1, d,
+                                psi=0.5, sigma1=1.0, sigma2=2.0,
+                                restrain_all=True)
+        d = ihm.restraint.LowerBoundDistanceRestraint(34.0)
+        xl2 = ihm.restraint.AtomCrossLink(xxl3, asym1, asym2, 'C', 'N', d,
+                                restrain_all=False)
+        # Duplicates should be ignored
+        xl3 = ihm.restraint.AtomCrossLink(xxl3, asym1, asym2, 'C', 'N', d,
+                                restrain_all=False)
+        r.cross_links.extend((xl1, xl2, xl3))
+
         ihm.dumper._EntityDumper().finalize(system) # assign entity IDs
+        ihm.dumper._StructAsymDumper().finalize(system) # assign asym IDs
         dumper = ihm.dumper._CrossLinkDumper()
         dumper.finalize(system) # assign IDs
 
@@ -1470,6 +1486,31 @@ _ihm_cross_link_list.dataset_list_id
 2 2 foo 1 2 THR bar 2 3 PHE DSS 97
 3 2 foo 1 2 THR bar 2 2 GLU DSS 97
 4 3 foo 1 1 ALA bar 2 1 ASP DSS 97
+#
+#
+loop_
+_ihm_cross_link_restraint.id
+_ihm_cross_link_restraint.group_id
+_ihm_cross_link_restraint.entity_id_1
+_ihm_cross_link_restraint.asym_id_1
+_ihm_cross_link_restraint.seq_id_1
+_ihm_cross_link_restraint.comp_id_1
+_ihm_cross_link_restraint.entity_id_2
+_ihm_cross_link_restraint.asym_id_2
+_ihm_cross_link_restraint.seq_id_2
+_ihm_cross_link_restraint.comp_id_2
+_ihm_cross_link_restraint.atom_id_1
+_ihm_cross_link_restraint.atom_id_2
+_ihm_cross_link_restraint.restraint_type
+_ihm_cross_link_restraint.conditional_crosslink_flag
+_ihm_cross_link_restraint.model_granularity
+_ihm_cross_link_restraint.distance_threshold
+_ihm_cross_link_restraint.psi
+_ihm_cross_link_restraint.sigma_1
+_ihm_cross_link_restraint.sigma_2
+1 1 1 A 2 THR 1 A 3 CYS . . 'upper bound' ALL by-residue 25.000 0.500 1.000
+2.000
+2 3 1 A 2 THR 2 B 2 GLU C N 'lower bound' ANY by-atom 34.000 . . .
 #
 """)
 

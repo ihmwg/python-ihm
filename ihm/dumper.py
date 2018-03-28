@@ -860,6 +860,7 @@ class _CrossLinkDumper(_Dumper):
 
     def finalize(self, system):
         self.finalize_experimental(system)
+        self.finalize_modeling(system)
 
     def finalize_experimental(self, system):
         seen_cross_links = {}
@@ -884,7 +885,31 @@ class _CrossLinkDumper(_Dumper):
                         self._ex_xls_by_id.append((r, xl))
                         seen_cross_links[sig] = xl._id, xl._group_id
 
+    def finalize_modeling(self, system):
+        seen_cross_links = {}
+        seen_group_ids = {}
+        xl_id = 1
+        self._xls_by_id = []
+        for r in self._all_restraints(system):
+            for xl in r.cross_links:
+                # Assign identical cross-links the same ID
+                ex_xl = xl.experimental_cross_link
+                sig = (xl.asym1._id, ex_xl.residue1.seq_id, xl.atom1,
+                       xl.asym2._id, ex_xl.residue2.seq_id, xl.atom2,
+                       r.linker_type)
+                if sig in seen_cross_links:
+                    xl._id = seen_cross_links[sig]
+                else:
+                    xl._id = xl_id
+                    xl_id += 1
+                    self._xls_by_id.append((r, xl))
+                    seen_cross_links[sig] = xl._id
+
     def dump(self, system, writer):
+        self.dump_list(system, writer)
+        self.dump_restraint(system, writer)
+
+    def dump_list(self, system, writer):
         with writer.loop("_ihm_cross_link_list",
                          ["id", "group_id", "entity_description_1",
                           "entity_id_1", "seq_id_1", "comp_id_1",
@@ -907,6 +932,36 @@ class _CrossLinkDumper(_Dumper):
                         comp_id_2=_amino_acids[seq2[xl.residue2.seq_id-1]],
                         linker_type=r.linker_type,
                         dataset_list_id=r.dataset._id)
+
+    def dump_restraint(self, system, writer):
+        with writer.loop("_ihm_cross_link_restraint",
+                         ["id", "group_id", "entity_id_1", "asym_id_1",
+                          "seq_id_1", "comp_id_1",
+                          "entity_id_2", "asym_id_2", "seq_id_2", "comp_id_2",
+                          "atom_id_1", "atom_id_2",
+                          "restraint_type", "conditional_crosslink_flag",
+                          "model_granularity", "distance_threshold",
+                          "psi", "sigma_1", "sigma_2"]) as l:
+            condmap = {True: 'ALL', False: 'ANY', None: None}
+            for r, xl in self._xls_by_id:
+                ex_xl = xl.experimental_cross_link
+                entity1 = ex_xl.residue1.entity
+                entity2 = ex_xl.residue2.entity
+                seq1 = entity1.sequence
+                seq2 = entity2.sequence
+                l.write(id=xl._id, group_id=ex_xl._id,
+                        entity_id_1=entity1._id, asym_id_1=xl.asym1._id,
+                        seq_id_1=ex_xl.residue1.seq_id,
+                        comp_id_1=_amino_acids[seq1[ex_xl.residue1.seq_id-1]],
+                        entity_id_2=entity2._id, asym_id_2=xl.asym2._id,
+                        seq_id_2=ex_xl.residue2.seq_id,
+                        comp_id_2=_amino_acids[seq2[ex_xl.residue2.seq_id-1]],
+                        atom_id_1=xl.atom1, atom_id_2=xl.atom2,
+                        restraint_type=xl.distance.restraint_type,
+                        conditional_crosslink_flag=condmap[xl.restrain_all],
+                        model_granularity=xl.granularity,
+                        distance_threshold=xl.distance.distance,
+                        psi=xl.psi, sigma_1=xl.sigma1, sigma_2=xl.sigma2)
 
 
 class _EM3DDumper(_Dumper):
