@@ -276,6 +276,11 @@ class ResidueCrossLink(object):
         self.psi, self.sigma1, self.sigma2 = psi, sigma1, sigma2
         self.distance, self.restrain_all = distance, restrain_all
 
+        #: Information about the fit of each model to this cross-link
+        #: This is a Python dict where keys are :class:`~ihm.model.Model`
+        #: objects and values are :class:`CrossLinkFit` objects.
+        self.fits = {}
+
 
 class FeatureCrossLink(object):
     """A cross-link used in the modeling, applied to the closest primitive
@@ -307,6 +312,11 @@ class FeatureCrossLink(object):
         self.asym1, self.asym2 = asym1, asym2
         self.psi, self.sigma1, self.sigma2 = psi, sigma1, sigma2
         self.distance, self.restrain_all = distance, restrain_all
+
+        #: Information about the fit of each model to this cross-link
+        #: This is a Python dict where keys are :class:`~ihm.model.Model`
+        #: objects and values are :class:`CrossLinkFit` objects.
+        self.fits = {}
 
 
 class AtomCrossLink(object):
@@ -341,3 +351,23 @@ class AtomCrossLink(object):
         self.atom1, self.atom2 = atom1, atom2
         self.psi, self.sigma1, self.sigma2 = psi, sigma1, sigma2
         self.distance, self.restrain_all = distance, restrain_all
+
+        #: Information about the fit of each model to this cross-link
+        #: This is a Python dict where keys are :class:`~ihm.model.Model`
+        #: objects and values are :class:`CrossLinkFit` objects.
+        self.fits = {}
+
+
+class CrossLinkFit(object):
+    """Information on the fit of a model to a :class:`CrossLink`.
+       See :attr:`ResidueCrossLink.fits`, :attr:`AtomCrossLink.fits`, or
+       :attr:`FeatureCrossLink.fits`.
+
+       :param float psi: Uncertainty in the experimental data.
+       :param float sigma1: Uncertainty in the position of the first residue.
+       :param float sigma2: Uncertainty in the position of the second residue.
+    """
+    __slots__ = ["psi", "sigma1", "sigma2"] # Reduce memory usage
+
+    def __init__(self, psi=None, sigma1=None, sigma2=None):
+        self.psi, self.sigma1, self.sigma2 = psi, sigma1, sigma2

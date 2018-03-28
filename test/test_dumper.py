@@ -1462,6 +1462,11 @@ _ihm_2dem_class_average_fitting.tr_vector[3]
                                 restrain_all=False)
         r.cross_links.extend((xl1, xl2, xl3))
 
+        model = MockObject()
+        model._id = 201
+        xl1.fits[model] = ihm.restraint.CrossLinkFit(psi=0.1, sigma1=4.2,
+                                                     sigma2=2.1)
+
         ihm.dumper._EntityDumper().finalize(system) # assign entity IDs
         ihm.dumper._StructAsymDumper().finalize(system) # assign asym IDs
         dumper = ihm.dumper._CrossLinkDumper()
@@ -1511,6 +1516,16 @@ _ihm_cross_link_restraint.sigma_2
 1 1 1 A 2 THR 1 A 3 CYS . . 'upper bound' ALL by-residue 25.000 0.500 1.000
 2.000
 2 3 1 A 2 THR 2 B 2 GLU C N 'lower bound' ANY by-atom 34.000 . . .
+#
+#
+loop_
+_ihm_cross_link_result_parameters.ordinal_id
+_ihm_cross_link_result_parameters.restraint_id
+_ihm_cross_link_result_parameters.model_id
+_ihm_cross_link_result_parameters.psi
+_ihm_cross_link_result_parameters.sigma_1
+_ihm_cross_link_result_parameters.sigma_2
+1 1 201 0.100 4.200 2.100
 #
 """)
 

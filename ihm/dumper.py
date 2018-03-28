@@ -908,6 +908,7 @@ class _CrossLinkDumper(_Dumper):
     def dump(self, system, writer):
         self.dump_list(system, writer)
         self.dump_restraint(system, writer)
+        self.dump_results(system, writer)
 
     def dump_list(self, system, writer):
         with writer.loop("_ihm_cross_link_list",
@@ -962,6 +963,21 @@ class _CrossLinkDumper(_Dumper):
                         model_granularity=xl.granularity,
                         distance_threshold=xl.distance.distance,
                         psi=xl.psi, sigma_1=xl.sigma1, sigma_2=xl.sigma2)
+
+    def dump_results(self, system, writer):
+        with writer.loop("_ihm_cross_link_result_parameters",
+                         ["ordinal_id", "restraint_id", "model_id",
+                          "psi", "sigma_1", "sigma_2"]) as l:
+            ordinal = 1
+            for r in self._all_restraints(system):
+                for xl in r.cross_links:
+                    # all fits ordered by model ID
+                    for model, fit in sorted(xl.fits.items(),
+                                             key=lambda i: i[0]._id):
+                        l.write(ordinal_id=ordinal, restraint_id=xl._id,
+                                model_id=model._id, psi=fit.psi,
+                                sigma_1=fit.sigma1, sigma_2=fit.sigma2)
+                        ordinal += 1
 
 
 class _EM3DDumper(_Dumper):

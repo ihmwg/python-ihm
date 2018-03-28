@@ -51,3 +51,6 @@ The :mod:`ihm.restraint` Python module
 
 .. autoclass:: AtomCrossLink
    :members:
+
+.. autoclass:: CrossLinkFit
+   :members:
