@@ -745,11 +745,11 @@ _ihm_model_representation.model_object_count
         ali = ihm.location.InputFileLocation(repo='foo', path='test.ali')
 
         s1 = ihm.startmodel.Template(dataset=dstemplate, asym_id='C',
-                             seq_id_range=(1,10),
+                             seq_id_range=(-9,0), # 1,10 in IHM numbering
                              template_seq_id_range=(101,110),
                              sequence_identity=30.)
         s2 = ihm.startmodel.Template(dataset=dstemplate, asym_id='D',
-                             seq_id_range=(5,12),
+                             seq_id_range=(-5,2), # 5,12 in IHM numbering
                              template_seq_id_range=(201,210),
                              sequence_identity=40.,
                              alignment_file=ali)

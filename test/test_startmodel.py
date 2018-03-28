@@ -47,16 +47,16 @@ class Tests(unittest.TestCase):
         # This template extends outside the range of the starting model;
         # should be truncated to start at 5
         s1 = ihm.startmodel.Template(dataset='1abc', asym_id='C',
-                             seq_id_range=(1,10),
+                             seq_id_range=(0,9), # 1,10 in IHM numbering
                              template_seq_id_range=(101,110),
                              sequence_identity=30.)
         # This should extend the range to 20
         s2 = ihm.startmodel.Template(dataset='2xyz', asym_id='D',
-                             seq_id_range=(15, 20),
+                             seq_id_range=(14, 19), # 15,20 in IHM numbering
                              template_seq_id_range=(115,120),
                              sequence_identity=40.)
         s = ihm.startmodel.StartingModel(asym(5,25), 'mock_dataset', 'A',
-                                         [s1, s2], offset=10)
+                                         [s1, s2], offset=1)
         self.assertEqual(s.get_seq_id_range_all_templates(), (5,20))
 
     def test_seq_dif(self):

@@ -548,13 +548,14 @@ class _StartingModelDumper(_Dumper):
                       "alignment_file_id"]) as l:
             ordinal = 1
             for sm in system._all_starting_models():
+                off = sm.offset
                 for template in sm.templates:
                     denom = template.sequence_identity_denominator
                     l.write(ordinal_id=ordinal,
                       starting_model_id=sm._id,
                       starting_model_auth_asym_id=sm.asym_id,
-                      starting_model_seq_id_begin=template.seq_id_range[0],
-                      starting_model_seq_id_end=template.seq_id_range[1],
+                      starting_model_seq_id_begin=template.seq_id_range[0]+off,
+                      starting_model_seq_id_end=template.seq_id_range[1]+off,
                       template_auth_asym_id=template.asym_id,
                       template_seq_id_begin=template.template_seq_id_range[0],
                       template_seq_id_end=template.template_seq_id_range[1],

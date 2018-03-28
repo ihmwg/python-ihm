@@ -13,8 +13,9 @@ class Template(object):
        :param str asym_id: The asymmetric unit (chain) to use from the template
               dataset (not necessarily the same as the starting model's asym_id
               or the ID of the asym_unit in the final IHM model).
-       :param tuple seq_id_range: The sequence range (in the IHM model) that
-              is modeled by this template.
+       :param tuple seq_id_range: The sequence range in the dataset that
+              is modeled by this template. Note that this numbering may differ
+              from the IHM numbering. See `offset` in :class:`StartingModel`.
        :param tuple template_seq_id_range: The sequence range of the template
               that is used in comparative modeling.
        :param float sequence_identity: Sequence identity between template and
@@ -97,7 +98,8 @@ class StartingModel(object):
         def get_seq_id_range(template, full):
             # The template may cover more than the current starting model
             rng = template.seq_id_range
-            return (max(rng[0], full[0]), min(rng[1], full[1]))
+            return (max(rng[0]+self.offset, full[0]),
+                    min(rng[1]+self.offset, full[1]))
 
         if self.templates:
             full = self.asym_unit.seq_id_range
