@@ -703,8 +703,9 @@ class _ModelDumper(object):
 
     def dump(self, system, writer):
         self.dump_model_list(system, writer)
-        self.dump_atoms(system, writer)
+        seen_types = self.dump_atoms(system, writer)
         self.dump_spheres(system, writer)
+        self.dump_atom_type(seen_types, system, writer)
 
     def dump_model_list(self, system, writer):
         ordinal = 1
@@ -723,7 +724,18 @@ class _ModelDumper(object):
                         representation_id=model.representation._id)
                 ordinal += 1
 
+    def dump_atom_type(self, seen_types, system, writer):
+        """Output the atom_type table with a list of elements used in atom_site.
+           This table is needed by atom_site. Note that we output it *after*
+           atom_site (otherwise we would need to iterate through all atoms in
+           the system twice)."""
+        elements = [x for x in sorted(seen_types.keys()) if x is not None]
+        with writer.loop("_atom_type", ["symbol"]) as l:
+            for element in elements:
+                l.write(symbol=element)
+
     def dump_atoms(self, system, writer):
+        seen_types = {}
         ordinal = 1
         with writer.loop("_atom_site",
                          ["group_PDB", "id", "type_symbol",
@@ -737,6 +749,7 @@ class _ModelDumper(object):
             for group, model in system._all_models():
                 for atom in model.get_atoms():
                     oneletter = atom.asym_unit.entity.sequence[atom.seq_id-1]
+                    seen_types[atom.type_symbol] = None
                     l.write(id=ordinal,
                             type_symbol=atom.type_symbol,
                             group_PDB='HETATM' if atom.het else 'ATOM',
@@ -751,6 +764,7 @@ class _ModelDumper(object):
                             pdbx_PDB_model_num=model._id,
                             ihm_model_id=model._id)
                     ordinal += 1
+        return seen_types
 
     def dump_spheres(self, system, writer):
         ordinal = 1
