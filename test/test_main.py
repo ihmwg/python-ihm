@@ -6,11 +6,16 @@ if sys.version_info[0] >= 3:
     from io import StringIO
 else:
     from io import BytesIO as StringIO
+try:
+    import urllib.request as urllib2
+except ImportError:
+    import urllib2
 
 TOPDIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 utils.set_search_paths(TOPDIR)
 import ihm
 import ihm.location
+import ihm.representation
 
 class Tests(unittest.TestCase):
     def test_system(self):
@@ -54,6 +59,32 @@ class Tests(unittest.TestCase):
                          doi='10.2345/S1384107697000225',
                          pmid='1234')
         self.assertEqual(s.title, 'Test paper')
+
+    def test_citation_from_pubmed_id(self):
+        """Test Citation.from_pubmed_id()"""
+        def mock_urlopen(url):
+            self.assertTrue(url.endswith('&id=29539637'))
+            fname = utils.get_input_file_name(TOPDIR, 'pubmed_api.json')
+            return open(fname)
+        # Need to mock out urllib2 so we don't hit the network (expensive)
+        # every time we test
+        try:
+            orig_urlopen = urllib2.urlopen
+            urllib2.urlopen = mock_urlopen
+            c = ihm.Citation.from_pubmed_id(29539637)
+        finally:
+            urllib2.urlopen = orig_urlopen
+        self.assertEqual(c.title,
+                'Integrative structure and functional anatomy of a nuclear '
+                'pore complex (test of python-ihm lib).')
+        self.assertEqual(c.journal, 'Nature')
+        self.assertEqual(c.volume, '555')
+        self.assertEqual(c.page_range, ['475','482'])
+        self.assertEqual(c.year, '2018')
+        self.assertEqual(c.pmid, 29539637)
+        self.assertEqual(c.doi, '10.1038/nature26003')
+        self.assertEqual(len(c.authors), 32)
+        self.assertEqual(c.authors[0], 'Kim SJ')
 
     def test_entity_residue(self):
         """Test Residue derived from an Entity"""

@@ -11,6 +11,13 @@
 
 import itertools
 from .format import CifWriter
+import sys
+# Handle different naming of urllib in Python 2/3
+try:
+    import urllib.request as urllib2
+except ImportError:
+    import urllib2
+import json
 
 #: A value that isn't known. Note that this is distinct from a value that
 #: is deliberately omitted, which is represented by Python None.
@@ -368,6 +375,43 @@ class Citation(object):
         self.title, self.journal, self.volume = title, journal, volume
         self.page_range, self.year = page_range, year
         self.pmid, self.authors, self.doi = pmid, authors, doi
+
+    @classmethod
+    def from_pubmed_id(cls, pubmed_id):
+        """Create a Citation from just a PubMed ID.
+           This is done by querying NCBI's web api, so requires network access.
+
+           :param int pubmed_id: The PubMed identifier.
+           :return: A new Citation for the given identifier.
+           :rtype: :class:`Citation`
+        """
+        def get_doi(ref):
+            for art_id in ref['articleids']:
+                if art_id['idtype'] == 'doi':
+                    return enc(art_id['value'])
+        # JSON values are always Unicode, but on Python 2 we want non-Unicode
+        # strings, so convert to ASCII
+        if sys.version_info[0] < 3:
+            def enc(s):
+                return s.encode('ascii')
+        else:
+            def enc(s):
+                return s
+
+        url = ('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi'
+               '?db=pubmed&retmode=json&rettype=abstract&id=%s' % pubmed_id)
+        fh = urllib2.urlopen(url)
+        j = json.load(fh)
+        fh.close()
+        ref = j['result'][str(pubmed_id)]
+        authors = [enc(x['name']) for x in ref['authors'] \
+                   if x['authtype'] == 'Author']
+
+        return cls(pmid=pubmed_id, title=enc(ref['title']),
+                   journal=enc(ref['source']), volume=enc(ref['volume']),
+                   page_range=enc(ref['pages']).split('-'),
+                   year=enc(ref['pubdate']).split()[0],
+                   authors=authors, doi=get_doi(ref))
 
 
 class EntityRange(object):
