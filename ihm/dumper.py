@@ -30,9 +30,15 @@ class _EntryDumper(_Dumper):
     def dump(self, system, writer):
         # Write CIF header (so this dumper should always be first)
         writer.fh.write("data_%s\n" % re.subn('[^0-9a-zA-z_]', '',
-                                              system.name)[0])
+                                              system.id)[0])
         with writer.category("_entry") as l:
-            l.write(id=system.name)
+            l.write(id=system.id)
+
+
+class _StructDumper(_Dumper):
+    def dump(self, system, writer):
+        with writer.category("_struct") as l:
+            l.write(title=system.title)
 
 
 class _CommentDumper(_Dumper):
@@ -1140,7 +1146,7 @@ class _SASDumper(_Dumper):
 def write(fh, systems):
     """Write out all `systems` to the mmCIF file handle `fh`"""
     dumpers = [_EntryDumper(), # must be first
-               _CommentDumper(),
+               _StructDumper(), _CommentDumper(),
                _SoftwareDumper(),
                _CitationDumper(),
                _AuditAuthorDumper(),

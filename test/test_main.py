@@ -15,8 +15,9 @@ import ihm.location
 class Tests(unittest.TestCase):
     def test_system(self):
         """Test System class"""
-        s = ihm.System('test system')
-        self.assertEqual(s.name, 'test system')
+        s = ihm.System(title='test system')
+        self.assertEqual(s.title, 'test system')
+        self.assertEqual(s.id, 'model')
 
     def test_entity(self):
         """Test Entity class"""

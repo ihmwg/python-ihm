@@ -28,10 +28,15 @@ def _remove_identical(gen):
         yield obj
 
 class System(object):
-    """Top-level class representing a complete modeled system"""
+    """Top-level class representing a complete modeled system.
 
-    def __init__(self, name='model'):
-        self.name = name
+       :param str title: Title (longer text description) of the system.
+       :param str id: Unique identifier for this system in the mmCIF file.
+    """
+
+    def __init__(self, title=None, id='model'):
+        self.id = id
+        self.title = title
 
         #: List of plain text comments. These will be added to the top of
         #: the mmCIF file.

@@ -29,13 +29,13 @@ def _get_dumper_output(dumper, system):
 class Tests(unittest.TestCase):
     def test_write(self):
         """Test write() function"""
-        sys1 = ihm.System('system1')
-        sys2 = ihm.System('system 2+3')
+        sys1 = ihm.System(id='system1')
+        sys2 = ihm.System(id='system 2+3')
         fh = StringIO()
         ihm.dumper.write(fh, [sys1, sys2])
         lines = fh.getvalue().split('\n')
         self.assertEqual(lines[:2], ["data_system1", "_entry.id system1"])
-        self.assertEqual(lines[9:11],
+        self.assertEqual(lines[10:12],
                          ["data_system23", "_entry.id 'system 2+3'"])
 
     def test_dumper(self):
@@ -46,10 +46,17 @@ class Tests(unittest.TestCase):
 
     def test_entry_dumper(self):
         """Test EntryDumper"""
-        system = ihm.System(name='test_model')
+        system = ihm.System(id='test_model')
         dumper = ihm.dumper._EntryDumper()
         out = _get_dumper_output(dumper, system)
         self.assertEqual(out, "data_test_model\n_entry.id test_model\n")
+
+    def test_struct_dumper(self):
+        """Test StructDumper"""
+        system = ihm.System(title='test model')
+        dumper = ihm.dumper._StructDumper()
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, "_struct.title 'test model'\n")
 
     def test_comment_dumper(self):
         """Test CommentDumper"""
