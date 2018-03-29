@@ -72,7 +72,7 @@ class System(object):
         #: The assembly of the entire system. By convention this is always
         #: the first assembly in the mmCIF file (assembly_id=1). Note that
         #: currently this isn't filled in on output until dumper.write()
-        #: is called.
+        #: is called. See :class:`Assembly`
         self.complete_assembly = Assembly((), name='Complete assembly',
                                           description='All known components')
 
@@ -335,6 +335,14 @@ class System(object):
 class Software(object):
     """Software used as part of the modeling protocol.
 
+       :param str name: The name of the software.
+       :param str classification: The major function of the sofware, for
+              example 'model building', 'sample preparation', 'data collection'.
+       :param str description: A longer text description of the software.
+       :param str location: Place where the software can be found (e.g. URL).
+       :param str type: Type of software (program/package/library/other).
+       :param str version: The version used.
+
        See :attr:`System.software`."""
     def __init__(self, name, classification, description, location,
                  type='program', version=None):
@@ -455,6 +463,11 @@ class Residue(object):
 class Entity(object):
     """Represent a CIF entity (with a unique sequence)
 
+       :param str seq: The primary sequence as a string of one-letter
+              amino acid codes.
+       :param str description: A short text name for the sequence.
+       :param str details: Longer text describing the sequence.
+
        See :attr:`System.entities`.
 
        Note that currently only standard amino acids are supported.
@@ -518,6 +531,10 @@ class AsymUnit(object):
     """An asymmetric unit, i.e. a unique instance of an Entity that
        was modeled.
 
+       :param entity: The unique sequence of this asymmetric unit.
+       :type entity: :class:`Entity`
+       :param str details: Longer text description of this unit.
+
        See :attr:`System.asym_units`.
     """
 
@@ -539,18 +556,23 @@ class Assembly(list):
     """A collection of parts of the system that were modeled or probed
        together.
 
+       :param sequence elements: Initial set of parts of the system.
+       :param str name: Short text name of this assembly.
+       :param str description: Longer text that describes this assembly.
+
        This is implemented as a simple list of asymmetric units (or parts of
        them) and/or entities (or parts of them), i.e. a list of
        :class:`AsymUnit`, :class:`AsymUnitRange`,
-       :class:`Entity`, and :class:`EntityRange` objects.
+       :class:`Entity`, and :class:`EntityRange` objects. An Assembly is
+       typically assigned to one or more of
 
-       An Assembly is typically assigned to one or more of
-         - class:`~ihm.model.Model`
+         - :class:`~ihm.model.Model`
          - :class:`ihm.protocol.Step`
          - :class:`ihm.analysis.Step`
          - :class:`~ihm.restraint.Restraint`
 
-       See also :attr:`System.orphan_assemblies`.
+       See also :attr:`System.complete_assembly`
+       and :attr:`System.orphan_assemblies`.
 
        Note that any duplicate assemblies will be pruned on output."""
 
