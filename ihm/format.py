@@ -143,9 +143,10 @@ class CifWriter(object):
             self.fh.write('# ' + line + '\n')
 
     def _write(self, category, kwargs):
-        for key in kwargs:
+        for key, val in kwargs.items():
             self.fh.write("%s.%s %s\n" % (category, key,
-                                          self._repr(kwargs[key])))
+                                          self.omitted if val is None
+                                                       else self._repr(val)))
 
     def _repr(self, obj):
         if isinstance(obj, str) and '"' not in obj \
