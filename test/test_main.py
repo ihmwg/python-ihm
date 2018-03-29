@@ -60,20 +60,23 @@ class Tests(unittest.TestCase):
                          pmid='1234')
         self.assertEqual(s.title, 'Test paper')
 
-    def test_citation_from_pubmed_id(self):
-        """Test Citation.from_pubmed_id()"""
+    def _get_from_pubmed_id(self, json_fname):
         def mock_urlopen(url):
             self.assertTrue(url.endswith('&id=29539637'))
-            fname = utils.get_input_file_name(TOPDIR, 'pubmed_api.json')
+            fname = utils.get_input_file_name(TOPDIR, json_fname)
             return open(fname)
         # Need to mock out urllib2 so we don't hit the network (expensive)
         # every time we test
         try:
             orig_urlopen = urllib2.urlopen
             urllib2.urlopen = mock_urlopen
-            c = ihm.Citation.from_pubmed_id(29539637)
+            return ihm.Citation.from_pubmed_id(29539637)
         finally:
             urllib2.urlopen = orig_urlopen
+
+    def test_citation_from_pubmed_id(self):
+        """Test Citation.from_pubmed_id()"""
+        c = self._get_from_pubmed_id('pubmed_api.json')
         self.assertEqual(c.title,
                 'Integrative structure and functional anatomy of a nuclear '
                 'pore complex (test of python-ihm lib).')
@@ -85,6 +88,14 @@ class Tests(unittest.TestCase):
         self.assertEqual(c.doi, '10.1038/nature26003')
         self.assertEqual(len(c.authors), 32)
         self.assertEqual(c.authors[0], 'Kim SJ')
+
+    def test_citation_from_pubmed_id_no_doi(self):
+        """Test Citation.from_pubmed_id() with no DOI"""
+        c = self._get_from_pubmed_id('pubmed_api_no_doi.json')
+        self.assertEqual(c.title,
+                'Integrative structure and functional anatomy of a nuclear '
+                'pore complex (test of python-ihm lib).')
+        self.assertEqual(c.doi, None)
 
     def test_entity_residue(self):
         """Test Residue derived from an Entity"""
