@@ -8,6 +8,7 @@
 from __future__ import print_function
 import sys
 import textwrap
+import operator
 
 # Python 3 has no 'long' type, so use 'int' instead
 if sys.version_info[0] >= 3:
@@ -143,7 +144,7 @@ class CifWriter(object):
             self.fh.write('# ' + line + '\n')
 
     def _write(self, category, kwargs):
-        for key, val in kwargs.items():
+        for key, val in sorted(kwargs.items(), key=operator.itemgetter(0)):
             self.fh.write("%s.%s %s\n" % (category, key,
                                           self.omitted if val is None
                                                        else self._repr(val)))
