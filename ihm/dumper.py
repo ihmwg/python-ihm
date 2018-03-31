@@ -38,7 +38,7 @@ class _EntryDumper(_Dumper):
 class _StructDumper(_Dumper):
     def dump(self, system, writer):
         with writer.category("_struct") as l:
-            l.write(title=system.title)
+            l.write(title=system.title, entry_id=system.id)
 
 
 class _CommentDumper(_Dumper):

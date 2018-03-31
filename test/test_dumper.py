@@ -35,7 +35,7 @@ class Tests(unittest.TestCase):
         ihm.dumper.write(fh, [sys1, sys2])
         lines = fh.getvalue().split('\n')
         self.assertEqual(lines[:2], ["data_system1", "_entry.id system1"])
-        self.assertEqual(lines[10:12],
+        self.assertEqual(lines[11:13],
                          ["data_system23", "_entry.id 'system 2+3'"])
 
     def test_dumper(self):
@@ -56,7 +56,9 @@ class Tests(unittest.TestCase):
         system = ihm.System(title='test model')
         dumper = ihm.dumper._StructDumper()
         out = _get_dumper_output(dumper, system)
-        self.assertEqual(out, "_struct.title 'test model'\n")
+        self.assertEqual(out, """_struct.entry_id model
+_struct.title 'test model'
+""")
 
     def test_comment_dumper(self):
         """Test CommentDumper"""
