@@ -492,12 +492,25 @@ class Alphabet(object):
     """A mapping from codes (usually one-letter, or two-letter for DNA) to
        chemical components.
        These classes can be used to construct sequences of components
-       when creating an :class:`Entity`. It is generally not necessary to
-       instantiate these objects.
+       when creating an :class:`Entity`. They can also be used like a Python
+       dict to get standard components, e.g.::
+
+           a = ihm.LPeptideAlphabet()
+           met = a['M']
+           gly = a['G']
+
        See :class:`LPeptideAlphabet`, :class:`RNAAlphabet`,
        :class:`DNAAlphabet`.
     """
-    pass
+    def __getitem__(self, key):
+        return self._comps[key]
+
+    def __contains__(self, key):
+        return key in self._comps
+
+    keys = property(lambda self: self._comps.keys())
+    values = property(lambda self: self._comps.values())
+    items = property(lambda self: self._comps.items())
 
 
 class LPeptideAlphabet(Alphabet):
@@ -575,7 +588,8 @@ class Entity(object):
 
        :param sequence sequence: The primary sequence, as a list of
               :class:`ChemComp` objects, and/or codes looked up in `alphabet`.
-       :param alphabet: The mapping from code to chemical components to use.
+       :param alphabet: The mapping from code to chemical components to use
+              (it is not necessary to instantiate this class).
        :type alphabet: :class:`Alphabet`
        :param str description: A short text name for the sequence.
        :param str details: Longer text describing the sequence.
@@ -586,8 +600,14 @@ class Entity(object):
 
            protein = ihm.Entity('AHMD')
            protein_with_mse = ihm.Entity(['A', 'H', 'MSE', 'D'])
+
            dna = ihm.Entity(('DA', 'DC'), alphabet=ihm.DNAAlphabet)
            rna = ihm.Entity('AC', alphabet=ihm.RNAAlphabet)
+
+           dna_al = ihm.DNAAlphabet()
+           rna_al = ihm.RNAAlphabet()
+           dna_rna_hybrid = ihm.Entity((dna_al['DG'], rna_al['C']))
+
            psu = ihm.RNAChemComp(id='PSU', code='PSU', code_canonical='U')
            rna_with_psu = ihm.Entity(('A', 'C', psu), alphabet=ihm.RNAAlphabet)
 
