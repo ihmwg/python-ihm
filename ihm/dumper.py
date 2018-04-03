@@ -8,12 +8,6 @@ from . import util
 from . import location
 from . import restraint
 
-# Standard amino acids, mapping from 1 to 3 letter codes
-_amino_acids = {'A':'ALA', 'C':'CYS', 'D':'ASP', 'E':'GLU', 'F':'PHE',
-                'G':'GLY', 'H':'HIS', 'I':'ILE', 'K':'LYS', 'L':'LEU',
-                'M':'MET', 'N':'ASN', 'P':'PRO', 'Q':'GLN', 'R':'ARG',
-                'S':'SER', 'T':'THR', 'V':'VAL', 'W':'TRP', 'Y':'TYR'}
-
 class _Dumper(object):
     """Base class for helpers to dump output to mmCIF"""
     def __init__(self):
@@ -130,18 +124,13 @@ class _ChemCompDumper(_Dumper):
 
         with writer.loop("_chem_comp", ["id", "type"]) as l:
             for entity in system.entities:
-                seq = entity.sequence
-                for num, one_letter_code in enumerate(seq):
-                    resid = _amino_acids[one_letter_code]
-                    if resid not in seen:
-                        seen[resid] = None
-                        l.write(id=resid, type='L-peptide linking')
+                for comp in entity.sequence:
+                    if comp not in seen:
+                        seen[comp] = None
+                        l.write(id=comp.id, type=comp.type)
 
 
 class _EntityDumper(_Dumper):
-    # todo: we currently only support amino acid sequences here (and
-    # then only standard amino acids; need to add support for MSE etc.)
-
     def finalize(self, system):
         # Assign IDs and check for duplicates
         seen = {}
@@ -166,7 +155,42 @@ class _EntityDumper(_Dumper):
 
 
 class _EntityPolyDumper(_Dumper):
-    # todo: we currently only support amino acid sequences here
+    def __init__(self):
+        super(_EntityPolyDumper, self).__init__()
+
+        # Determine the type of the entire entity's sequence based on the
+        # type(s) of all chemical components it contains
+        self._seq_type_map = {
+            frozenset(('L-peptide linking',)): 'polypeptide(L)',
+            frozenset(('L-peptide linking',
+                       'Peptide linking')): 'polypeptide(L)',
+            frozenset(('RNA linking',)): 'polyribonucleotide',
+            frozenset(('DNA linking',)): 'polydeoxyribonucleotide',
+            frozenset(('DNA linking', 'RNA linking')):
+                   'polydeoxyribonucleotide/polyribonucleotide hybrid'}
+
+    def _get_sequence(self, entity):
+        """Get the sequence for an entity as a string"""
+        seq = ''.join(comp.code if len(comp.code) == 1 else '(%s)' % comp.code
+                      for comp in entity.sequence)
+        # Split into lines to get tidier CIF output
+        # todo: probably should avoid inserting \n in the middle of a
+        # multi-character code
+        seq = "\n".join(seq[i:i+70] for i in range(0, len(seq), 70))
+        return seq
+
+    def _get_canon(self, entity):
+        """Get the canonical sequence for an entity as a string"""
+        seq = ''.join(comp.code_canonical for comp in entity.sequence)
+        # Split into lines to get tidier CIF output
+        seq = "\n".join(seq[i:i+70] for i in range(0, len(seq), 70))
+        return seq
+
+    def _get_seq_type(self, entity):
+        """Get the sequence type for an entity"""
+        all_types = frozenset(comp.type for comp in entity.sequence)
+        return self._seq_type_map.get(all_types, 'other')
+
     def dump(self, system, writer):
         # Get the first asym unit (if any) for each entity
         strand = {}
@@ -179,14 +203,11 @@ class _EntityPolyDumper(_Dumper):
                           "pdbx_seq_one_letter_code",
                           "pdbx_seq_one_letter_code_can"]) as l:
             for entity in system.entities:
-                seq = entity.sequence
-                # Split into lines to get tidier CIF output
-                seq = "\n".join(seq[i:i+70] for i in range(0, len(seq), 70))
-                l.write(entity_id=entity._id, type='polypeptide(L)',
+                l.write(entity_id=entity._id, type=self._get_seq_type(entity),
                         nstd_linkage='no', nstd_monomer='no',
                         pdbx_strand_id=strand.get(entity._id, None),
-                        pdbx_seq_one_letter_code=seq,
-                        pdbx_seq_one_letter_code_can=seq)
+                        pdbx_seq_one_letter_code=self._get_sequence(entity),
+                        pdbx_seq_one_letter_code_can=self._get_canon(entity))
 
 
 class _EntityPolySeqDumper(_Dumper):
@@ -194,10 +215,8 @@ class _EntityPolySeqDumper(_Dumper):
         with writer.loop("_entity_poly_seq",
                          ["entity_id", "num", "mon_id", "hetero"]) as l:
             for entity in system.entities:
-                seq = entity.sequence
-                for num, one_letter_code in enumerate(seq):
-                    resid = _amino_acids[one_letter_code]
-                    l.write(entity_id=entity._id, num=num + 1, mon_id=resid)
+                for num, comp in enumerate(entity.sequence):
+                    l.write(entity_id=entity._id, num=num + 1, mon_id=comp.id)
 
 
 class _PolySeqSchemeDumper(_Dumper):
@@ -211,13 +230,12 @@ class _PolySeqSchemeDumper(_Dumper):
                           "auth_mon_id", "pdb_strand_id"]) as l:
             for asym in system.asym_units:
                 entity = asym.entity
-                seq = entity.sequence
-                for num, one_letter_code in enumerate(seq):
-                    resid = _amino_acids[one_letter_code]
+                for num, comp in enumerate(entity.sequence):
                     l.write(asym_id=asym._id, pdb_strand_id=asym._id,
                             entity_id=entity._id,
                             seq_id=num+1, pdb_seq_num=num+1, auth_seq_num=num+1,
-                            mon_id=resid, pdb_mon_id=resid, auth_mon_id=resid)
+                            mon_id=comp.id, pdb_mon_id=comp.id,
+                            auth_mon_id=comp.id)
 
 
 class _StructAsymDumper(_Dumper):
@@ -584,13 +602,13 @@ class _StartingModelDumper(_Dumper):
                       "ordinal_id"]) as l:
             for model in system._all_starting_models():
                 for natom, atom in enumerate(model.get_atoms()):
-                    oneletter = atom.asym_unit.entity.sequence[atom.seq_id-1]
+                    comp = atom.asym_unit.entity.sequence[atom.seq_id-1]
                     l.write(starting_model_id=model._id,
                             group_PDB='HETATM' if atom.het else 'ATOM',
                             id=natom+1,
                             type_symbol=atom.type_symbol,
                             atom_id=atom.atom_id,
-                            comp_id=_amino_acids[oneletter],
+                            comp_id=comp.id,
                             asym_id=atom.asym_unit._id,
                             entity_id=atom.asym_unit.entity._id,
                             seq_id=atom.seq_id,
@@ -609,11 +627,11 @@ class _StartingModelDumper(_Dumper):
                       "details"]) as l:
             for model in system._all_starting_models():
                 for sd in model.get_seq_dif():
-                    oneletter = model.asym_unit.entity.sequence[sd.seq_id-1]
+                    comp = model.asym_unit.entity.sequence[sd.seq_id-1]
                     l.write(ordinal_id=ordinal,
                         entity_id=model.asym_unit.entity._id,
                         asym_id=model.asym_unit._id,
-                        seq_id=sd.seq_id, comp_id=_amino_acids[oneletter],
+                        seq_id=sd.seq_id, comp_id=comp.id,
                         db_asym_id=model.asym_id, db_seq_id=sd.db_seq_id,
                         db_comp_id=sd.db_comp_id, starting_model_id=model._id,
                         details=sd.details)
@@ -754,13 +772,13 @@ class _ModelDumper(object):
                           "ihm_model_id"]) as l:
             for group, model in system._all_models():
                 for atom in model.get_atoms():
-                    oneletter = atom.asym_unit.entity.sequence[atom.seq_id-1]
+                    comp = atom.asym_unit.entity.sequence[atom.seq_id-1]
                     seen_types[atom.type_symbol] = None
                     l.write(id=ordinal,
                             type_symbol=atom.type_symbol,
                             group_PDB='HETATM' if atom.het else 'ATOM',
                             label_atom_id=atom.atom_id,
-                            label_comp_id=_amino_acids[oneletter],
+                            label_comp_id=comp.id,
                             label_asym_id=atom.asym_unit._id,
                             label_entity_id=atom.asym_unit.entity._id,
                             label_seq_id=atom.seq_id,
@@ -947,11 +965,11 @@ class _CrossLinkDumper(_Dumper):
                         entity_description_1=entity1.description,
                         entity_id_1=entity1._id,
                         seq_id_1=xl.residue1.seq_id,
-                        comp_id_1=_amino_acids[seq1[xl.residue1.seq_id-1]],
+                        comp_id_1=seq1[xl.residue1.seq_id-1].id,
                         entity_description_2=entity2.description,
                         entity_id_2=entity2._id,
                         seq_id_2=xl.residue2.seq_id,
-                        comp_id_2=_amino_acids[seq2[xl.residue2.seq_id-1]],
+                        comp_id_2=seq2[xl.residue2.seq_id-1].id,
                         linker_type=r.linker_type,
                         dataset_list_id=r.dataset._id)
 
@@ -974,10 +992,10 @@ class _CrossLinkDumper(_Dumper):
                 l.write(id=xl._id, group_id=ex_xl._id,
                         entity_id_1=entity1._id, asym_id_1=xl.asym1._id,
                         seq_id_1=ex_xl.residue1.seq_id,
-                        comp_id_1=_amino_acids[seq1[ex_xl.residue1.seq_id-1]],
+                        comp_id_1=seq1[ex_xl.residue1.seq_id-1].id,
                         entity_id_2=entity2._id, asym_id_2=xl.asym2._id,
                         seq_id_2=ex_xl.residue2.seq_id,
-                        comp_id_2=_amino_acids[seq2[ex_xl.residue2.seq_id-1]],
+                        comp_id_2=seq2[ex_xl.residue2.seq_id-1].id,
                         atom_id_1=xl.atom1, atom_id_2=xl.atom2,
                         restraint_type=xl.distance.restraint_type,
                         conditional_crosslink_flag=condmap[xl.restrain_all],

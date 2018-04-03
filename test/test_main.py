@@ -34,6 +34,7 @@ class Tests(unittest.TestCase):
         cc2 = ihm.ChemComp(id='GLY', code='G', code_canonical='G')
         cc3 = ihm.ChemComp(id='G', code='G', code_canonical='G')
         self.assertEqual(cc1, cc2)
+        self.assertEqual(hash(cc1), hash(cc2))
         self.assertNotEqual(cc1, cc3)
 
     def test_peptide_chem_comp(self):
@@ -87,10 +88,10 @@ class Tests(unittest.TestCase):
 
     def test_entity(self):
         """Test Entity class"""
-        e1 = ihm.Entity('ABCD', description='foo')
+        e1 = ihm.Entity('AHCD', description='foo')
         # Should compare identical if sequences are the same
-        e2 = ihm.Entity('ABCD', description='bar')
-        e3 = ihm.Entity('ABCDE', description='foo')
+        e2 = ihm.Entity('AHCD', description='bar')
+        e3 = ihm.Entity('AHCDE', description='foo')
         self.assertEqual(e1, e2)
         self.assertNotEqual(e1, e3)
         self.assertEqual(e1.seq_id_range, (1,4))
@@ -160,7 +161,7 @@ class Tests(unittest.TestCase):
 
     def test_entity_residue(self):
         """Test Residue derived from an Entity"""
-        e = ihm.Entity('ABCDAB')
+        e = ihm.Entity('AHCDAH')
         r = e.residue(3)
         self.assertEqual(r.entity, e)
         self.assertEqual(r.asym, None)
@@ -168,7 +169,7 @@ class Tests(unittest.TestCase):
 
     def test_asym_unit_residue(self):
         """Test Residue derived from an AsymUnit"""
-        e = ihm.Entity('ABCDAB')
+        e = ihm.Entity('AHCDAH')
         a = ihm.AsymUnit(e)
         r = a.residue(3)
         self.assertEqual(r.entity, None)
@@ -177,7 +178,7 @@ class Tests(unittest.TestCase):
 
     def test_entity_range(self):
         """Test EntityRange class"""
-        e = ihm.Entity('ABCDAB')
+        e = ihm.Entity('AHCDAH')
         e._id = 42
         self.assertEqual(e.seq_id_range, (1,6))
         r = e(3,4)
@@ -192,7 +193,7 @@ class Tests(unittest.TestCase):
 
     def test_asym_range(self):
         """Test AsymUnitRange class"""
-        e = ihm.Entity('ABCDAB')
+        e = ihm.Entity('AHCDAH')
         a = ihm.AsymUnit(e)
         a._id = 42
         self.assertEqual(a.seq_id_range, (1,6))
@@ -211,8 +212,8 @@ class Tests(unittest.TestCase):
 
     def test_assembly(self):
         """Test Assembly class"""
-        e1 = ihm.Entity('ABCD')
-        e2 = ihm.Entity('ABC')
+        e1 = ihm.Entity('AHCD')
+        e2 = ihm.Entity('AHC')
         a = ihm.Assembly([e1, e2], name='foo', description='bar')
         self.assertEqual(a.name, 'foo')
         self.assertEqual(a.description, 'bar')

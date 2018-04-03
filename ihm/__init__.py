@@ -456,6 +456,8 @@ class ChemComp(object):
     def __eq__(self, other):
         return ((self.code, self.code_canonical, self.id, self.type) ==
                 (other.code, other.code_canonical, other.id, other.type))
+    def __hash__(self):
+        return hash((self.code, self.code_canonical, self.id, self.type))
 
 
 class PeptideChemComp(ChemComp):
@@ -571,14 +573,26 @@ class Residue(object):
 class Entity(object):
     """Represent a CIF entity (with a unique sequence)
 
-       :param str seq: The primary sequence as a string of one-letter
-              amino acid codes.
+       :param sequence sequence: The primary sequence, as a list of
+              :class:`ChemComp` objects, and/or codes looked up in `alphabet`.
+       :param alphabet: The mapping from code to chemical components to use.
+       :type alphabet: :class:`Alphabet`
        :param str description: A short text name for the sequence.
        :param str details: Longer text describing the sequence.
 
-       See :attr:`System.entities`.
+       The sequence for an entity can be specified explicitly as a set of
+       chemical components, or (more usually) as a list or string of codes.
+       For example::
 
-       Note that currently only standard amino acids are supported.
+           protein = ihm.Entity('AHMD')
+           protein_with_mse = ihm.Entity(['A', 'H', 'MSE', 'D'])
+           dna = ihm.Entity(('DA', 'DC'), alphabet=ihm.DNAAlphabet)
+           rna = ihm.Entity('AC', alphabet=ihm.RNAAlphabet)
+           psu = ihm.RNAChemComp(id='PSU', code='PSU', code_canonical='U')
+           rna_with_psu = ihm.Entity(('A', 'C', psu), alphabet=ihm.RNAAlphabet)
+
+       All entities should be stored in the top-level System object;
+       see :attr:`System.entities`.
     """
 
     type = 'polymer'
@@ -586,8 +600,14 @@ class Entity(object):
     number_of_molecules = 1
     formula_weight = unknown
 
-    def __init__(self, seq, description=None, details=None):
-        self.sequence = seq
+    def __init__(self, sequence, alphabet=LPeptideAlphabet,
+                 description=None, details=None):
+        def get_chem_comp(s):
+            if isinstance(s, ChemComp):
+                return s
+            else:
+                return alphabet._comps[s]
+        self.sequence = tuple(get_chem_comp(s) for s in sequence)
         self.description, self.details = description, details
 
     def residue(self, seq_id):

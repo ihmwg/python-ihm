@@ -190,8 +190,8 @@ auth4 4
     def test_entity_dumper(self):
         """Test EntityDumper"""
         system = ihm.System()
-        system.entities.append(ihm.Entity('ABC', description='foo'))
-        system.entities.append(ihm.Entity('ABCD', description='baz'))
+        system.entities.append(ihm.Entity('AHC', description='foo'))
+        system.entities.append(ihm.Entity('AHCD', description='baz'))
         dumper = ihm.dumper._EntityDumper()
         dumper.finalize(system) # Assign IDs
         out = _get_dumper_output(dumper, system)
@@ -212,8 +212,8 @@ _entity.details
     def test_entity_duplicates(self):
         """Test EntityDumper with duplicate entities"""
         system = ihm.System()
-        system.entities.append(ihm.Entity('ABC'))
-        system.entities.append(ihm.Entity('ABC'))
+        system.entities.append(ihm.Entity('AHC'))
+        system.entities.append(ihm.Entity('AHC'))
         dumper = ihm.dumper._EntityDumper()
         self.assertRaises(ValueError, dumper.finalize, system)
 
@@ -221,6 +221,9 @@ _entity.details
         """Test ChemCompDumper"""
         system = ihm.System()
         system.entities.append(ihm.Entity('ACGTTA'))
+        system.entities.append(ihm.Entity('ACGA', alphabet=ihm.RNAAlphabet))
+        system.entities.append(ihm.Entity(('DA', 'DC'),
+                                          alphabet=ihm.DNAAlphabet))
         dumper = ihm.dumper._ChemCompDumper()
         out = _get_dumper_output(dumper, system)
         self.assertEqual(out, """#
@@ -229,21 +232,32 @@ _chem_comp.id
 _chem_comp.type
 ALA 'L-peptide linking'
 CYS 'L-peptide linking'
-GLY 'L-peptide linking'
+GLY 'Peptide linking'
 THR 'L-peptide linking'
+A 'RNA linking'
+C 'RNA linking'
+G 'RNA linking'
+DA 'DNA linking'
+DC 'DNA linking'
 #
 """)
 
     def test_entity_poly_dumper(self):
         """Test EntityPolyDumper"""
         system = ihm.System()
-        e1 = ihm.Entity('ACGT')
-        e2 = ihm.Entity('ACC')
+        e1 = ihm.Entity('ACGT') # sequence containing glycine
+        e2 = ihm.Entity(('A', 'C', 'C', 'MSE'))  # no glycine
         system.entities.extend((e1, e2))
-        # One entity is modeled (with an asym unit) the other not; this should
-        # be reflected in pdbx_strand_id
+        # One protein entity is modeled (with an asym unit) the other not;
+        # this should be reflected in pdbx_strand_id
         system.asym_units.append(ihm.AsymUnit(e1, 'foo'))
         system.asym_units.append(ihm.AsymUnit(e1, 'bar'))
+
+        rna = ihm.Entity('AC', alphabet=ihm.RNAAlphabet)
+        dna = ihm.Entity(('DA', 'DC'), alphabet=ihm.DNAAlphabet)
+        hybrid = ihm.Entity(rna.sequence + dna.sequence)
+        system.entities.extend((rna, dna, hybrid))
+
         ed = ihm.dumper._EntityDumper()
         ed.finalize(system) # Assign entity IDs
         sd = ihm.dumper._StructAsymDumper()
@@ -260,7 +274,10 @@ _entity_poly.pdbx_strand_id
 _entity_poly.pdbx_seq_one_letter_code
 _entity_poly.pdbx_seq_one_letter_code_can
 1 polypeptide(L) no no A ACGT ACGT
-2 polypeptide(L) no no . ACC ACC
+2 polypeptide(L) no no . ACC(MSE) ACCM
+3 polyribonucleotide no no . AC AC
+4 polydeoxyribonucleotide no no . (DA)(DC) AC
+5 'polydeoxyribonucleotide/polyribonucleotide hybrid' no no . AC(DA)(DC) ACAC
 #
 """)
 
@@ -269,6 +286,9 @@ _entity_poly.pdbx_seq_one_letter_code_can
         system = ihm.System()
         system.entities.append(ihm.Entity('ACGT'))
         system.entities.append(ihm.Entity('ACC'))
+        system.entities.append(ihm.Entity('AC', alphabet=ihm.RNAAlphabet))
+        system.entities.append(ihm.Entity(('DA', 'DC'),
+                                          alphabet=ihm.DNAAlphabet))
         ed = ihm.dumper._EntityDumper()
         ed.finalize(system) # Assign IDs
         dumper = ihm.dumper._EntityPolySeqDumper()
@@ -286,6 +306,10 @@ _entity_poly_seq.hetero
 2 1 ALA .
 2 2 CYS .
 2 3 CYS .
+3 1 A .
+3 2 C .
+4 1 DA .
+4 2 DC .
 #
 """)
 
@@ -294,9 +318,13 @@ _entity_poly_seq.hetero
         system = ihm.System()
         e1 = ihm.Entity('ACGT')
         e2 = ihm.Entity('ACC')
-        system.entities.extend((e1, e2))
+        e3 = ihm.Entity('AC', alphabet=ihm.RNAAlphabet)
+        e4 = ihm.Entity(('DA', 'DC'), alphabet=ihm.DNAAlphabet)
+        system.entities.extend((e1, e2, e3, e4))
         system.asym_units.append(ihm.AsymUnit(e1, 'foo'))
         system.asym_units.append(ihm.AsymUnit(e2, 'bar'))
+        system.asym_units.append(ihm.AsymUnit(e3, 'baz'))
+        system.asym_units.append(ihm.AsymUnit(e4, 'test'))
         ihm.dumper._EntityDumper().finalize(system)
         ihm.dumper._StructAsymDumper().finalize(system)
         dumper = ihm.dumper._PolySeqSchemeDumper()
@@ -319,6 +347,10 @@ A 1 4 THR 4 4 THR THR A
 B 2 1 ALA 1 1 ALA ALA B
 B 2 2 CYS 2 2 CYS CYS B
 B 2 3 CYS 3 3 CYS CYS B
+C 3 1 A 1 1 A A C
+C 3 2 C 2 2 C C C
+D 4 1 DA 1 1 DA DA D
+D 4 2 DC 2 2 DC DC D
 #
 """)
 
@@ -1170,7 +1202,7 @@ _ihm_ensemble_info.ensemble_file_id
         class MockObject(object):
             pass
         system = ihm.System()
-        e1 = ihm.Entity('ABCD')
+        e1 = ihm.Entity('AHCD')
         e1._id = 9
         asym = ihm.AsymUnit(e1)
         asym._id = 'X'
