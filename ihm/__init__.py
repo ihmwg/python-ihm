@@ -422,6 +422,63 @@ class Citation(object):
                    authors=authors, doi=get_doi(ref))
 
 
+class ChemComp(object):
+    """A chemical component from which :class:`Entity` objects are constructed.
+       Usually these are amino acids (see :class:`LPeptideChemComp`) or
+       nucleic acids (see :class:`DNAChemComp` and :class:`RNAChemComp`).
+
+       :param str id: A globally unique identifier for this component.
+       :param str code: A shorter identifier (usually one letter) that only
+              needs to be unique in the entity.
+       :param str code_canonical: Canonical version of `code` (which need not
+              be unique).
+
+       For example, glycine would have
+       ``id='GLY', code='G', code_canonical='G'`` while selenomethionine would
+       use ``id='MSE', code='MSE', code_canonical='M'``, guanosine (RNA)
+       ``id='G', code='G', code_canonical='G'``, and deoxyguanosine (DNA)
+       ``id='DG', code='DG', code_canonical='G'``.
+    """
+
+    __slots__ = ['code', 'code_canonical', 'id', 'type']
+
+    type = 'other'
+
+    def __init__(self, id, code, code_canonical):
+        self.id = id
+        self.code, self.code_canonical = code, code_canonical
+
+    # Equal if all identifiers are the same
+    def __eq__(self, other):
+        return ((self.code, self.code_canonical, self.id, self.type) ==
+                (other.code, other.code_canonical, other.id, other.type))
+
+
+class PeptideChemComp(ChemComp):
+    """A single peptide component. Usually :class:`LPeptideChemComp` is used
+       instead (except for glycine) to specify chirality.
+       See :class:`ChemComp` for a description of the parameters."""
+    type = 'Peptide linking'
+
+
+class LPeptideChemComp(PeptideChemComp):
+    """A single peptide component with L- chirality.
+       See :class:`ChemComp` for a description of the parameters."""
+    type = 'L-peptide linking'
+
+
+class DNAChemComp(ChemComp):
+    """A single DNA component.
+       See :class:`ChemComp` for a description of the parameters."""
+    type = 'DNA linking'
+
+
+class RNAChemComp(ChemComp):
+    """A single RNA component.
+       See :class:`ChemComp` for a description of the parameters."""
+    type = 'RNA linking'
+
+
 class EntityRange(object):
     """Part of an entity. Usually these objects are created from
        an :class:`Entity`, e.g. to get a range covering residues 4 through

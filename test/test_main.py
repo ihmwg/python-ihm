@@ -24,6 +24,38 @@ class Tests(unittest.TestCase):
         self.assertEqual(s.title, 'test system')
         self.assertEqual(s.id, 'model')
 
+    def test_chem_comp(self):
+        """Test ChemComp class"""
+        cc1 = ihm.ChemComp(id='GLY', code='G', code_canonical='G')
+        self.assertEqual(cc1.id, 'GLY')
+        self.assertEqual(cc1.code, 'G')
+        self.assertEqual(cc1.code_canonical, 'G')
+        self.assertEqual(cc1.type, 'other')
+        cc2 = ihm.ChemComp(id='GLY', code='G', code_canonical='G')
+        cc3 = ihm.ChemComp(id='G', code='G', code_canonical='G')
+        self.assertEqual(cc1, cc2)
+        self.assertNotEqual(cc1, cc3)
+
+    def test_peptide_chem_comp(self):
+        """Test PeptideChemComp class"""
+        cc1 = ihm.PeptideChemComp(id='GLY', code='G', code_canonical='G')
+        self.assertEqual(cc1.type, 'Peptide linking')
+
+    def test_l_peptide_chem_comp(self):
+        """Test LPeptideChemComp class"""
+        cc1 = ihm.LPeptideChemComp(id='MET', code='M', code_canonical='M')
+        self.assertEqual(cc1.type, 'L-peptide linking')
+
+    def test_rna_chem_comp(self):
+        """Test RNAChemComp class"""
+        cc1 = ihm.RNAChemComp(id='G', code='G', code_canonical='G')
+        self.assertEqual(cc1.type, 'RNA linking')
+
+    def test_dna_chem_comp(self):
+        """Test DNAChemComp class"""
+        cc1 = ihm.DNAChemComp(id='DG', code='DG', code_canonical='G')
+        self.assertEqual(cc1.type, 'DNA linking')
+
     def test_entity(self):
         """Test Entity class"""
         e1 = ihm.Entity('ABCD', description='foo')

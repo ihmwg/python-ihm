@@ -18,6 +18,21 @@ The :mod:`ihm` Python module
 .. autoclass:: Citation
    :members:
 
+.. autoclass:: ChemComp
+   :members:
+
+.. autoclass:: PeptideChemComp
+   :members:
+
+.. autoclass:: LPeptideChemComp
+   :members:
+
+.. autoclass:: RNAChemComp
+   :members:
+
+.. autoclass:: DNAChemComp
+   :members:
+
 .. autoclass:: Entity
    :members:
 
