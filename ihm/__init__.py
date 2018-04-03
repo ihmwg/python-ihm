@@ -444,7 +444,7 @@ class ChemComp(object):
        ``id='DG', code='DG', code_canonical='G'``.
     """
 
-    __slots__ = ['code', 'code_canonical', 'id', 'type']
+    __slots__ = ['code', 'code_canonical', 'id']
 
     type = 'other'
 
