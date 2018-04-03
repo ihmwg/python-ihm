@@ -33,6 +33,18 @@ The :mod:`ihm` Python module
 .. autoclass:: DNAChemComp
    :members:
 
+.. autoclass:: Alphabet
+   :members:
+
+.. autoclass:: LPeptideAlphabet
+   :members:
+
+.. autoclass:: RNAAlphabet
+   :members:
+
+.. autoclass:: DNAAlphabet
+   :members:
+
 .. autoclass:: Entity
    :members:
 

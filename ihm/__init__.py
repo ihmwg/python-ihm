@@ -427,6 +427,10 @@ class ChemComp(object):
        Usually these are amino acids (see :class:`LPeptideChemComp`) or
        nucleic acids (see :class:`DNAChemComp` and :class:`RNAChemComp`).
 
+       For standard amino and nucleic acids, it is generally easier to use
+       a :class:`Alphabet` and refer to the components with their one-letter
+       (amino acids, RNA) or two-letter (DNA) codes.
+
        :param str id: A globally unique identifier for this component.
        :param str code: A shorter identifier (usually one letter) that only
               needs to be unique in the entity.
@@ -477,6 +481,53 @@ class RNAChemComp(ChemComp):
     """A single RNA component.
        See :class:`ChemComp` for a description of the parameters."""
     type = 'RNA linking'
+
+
+def _pep_comp_class(one_letter):
+    return PeptideChemComp if one_letter == 'G' else LPeptideChemComp
+
+class Alphabet(object):
+    """A mapping from codes (usually one-letter, or two-letter for DNA) to
+       chemical components.
+       These classes can be used to construct sequences of components
+       when creating an :class:`Entity`. It is generally not necessary to
+       instantiate these objects.
+       See :class:`LPeptideAlphabet`, :class:`RNAAlphabet`,
+       :class:`DNAAlphabet`.
+    """
+    pass
+
+
+class LPeptideAlphabet(Alphabet):
+    """A mapping from one-letter amino acid codes (e.g. H, M) to
+       L-amino acids (as :class:`LPeptideChemComp` objects, except for achiral
+       glycine which maps to :class:`PeptideChemComp`). Some other common
+       modified residues are also included (e.g. MSE). For these their full name
+       rather than a one-letter code is used.
+    """
+    _comps = dict([code, _pep_comp_class(code)(id, code, code)] for code, id in
+                    [('A', 'ALA'), ('C', 'CYS'), ('D', 'ASP'), ('E', 'GLU'),
+                     ('F', 'PHE'), ('G', 'GLY'), ('H', 'HIS'), ('I', 'ILE'),
+                     ('K', 'LYS'), ('L', 'LEU'), ('M', 'MET'), ('N', 'ASN'),
+                     ('P', 'PRO'), ('Q', 'GLN'), ('R', 'ARG'), ('S', 'SER'),
+                     ('T', 'THR'), ('V', 'VAL'), ('W', 'TRP'), ('Y', 'TYR')])
+
+    # common non-standard L-amino acids
+    _comps.update([id, LPeptideChemComp(id, id, canon)] for id, canon in
+                     [('MSE', 'M')])
+
+
+class RNAAlphabet(Alphabet):
+    """A mapping from one-letter nucleic acid codes (e.g. A) to
+       RNA (as :class:`RNAChemComp` objects)."""
+    _comps = dict([id, RNAChemComp(id, id, id)] for id in 'ACGU')
+
+
+class DNAAlphabet(Alphabet):
+    """A mapping from two-letter nucleic acid codes (e.g. DA) to
+       DNA (as :class:`DNAChemComp` objects)."""
+    _comps = dict([code, DNAChemComp(code, code, canon)] for code, canon in
+                    [('DA', 'A'), ('DC', 'C'), ('DG', 'G'), ('DT', 'T')])
 
 
 class EntityRange(object):

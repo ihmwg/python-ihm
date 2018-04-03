@@ -56,6 +56,35 @@ class Tests(unittest.TestCase):
         cc1 = ihm.DNAChemComp(id='DG', code='DG', code_canonical='G')
         self.assertEqual(cc1.type, 'DNA linking')
 
+    def test_l_peptide_alphabet(self):
+        """Test LPeptideAlphabet class"""
+        a = ihm.LPeptideAlphabet
+        self.assertEqual(a._comps['G'].type, 'Peptide linking')
+
+        self.assertEqual(a._comps['M'].id, 'MET')
+        self.assertEqual(a._comps['M'].code, 'M')
+        self.assertEqual(a._comps['M'].code_canonical, 'M')
+        self.assertEqual(a._comps['M'].type, 'L-peptide linking')
+
+        self.assertEqual(a._comps['MSE'].code, 'MSE')
+        self.assertEqual(a._comps['MSE'].code, 'MSE')
+        self.assertEqual(a._comps['MSE'].code_canonical, 'M')
+        self.assertEqual(a._comps['MSE'].type, 'L-peptide linking')
+
+    def test_rna_alphabet(self):
+        """Test RNAAlphabet class"""
+        a = ihm.RNAAlphabet
+        self.assertEqual(a._comps['A'].id, 'A')
+        self.assertEqual(a._comps['A'].code, 'A')
+        self.assertEqual(a._comps['A'].code_canonical, 'A')
+
+    def test_dna_alphabet(self):
+        """Test DNAAlphabet class"""
+        a = ihm.DNAAlphabet
+        self.assertEqual(a._comps['DA'].id, 'DA')
+        self.assertEqual(a._comps['DA'].code, 'DA')
+        self.assertEqual(a._comps['DA'].code_canonical, 'A')
+
     def test_entity(self):
         """Test Entity class"""
         e1 = ihm.Entity('ABCD', description='foo')
