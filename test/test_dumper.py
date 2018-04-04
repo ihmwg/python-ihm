@@ -247,7 +247,14 @@ DC 'DNA linking'
         system = ihm.System()
         e1 = ihm.Entity('ACGT') # sequence containing glycine
         e2 = ihm.Entity(('A', 'C', 'C', 'MSE'))  # no glycine
-        system.entities.extend((e1, e2))
+        # All D-peptides (with glycine)
+        e3 = ihm.Entity(('DAL', 'DCY', 'G'), alphabet=ihm.DPeptideAlphabet)
+        # All D-peptides (without glycine)
+        e4 = ihm.Entity(('DAL', 'DCY'), alphabet=ihm.DPeptideAlphabet)
+        # Mix of L- and D-peptides
+        dpep_al = ihm.DPeptideAlphabet()
+        e5 = ihm.Entity(('A', dpep_al['DCY'], 'G'))
+        system.entities.extend((e1, e2, e3, e4, e5))
         # One protein entity is modeled (with an asym unit) the other not;
         # this should be reflected in pdbx_strand_id
         system.asym_units.append(ihm.AsymUnit(e1, 'foo'))
@@ -275,9 +282,12 @@ _entity_poly.pdbx_seq_one_letter_code
 _entity_poly.pdbx_seq_one_letter_code_can
 1 polypeptide(L) no no A ACGT ACGT
 2 polypeptide(L) no no . ACC(MSE) ACCM
-3 polyribonucleotide no no . AC AC
-4 polydeoxyribonucleotide no no . (DA)(DC) AC
-5 'polydeoxyribonucleotide/polyribonucleotide hybrid' no no . AC(DA)(DC) ACAC
+3 polypeptide(D) no no . (DAL)(DCY)G ACG
+4 polypeptide(D) no no . (DAL)(DCY) AC
+5 polypeptide(L) no no . A(DCY)G ACG
+6 polyribonucleotide no no . AC AC
+7 polydeoxyribonucleotide no no . (DA)(DC) AC
+8 'polydeoxyribonucleotide/polyribonucleotide hybrid' no no . AC(DA)(DC) ACAC
 #
 """)
 

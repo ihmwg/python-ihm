@@ -468,9 +468,15 @@ class PeptideChemComp(ChemComp):
 
 
 class LPeptideChemComp(PeptideChemComp):
-    """A single peptide component with L- chirality.
+    """A single peptide component with (normal) L- chirality.
        See :class:`ChemComp` for a description of the parameters."""
     type = 'L-peptide linking'
+
+
+class DPeptideChemComp(PeptideChemComp):
+    """A single peptide component with (unusual) D- chirality.
+       See :class:`ChemComp` for a description of the parameters."""
+    type = 'D-peptide linking'
 
 
 class DNAChemComp(ChemComp):
@@ -484,9 +490,6 @@ class RNAChemComp(ChemComp):
        See :class:`ChemComp` for a description of the parameters."""
     type = 'RNA linking'
 
-
-def _pep_comp_class(one_letter):
-    return PeptideChemComp if one_letter == 'G' else LPeptideChemComp
 
 class Alphabet(object):
     """A mapping from codes (usually one-letter, or two-letter for DNA) to
@@ -520,16 +523,32 @@ class LPeptideAlphabet(Alphabet):
        modified residues are also included (e.g. MSE). For these their full name
        rather than a one-letter code is used.
     """
-    _comps = dict([code, _pep_comp_class(code)(id, code, code)] for code, id in
+    _comps = dict([code, LPeptideChemComp(id, code, code)] for code, id in
                     [('A', 'ALA'), ('C', 'CYS'), ('D', 'ASP'), ('E', 'GLU'),
-                     ('F', 'PHE'), ('G', 'GLY'), ('H', 'HIS'), ('I', 'ILE'),
-                     ('K', 'LYS'), ('L', 'LEU'), ('M', 'MET'), ('N', 'ASN'),
-                     ('P', 'PRO'), ('Q', 'GLN'), ('R', 'ARG'), ('S', 'SER'),
-                     ('T', 'THR'), ('V', 'VAL'), ('W', 'TRP'), ('Y', 'TYR')])
+                     ('F', 'PHE'), ('H', 'HIS'), ('I', 'ILE'), ('K', 'LYS'),
+                     ('L', 'LEU'), ('M', 'MET'), ('N', 'ASN'), ('P', 'PRO'),
+                     ('Q', 'GLN'), ('R', 'ARG'), ('S', 'SER'), ('T', 'THR'),
+                     ('V', 'VAL'), ('W', 'TRP'), ('Y', 'TYR')])
+    _comps['G'] = PeptideChemComp('GLY', 'G', 'G')
 
     # common non-standard L-amino acids
     _comps.update([id, LPeptideChemComp(id, id, canon)] for id, canon in
                      [('MSE', 'M')])
+
+
+class DPeptideAlphabet(Alphabet):
+    """A mapping from D-amino acid codes (e.g. DHI, MED) to
+       D-amino acids (as :class:`DPeptideChemComp` objects, except for achiral
+       glycine which maps to :class:`PeptideChemComp`). See
+       :class:`LPeptideAlphabet` for more details.
+    """
+    _comps = dict([code, DPeptideChemComp(code, code, canon)] for canon, code in
+                    [('A', 'DAL'), ('C', 'DCY'), ('D', 'DAS'), ('E', 'DGL'),
+                     ('F', 'DPN'), ('H', 'DHI'), ('I', 'DIL'), ('K', 'DLY'),
+                     ('L', 'DLE'), ('M', 'MED'), ('N', 'DSG'), ('P', 'DPR'),
+                     ('Q', 'DGN'), ('R', 'DAR'), ('S', 'DSN'), ('T', 'DTH'),
+                     ('V', 'DVA'), ('W', 'DTR'), ('Y', 'DTY')])
+    _comps['G'] = PeptideChemComp('GLY', 'G', 'G')
 
 
 class RNAAlphabet(Alphabet):

@@ -161,9 +161,9 @@ class _EntityPolyDumper(_Dumper):
         # Determine the type of the entire entity's sequence based on the
         # type(s) of all chemical components it contains
         self._seq_type_map = {
-            frozenset(('L-peptide linking',)): 'polypeptide(L)',
-            frozenset(('L-peptide linking',
-                       'Peptide linking')): 'polypeptide(L)',
+            frozenset(('D-peptide linking',)): 'polypeptide(D)',
+            frozenset(('D-peptide linking',
+                       'Peptide linking')): 'polypeptide(D)',
             frozenset(('RNA linking',)): 'polyribonucleotide',
             frozenset(('DNA linking',)): 'polydeoxyribonucleotide',
             frozenset(('DNA linking', 'RNA linking')):
@@ -189,7 +189,12 @@ class _EntityPolyDumper(_Dumper):
     def _get_seq_type(self, entity):
         """Get the sequence type for an entity"""
         all_types = frozenset(comp.type for comp in entity.sequence)
-        return self._seq_type_map.get(all_types, 'other')
+        # For a mix of L-peptides and D-peptides, current PDB entries always
+        # seem to use 'polypeptide(L)' so let's do that too:
+        if 'L-peptide linking' in all_types:
+            return 'polypeptide(L)'
+        else:
+            return self._seq_type_map.get(all_types, 'other')
 
     def dump(self, system, writer):
         # Get the first asym unit (if any) for each entity

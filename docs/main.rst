@@ -27,6 +27,9 @@ The :mod:`ihm` Python module
 .. autoclass:: LPeptideChemComp
    :members:
 
+.. autoclass:: DPeptideChemComp
+   :members:
+
 .. autoclass:: RNAChemComp
    :members:
 
@@ -37,6 +40,9 @@ The :mod:`ihm` Python module
    :members:
 
 .. autoclass:: LPeptideAlphabet
+   :members:
+
+.. autoclass:: DPeptideAlphabet
    :members:
 
 .. autoclass:: RNAAlphabet
