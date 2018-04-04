@@ -214,7 +214,7 @@ class PDBParser(Parser):
         ret['dataset'] = d
 
     def _parse_modeller_model(self, fh, first_line, local_file, filename, ret):
-        version, date = first_line[38:].split(' ', 1)
+        version, date = first_line[38:].rstrip('\r\n').split(' ', 1)
         s = ihm.Software(
                 name='MODELLER', classification='comparative modeling',
                 description='Comparative modeling by satisfaction '
