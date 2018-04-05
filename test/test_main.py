@@ -77,7 +77,7 @@ class Tests(unittest.TestCase):
         item0 = sorted(a.items)[0]
         self.assertEqual(item0[0], 'A')
         self.assertEqual(item0[1].id, 'ALA')
-        self.assertEqual(a['MSE'].code, 'MSE')
+        self.assertEqual(a['MSE'].id, 'MSE')
         self.assertEqual(a['MSE'].code, 'MSE')
         self.assertEqual(a['MSE'].code_canonical, 'M')
         self.assertEqual(a['MSE'].type, 'L-peptide linking')
