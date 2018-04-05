@@ -569,7 +569,7 @@ class EntityRange(object):
        an :class:`Entity`, e.g. to get a range covering residues 4 through
        7 in `entity` use::
 
-           entity = ihm.Entity(seq=...)
+           entity = ihm.Entity(sequence=...)
            rng = entity(4,7)
     """
     def __init__(self, entity, seq_id_begin, seq_id_end):
