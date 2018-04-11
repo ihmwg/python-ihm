@@ -849,10 +849,12 @@ class _EnsembleDumper(object):
 
 class _DensityDumper(object):
     def finalize(self, system):
-        # Assign IDs
+        # Assign globally unique IDs
+        did = 1
         for e in system.ensembles:
-            for nd, d in enumerate(e.densities):
-                d._id = nd + 1
+            for d in e.densities:
+                d._id = did
+                did += 1
 
     def dump(self, system, writer):
         with writer.loop("_ihm_localization_density_files",
