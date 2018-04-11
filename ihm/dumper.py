@@ -644,7 +644,7 @@ class _StartingModelDumper(_Dumper):
                         db_asym_id=model.asym_id, db_seq_id=sd.db_seq_id,
                         db_comp_id=sd.db_comp_id, starting_model_id=model._id,
                         details=sd.details)
-                ordinal += 1
+                    ordinal += 1
 
 
 class _ProtocolDumper(_Dumper):
