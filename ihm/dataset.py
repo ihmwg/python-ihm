@@ -90,7 +90,7 @@ class EMDensityDataset(Dataset):
 
 
 class EMMicrographsDataset(Dataset):
-    """Raw 2D eletron micrographs"""
+    """Raw 2D electron micrographs"""
     data_type = 'EM raw micrographs'
 
 
