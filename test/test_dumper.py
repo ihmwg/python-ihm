@@ -373,8 +373,9 @@ D 4 2 DC 2 2 DC DC D
         e2._id = 2
         system.entities.extend((e1, e2))
         system.asym_units.append(ihm.AsymUnit(e1, 'foo', id='Z'))
-        system.asym_units.append(ihm.AsymUnit(e1, 'bar', id='B'))
-        system.asym_units.append(ihm.AsymUnit(e2, 'baz'))
+        system.asym_units.append(ihm.AsymUnit(e1, 'bar'))
+        system.asym_units.append(ihm.AsymUnit(e2, 'baz', id='A'))
+        system.asym_units.append(ihm.AsymUnit(e2, 'tmp'))
         dumper = ihm.dumper._StructAsymDumper()
         dumper.finalize(system) # assign IDs
         out = _get_dumper_output(dumper, system)
@@ -386,6 +387,7 @@ _struct_asym.details
 Z 1 foo
 B 1 bar
 A 2 baz
+C 2 tmp
 #
 """)
 
