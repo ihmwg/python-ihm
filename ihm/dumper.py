@@ -245,13 +245,44 @@ class _PolySeqSchemeDumper(_Dumper):
                             auth_mon_id=comp.id)
 
 
+class _AsymIDProvider(object):
+    """Provide unique asym IDs"""
+    def __init__(self, seen_ids):
+        self.seen_ids = seen_ids
+        self.ids = util._AsymIDs()
+        self.index = -1
+
+    def get_next_id(self):
+        """Get the next unique ID"""
+        self.index += 1
+        while self.ids[self.index] in self.seen_ids:
+            self.index += 1
+        # Note tha we don't need to add our own IDs to seen_ids since
+        # they are already guaranteed to be unique
+        return self.ids[self.index]
+
+
 class _StructAsymDumper(_Dumper):
     def finalize(self, system):
+        # Handle user-assigned IDs first
+        seen_asym_ids = set()
+        duplicates = set()
+        for asym in system.asym_units:
+            if asym.id is not None:
+                if asym.id in seen_asym_ids:
+                    duplicates.add(asym.id)
+                asym._id = asym.id
+                seen_asym_ids.add(asym.id)
+        if duplicates:
+            raise ValueError("One or more duplicate asym (chain) IDs "
+                             "detected - %s" % ", ".join(sorted(duplicates)))
         ordinal = 1
-        # Assign asym IDs
-        for asym, asym_id in zip(system.asym_units, util._AsymIDs()):
+        # Assign remaining asym IDs
+        id_prov = _AsymIDProvider(seen_asym_ids)
+        for asym in system.asym_units:
+            if asym.id is None:
+                asym._id = id_prov.get_next_id()
             asym._ordinal = ordinal
-            asym._id = asym_id
             ordinal += 1
 
     def dump(self, system, writer):

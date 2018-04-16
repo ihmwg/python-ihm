@@ -372,7 +372,7 @@ D 4 2 DC 2 2 DC DC D
         e1._id = 1
         e2._id = 2
         system.entities.extend((e1, e2))
-        system.asym_units.append(ihm.AsymUnit(e1, 'foo'))
+        system.asym_units.append(ihm.AsymUnit(e1, 'foo', id='Z'))
         system.asym_units.append(ihm.AsymUnit(e1, 'bar'))
         system.asym_units.append(ihm.AsymUnit(e2, 'baz'))
         dumper = ihm.dumper._StructAsymDumper()
@@ -383,11 +383,22 @@ loop_
 _struct_asym.id
 _struct_asym.entity_id
 _struct_asym.details
-A 1 foo
-B 1 bar
-C 2 baz
+Z 1 foo
+A 1 bar
+B 2 baz
 #
 """)
+
+    def test_struct_asym_dumper_duplicate_ids(self):
+        """Test StructAsymDumper detection of duplicate user IDs"""
+        system = ihm.System()
+        e1 = ihm.Entity('ACGT')
+        system.entities.append(e1)
+        a1 = ihm.AsymUnit(e1, 'foo', id='Z')
+        a2 = ihm.AsymUnit(e1, 'baz', id='Z')
+        system.asym_units.extend((a1, a2))
+        dumper = ihm.dumper._StructAsymDumper()
+        self.assertRaises(ValueError, dumper.finalize, system)
 
     def test_assembly_all_modeled(self):
         """Test AssemblyDumper, all components modeled"""

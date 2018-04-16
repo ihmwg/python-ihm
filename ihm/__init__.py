@@ -718,13 +718,17 @@ class AsymUnit(object):
               ``auth_seq_id = auth_seq_id_map[seq_id]``. The default if
               not specified, or not in the mapping, is for
               ``auth_seq_id == seq_id``.
+       :param str id: User-specified ID (usually a string of one or more
+              upper-case letters, e.g. A, B, C, AA). If not specified,
+              IDs are automatically assigned alphabetically.
 
        See :attr:`System.asym_units`.
     """
 
-    def __init__(self, entity, details=None, auth_seq_id_map=0):
+    def __init__(self, entity, details=None, auth_seq_id_map=0, id=None):
         self.entity, self.details = entity, details
         self.auth_seq_id_map = auth_seq_id_map
+        self.id = id
 
     def _get_auth_seq_id(self, seq_id):
         if isinstance(self.auth_seq_id_map, int):
