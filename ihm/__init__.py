@@ -135,6 +135,10 @@ class System(object):
         #: See :class:`~ihm.geometry.GeometricObject`.
         self.geometric_objects = []
 
+        #: All features.
+        #: See :class:`~ihm.restraint.Feature`.
+        self.features = []
+
     def update_locations_in_repositories(self, repos):
         """Update all :class:`Location` objects in the system that lie within
            a checked-out :class:`Repository` to point to that repository.

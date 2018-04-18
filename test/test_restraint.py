@@ -121,6 +121,15 @@ class Tests(unittest.TestCase):
         self.assertEqual(f.asym1, 'asym1')
         self.assertEqual(f.asym2, 'asym2')
 
+    def test_feature(self):
+        """Test Feature base class"""
+        f = ihm.restraint.Feature() # does nothing
+
+    def test_poly_residue_feature(self):
+        """Test PolyResidueFeature class"""
+        f = ihm.restraint.PolyResidueFeature(ranges=[])
+        self.assertEqual(f.entity, None)
+
 
 if __name__ == '__main__':
     unittest.main()

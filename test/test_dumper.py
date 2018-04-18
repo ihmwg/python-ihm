@@ -1712,6 +1712,46 @@ _ihm_geometric_object_plane.plane_type
 #
 """)
 
+    def test_feature_dumper(self):
+        """Test FeatureDumper"""
+        system = ihm.System()
+        e1 = ihm.Entity('ACGT')
+        system.entities.append(e1)
+        a1 = ihm.AsymUnit(e1, 'foo')
+        a2 = ihm.AsymUnit(e1, 'baz')
+        system.asym_units.extend((a1, a2))
+
+        f = ihm.restraint.PolyResidueFeature([a1, a2(2,3)])
+        system.features.append(f)
+
+        ihm.dumper._EntityDumper().finalize(system) # assign entity IDs
+        ihm.dumper._StructAsymDumper().finalize(system) # assign asym IDs
+
+        dumper = ihm.dumper._FeatureDumper()
+        dumper.finalize(system) # assign IDs
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_ihm_feature_list.feature_id
+_ihm_feature_list.feature_type
+_ihm_feature_list.entity_type
+1 'residue range' polymer
+#
+#
+loop_
+_ihm_poly_residue_feature.ordinal_id
+_ihm_poly_residue_feature.feature_id
+_ihm_poly_residue_feature.entity_id
+_ihm_poly_residue_feature.asym_id
+_ihm_poly_residue_feature.seq_id_begin
+_ihm_poly_residue_feature.comp_id_begin
+_ihm_poly_residue_feature.seq_id_end
+_ihm_poly_residue_feature.comp_id_end
+1 1 1 A 1 ALA 4 THR
+2 1 1 B 2 CYS 3 GLY
+#
+""")
+
 
 if __name__ == '__main__':
     unittest.main()

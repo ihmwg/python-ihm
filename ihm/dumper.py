@@ -1047,6 +1047,44 @@ class _GeometricObjectDumper(_Dumper):
                 l.write(object_id=o._id, plane_type=o.plane_type)
 
 
+class _FeatureDumper(_Dumper):
+    def finalize(self, system):
+        seen_features = {}
+        self._features_by_id = []
+        for f in system.features:
+            util._assign_id(f, seen_features, self._features_by_id)
+
+    def dump(self, system, writer):
+        self.dump_list(writer)
+        self.dump_poly_residue(writer)
+
+    def dump_list(self, writer):
+        with writer.loop("_ihm_feature_list",
+                         ["feature_id", "feature_type", "entity_type"]) as l:
+            for f in self._features_by_id:
+                l.write(feature_id=f._id, feature_type=f.type,
+                        entity_type=f.entity.type if f.entity else None)
+
+    def dump_poly_residue(self, writer):
+        ordinal = 1
+        with writer.loop("_ihm_poly_residue_feature",
+                         ["ordinal_id", "feature_id", "entity_id", "asym_id",
+                          "seq_id_begin", "comp_id_begin", "seq_id_end",
+                          "comp_id_end"]) as l:
+            for f in self._features_by_id:
+                if not isinstance(f, restraint.PolyResidueFeature):
+                    continue
+                for r in f.ranges:
+                    seq = r.entity.sequence
+                    l.write(ordinal_id=ordinal, feature_id=f._id,
+                            entity_id=r.entity._id, asym_id=r._id,
+                            seq_id_begin=r.seq_id_range[0],
+                            comp_id_begin=seq[r.seq_id_range[0]-1].id,
+                            seq_id_end=r.seq_id_range[1],
+                            comp_id_end=seq[r.seq_id_range[1]-1].id)
+                    ordinal += 1
+
+
 class _CrossLinkDumper(_Dumper):
     def _all_restraints(self, system):
         return [r for r in system.restraints
@@ -1336,7 +1374,7 @@ def write(fh, systems):
                _StartingModelDumper(),
                _ProtocolDumper(),
                _PostProcessDumper(),
-               _GeometricObjectDumper(),
+               _GeometricObjectDumper(), _FeatureDumper(),
                _CrossLinkDumper(),
                _EM3DDumper(),
                _EM2DDumper(),

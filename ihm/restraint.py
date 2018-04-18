@@ -371,3 +371,26 @@ class CrossLinkFit(object):
 
     def __init__(self, psi=None, sigma1=None, sigma2=None):
         self.psi, self.sigma1, self.sigma2 = psi, sigma1, sigma2
+
+
+class Feature(object):
+    """Base class for selecting parts of the system that a restraint acts on.
+       See :class:`PolyResidueFeature`.
+    """
+    pass
+
+
+class PolyResidueFeature(Feature):
+    """Selection of one or more residues from the system.
+
+       :param sequence ranges: A list of :class:`AsymUnitRange` and/or
+              :class:`AsymUnit` objects.
+    """
+    type = 'residue range'
+
+    def __init__(self, ranges):
+        self.ranges = ranges
+
+    # todo: handle case where ranges span multiple entities?
+    entity = property(lambda self: self.ranges[0].entity
+                                   if self.ranges else None)
