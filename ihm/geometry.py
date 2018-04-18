@@ -22,6 +22,15 @@ class Transformation(object):
     def __init__(self, rot_matrix, tr_vector):
         self.rot_matrix, self.tr_vector = rot_matrix, tr_vector
 
+    """Return the identity transformation.
+
+       :return: A new identity Transformation.
+       :rtype: :class:`Transformation`
+    """
+    @classmethod
+    def identity(cls):
+        return cls([[1., 0., 0.], [0., 1., 0.], [0., 0., 1.]], [0.,0.,0.])
+
 
 class GeometricObject(object):
     """A generic geometric object. See also :class:`Sphere`, :class:`Torus`,
