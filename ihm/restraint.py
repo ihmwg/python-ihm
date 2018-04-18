@@ -385,6 +385,9 @@ class CrossLinkFit(object):
 class Feature(object):
     """Base class for selecting parts of the system that a restraint acts on.
        See :class:`PolyResidueFeature`.
+
+       Features are typically assigned to one or more
+       :class:`~ihm.restraint.GeometricRestraint` objects.
     """
     pass
 

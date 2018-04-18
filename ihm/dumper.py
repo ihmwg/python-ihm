@@ -1051,7 +1051,7 @@ class _FeatureDumper(_Dumper):
     def finalize(self, system):
         seen_features = {}
         self._features_by_id = []
-        for f in system.features:
+        for f in system._all_features():
             util._assign_id(f, seen_features, self._features_by_id)
 
     def dump(self, system, writer):

@@ -1722,7 +1722,7 @@ _ihm_geometric_object_plane.plane_type
         system.asym_units.extend((a1, a2))
 
         f = ihm.restraint.PolyResidueFeature([a1, a2(2,3)])
-        system.features.append(f)
+        system.orphan_features.append(f)
 
         ihm.dumper._EntityDumper().finalize(system) # assign entity IDs
         ihm.dumper._StructAsymDumper().finalize(system) # assign asym IDs

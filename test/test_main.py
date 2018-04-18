@@ -522,8 +522,6 @@ class Tests(unittest.TestCase):
         """Test _all_geometric_objects() method"""
         class MockObject(object):
             pass
-        class MockDataset(object):
-            parents = []
 
         geom1 = MockObject()
         geom2 = MockObject()
@@ -541,6 +539,27 @@ class Tests(unittest.TestCase):
         # duplicates should not be filtered
         self.assertEqual(list(s._all_geometric_objects()),
                          [geom1, geom2, geom1])
+
+    def test_all_features(self):
+        """Test _all_features() method"""
+        class MockObject(object):
+            pass
+
+        f1 = MockObject()
+        f2 = MockObject()
+
+        s = ihm.System()
+        r1 = MockObject()
+        r2 = MockObject()
+        r2.feature = None
+        r3 = MockObject()
+        r3.feature = f1
+
+        s.orphan_features.extend((f1, f2))
+        s.restraints.extend((r1, r2, r3))
+
+        # duplicates should not be filtered
+        self.assertEqual(list(s._all_features()), [f1, f2, f1])
 
     def test_update_locations_in_repositories(self):
         """Test update_locations_in_repositories() method"""

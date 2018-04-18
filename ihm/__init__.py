@@ -132,15 +132,18 @@ class System(object):
         self.state_groups = []
 
         #: All orphaned geometric objects.
-        #: This can be used to keep track of all object that are not
+        #: This can be used to keep track of all objects that are not
         #: otherwise used - normally an object is assigned to a
         #: :class:`~ihm.restraint.GeometricRestraint`.
         #: See :class:`~ihm.geometry.GeometricObject`.
         self.orphan_geometric_objects = []
 
-        #: All features.
+        #: All orphaned features.
+        #: This can be used to keep track of all features that are not
+        #: otherwise used - normally a feature is assigned to a
+        #: :class:`~ihm.restraint.GeometricRestraint`.
         #: See :class:`~ihm.restraint.Feature`.
-        self.features = []
+        self.orphan_features = []
 
     def update_locations_in_repositories(self, repos):
         """Update all :class:`Location` objects in the system that lie within
@@ -325,6 +328,17 @@ class System(object):
                 (restraint.geometric_object for restraint in self.restraints
                           if hasattr(restraint, 'geometric_object')
                           and restraint.geometric_object))
+
+    def _all_features(self):
+        """Iterate over all Features in the system.
+           This includes all Features referenced from other objects,
+           plus any referenced from the top-level system.
+           Duplicates may be present."""
+        return itertools.chain(
+                self.orphan_features,
+                (restraint.feature for restraint in self.restraints
+                          if hasattr(restraint, 'feature')
+                          and restraint.feature))
 
     def _all_citations(self):
         """Iterate over all Citations in the system.
