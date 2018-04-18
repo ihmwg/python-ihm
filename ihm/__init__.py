@@ -131,6 +131,10 @@ class System(object):
         #: See :class:`~ihm.model.StateGroup`.
         self.state_groups = []
 
+        #: All geometric objects.
+        #: See :class:`~ihm.geometry.GeometricObject`.
+        self.geometric_objects = []
+
     def update_locations_in_repositories(self, repos):
         """Update all :class:`Location` objects in the system that lie within
            a checked-out :class:`Repository` to point to that repository.

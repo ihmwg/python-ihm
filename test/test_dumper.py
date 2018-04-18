@@ -19,6 +19,7 @@ import ihm.protocol
 import ihm.analysis
 import ihm.model
 import ihm.restraint
+import ihm.geometry
 
 def _get_dumper_output(dumper, system):
     fh = StringIO()
@@ -1605,6 +1606,109 @@ _ihm_cross_link_result_parameters.psi
 _ihm_cross_link_result_parameters.sigma_1
 _ihm_cross_link_result_parameters.sigma_2
 1 1 201 0.100 4.200 2.100
+#
+""")
+
+    def test_geometric_object_dumper(self):
+        """Test GeometricObjectDumper"""
+        system = ihm.System()
+        center = ihm.geometry.Center(1.,2.,3.)
+        trans = ihm.geometry.Transformation([[1,0,0],[0,1,0],[0,0,1]],
+                                            [1.,2.,3.])
+
+        sphere = ihm.geometry.Sphere(center=center, transformation=trans,
+                                     radius=2.2, name='my sphere',
+                                     description='a test sphere',
+                                     details='some details')
+        torus = ihm.geometry.Torus(center=center, transformation=trans,
+                                   major_radius=5.6, minor_radius=1.2)
+        half_torus = ihm.geometry.HalfTorus(center=center, transformation=trans,
+                                            major_radius=5.6, minor_radius=1.2,
+                                            thickness=0.1, inner=True)
+        axis = ihm.geometry.XAxis()
+        plane = ihm.geometry.XYPlane()
+
+        system.geometric_objects.extend((sphere, torus, half_torus,
+                                         axis, plane))
+
+        dumper = ihm.dumper._GeometricObjectDumper()
+        dumper.finalize(system) # assign IDs
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_ihm_geometric_object_center.id
+_ihm_geometric_object_center.xcoord
+_ihm_geometric_object_center.ycoord
+_ihm_geometric_object_center.zcoord
+1 1.000 2.000 3.000
+#
+#
+loop_
+_ihm_geometric_object_transformation.id
+_ihm_geometric_object_transformation.rot_matrix[1][1]
+_ihm_geometric_object_transformation.rot_matrix[2][1]
+_ihm_geometric_object_transformation.rot_matrix[3][1]
+_ihm_geometric_object_transformation.rot_matrix[1][2]
+_ihm_geometric_object_transformation.rot_matrix[2][2]
+_ihm_geometric_object_transformation.rot_matrix[3][2]
+_ihm_geometric_object_transformation.rot_matrix[1][3]
+_ihm_geometric_object_transformation.rot_matrix[2][3]
+_ihm_geometric_object_transformation.rot_matrix[3][3]
+_ihm_geometric_object_transformation.tr_vector[1]
+_ihm_geometric_object_transformation.tr_vector[2]
+_ihm_geometric_object_transformation.tr_vector[3]
+1 1.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 0.000000
+1.000000 1.000 2.000 3.000
+#
+#
+loop_
+_ihm_geometric_object_list.object_id
+_ihm_geometric_object_list.object_type
+_ihm_geometric_object_list.object_name
+_ihm_geometric_object_list.object_description
+_ihm_geometric_object_list.other_details
+1 sphere 'my sphere' 'a test sphere' 'some details'
+2 torus . . .
+3 half-torus . . .
+4 axis . . .
+5 plane . . .
+#
+#
+loop_
+_ihm_geometric_object_sphere.object_id
+_ihm_geometric_object_sphere.center_id
+_ihm_geometric_object_sphere.transformation_id
+_ihm_geometric_object_sphere.radius_r
+1 1 1 2.200
+#
+#
+loop_
+_ihm_geometric_object_torus.object_id
+_ihm_geometric_object_torus.center_id
+_ihm_geometric_object_torus.transformation_id
+_ihm_geometric_object_torus.major_radius_R
+_ihm_geometric_object_torus.minor_radius_r
+2 1 1 5.600 1.200
+3 1 1 5.600 1.200
+#
+#
+loop_
+_ihm_geometric_object_half_torus.object_id
+_ihm_geometric_object_half_torus.thickness_th
+_ihm_geometric_object_half_torus.section
+3 0.100 'inner half'
+#
+#
+loop_
+_ihm_geometric_object_axis.object_id
+_ihm_geometric_object_axis.axis_type
+4 x-axis
+#
+#
+loop_
+_ihm_geometric_object_plane.object_id
+_ihm_geometric_object_plane.plane_type
+5 xy-plane
 #
 """)
 

@@ -7,6 +7,7 @@ import ihm.format
 from . import util
 from . import location
 from . import restraint
+from . import geometry
 
 class _Dumper(object):
     """Base class for helpers to dump output to mmCIF"""
@@ -934,6 +935,118 @@ class _MultiStateDumper(object):
                         ordinal += 1
 
 
+class _GeometricObjectDumper(_Dumper):
+    def finalize(self, system):
+        seen_centers = {}
+        seen_transformations = {}
+        self._centers_by_id = []
+        self._transformations_by_id = []
+        self._objects_by_id = []
+
+        for no, o in enumerate(system.geometric_objects):
+            o._id = no + 1
+            self._objects_by_id.append(o)
+            if hasattr(o, 'center'):
+                util._assign_id(o.center, seen_centers, self._centers_by_id)
+            if hasattr(o, 'transformation'):
+                util._assign_id(o.transformation, seen_transformations,
+                                self._transformations_by_id)
+
+    def dump(self, system, writer):
+        self.dump_centers(writer)
+        self.dump_transformations(writer)
+        self.dump_generic(writer)
+        self.dump_sphere(writer)
+        self.dump_torus(writer)
+        self.dump_half_torus(writer)
+        self.dump_axis(writer)
+        self.dump_plane(writer)
+
+    def dump_centers(self, writer):
+        with writer.loop("_ihm_geometric_object_center",
+                         ["id", "xcoord", "ycoord", "zcoord"]) as l:
+            for c in self._centers_by_id:
+                l.write(id=c._id, xcoord=c.x, ycoord=c.y, zcoord=c.z)
+
+    def dump_transformations(self, writer):
+        with writer.loop("_ihm_geometric_object_transformation",
+                ["id",
+                 "rot_matrix[1][1]", "rot_matrix[2][1]", "rot_matrix[3][1]",
+                 "rot_matrix[1][2]", "rot_matrix[2][2]", "rot_matrix[3][2]",
+                 "rot_matrix[1][3]", "rot_matrix[2][3]", "rot_matrix[3][3]",
+                 "tr_vector[1]", "tr_vector[2]", "tr_vector[3]"]) as l:
+            for t in self._transformations_by_id:
+                # mmCIF writer usually outputs floats to 3 decimal
+                # places, but we need more precision for rotation
+                # matrices
+                rm = [["%.6f" % e for e in t.rot_matrix[i]]
+                      for i in range(3)]
+                l.write(id=t._id, rot_matrix11=rm[0][0], rot_matrix21=rm[1][0],
+                        rot_matrix31=rm[2][0], rot_matrix12=rm[0][1],
+                        rot_matrix22=rm[1][1], rot_matrix32=rm[2][1],
+                        rot_matrix13=rm[0][2], rot_matrix23=rm[1][2],
+                        rot_matrix33=rm[2][2], tr_vector1=t.tr_vector[0],
+                        tr_vector2=t.tr_vector[1], tr_vector3=t.tr_vector[2])
+
+    def dump_generic(self, writer):
+        with writer.loop("_ihm_geometric_object_list",
+                         ["object_id", "object_type", "object_name",
+                          "object_description", "other_details"]) as l:
+            for o in self._objects_by_id:
+                l.write(object_id=o._id, object_type=o.type, object_name=o.name,
+                        object_description=o.description,
+                        other_details=o.details)
+
+    def dump_sphere(self, writer):
+        with writer.loop("_ihm_geometric_object_sphere",
+                         ["object_id", "center_id", "transformation_id",
+                          "radius_r"]) as l:
+            for o in self._objects_by_id:
+                if not isinstance(o, geometry.Sphere):
+                    continue
+                l.write(object_id=o._id, center_id=o.center._id,
+                        transformation_id=o.transformation._id,
+                        radius_r=o.radius)
+
+    def dump_torus(self, writer):
+        with writer.loop("_ihm_geometric_object_torus",
+                         ["object_id", "center_id", "transformation_id",
+                          "major_radius_R", "minor_radius_r"]) as l:
+            for o in self._objects_by_id:
+                if not isinstance(o, (geometry.Torus, geometry.HalfTorus)):
+                    continue
+                l.write(object_id=o._id, center_id=o.center._id,
+                        transformation_id=o.transformation._id,
+                        major_radius_R=o.major_radius,
+                        minor_radius_r=o.minor_radius)
+
+    def dump_half_torus(self, writer):
+        section_map = {True: 'inner half', False: 'outer half'}
+        with writer.loop("_ihm_geometric_object_half_torus",
+                         ["object_id", "thickness_th", "section"]) as l:
+            for o in self._objects_by_id:
+                if not isinstance(o, geometry.HalfTorus):
+                    continue
+                l.write(object_id=o._id, thickness_th=o.thickness,
+                        section=section_map.get(o.inner, 'other'))
+
+    def dump_axis(self, writer):
+        with writer.loop("_ihm_geometric_object_axis",
+                         ["object_id", "axis_type"]) as l:
+            for o in self._objects_by_id:
+                if not isinstance(o, geometry.Axis):
+                    continue
+                l.write(object_id=o._id, axis_type=o.axis_type)
+
+    def dump_plane(self, writer):
+        with writer.loop("_ihm_geometric_object_plane",
+                         ["object_id", "plane_type"]) as l:
+            for o in self._objects_by_id:
+                if not isinstance(o, geometry.Plane):
+                    continue
+                l.write(object_id=o._id, plane_type=o.plane_type)
+
+
 class _CrossLinkDumper(_Dumper):
     def _all_restraints(self, system):
         return [r for r in system.restraints
@@ -1223,6 +1336,7 @@ def write(fh, systems):
                _StartingModelDumper(),
                _ProtocolDumper(),
                _PostProcessDumper(),
+               _GeometricObjectDumper(),
                _CrossLinkDumper(),
                _EM3DDumper(),
                _EM2DDumper(),
