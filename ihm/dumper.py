@@ -937,15 +937,15 @@ class _MultiStateDumper(object):
 
 class _GeometricObjectDumper(_Dumper):
     def finalize(self, system):
+        seen_objects = {}
         seen_centers = {}
         seen_transformations = {}
         self._centers_by_id = []
         self._transformations_by_id = []
         self._objects_by_id = []
 
-        for no, o in enumerate(system.geometric_objects):
-            o._id = no + 1
-            self._objects_by_id.append(o)
+        for o in system._all_geometric_objects():
+            util._assign_id(o, seen_objects, self._objects_by_id)
             if hasattr(o, 'center'):
                 util._assign_id(o.center, seen_centers, self._centers_by_id)
             if hasattr(o, 'transformation'):

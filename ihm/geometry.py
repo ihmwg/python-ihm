@@ -27,6 +27,9 @@ class GeometricObject(object):
     """A generic geometric object. See also :class:`Sphere`, :class:`Torus`,
        :class:`Axis`, :class:`Plane`.
 
+       Geometric objects are typically assigned to one or more
+       :class:`~ihm.restraint.GeometricRestraint` objects.
+
        :param str name: A short user-provided name.
        :param str description: A brief description of the object.
        :param str details: Additional details about the object (particularly

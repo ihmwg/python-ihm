@@ -518,6 +518,30 @@ class Tests(unittest.TestCase):
         # duplicates should be filtered
         self.assertEqual(list(s._all_starting_models()), [sm1, sm2])
 
+    def test_all_geometric_objects(self):
+        """Test _all_geometric_objects() method"""
+        class MockObject(object):
+            pass
+        class MockDataset(object):
+            parents = []
+
+        geom1 = MockObject()
+        geom2 = MockObject()
+
+        s = ihm.System()
+        r1 = MockObject()
+        r2 = MockObject()
+        r2.geometric_object = None
+        r3 = MockObject()
+        r3.geometric_object = geom1
+
+        s.orphan_geometric_objects.extend((geom1, geom2))
+        s.restraints.extend((r1, r2, r3))
+
+        # duplicates should not be filtered
+        self.assertEqual(list(s._all_geometric_objects()),
+                         [geom1, geom2, geom1])
+
     def test_update_locations_in_repositories(self):
         """Test update_locations_in_repositories() method"""
         s = ihm.System()

@@ -1628,8 +1628,8 @@ _ihm_cross_link_result_parameters.sigma_2
         axis = ihm.geometry.XAxis()
         plane = ihm.geometry.XYPlane()
 
-        system.geometric_objects.extend((sphere, torus, half_torus,
-                                         axis, plane))
+        system.orphan_geometric_objects.extend((sphere, torus, half_torus,
+                                                axis, plane))
 
         dumper = ihm.dumper._GeometricObjectDumper()
         dumper.finalize(system) # assign IDs

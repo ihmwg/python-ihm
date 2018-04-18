@@ -131,9 +131,12 @@ class System(object):
         #: See :class:`~ihm.model.StateGroup`.
         self.state_groups = []
 
-        #: All geometric objects.
+        #: All orphaned geometric objects.
+        #: This can be used to keep track of all object that are not
+        #: otherwise used - normally an object is assigned to a
+        #: :class:`~ihm.restraint.GeometricRestraint`.
         #: See :class:`~ihm.geometry.GeometricObject`.
-        self.geometric_objects = []
+        self.orphan_geometric_objects = []
 
         #: All features.
         #: See :class:`~ihm.restraint.Feature`.
@@ -311,6 +314,17 @@ class System(object):
                 (density.file for density in all_densities() if density.file),
                 (template.alignment_file for template in self._all_templates()
                                          if template.alignment_file))
+
+    def _all_geometric_objects(self):
+        """Iterate over all GeometricObjects in the system.
+           This includes all GeometricObjects referenced from other objects,
+           plus any referenced from the top-level system.
+           Duplicates may be present."""
+        return itertools.chain(
+                self.orphan_geometric_objects,
+                (restraint.geometric_object for restraint in self.restraints
+                          if hasattr(restraint, 'geometric_object')
+                          and restraint.geometric_object))
 
     def _all_citations(self):
         """Iterate over all Citations in the system.
