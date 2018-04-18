@@ -218,6 +218,9 @@ class HarmonicDistanceRestraint(object):
     def __init__(self, distance):
         self.distance = distance
 
+    distance_lower_limit = property(lambda self: self.distance)
+    distance_upper_limit = distance_lower_limit
+
 
 class UpperBoundDistanceRestraint(object):
     """Harmonically restrain two objects to be below a given distance apart.
@@ -228,6 +231,9 @@ class UpperBoundDistanceRestraint(object):
     def __init__(self, distance):
         self.distance = distance
 
+    distance_upper_limit = property(lambda self: self.distance)
+    distance_lower_limit = None
+
 
 class LowerBoundDistanceRestraint(object):
     """Harmonically restrain two objects to be above a given distance apart.
@@ -237,6 +243,9 @@ class LowerBoundDistanceRestraint(object):
     restraint_type = 'lower bound'
     def __init__(self, distance):
         self.distance = distance
+
+    distance_lower_limit = property(lambda self: self.distance)
+    distance_upper_limit = None
 
 
 class CrossLink(object):
@@ -394,3 +403,56 @@ class PolyResidueFeature(Feature):
     # todo: handle case where ranges span multiple entities?
     entity = property(lambda self: self.ranges[0].entity
                                    if self.ranges else None)
+
+
+class GeometricRestraint(object):
+    """A restraint between part of the system and some part of a
+       geometric object. See :class:`CenterGeometricRestraint`,
+       :class:`InnerSurfaceGeometricRestraint`,
+       :class:`OuterSurfaceGeometricRestraint`.
+
+       :param dataset: Reference to the data from which the restraint is
+              derived.
+       :type dataset: :class:`~ihm.dataset.Dataset`
+       :param geometric_object: The geometric object to restrain against.
+       :type geometric_object: :class:`ihm.geometry.GeometricObject`
+       :param feature: The part of the system to restrain.
+       :type feature: :class:`Feature`
+       :param distance: Restraint on the distance.
+       :type distance: :class:`DistanceRestraint`
+       :param float harmonic_force_constant: Force constant, if applicable.
+       :param bool restrain_all: If True, all distances are restrained.
+    """
+    object_characteristic = 'other'
+    assembly = None # no struct_assembly_id for geometric restraints
+
+    def __init__(self, dataset, geometric_object, feature, distance,
+                 harmonic_force_constant=None, restrain_all=None):
+        self.dataset = dataset
+        self.geometric_object, self.feature = geometric_object, feature
+        self.distance, self.restrain_all = distance, restrain_all
+        self.harmonic_force_constant = harmonic_force_constant
+
+
+class CenterGeometricRestraint(GeometricRestraint):
+    """A restraint between part of the system and the center of a
+       geometric object. See :class:`GeometricRestraint` for a description
+       of the parameters.
+    """
+    object_characteristic = 'center'
+
+
+class InnerSurfaceGeometricRestraint(GeometricRestraint):
+    """A restraint between part of the system and the inner surface of a
+       geometric object. See :class:`GeometricRestraint` for a description
+       of the parameters.
+    """
+    object_characteristic = 'inner surface'
+
+
+class OuterSurfaceGeometricRestraint(GeometricRestraint):
+    """A restraint between part of the system and the outer surface of a
+       geometric object. See :class:`GeometricRestraint` for a description
+       of the parameters.
+    """
+    object_characteristic = 'outer surface'

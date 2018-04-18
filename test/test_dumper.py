@@ -1752,6 +1752,45 @@ _ihm_poly_residue_feature.comp_id_end
 #
 """)
 
+    def test_geometric_restraint_dumper(self):
+        """Test GeometricRestraintDumper"""
+        class MockObject(object):
+            pass
+        system = ihm.System()
+
+        feat = MockObject()
+        feat._id = 44
+        geom = MockObject()
+        geom._id = 23
+        dataset = MockObject()
+        dataset._id = 97
+
+        dist = ihm.restraint.UpperBoundDistanceRestraint(25.0)
+        r = ihm.restraint.CenterGeometricRestraint(dataset=dataset,
+                geometric_object=geom, feature=feat, distance=dist,
+                harmonic_force_constant=2.0)
+        system.restraints.append(r)
+
+        dumper = ihm.dumper._GeometricRestraintDumper()
+        dumper.finalize(system) # assign IDs
+
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_ihm_geometric_object_spatial_restraint.id
+_ihm_geometric_object_spatial_restraint.object_id
+_ihm_geometric_object_spatial_restraint.feature_id
+_ihm_geometric_object_spatial_restraint.object_characteristic
+_ihm_geometric_object_spatial_restraint.restraint_type
+_ihm_geometric_object_spatial_restraint.harmonic_force_constant
+_ihm_geometric_object_spatial_restraint.distance_lower_limit
+_ihm_geometric_object_spatial_restraint.distance_upper_limit
+_ihm_geometric_object_spatial_restraint.group_conditionality
+_ihm_geometric_object_spatial_restraint.dataset_list_id
+1 23 44 center 'distance restraint upper bound' 2.000 . 25.000 ANY 97
+#
+""")
+
 
 if __name__ == '__main__':
     unittest.main()

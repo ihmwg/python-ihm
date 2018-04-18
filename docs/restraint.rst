@@ -60,3 +60,15 @@ The :mod:`ihm.restraint` Python module
 
 .. autoclass:: PolyResidueFeature
    :members:
+
+.. autoclass:: GeometricRestraint
+   :members:
+
+.. autoclass:: CenterGeometricRestraint
+   :members:
+
+.. autoclass:: InnerSurfaceGeometricRestraint
+   :members:
+
+.. autoclass:: OuterSurfaceGeometricRestraint
+   :members:

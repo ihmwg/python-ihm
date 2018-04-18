@@ -1212,6 +1212,40 @@ class _CrossLinkDumper(_Dumper):
                         ordinal += 1
 
 
+class _GeometricRestraintDumper(_Dumper):
+    def _all_restraints(self, system):
+        return [r for r in system.restraints
+                if isinstance(r, restraint.GeometricRestraint)]
+
+    def finalize(self, system):
+        for nr, r in enumerate(self._all_restraints(system)):
+            r._id = nr + 1
+
+    def dump(self, system, writer):
+        # Map DistanceRestraint types
+        rtmap = {'harmonic': 'harmonic restraint',
+                 'upper bound': 'distance restraint upper bound',
+                 'lower bound': 'distance restraint lower bound'}
+        ordinal = 1
+        with writer.loop("_ihm_geometric_object_spatial_restraint",
+                         ["id", "object_id", "feature_id",
+                          "object_characteristic", "restraint_type",
+                          "harmonic_force_constant",
+                          "distance_lower_limit", "distance_upper_limit",
+                          "group_conditionality", "dataset_list_id"]) as l:
+            for r in self._all_restraints(system):
+                l.write(id=r._id, object_id=r.geometric_object._id,
+                        feature_id=r.feature._id,
+                        object_characteristic=r.object_characteristic,
+                        restraint_type=rtmap.get(r.distance.restraint_type,
+                                                 'other'),
+                        distance_lower_limit=r.distance.distance_lower_limit,
+                        distance_upper_limit=r.distance.distance_upper_limit,
+                        harmonic_force_constant=r.harmonic_force_constant,
+                        group_conditionality='ALL' if r.restrain_all else 'ANY',
+                        dataset_list_id=r.dataset._id if r.dataset else None)
+
+
 class _EM3DDumper(_Dumper):
     def _all_restraints(self, system):
         return [r for r in system.restraints
@@ -1375,7 +1409,7 @@ def write(fh, systems):
                _ProtocolDumper(),
                _PostProcessDumper(),
                _GeometricObjectDumper(), _FeatureDumper(),
-               _CrossLinkDumper(),
+               _CrossLinkDumper(), _GeometricRestraintDumper(),
                _EM3DDumper(),
                _EM2DDumper(),
                _SASDumper(),
