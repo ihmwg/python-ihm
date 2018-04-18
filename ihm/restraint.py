@@ -205,7 +205,9 @@ class DistanceRestraint(object):
     """Base class for all distance restraints.
        See :class:`HarmonicDistanceRestraint`,
        :class:`UpperBoundDistanceRestraint`,
-       and :class:`LowerBoundDistanceRestraint`."""
+       :class:`LowerBoundDistanceRestraint`,
+       and :class:`LowerUpperBoundDistanceRestraint`.
+    """
     pass
 
 
@@ -246,6 +248,19 @@ class LowerBoundDistanceRestraint(object):
 
     distance_lower_limit = property(lambda self: self.distance)
     distance_upper_limit = None
+
+
+class LowerUpperBoundDistanceRestraint(object):
+    """Harmonically restrain two objects to be above a given distance
+       and below another distance apart.
+
+       :param float distance_lower_limit: Lower bound on the distance.
+       :param float distance_upper_limit: Upper bound on the distance.
+    """
+    restraint_type = 'lower and upper bound'
+    def __init__(self, distance_lower_limit, distance_upper_limit):
+        self.distance_lower_limit = distance_lower_limit
+        self.distance_upper_limit = distance_upper_limit
 
 
 class CrossLink(object):

@@ -34,6 +34,9 @@ The :mod:`ihm.restraint` Python module
 .. autoclass:: LowerBoundDistanceRestraint
    :members:
 
+.. autoclass:: LowerUpperBoundDistanceRestraint
+   :members:
+
 .. autoclass:: CrossLinkRestraint
    :members:
 

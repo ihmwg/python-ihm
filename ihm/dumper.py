@@ -1225,7 +1225,9 @@ class _GeometricRestraintDumper(_Dumper):
         # Map DistanceRestraint types
         rtmap = {'harmonic': 'harmonic restraint',
                  'upper bound': 'distance restraint upper bound',
-                 'lower bound': 'distance restraint lower bound'}
+                 'lower bound': 'distance restraint lower bound',
+                 'lower and upper bound':
+                      'distance restraint upper and lower bound'}
         ordinal = 1
         with writer.loop("_ihm_geometric_object_spatial_restraint",
                          ["id", "object_id", "feature_id",

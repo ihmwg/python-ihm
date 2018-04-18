@@ -79,6 +79,13 @@ class Tests(unittest.TestCase):
         self.assertEqual(r.distance_upper_limit, None)
         self.assertEqual(r.restraint_type, "lower bound")
 
+    def test_lower_upper_bound_distance_restraint(self):
+        """Test LowerUpperBoundDistanceRestraint class"""
+        r = ihm.restraint.LowerUpperBoundDistanceRestraint(20.0, 30.0)
+        self.assertAlmostEqual(r.distance_lower_limit, 20.0, places=1)
+        self.assertAlmostEqual(r.distance_upper_limit, 30.0, places=1)
+        self.assertEqual(r.restraint_type, "lower and upper bound")
+
     def test_cross_link_restraint(self):
         """Test CrossLinkRestraint class"""
         f = ihm.restraint.CrossLinkRestraint(dataset='foo', linker_type='DSS')
