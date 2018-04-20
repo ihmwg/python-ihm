@@ -145,6 +145,10 @@ x
         r = ihm.format.CifReader(StringIO(cif), category_handlers)
         self.assertRaises(ihm.format.CifParserError, r.read_file)
 
+    def test_comments_skipped(self):
+        """Make sure that comments are skipped"""
+        self._read_cif("# _exptl.method\n# ;foo\n", {})
+
     def test_missing_semicolon(self):
         """Make sure that missing semicolon is handled in multiline strings"""
         self._check_bad_cif("_exptl.method\n;foo\n")
@@ -212,6 +216,13 @@ x
                        {'_struct_keywords':h})
         self.assertEqual(h.data,
                 [{'pdbx_keywords':'COMPLEX \n(HYDROLASE/PEPTIDE)'}])
+
+    def test_ignored_loop(self):
+        """Check that loops are ignored if they don't have a handler"""
+        h = GenericHandler()
+        self._read_cif("loop_\n_struct_keywords.pdbx_keywords\nfoo",
+                       {'_atom_site':h})
+        self.assertEqual(h.data, [])
 
     def test_quotes_in_strings(self):
         """Check that quotes in strings are handled"""
