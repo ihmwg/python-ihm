@@ -1240,6 +1240,7 @@ class _GeometricRestraintDumper(_Dumper):
             r._id = nr + 1
 
     def dump(self, system, writer):
+        condmap = {True: 'ALL', False: 'ANY', None: None}
         # Map DistanceRestraint types
         rtmap = {'harmonic': 'harmonic restraint',
                  'upper bound': 'distance restraint upper bound',
@@ -1262,7 +1263,35 @@ class _GeometricRestraintDumper(_Dumper):
                         distance_lower_limit=r.distance.distance_lower_limit,
                         distance_upper_limit=r.distance.distance_upper_limit,
                         harmonic_force_constant=r.harmonic_force_constant,
-                        group_conditionality='ALL' if r.restrain_all else 'ANY',
+                        group_conditionality=condmap[r.restrain_all],
+                        dataset_list_id=r.dataset._id if r.dataset else None)
+
+
+class _DerivedDistanceRestraintDumper(_Dumper):
+    def _all_restraints(self, system):
+        return [r for r in system.restraints
+                if isinstance(r, restraint.DerivedDistanceRestraint)]
+
+    def finalize(self, system):
+        for nr, r in enumerate(self._all_restraints(system)):
+            r._id = nr + 1
+
+    def dump(self, system, writer):
+        condmap = {True: 'ALL', False: 'ANY', None: None}
+        ordinal = 1
+        with writer.loop("_ihm_derived_distance_restraint",
+                         ["id", "feature_id_1", "feature_id_2",
+                          "restraint_type", "distance_lower_limit",
+                          "distance_upper_limit", "probability",
+                          "group_conditionality", "dataset_list_id"]) as l:
+            for r in self._all_restraints(system):
+                l.write(id=r._id, feature_id_1=r.feature1._id,
+                        feature_id_2=r.feature2._id,
+                        restraint_type=r.distance.restraint_type,
+                        distance_lower_limit=r.distance.distance_lower_limit,
+                        distance_upper_limit=r.distance.distance_upper_limit,
+                        probability=r.probability,
+                        group_conditionality=condmap[r.restrain_all],
                         dataset_list_id=r.dataset._id if r.dataset else None)
 
 
@@ -1430,6 +1459,7 @@ def write(fh, systems):
                _PostProcessDumper(),
                _GeometricObjectDumper(), _FeatureDumper(),
                _CrossLinkDumper(), _GeometricRestraintDumper(),
+               _DerivedDistanceRestraintDumper(),
                _EM3DDumper(),
                _EM2DDumper(),
                _SASDumper(),

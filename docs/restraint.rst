@@ -78,3 +78,6 @@ The :mod:`ihm.restraint` Python module
 
 .. autoclass:: OuterSurfaceGeometricRestraint
    :members:
+
+.. autoclass:: DerivedDistanceRestraint
+   :members:
