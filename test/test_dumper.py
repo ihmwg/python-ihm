@@ -1724,6 +1724,10 @@ _ihm_geometric_object_plane.plane_type
         f = ihm.restraint.PolyResidueFeature([a1, a2(2,3)])
         system.orphan_features.append(f)
 
+        f = ihm.restraint.PolyAtomFeature([a1.residue(1).atom('CA'),
+                                           a2.residue(2).atom('N')])
+        system.orphan_features.append(f)
+
         ihm.dumper._EntityDumper().finalize(system) # assign entity IDs
         ihm.dumper._StructAsymDumper().finalize(system) # assign asym IDs
 
@@ -1736,6 +1740,7 @@ _ihm_feature_list.feature_id
 _ihm_feature_list.feature_type
 _ihm_feature_list.entity_type
 1 'residue range' polymer
+2 atom polymer
 #
 #
 loop_
@@ -1749,6 +1754,18 @@ _ihm_poly_residue_feature.seq_id_end
 _ihm_poly_residue_feature.comp_id_end
 1 1 1 A 1 ALA 4 THR
 2 1 1 B 2 CYS 3 GLY
+#
+#
+loop_
+_ihm_poly_atom_feature.ordinal_id
+_ihm_poly_atom_feature.feature_id
+_ihm_poly_atom_feature.entity_id
+_ihm_poly_atom_feature.asym_id
+_ihm_poly_atom_feature.seq_id
+_ihm_poly_atom_feature.comp_id
+_ihm_poly_atom_feature.atom_id
+1 2 1 A 1 ALA CA
+2 2 1 B 2 CYS N
 #
 """)
 

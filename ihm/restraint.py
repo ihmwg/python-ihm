@@ -399,7 +399,7 @@ class CrossLinkFit(object):
 
 class Feature(object):
     """Base class for selecting parts of the system that a restraint acts on.
-       See :class:`PolyResidueFeature`.
+       See :class:`PolyResidueFeature` and :class:`PolyAtomFeature`.
 
        Features are typically assigned to one or more
        :class:`~ihm.restraint.GeometricRestraint` objects.
@@ -421,6 +421,21 @@ class PolyResidueFeature(Feature):
     # todo: handle case where ranges span multiple entities?
     entity = property(lambda self: self.ranges[0].entity
                                    if self.ranges else None)
+
+
+class PolyAtomFeature(Feature):
+    """Selection of one or more atoms from the system.
+
+       :param sequence atoms: A list of :class:`ihm.Atom` objects.
+    """
+    type = 'atom'
+
+    def __init__(self, atoms):
+        self.atoms = atoms
+
+    # todo: handle case where atoms span multiple entities?
+    entity = property(lambda self: self.atoms[0].residue.asym.entity
+                                   if self.atoms else None)
 
 
 class GeometricRestraint(object):

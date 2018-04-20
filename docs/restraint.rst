@@ -64,6 +64,9 @@ The :mod:`ihm.restraint` Python module
 .. autoclass:: PolyResidueFeature
    :members:
 
+.. autoclass:: PolyAtomFeature
+   :members:
+
 .. autoclass:: GeometricRestraint
    :members:
 
