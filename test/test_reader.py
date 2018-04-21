@@ -29,9 +29,9 @@ class Tests(unittest.TestCase):
                 self.x, self.y = x, y
 
         testlist = []
-        im = ihm.reader._IDMapper(testlist)
-        a = im.make_new(MockObject, 'ID1', ('1', '2'))
-        b = im.make_new(MockObject, 'ID1', ('3', '4'))
+        im = ihm.reader._IDMapper(testlist, MockObject, '1', y='2')
+        a = im.get_by_id('ID1')
+        b = im.get_by_id('ID1')
         self.assertEqual(id(a), id(b))
         self.assertEqual(a.x, '1')
         self.assertEqual(a.y, '2')

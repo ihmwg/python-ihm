@@ -418,7 +418,8 @@ class Citation(object):
                  doi):
         self.title, self.journal, self.volume = title, journal, volume
         self.page_range, self.year = page_range, year
-        self.pmid, self.authors, self.doi = pmid, authors, doi
+        self.pmid, self.doi = pmid, doi
+        self.authors = authors if authors is not None else []
 
     @classmethod
     def from_pubmed_id(cls, pubmed_id):
