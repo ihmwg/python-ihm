@@ -38,6 +38,8 @@ class _SystemReader(object):
                                   *(None,)*4)
         self.citations = _IDMapper(self.system.citations, ihm.Citation,
                                    *(None,)*8)
+        self.entities = _IDMapper(self.system.entities, ihm.Entity, [])
+        self.asym_units = _IDMapper(self.system.asym_units, ihm.AsymUnit, None)
 
 
 class _Handler(object):
@@ -104,6 +106,27 @@ class _CitationAuthorHandler(_Handler):
             s.authors.append(d['name'])
 
 
+class _EntityHandler(_Handler):
+    # todo: read entity sequence
+    category = '_entity'
+
+    def __call__(self, d):
+        s = self.sysr.entities.get_by_id(d['id'])
+        self._copy_if_present(s, d,
+                keys=('details', 'type', 'src_method', 'formula_weight'),
+                mapkeys={'pdbx_description':'description',
+                         'pdbx_number_of_molecules':'number_of_molecules'})
+
+
+class _StructAsymHandler(_Handler):
+    category = '_struct_asym'
+
+    def __call__(self, d):
+        s = self.sysr.asym_units.get_by_id(d['id'])
+        s.entity = self.sysr.entities.get_by_id(d['entity_id'])
+        self._copy_if_present(s, d, keys=('details',))
+
+
 def read(fh):
     """Read data from the mmCIF file handle `fh`.
     
@@ -114,7 +137,8 @@ def read(fh):
 
     s = _SystemReader()
     handlers = [_StructHandler(s), _SoftwareHandler(s), _CitationHandler(s),
-                _CitationAuthorHandler(s)]
+                _CitationAuthorHandler(s), _EntityHandler(s),
+                _StructAsymHandler(s)]
     r = ihm.format.CifReader(fh, dict((h.category, h) for h in handlers))
     r.read_file()
 

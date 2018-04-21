@@ -130,6 +130,44 @@ _citation_author.ordinal
         self.assertEqual(citation4._id, '5')
         self.assertEqual(citation4.authors, ['Baz X'])
 
+    def test_entity_handler(self):
+        """Test EntityHandler"""
+        fh = StringIO("""
+loop_
+_entity.id
+_entity.type
+_entity.pdbx_description
+_entity.pdbx_number_of_molecules
+_entity.details
+1 polymer Nup84 2 .
+2 polymer Nup85 3 .
+""")
+        s, = ihm.reader.read(fh)
+        e1, e2 = s.entities
+        self.assertEqual(e1.description, 'Nup84')
+        self.assertEqual(e1.number_of_molecules, '2') # todo: coerce to int
+
+    def test_asym_unit_handler(self):
+        """Test AsymUnitHandler"""
+        fh = StringIO("""
+loop_
+_struct_asym.id
+_struct_asym.entity_id
+_struct_asym.details
+A 1 Nup84
+B 1 Nup85
+""")
+        s, = ihm.reader.read(fh)
+        a1, a2 = s.asym_units
+        self.assertEqual(a1._id, 'A')
+        self.assertEqual(a1.entity._id, '1')
+
+        self.assertEqual(a1.details, 'Nup84')
+        self.assertEqual(a2.entity._id, '1')
+        self.assertEqual(a2._id, 'B')
+        self.assertEqual(a2.details, 'Nup85')
+        self.assertEqual(id(a1.entity), id(a2.entity))
+
 
 if __name__ == '__main__':
     unittest.main()
