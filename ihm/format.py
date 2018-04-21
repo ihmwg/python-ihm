@@ -346,7 +346,9 @@ class CifReader(object):
             if isinstance(valtoken, _ValueToken):
                 if vartoken.category not in self._category_data:
                     self._category_data[vartoken.category] = {}
-                self._category_data[vartoken.category][vartoken.keyword] \
+                # Treat omitted values as if they don't exist
+                if valtoken.txt != '.':
+                    self._category_data[vartoken.category][vartoken.keyword] \
                                                      = valtoken.txt
             else:
                 raise CifParserError("No valid value found for %s.%s on line %d"
@@ -391,9 +393,9 @@ class CifReader(object):
                     raise CifParserError("Wrong number of data values in loop "
                               "(should be an exact multiple of the number "
                               "of keys) at line %d" % self._linenum)
-            d = {}
-            for key, val in zip(keywords, values):
-                d[key] = val
+            # Treat omitted values as if they don't exist
+            d = dict((key, val) for (key, val) in zip(keywords, values)
+                     if val is not '.')
             handler(d)
 
     def _read_loop(self):

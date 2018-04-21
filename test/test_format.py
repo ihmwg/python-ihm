@@ -196,6 +196,16 @@ x
             self._read_cif(cat + ' foo', {'_exptl':h})
         self.assertEqual(h.data, [{'method':'foo'}])
 
+    def test_omitted_ignored(self):
+        """CIF omitted value ('.') should be ignored"""
+        h = GenericHandler()
+        self._read_cif("_foo.bar 1\n_foo.baz .\n", {'_foo':h})
+        self.assertEqual(h.data, [{'bar':'1'}])
+
+        h = GenericHandler()
+        self._read_cif("loop_\n_foo.bar\n_foo.baz\n1 .\n", {'_foo':h})
+        self.assertEqual(h.data, [{'bar':'1'}])
+
     def test_multiline(self):
         """Check that multiline strings are handled correctly"""
         self._check_bad_cif("_struct_keywords.pdbx_keywords\n"
