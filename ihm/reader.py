@@ -12,13 +12,13 @@ class _IDMapper(object):
         self.system_list = system_list
         self._obj_by_id = {}
 
-    def make_new(self, cls, objid, initargs):
+    def make_new(self, cls, objid, initargs, **keys):
         """Make and return a new object of type `cls` with id `objid`, or
            return an existing one."""
         if objid in self._obj_by_id:
             return self._obj_by_id[objid]
         else:
-            newobj = cls(*initargs)
+            newobj = cls(*initargs, **keys)
             newobj._id = objid
             self._obj_by_id[objid] = newobj
             self.system_list.append(newobj)
@@ -31,6 +31,7 @@ class _SystemReader(object):
     def __init__(self):
         self.system = ihm.System()
         self.software = _IDMapper(self.system.software)
+        self.citations = _IDMapper(self.system.citations)
 
 
 class _Handler(object):
@@ -71,6 +72,35 @@ class _SoftwareHandler(_Handler):
                       'type', 'location'))
 
 
+class _CitationHandler(_Handler):
+    category = '_citation'
+
+    def __call__(self, d):
+        s = self.sysr.citations.make_new(ihm.Citation, d['id'],
+                                        (None,)*6, authors=[], doi=None)
+        self._copy_if_present(s, d,
+                keys=('title', 'year'),
+                mapkeys={'pdbx_database_id_PubMed':'pmid',
+                         'journal_abbrev':'journal',
+                         'journal_volume':'volume',
+                         'pdbx_database_id_DOI':'doi'})
+        if 'page_first' in d:
+            if 'page_last' in d:
+                s.page_range = (d['page_first'], d['page_last'])
+            else:
+                s.page_range = d['page_first']
+
+
+class _CitationAuthorHandler(_Handler):
+    category = '_citation_author'
+
+    def __call__(self, d):
+        s = self.sysr.citations.make_new(ihm.Citation, d['citation_id'],
+                                        (None,)*6, authors=[], doi=None)
+        if 'name' in d:
+            s.authors.append(d['name'])
+
+
 def read(fh):
     """Read data from the mmCIF file handle `fh`.
     
@@ -80,7 +110,8 @@ def read(fh):
     systems = []
 
     s = _SystemReader()
-    handlers = [_StructHandler(s), _SoftwareHandler(s)]
+    handlers = [_StructHandler(s), _SoftwareHandler(s), _CitationHandler(s),
+                _CitationAuthorHandler(s)]
     r = ihm.format.CifReader(fh, dict((h.category, h) for h in handlers))
     r.read_file()
 

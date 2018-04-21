@@ -88,5 +88,41 @@ _software.location
         self.assertEqual(software.classification, 'test class')
 
 
+    def test_citation_handler(self):
+        """Test CitationHandler and CitationAuthorHandler"""
+        fh = StringIO("""
+loop_
+_citation.id
+_citation.journal_abbrev
+_citation.journal_volume
+_citation.page_first
+_citation.page_last
+_citation.year
+2 'Mol Cell Proteomics' 9 2943 . 2014
+3 'Mol Cell Proteomics' 9 2943 2946 2014
+#
+#
+loop_
+_citation_author.citation_id
+_citation_author.name
+_citation_author.ordinal
+3 'Foo A' 1
+3 'Bar C' 2
+4 'Baz X' 3
+""")
+        s, = ihm.reader.read(fh)
+        citation1, citation2, citation3 = s.citations
+        self.assertEqual(citation1._id, '2')
+        self.assertEqual(citation1.page_range, '2943')
+        self.assertEqual(citation1.authors, [])
+
+        self.assertEqual(citation2._id, '3')
+        self.assertEqual(citation2.page_range, ('2943', '2946'))
+        self.assertEqual(citation2.authors, ['Foo A', 'Bar C'])
+        # todo: should probably be an error, no _citation.id == 4
+        self.assertEqual(citation3._id, '4')
+        self.assertEqual(citation3.authors, ['Baz X'])
+
+
 if __name__ == '__main__':
     unittest.main()
