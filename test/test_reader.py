@@ -100,6 +100,7 @@ _citation.page_last
 _citation.year
 2 'Mol Cell Proteomics' 9 2943 . 2014
 3 'Mol Cell Proteomics' 9 2943 2946 2014
+4 'Mol Cell Proteomics' 9 . . 2014
 #
 #
 loop_
@@ -108,10 +109,11 @@ _citation_author.name
 _citation_author.ordinal
 3 'Foo A' 1
 3 'Bar C' 2
-4 'Baz X' 3
+3 . 3
+5 'Baz X' 4
 """)
         s, = ihm.reader.read(fh)
-        citation1, citation2, citation3 = s.citations
+        citation1, citation2, citation3, citation4 = s.citations
         self.assertEqual(citation1._id, '2')
         self.assertEqual(citation1.page_range, '2943')
         self.assertEqual(citation1.authors, [])
@@ -119,9 +121,14 @@ _citation_author.ordinal
         self.assertEqual(citation2._id, '3')
         self.assertEqual(citation2.page_range, ('2943', '2946'))
         self.assertEqual(citation2.authors, ['Foo A', 'Bar C'])
-        # todo: should probably be an error, no _citation.id == 4
+
         self.assertEqual(citation3._id, '4')
-        self.assertEqual(citation3.authors, ['Baz X'])
+        self.assertEqual(citation3.authors, [])
+        self.assertEqual(citation3.page_range, None)
+
+        # todo: should probably be an error, no _citation.id == 4
+        self.assertEqual(citation4._id, '5')
+        self.assertEqual(citation4.authors, ['Baz X'])
 
 
 if __name__ == '__main__':
