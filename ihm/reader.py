@@ -31,7 +31,13 @@ class _IDMapper(object):
         """Get the object with given ID, creating it if it doesn't already
            exist."""
         if objid in self._obj_by_id:
-            return self._obj_by_id[objid]
+            obj = self._obj_by_id[objid]
+            # If this object was referenced by another table before it was
+            # created, it may have the wrong class - fix that retroactively
+            # (need to be careful that old and new classes are compatible)
+            if newcls:
+                obj.__class__ = newcls
+            return obj
         else:
             if newcls is None:
                 newcls = self._cls
@@ -47,13 +53,21 @@ class _ChemCompIDMapper(_IDMapper):
     """Add extra handling to _IDMapper for the chem_comp category"""
     def __init__(self, *args, **keys):
         super(_ChemCompIDMapper, self).__init__(*args, **keys)
-        # populate with standard residue types
+        # get standard residue types
         alphabets = [x[1] for x in inspect.getmembers(ihm, inspect.isclass)
                      if issubclass(x[1], ihm.Alphabet)
                      and x[1] is not ihm.Alphabet]
+        self._standard_by_id = {}
         for alphabet in alphabets:
-            self._obj_by_id.update((item[1].id, item[1])
-                                   for item in alphabet._comps.items())
+            self._standard_by_id.update((item[1].id, item[1])
+                                        for item in alphabet._comps.items())
+
+    def get_by_id(self, objid, newcls=None):
+        # Don't modify class of standard residue types
+        if objid in self._standard_by_id:
+            return self._standard_by_id[objid]
+        else:
+            return super(_ChemCompIDMapper, self).get_by_id(objid, newcls)
 
 
 class _SystemReader(object):

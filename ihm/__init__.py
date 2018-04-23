@@ -481,8 +481,6 @@ class ChemComp(object):
        ``id='DG', code='DG', code_canonical='G'``.
     """
 
-    __slots__ = ['code', 'code_canonical', 'id']
-
     type = 'other'
 
     def __init__(self, id, code, code_canonical):

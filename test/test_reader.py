@@ -132,14 +132,15 @@ _citation_author.ordinal
 
     def test_chem_comp_handler(self):
         """Test ChemCompHandler and EntityPolySeqHandler"""
-        fh = StringIO("""
+        chem_comp_cat = """
 loop_
 _chem_comp.id
 _chem_comp.type
 MET 'L-peptide linking'
+CYS 'D-peptide linking'
 MYTYPE 'D-PEPTIDE LINKING'
-#
-#
+"""
+        entity_poly_cat = """
 loop_
 _entity_poly_seq.entity_id
 _entity_poly_seq.num
@@ -147,19 +148,28 @@ _entity_poly_seq.mon_id
 _entity_poly_seq.hetero
 1 1 MET .
 1 4 MYTYPE .
+1 5 CYS .
 1 2 MET .
-""")
-        s, = ihm.reader.read(fh)
-        e1, = s.entities
-        s = e1.sequence
-        self.assertEqual(len(s), 4)
-        lpeptide = ihm.LPeptideAlphabet()
-        self.assertEqual(id(s[0]), id(lpeptide['M']))
-        self.assertEqual(id(s[1]), id(lpeptide['M']))
-        self.assertEqual(s[2], None)
-        self.assertEqual(s[3].id, 'MYTYPE')
-        self.assertEqual(s[3].type, 'D-peptide linking')
-        self.assertEqual(s[3].__class__, ihm.DPeptideChemComp)
+"""
+        fh1 = StringIO(chem_comp_cat + entity_poly_cat)
+        fh2 = StringIO(entity_poly_cat + chem_comp_cat)
+        # Order of the two categories shouldn't matter
+        for fh in fh1, fh2:
+            s, = ihm.reader.read(fh)
+            e1, = s.entities
+            s = e1.sequence
+            self.assertEqual(len(s), 5)
+            lpeptide = ihm.LPeptideAlphabet()
+            self.assertEqual(id(s[0]), id(lpeptide['M']))
+            self.assertEqual(id(s[1]), id(lpeptide['M']))
+            self.assertEqual(id(s[4]), id(lpeptide['C']))
+            self.assertEqual(s[2], None)
+            self.assertEqual(s[3].id, 'MYTYPE')
+            self.assertEqual(s[3].type, 'D-peptide linking')
+            self.assertEqual(s[3].__class__, ihm.DPeptideChemComp)
+            # Class of standard type shouldn't be changed
+            self.assertEqual(s[4].type, 'L-peptide linking')
+            self.assertEqual(s[4].__class__, ihm.LPeptideChemComp)
 
     def test_entity_handler(self):
         """Test EntityHandler"""
