@@ -363,6 +363,57 @@ _ihm_dataset_group.dataset_list_id
         self.assertEqual(d1.__class__, ihm.dataset.Dataset)
         self.assertEqual(d2.__class__, ihm.dataset.Dataset)
 
+    def test_dataset_extref_handler(self):
+        """Test DatasetExtRefHandler"""
+        fh = StringIO("""
+loop_
+_ihm_dataset_external_reference.id
+_ihm_dataset_external_reference.dataset_list_id
+_ihm_dataset_external_reference.file_id
+1 4 11
+2 6 12
+""")
+        s, = ihm.reader.read(fh)
+        d1, d2 = s.orphan_datasets
+        self.assertEqual(d1._id, '4')
+        self.assertEqual(d1.location._id, '11')
+        self.assertEqual(d2._id, '6')
+        self.assertEqual(d2.location._id, '12')
+
+    def test_dataset_dbref_handler(self):
+        """Test DatasetDBRefHandler"""
+        fh = StringIO("""
+loop_
+_ihm_dataset_related_db_reference.id
+_ihm_dataset_related_db_reference.dataset_list_id
+_ihm_dataset_related_db_reference.db_name
+_ihm_dataset_related_db_reference.accession_code
+_ihm_dataset_related_db_reference.version
+_ihm_dataset_related_db_reference.details
+1 1 PDB 3JRO . .
+2 3 PDB 3F3F 30-OCT-08 'CRYSTAL STRUCTURE'
+3 5 emdb EMD-123 . .
+4 6 . . . .
+""")
+        s, = ihm.reader.read(fh)
+        d1, d2, d3, d4 = s.orphan_datasets
+        self.assertEqual(d1.location.db_name, 'PDB')
+        self.assertEqual(d1.location.__class__, ihm.location.PDBLocation)
+        self.assertEqual(d1.location.access_code, '3JRO')
+        self.assertEqual(d2.location.db_name, 'PDB')
+        self.assertEqual(d2.location.__class__, ihm.location.PDBLocation)
+        self.assertEqual(d2.location.access_code, '3F3F')
+        self.assertEqual(d2.location.version, '30-OCT-08')
+        self.assertEqual(d2.location.details, 'CRYSTAL STRUCTURE')
+        self.assertEqual(d3.location.db_name, 'EMDB')
+        self.assertEqual(d3.location.__class__, ihm.location.EMDBLocation)
+        self.assertEqual(d3.location.access_code, 'EMD-123')
+        self.assertEqual(d3.location.version, None)
+        self.assertEqual(d3.location.details, None)
+        self.assertEqual(d4.location.db_name, None)
+        self.assertEqual(d4.location.__class__, ihm.location.DatabaseLocation)
+        self.assertEqual(d4.location.access_code, None)
+
 
 if __name__ == '__main__':
     unittest.main()

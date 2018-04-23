@@ -93,6 +93,8 @@ class _SystemReader(object):
         self.external_files = _IDMapper(self.system.locations,
                                  ihm.location.FileLocation,
                                  '/') # should always exist?
+        self.db_locations = _IDMapper(self.system.locations,
+                                 ihm.location.DatabaseLocation, None, None)
         self.datasets = _IDMapper(self.system.orphan_datasets,
                                   ihm.dataset.Dataset, None)
         self.dataset_groups = _IDMapper(self.system.orphan_dataset_groups,
@@ -271,7 +273,8 @@ class _ExtRefHandler(_Handler):
     def finalize(self):
         # Map use of placeholder _LocalFiles repository to repo=None
         for location in self.system.locations:
-            if isinstance(location.repo, _LocalFiles):
+            if hasattr(location, 'repo') \
+                    and isinstance(location.repo, _LocalFiles):
                 location.repo = None
 
 
@@ -330,8 +333,45 @@ class _DatasetGroupHandler(_Handler):
 
     def __call__(self, d):
         g = self.sysr.dataset_groups.get_by_id(d['group_id'])
-        d = self.sysr.datasets.get_by_id(d['dataset_list_id'])
-        g.append(d)
+        ds = self.sysr.datasets.get_by_id(d['dataset_list_id'])
+        g.append(ds)
+
+
+class _DatasetExtRefHandler(_Handler):
+    category = '_ihm_dataset_external_reference'
+
+    def __call__(self, d):
+        ds = self.sysr.datasets.get_by_id(d['dataset_list_id'])
+        f = self.sysr.external_files.get_by_id(d['file_id'])
+        ds.location = f
+
+
+class _DatasetDBRefHandler(_Handler):
+    category = '_ihm_dataset_related_db_reference'
+
+    def __init__(self, *args):
+        super(_DatasetDBRefHandler, self).__init__(*args)
+        # Map data_type to corresponding
+        # subclass of ihm.location.DatabaseLocation
+        self.type_map = dict(
+                (x[1]._db_name.lower(), x[1])
+                for x in inspect.getmembers(ihm.location, inspect.isclass)
+                if issubclass(x[1], ihm.location.DatabaseLocation)
+                and x[1] is not ihm.location.DatabaseLocation)
+
+    def __call__(self, d):
+        ds = self.sysr.datasets.get_by_id(d['dataset_list_id'])
+        if 'db_name' in d:
+            typ = d['db_name'].lower()
+        else:
+            typ = None
+        dbloc = self.sysr.db_locations.get_by_id(d['id'],
+                                                 self.type_map.get(typ, None))
+        ds.location = dbloc
+        self._copy_if_present(dbloc, d,
+                    keys=['version', 'details'],
+                    mapkeys={'accession_code':'access_code'})
+
 
 
 def read(fh):
@@ -349,7 +389,8 @@ def read(fh):
                     _EntityHandler(s), _EntityPolySeqHandler(s),
                     _StructAsymHandler(s), _AssemblyDetailsHandler(s),
                     _AssemblyHandler(s), _ExtRefHandler(s), _ExtFileHandler(s),
-                    _DatasetListHandler(s), _DatasetGroupHandler(s)]
+                    _DatasetListHandler(s), _DatasetGroupHandler(s),
+                    _DatasetExtRefHandler(s), _DatasetDBRefHandler(s)]
         r = ihm.format.CifReader(fh, dict((h.category, h) for h in handlers))
         more_data = r.read_file()
         for h in handlers:
