@@ -248,6 +248,40 @@ _ihm_struct_assembly.seq_id_end
         self.assertEqual(a2[0]._id, '2')
         self.assertEqual(a2[0].seq_id_range, (1,50))
 
+    def test_external_file_handler(self):
+        """Test ExtRef and ExtFileHandler"""
+        fh = StringIO("""
+loop_
+_ihm_external_reference_info.reference_id
+_ihm_external_reference_info.reference_provider
+_ihm_external_reference_info.reference_type
+_ihm_external_reference_info.reference
+_ihm_external_reference_info.refers_to
+_ihm_external_reference_info.associated_url
+1 Zenodo DOI 10.5281/zenodo.1218053 Archive https://example.com/foo.zip
+2 . 'Supplementary Files' . Other .
+#
+loop_
+_ihm_external_files.id
+_ihm_external_files.reference_id
+_ihm_external_files.file_path
+_ihm_external_files.content_type
+_ihm_external_files.details
+1 1 scripts/test.py 'Modeling workflow or script' 'Test script'
+2 2 foo/bar.txt 'Input data or restraints' 'Test text'
+""")
+        s, = ihm.reader.read(fh)
+        l1, l2 = s.locations
+        self.assertEqual(l1.path, 'scripts/test.py')
+        self.assertEqual(l1.details, 'Test script')
+        self.assertEqual(l1.repo.doi, '10.5281/zenodo.1218053')
+        self.assertEqual(l1.__class__, ihm.location.WorkflowFileLocation)
+
+        self.assertEqual(l2.path, 'foo/bar.txt')
+        self.assertEqual(l2.details, 'Test text')
+        self.assertEqual(l2.repo, None)
+        self.assertEqual(l2.__class__, ihm.location.InputFileLocation)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,6 +1,7 @@
 """Utility classes to read in information in mmCIF format"""
 
 import ihm.format
+import ihm.location
 import inspect
 
 def _make_new_entity():
@@ -71,6 +72,10 @@ class _SystemReader(object):
                                             *(None,)*3)
         self.assemblies = _IDMapper(self.system.orphan_assemblies, ihm.Assembly,
                                     '_id')
+        self.repos = _IDMapper(None, ihm.location.Repository, '_id', None)
+        self.external_files = _IDMapper(self.system.locations,
+                                 ihm.location.FileLocation, '_id',
+                                 '/') # should always exist?
 
 
 class _Handler(object):
@@ -214,6 +219,46 @@ class _AssemblyHandler(_Handler):
             a.append(entity(*seqrng))
 
 
+class _ExtRefHandler(_Handler):
+    category = '_ihm_external_reference_info'
+
+    def __call__(self, d):
+        ref_id = d['reference_id']
+        repo = self.sysr.repos.get_by_id(ref_id)
+        typ = d.get('reference_type', 'DOI').lower()
+        if typ == 'supplementary files':
+            self.sysr.repos._obj_by_id[ref_id] = repo = None
+        else:
+            self._copy_if_present(repo, d,
+                    mapkeys={'reference':'doi', 'associated_url':'url'})
+
+
+class _ExtFileHandler(_Handler):
+    category = '_ihm_external_files'
+
+    def __init__(self, *args):
+        super(_ExtFileHandler, self).__init__(*args)
+        # Map _ihm_external_files.content_type to corresponding
+        # subclass of ihm.location.FileLocation
+        self.type_map = dict(
+                (x[1].content_type.lower(), x[1])
+                for x in inspect.getmembers(ihm.location, inspect.isclass)
+                if issubclass(x[1], ihm.location.FileLocation)
+                and x[1] is not ihm.location.FileLocation)
+
+    def __call__(self, d):
+        if 'content_type' in d:
+            typ = d['content_type'].lower()
+        else:
+            typ = None
+        f = self.sysr.external_files.get_by_id(d['id'],
+                             self.type_map.get(typ, ihm.location.FileLocation))
+        f.repo = self.sysr.repos.get_by_id(d['reference_id'])
+        self._copy_if_present(f, d,
+                    keys=['details'],
+                    mapkeys={'file_path':'path'})
+
+
 def read(fh):
     """Read data from the mmCIF file handle `fh`.
     
@@ -227,7 +272,7 @@ def read(fh):
                 _CitationAuthorHandler(s), _ChemCompHandler(s),
                 _EntityHandler(s), _EntityPolySeqHandler(s),
                 _StructAsymHandler(s), _AssemblyDetailsHandler(s),
-                _AssemblyHandler(s)]
+                _AssemblyHandler(s), _ExtRefHandler(s), _ExtFileHandler(s)]
     r = ihm.format.CifReader(fh, dict((h.category, h) for h in handlers))
     r.read_file()
 
