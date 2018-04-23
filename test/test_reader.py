@@ -29,7 +29,7 @@ class Tests(unittest.TestCase):
                 self.x, self.y = x, y
 
         testlist = []
-        im = ihm.reader._IDMapper(testlist, MockObject, '1', y='2')
+        im = ihm.reader._IDMapper(testlist, MockObject, '_id', '1', y='2')
         a = im.get_by_id('ID1')
         b = im.get_by_id('ID1')
         self.assertEqual(id(a), id(b))
@@ -129,6 +129,37 @@ _citation_author.ordinal
         # todo: should probably be an error, no _citation.id == 4
         self.assertEqual(citation4._id, '5')
         self.assertEqual(citation4.authors, ['Baz X'])
+
+    def test_chem_comp_handler(self):
+        """Test ChemCompHandler and EntityPolySeqHandler"""
+        fh = StringIO("""
+loop_
+_chem_comp.id
+_chem_comp.type
+MET 'L-peptide linking'
+MYTYPE 'D-PEPTIDE LINKING'
+#
+#
+loop_
+_entity_poly_seq.entity_id
+_entity_poly_seq.num
+_entity_poly_seq.mon_id
+_entity_poly_seq.hetero
+1 1 MET .
+1 4 MYTYPE .
+1 2 MET .
+""")
+        s, = ihm.reader.read(fh)
+        e1, = s.entities
+        s = e1.sequence
+        self.assertEqual(len(s), 4)
+        lpeptide = ihm.LPeptideAlphabet()
+        self.assertEqual(id(s[0]), id(lpeptide['M']))
+        self.assertEqual(id(s[1]), id(lpeptide['M']))
+        self.assertEqual(s[2], None)
+        self.assertEqual(s[3].id, 'MYTYPE')
+        self.assertEqual(s[3].type, 'D-peptide linking')
+        self.assertEqual(s[3].__class__, ihm.DPeptideChemComp)
 
     def test_entity_handler(self):
         """Test EntityHandler"""
