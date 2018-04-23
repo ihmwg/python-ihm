@@ -97,6 +97,9 @@ class _Handler(object):
     def __init__(self, sysr):
         self.sysr = sysr
 
+    def finalize(self):
+        pass
+
     def _copy_if_present(self, obj, data, keys=[], mapkeys={}):
         """Set obj.x from data['x'] for each x in keys if present in data.
            The dict mapkeys is handled similarly except that its keys are looked
@@ -233,18 +236,36 @@ class _AssemblyHandler(_Handler):
             a.append(entity(*seqrng))
 
 
+class _LocalFiles(ihm.location.Repository):
+    """Placeholder for files stored locally"""
+    reference_provider = None
+    reference_type = 'Supplementary Files'
+    reference = None
+    refers_to = 'Other'
+    url = None
+
+
 class _ExtRefHandler(_Handler):
     category = '_ihm_external_reference_info'
 
+    def __init__(self, *args):
+        super(_ExtRefHandler, self).__init__(*args)
+        self.type_map = {'doi':ihm.location.Repository,
+                         'supplementary files':_LocalFiles}
+
     def __call__(self, d):
         ref_id = d['reference_id']
-        repo = self.sysr.repos.get_by_id(ref_id)
         typ = d.get('reference_type', 'DOI').lower()
-        if typ == 'supplementary files':
-            self.sysr.repos._obj_by_id[ref_id] = repo = None
-        else:
-            self._copy_if_present(repo, d,
+        repo = self.sysr.repos.get_by_id(ref_id,
+                             self.type_map.get(typ, ihm.location.Repository))
+        self._copy_if_present(repo, d,
                     mapkeys={'reference':'doi', 'associated_url':'url'})
+
+    def finalize(self):
+        # Map use of placeholder _LocalFiles repository to repo=None
+        for location in self.system.locations:
+            if isinstance(location.repo, _LocalFiles):
+                location.repo = None
 
 
 class _ExtFileHandler(_Handler):
@@ -271,6 +292,9 @@ class _ExtFileHandler(_Handler):
         self._copy_if_present(f, d,
                     keys=['details'],
                     mapkeys={'file_path':'path'})
+        # Handle DOI that is itself a file
+        if 'file_path' not in d:
+            f.path = '.'
 
 
 def read(fh):
@@ -289,6 +313,8 @@ def read(fh):
                 _AssemblyHandler(s), _ExtRefHandler(s), _ExtFileHandler(s)]
     r = ihm.format.CifReader(fh, dict((h.category, h) for h in handlers))
     r.read_file()
+    for h in handlers:
+        h.finalize()
 
     # todo: handle multiple systems (from multiple data blocks)
     systems.append(s.system)

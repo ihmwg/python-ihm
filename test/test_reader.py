@@ -260,7 +260,7 @@ _ihm_struct_assembly.seq_id_end
 
     def test_external_file_handler(self):
         """Test ExtRef and ExtFileHandler"""
-        fh = StringIO("""
+        ext_ref_cat = """
 loop_
 _ihm_external_reference_info.reference_id
 _ihm_external_reference_info.reference_provider
@@ -270,7 +270,9 @@ _ihm_external_reference_info.refers_to
 _ihm_external_reference_info.associated_url
 1 Zenodo DOI 10.5281/zenodo.1218053 Archive https://example.com/foo.zip
 2 . 'Supplementary Files' . Other .
-#
+3 Zenodo DOI 10.5281/zenodo.1218058 File https://example.com/foo.dcd
+"""
+        ext_file_cat = """
 loop_
 _ihm_external_files.id
 _ihm_external_files.reference_id
@@ -279,18 +281,28 @@ _ihm_external_files.content_type
 _ihm_external_files.details
 1 1 scripts/test.py 'Modeling workflow or script' 'Test script'
 2 2 foo/bar.txt 'Input data or restraints' 'Test text'
-""")
-        s, = ihm.reader.read(fh)
-        l1, l2 = s.locations
-        self.assertEqual(l1.path, 'scripts/test.py')
-        self.assertEqual(l1.details, 'Test script')
-        self.assertEqual(l1.repo.doi, '10.5281/zenodo.1218053')
-        self.assertEqual(l1.__class__, ihm.location.WorkflowFileLocation)
+3 3 . 'Modeling or post-processing output' 'Ensemble structures'
+"""
+        # Order of the categories shouldn't matter
+        fh1 = StringIO(ext_ref_cat + ext_file_cat)
+        fh2 = StringIO(ext_file_cat + ext_ref_cat)
+        for fh in fh1, fh2:
+            s, = ihm.reader.read(fh)
+            l1, l2, l3 = s.locations
+            self.assertEqual(l1.path, 'scripts/test.py')
+            self.assertEqual(l1.details, 'Test script')
+            self.assertEqual(l1.repo.doi, '10.5281/zenodo.1218053')
+            self.assertEqual(l1.__class__, ihm.location.WorkflowFileLocation)
 
-        self.assertEqual(l2.path, 'foo/bar.txt')
-        self.assertEqual(l2.details, 'Test text')
-        self.assertEqual(l2.repo, None)
-        self.assertEqual(l2.__class__, ihm.location.InputFileLocation)
+            self.assertEqual(l2.path, 'foo/bar.txt')
+            self.assertEqual(l2.details, 'Test text')
+            self.assertEqual(l2.repo, None)
+            self.assertEqual(l2.__class__, ihm.location.InputFileLocation)
+
+            self.assertEqual(l3.path, '.')
+            self.assertEqual(l3.details, 'Ensemble structures')
+            self.assertEqual(l3.repo.doi, '10.5281/zenodo.1218058')
+            self.assertEqual(l3.__class__, ihm.location.OutputFileLocation)
 
 
 if __name__ == '__main__':
