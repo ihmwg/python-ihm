@@ -69,6 +69,8 @@ class _SystemReader(object):
                                     None)
         self.chem_comps = _ChemCompIDMapper(None, ihm.ChemComp, 'id',
                                             *(None,)*3)
+        self.assemblies = _IDMapper(self.system.orphan_assemblies, ihm.Assembly,
+                                    '_id')
 
 
 class _Handler(object):
@@ -182,6 +184,36 @@ class _StructAsymHandler(_Handler):
         self._copy_if_present(s, d, keys=('details',))
 
 
+class _AssemblyDetailsHandler(_Handler):
+    category = '_ihm_struct_assembly_details'
+
+    def __call__(self, d):
+        s = self.sysr.assemblies.get_by_id(d['assembly_id'])
+        self._copy_if_present(s, d,
+                mapkeys={'assembly_name':'name',
+                         'assembly_description':'description'})
+
+
+class _AssemblyHandler(_Handler):
+    # todo: figure out how to populate System.complete_assembly
+    category = '_ihm_struct_assembly'
+
+    def __call__(self, d):
+        a_id = d['assembly_id']
+        a = self.sysr.assemblies.get_by_id(a_id)
+        parent_id = d.get('parent_assembly_id', None)
+        if parent_id and parent_id != a_id and not a.parent:
+            a.parent = self.sysr.assemblies.get_by_id(parent_id)
+        seqrng = (int(d['seq_id_begin']), int(d['seq_id_end']))
+        asym_id = d.get('asym_id', None)
+        if asym_id:
+            asym = self.sysr.asym_units.get_by_id(asym_id)
+            a.append(asym(*seqrng))
+        else:
+            entity = self.sysr.entities.get_by_id(d['entity_id'])
+            a.append(entity(*seqrng))
+
+
 def read(fh):
     """Read data from the mmCIF file handle `fh`.
     
@@ -194,7 +226,8 @@ def read(fh):
     handlers = [_StructHandler(s), _SoftwareHandler(s), _CitationHandler(s),
                 _CitationAuthorHandler(s), _ChemCompHandler(s),
                 _EntityHandler(s), _EntityPolySeqHandler(s),
-                _StructAsymHandler(s)]
+                _StructAsymHandler(s), _AssemblyDetailsHandler(s),
+                _AssemblyHandler(s)]
     r = ihm.format.CifReader(fh, dict((h.category, h) for h in handlers))
     r.read_file()
 

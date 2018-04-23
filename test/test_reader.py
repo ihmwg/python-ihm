@@ -199,6 +199,55 @@ B 1 Nup85
         self.assertEqual(a2.details, 'Nup85')
         self.assertEqual(id(a1.entity), id(a2.entity))
 
+    def test_assembly_details_handler(self):
+        """Test AssemblyDetailsHandler"""
+        fh = StringIO("""
+loop_
+_ihm_struct_assembly_details.assembly_id
+_ihm_struct_assembly_details.assembly_name
+_ihm_struct_assembly_details.assembly_description
+1 'Complete assembly' 'All known components'
+""")
+        s, = ihm.reader.read(fh)
+        a1, = s.orphan_assemblies
+        self.assertEqual(a1._id, '1')
+        self.assertEqual(a1.name, 'Complete assembly')
+        self.assertEqual(a1.description, 'All known components')
+
+    def test_assembly_handler(self):
+        """Test AssemblyHandler"""
+        fh = StringIO("""
+loop_
+_ihm_struct_assembly.ordinal_id
+_ihm_struct_assembly.assembly_id
+_ihm_struct_assembly.parent_assembly_id
+_ihm_struct_assembly.entity_description
+_ihm_struct_assembly.entity_id
+_ihm_struct_assembly.asym_id
+_ihm_struct_assembly.seq_id_begin
+_ihm_struct_assembly.seq_id_end
+1 1 1 Nup84 1 A 1 726
+2 1 1 Nup85 2 B 1 744
+3 2 1 Nup86 2 . 1 50
+""")
+        s, = ihm.reader.read(fh)
+        a1, a2 = s.orphan_assemblies
+        self.assertEqual(a1._id, '1')
+        self.assertEqual(a1.parent, None)
+        self.assertEqual(len(a1), 2)
+        # AsymUnitRange
+        self.assertEqual(a1[0]._id, 'A')
+        self.assertEqual(a1[0].seq_id_range, (1,726))
+        self.assertEqual(a1[1]._id, 'B')
+        self.assertEqual(a1[1].seq_id_range, (1,744))
+
+        self.assertEqual(a2._id, '2')
+        self.assertEqual(a2.parent, a1)
+        # EntityRange
+        self.assertEqual(len(a2), 1)
+        self.assertEqual(a2[0]._id, '2')
+        self.assertEqual(a2[0].seq_id_range, (1,50))
+
 
 if __name__ == '__main__':
     unittest.main()
