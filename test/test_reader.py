@@ -29,7 +29,7 @@ class Tests(unittest.TestCase):
                 self.x, self.y = x, y
 
         testlist = []
-        im = ihm.reader._IDMapper(testlist, MockObject, '_id', '1', y='2')
+        im = ihm.reader._IDMapper(testlist, MockObject, '1', y='2')
         a = im.get_by_id('ID1')
         b = im.get_by_id('ID1')
         self.assertEqual(id(a), id(b))

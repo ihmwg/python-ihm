@@ -17,12 +17,14 @@ class _IDMapper(object):
        :param list system_list: The list in :class:`ihm.System` that keeps
               track of these objects.
        :param class cls: The base class for the Python objects.
-       :param str id_attr: The attribute in the class used to store the ID.
     """
-    def __init__(self, system_list, cls, id_attr, *cls_args, **cls_keys):
+
+    # The attribute in the class used to store the ID
+    id_attr = '_id'
+
+    def __init__(self, system_list, cls, *cls_args, **cls_keys):
         self.system_list = system_list
         self._obj_by_id = {}
-        self._id_attr = id_attr
         self._cls = cls
         self._cls_args = cls_args
         self._cls_keys = cls_keys
@@ -42,7 +44,7 @@ class _IDMapper(object):
             if newcls is None:
                 newcls = self._cls
             newobj = newcls(*self._cls_args, **self._cls_keys)
-            setattr(newobj, self._id_attr, objid)
+            setattr(newobj, self.id_attr, objid)
             self._obj_by_id[objid] = newobj
             if self.system_list is not None:
                 self.system_list.append(newobj)
@@ -51,6 +53,9 @@ class _IDMapper(object):
 
 class _ChemCompIDMapper(_IDMapper):
     """Add extra handling to _IDMapper for the chem_comp category"""
+
+    id_attr = 'id'
+
     def __init__(self, *args, **keys):
         super(_ChemCompIDMapper, self).__init__(*args, **keys)
         # get standard residue types
@@ -75,20 +80,17 @@ class _SystemReader(object):
        as the mapping from IDs to objects."""
     def __init__(self):
         self.system = ihm.System()
-        self.software = _IDMapper(self.system.software, ihm.Software, '_id',
+        self.software = _IDMapper(self.system.software, ihm.Software,
                                   *(None,)*4)
-        self.citations = _IDMapper(self.system.citations, ihm.Citation, '_id',
+        self.citations = _IDMapper(self.system.citations, ihm.Citation,
                                    *(None,)*8)
-        self.entities = _IDMapper(self.system.entities, _make_new_entity, '_id')
-        self.asym_units = _IDMapper(self.system.asym_units, ihm.AsymUnit, '_id',
-                                    None)
-        self.chem_comps = _ChemCompIDMapper(None, ihm.ChemComp, 'id',
-                                            *(None,)*3)
-        self.assemblies = _IDMapper(self.system.orphan_assemblies, ihm.Assembly,
-                                    '_id')
-        self.repos = _IDMapper(None, ihm.location.Repository, '_id', None)
+        self.entities = _IDMapper(self.system.entities, _make_new_entity)
+        self.asym_units = _IDMapper(self.system.asym_units, ihm.AsymUnit, None)
+        self.chem_comps = _ChemCompIDMapper(None, ihm.ChemComp, *(None,)*3)
+        self.assemblies = _IDMapper(self.system.orphan_assemblies, ihm.Assembly)
+        self.repos = _IDMapper(None, ihm.location.Repository, None)
         self.external_files = _IDMapper(self.system.locations,
-                                 ihm.location.FileLocation, '_id',
+                                 ihm.location.FileLocation,
                                  '/') # should always exist?
 
 
