@@ -282,13 +282,14 @@ _ihm_external_files.details
 1 1 scripts/test.py 'Modeling workflow or script' 'Test script'
 2 2 foo/bar.txt 'Input data or restraints' 'Test text'
 3 3 . 'Modeling or post-processing output' 'Ensemble structures'
+4 3 . . .
 """
         # Order of the categories shouldn't matter
         fh1 = StringIO(ext_ref_cat + ext_file_cat)
         fh2 = StringIO(ext_file_cat + ext_ref_cat)
         for fh in fh1, fh2:
             s, = ihm.reader.read(fh)
-            l1, l2, l3 = s.locations
+            l1, l2, l3, l4 = s.locations
             self.assertEqual(l1.path, 'scripts/test.py')
             self.assertEqual(l1.details, 'Test script')
             self.assertEqual(l1.repo.doi, '10.5281/zenodo.1218053')
@@ -303,6 +304,12 @@ _ihm_external_files.details
             self.assertEqual(l3.details, 'Ensemble structures')
             self.assertEqual(l3.repo.doi, '10.5281/zenodo.1218058')
             self.assertEqual(l3.__class__, ihm.location.OutputFileLocation)
+
+            self.assertEqual(l4.path, '.')
+            self.assertEqual(l4.details, None)
+            self.assertEqual(l4.repo.doi, '10.5281/zenodo.1218058')
+            # Type is unspecified
+            self.assertEqual(l4.__class__, ihm.location.FileLocation)
 
     def test_dataset_list_handler(self):
         """Test DatasetListHandler"""
