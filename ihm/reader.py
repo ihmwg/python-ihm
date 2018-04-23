@@ -95,6 +95,8 @@ class _SystemReader(object):
                                  '/') # should always exist?
         self.datasets = _IDMapper(self.system.orphan_datasets,
                                   ihm.dataset.Dataset, None)
+        self.dataset_groups = _IDMapper(self.system.orphan_dataset_groups,
+                                  ihm.dataset.DatasetGroup)
 
 
 class _Handler(object):
@@ -323,6 +325,15 @@ class _DatasetListHandler(_Handler):
                              self.type_map.get(typ, ihm.dataset.Dataset))
 
 
+class _DatasetGroupHandler(_Handler):
+    category = '_ihm_dataset_group'
+
+    def __call__(self, d):
+        g = self.sysr.dataset_groups.get_by_id(d['group_id'])
+        d = self.sysr.datasets.get_by_id(d['dataset_list_id'])
+        g.append(d)
+
+
 def read(fh):
     """Read data from the mmCIF file handle `fh`.
     
@@ -337,7 +348,7 @@ def read(fh):
                 _EntityHandler(s), _EntityPolySeqHandler(s),
                 _StructAsymHandler(s), _AssemblyDetailsHandler(s),
                 _AssemblyHandler(s), _ExtRefHandler(s), _ExtFileHandler(s),
-                _DatasetListHandler(s)]
+                _DatasetListHandler(s), _DatasetGroupHandler(s)]
     r = ihm.format.CifReader(fh, dict((h.category, h) for h in handlers))
     r.read_file()
     for h in handlers:

@@ -324,6 +324,26 @@ _ihm_dataset_list.database_hosted
         # No specified data type - use base class
         self.assertEqual(d4.__class__, ihm.dataset.Dataset)
 
+    def test_dataset_group_handler(self):
+        """Test DatasetGroupHandler"""
+        fh = StringIO("""
+loop_
+_ihm_dataset_group.ordinal_id
+_ihm_dataset_group.group_id
+_ihm_dataset_group.dataset_list_id
+1 1 1
+2 1 2
+""")
+        s, = ihm.reader.read(fh)
+        d1, d2 = s.orphan_datasets
+        g1, = s.orphan_dataset_groups
+        self.assertEqual(len(g1), 2)
+        self.assertEqual(g1[0], d1)
+        self.assertEqual(g1[1], d2)
+        # No type specified yet
+        self.assertEqual(d1.__class__, ihm.dataset.Dataset)
+        self.assertEqual(d2.__class__, ihm.dataset.Dataset)
+
 
 if __name__ == '__main__':
     unittest.main()
