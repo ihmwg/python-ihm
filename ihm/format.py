@@ -3,7 +3,7 @@
    This module provides classes to read in and write out mmCIF files. It is
    only concerned with handling syntactically correct CIF - it does not know
    the set of tables or the mapping to ihm objects. For that,
-   see :mod:`ihm.dumper` for writing (reading to come).
+   see :mod:`ihm.dumper` for writing and :mod:`ihm.reader` for reading.
 """
 
 from __future__ import print_function
