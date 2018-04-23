@@ -304,6 +304,26 @@ _ihm_external_files.details
             self.assertEqual(l3.repo.doi, '10.5281/zenodo.1218058')
             self.assertEqual(l3.__class__, ihm.location.OutputFileLocation)
 
+    def test_dataset_list_handler(self):
+        """Test DatasetListHandler"""
+        fh = StringIO("""
+loop_
+_ihm_dataset_list.id
+_ihm_dataset_list.data_type
+_ihm_dataset_list.database_hosted
+1 'Experimental model' YES
+2 'COMPARATIVE MODEL' YES
+3 'EM raw micrographs' YES
+4 . YES
+""")
+        s, = ihm.reader.read(fh)
+        d1, d2, d3, d4 = s.orphan_datasets
+        self.assertEqual(d1.__class__, ihm.dataset.PDBDataset)
+        self.assertEqual(d2.__class__, ihm.dataset.ComparativeModelDataset)
+        self.assertEqual(d3.__class__, ihm.dataset.EMMicrographsDataset)
+        # No specified data type - use base class
+        self.assertEqual(d4.__class__, ihm.dataset.Dataset)
+
 
 if __name__ == '__main__':
     unittest.main()

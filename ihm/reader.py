@@ -2,6 +2,7 @@
 
 import ihm.format
 import ihm.location
+import ihm.dataset
 import inspect
 
 def _make_new_entity():
@@ -92,6 +93,8 @@ class _SystemReader(object):
         self.external_files = _IDMapper(self.system.locations,
                                  ihm.location.FileLocation,
                                  '/') # should always exist?
+        self.datasets = _IDMapper(self.system.orphan_datasets,
+                                  ihm.dataset.Dataset, None)
 
 
 class _Handler(object):
@@ -299,6 +302,27 @@ class _ExtFileHandler(_Handler):
             f.path = '.'
 
 
+class _DatasetListHandler(_Handler):
+    category = '_ihm_dataset_list'
+
+    def __init__(self, *args):
+        super(_DatasetListHandler, self).__init__(*args)
+        # Map data_type to corresponding
+        # subclass of ihm.dataset.Dataset
+        self.type_map = dict(
+                (x[1].data_type.lower(), x[1])
+                for x in inspect.getmembers(ihm.dataset, inspect.isclass)
+                if issubclass(x[1], ihm.dataset.Dataset))
+
+    def __call__(self, d):
+        if 'data_type' in d:
+            typ = d['data_type'].lower()
+        else:
+            typ = None
+        f = self.sysr.datasets.get_by_id(d['id'],
+                             self.type_map.get(typ, ihm.dataset.Dataset))
+
+
 def read(fh):
     """Read data from the mmCIF file handle `fh`.
     
@@ -312,7 +336,8 @@ def read(fh):
                 _CitationAuthorHandler(s), _ChemCompHandler(s),
                 _EntityHandler(s), _EntityPolySeqHandler(s),
                 _StructAsymHandler(s), _AssemblyDetailsHandler(s),
-                _AssemblyHandler(s), _ExtRefHandler(s), _ExtFileHandler(s)]
+                _AssemblyHandler(s), _ExtRefHandler(s), _ExtFileHandler(s),
+                _DatasetListHandler(s)]
     r = ihm.format.CifReader(fh, dict((h.category, h) for h in handlers))
     r.read_file()
     for h in handlers:
