@@ -413,6 +413,8 @@ class CifReader(object):
            at the very end of the file.
 
            :exc:`CifParserError` will be raised if the file cannot be parsed.
+
+           :return: True iff more data blocks are available to be read.
         """
         ndata = 0
         while True:
@@ -425,8 +427,13 @@ class CifReader(object):
                 ndata += 1
                 # Only read the first data block
                 if ndata > 1:
+                    # Allow reading the next data block
+                    self._unget_token()
                     break
             elif isinstance(token, _LoopToken):
                 self._read_loop()
         for cat, data in self._category_data.items():
             self.category_handler[cat](data)
+        # Clear category data for next call to read_file()
+        self._category_data = {}
+        return ndata > 1

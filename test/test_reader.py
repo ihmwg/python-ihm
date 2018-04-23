@@ -68,6 +68,18 @@ class Tests(unittest.TestCase):
         self.assertEqual(s.id, 'eid')
         self.assertEqual(s.title, 'Test title')
 
+    def test_multiple_systems(self):
+        """Test multiple systems from data blocks"""
+        fh = StringIO("""
+data_id1
+_struct.entry_id id1
+data_id2
+_struct.entry_id id2
+""")
+        s1, s2 = ihm.reader.read(fh)
+        self.assertEqual(s1.id, 'id1')
+        self.assertEqual(s2.id, 'id2')
+
     def test_software_handler(self):
         """Test SoftwareHandler"""
         fh = StringIO("""

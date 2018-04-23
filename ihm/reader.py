@@ -342,18 +342,20 @@ def read(fh):
     """
     systems = []
 
-    s = _SystemReader()
-    handlers = [_StructHandler(s), _SoftwareHandler(s), _CitationHandler(s),
-                _CitationAuthorHandler(s), _ChemCompHandler(s),
-                _EntityHandler(s), _EntityPolySeqHandler(s),
-                _StructAsymHandler(s), _AssemblyDetailsHandler(s),
-                _AssemblyHandler(s), _ExtRefHandler(s), _ExtFileHandler(s),
-                _DatasetListHandler(s), _DatasetGroupHandler(s)]
-    r = ihm.format.CifReader(fh, dict((h.category, h) for h in handlers))
-    r.read_file()
-    for h in handlers:
-        h.finalize()
+    while True:
+        s = _SystemReader()
+        handlers = [_StructHandler(s), _SoftwareHandler(s), _CitationHandler(s),
+                    _CitationAuthorHandler(s), _ChemCompHandler(s),
+                    _EntityHandler(s), _EntityPolySeqHandler(s),
+                    _StructAsymHandler(s), _AssemblyDetailsHandler(s),
+                    _AssemblyHandler(s), _ExtRefHandler(s), _ExtFileHandler(s),
+                    _DatasetListHandler(s), _DatasetGroupHandler(s)]
+        r = ihm.format.CifReader(fh, dict((h.category, h) for h in handlers))
+        more_data = r.read_file()
+        for h in handlers:
+            h.finalize()
+        systems.append(s.system)
+        if not more_data:
+            break
 
-    # todo: handle multiple systems (from multiple data blocks)
-    systems.append(s.system)
     return systems

@@ -259,14 +259,28 @@ oneval
     def test_first_data_block(self):
         """Only information from the first data block should be read"""
         h = GenericHandler()
-        self._read_cif("""
+        cif = StringIO("""
 _foo.var1 test1
 data_model
 _foo.var2 test2
 data_model2
 _foo.var3 test3
-""", {'_foo':h})
+""")
+
+        r = ihm.format.CifReader(cif, {'_foo':h})
+        # Read to end of first data block
+        self.assertTrue(r.read_file())
         self.assertEqual(h.data, [{'var1':'test1', 'var2':'test2'}])
+
+        # Read to end of second data block
+        h.data = []
+        self.assertFalse(r.read_file())
+        self.assertEqual(h.data, [{'var3':'test3'}])
+
+        # No more data blocks
+        h.data = []
+        self.assertFalse(r.read_file())
+        self.assertEqual(h.data, [])
 
 
 if __name__ == '__main__':
