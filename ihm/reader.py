@@ -3,6 +3,8 @@
 import ihm.format
 import ihm.location
 import ihm.dataset
+import ihm.representation
+import ihm.startmodel
 import inspect
 
 def _make_new_entity():
@@ -11,6 +13,14 @@ def _make_new_entity():
     # make sequence mutable
     e.sequence = list(e.sequence)
     return e
+
+def _get_lower(d, key):
+    """Return lowercase d[key] or None if key is not in d"""
+    return d[key].lower() if key in d else None
+
+def _get_int(d, key):
+    """Return int(d[key]) or None if key is not in d"""
+    return int(d[key]) if key in d else None
 
 class _IDMapper(object):
     """Handle mapping from mmCIF IDs to Python objects.
@@ -50,6 +60,11 @@ class _IDMapper(object):
             if self.system_list is not None:
                 self.system_list.append(newobj)
             return newobj
+
+    def get_by_id_or_none(self, d, key, newcls=None):
+        """Get the object with ID d[key], creating it if it doesn't already
+           exist. If key is not in d, return None instead."""
+        return self.get_by_id(d[key], newcls) if key in d else None
 
 
 class _ChemCompIDMapper(_IDMapper):
@@ -99,6 +114,10 @@ class _SystemReader(object):
                                   ihm.dataset.Dataset, None)
         self.dataset_groups = _IDMapper(self.system.orphan_dataset_groups,
                                   ihm.dataset.DatasetGroup)
+        self.starting_models = _IDMapper(self.system.orphan_starting_models,
+                                  ihm.startmodel.StartingModel, *(None,)*3)
+        self.representations = _IDMapper(self.system.orphan_representations,
+                                  ihm.representation.Representation)
 
 
 class _Handler(object):
@@ -382,6 +401,51 @@ class _RelatedDatasetsHandler(_Handler):
         derived.parents.append(primary)
 
 
+def _make_atom_segment(asym, rigid, primitive, count, smodel):
+    return ihm.representation.AtomicSegment(
+                asym_unit=asym, rigid=rigid, starting_model=smodel)
+
+def _make_residue_segment(asym, rigid, primitive, count, smodel):
+    return ihm.representation.ResidueSegment(
+                asym_unit=asym, rigid=rigid, primitive=primitive,
+                starting_model=smodel)
+
+def _make_multi_residue_segment(asym, rigid, primitive, count, smodel):
+    return ihm.representation.MultiResidueSegment(
+                asym_unit=asym, rigid=rigid, primitive=primitive,
+                starting_model=smodel)
+
+def _make_feature_segment(asym, rigid, primitive, count, smodel):
+    return ihm.representation.FeatureSegment(
+                asym_unit=asym, rigid=rigid, primitive=primitive,
+                count=count, starting_model=smodel)
+
+class _ModelRepresentationHandler(_Handler):
+    category = '_ihm_model_representation'
+
+    _rigid_map = {'rigid': True, 'flexible': False, '': None}
+    _segment_factory = {'by-atom': _make_atom_segment,
+                        'by-residue': _make_residue_segment,
+                        'multi-residue': _make_multi_residue_segment,
+                        'by-feature': _make_feature_segment}
+
+    def __call__(self, d):
+        asym = self.sysr.entities.get_by_id(d['entity_asym_id'])
+        if 'seq_id_begin' in d and 'seq_id_end' in d:
+            asym = asym(int(d['seq_id_begin']), int(d['seq_id_end']))
+        rep = self.sysr.representations.get_by_id(d['representation_id'])
+        smodel = self.sysr.starting_models.get_by_id_or_none(
+                                            d, 'starting_model_id')
+        primitive = _get_lower(d, 'model_object_primitive')
+        gran = _get_lower(d, 'model_granularity')
+        primitive = _get_lower(d, 'model_object_primitive')
+        count = _get_int(d, 'model_object_count')
+        rigid = self._rigid_map[d.get('model_mode', '').lower()]
+        segment = self._segment_factory[gran](asym, rigid, primitive,
+                                              count, smodel)
+        rep.append(segment)
+
+
 def read(fh):
     """Read data from the mmCIF file handle `fh`.
     
@@ -399,7 +463,8 @@ def read(fh):
                     _AssemblyHandler(s), _ExtRefHandler(s), _ExtFileHandler(s),
                     _DatasetListHandler(s), _DatasetGroupHandler(s),
                     _DatasetExtRefHandler(s), _DatasetDBRefHandler(s),
-                    _RelatedDatasetsHandler(s)]
+                    _RelatedDatasetsHandler(s),
+                    _ModelRepresentationHandler(s)]
         r = ihm.format.CifReader(fh, dict((h.category, h) for h in handlers))
         more_data = r.read_file()
         for h in handlers:
