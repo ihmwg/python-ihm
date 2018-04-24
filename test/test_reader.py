@@ -414,6 +414,22 @@ _ihm_dataset_related_db_reference.details
         self.assertEqual(d4.location.__class__, ihm.location.DatabaseLocation)
         self.assertEqual(d4.location.access_code, None)
 
+    def test_related_datasets_handler(self):
+        """Test RelatedDatasetsHandler"""
+        fh = StringIO("""
+loop_
+_ihm_related_datasets.ordinal_id
+_ihm_related_datasets.dataset_list_id_derived
+_ihm_related_datasets.dataset_list_id_primary
+1 4 1
+""")
+        s, = ihm.reader.read(fh)
+        d1, d2 = s.orphan_datasets
+        self.assertEqual(d1._id, '4')
+        self.assertEqual(d2._id, '1')
+        self.assertEqual(d1.parents, [d2])
+        self.assertEqual(d2.parents, [])
+
 
 if __name__ == '__main__':
     unittest.main()

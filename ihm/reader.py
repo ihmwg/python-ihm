@@ -373,6 +373,14 @@ class _DatasetDBRefHandler(_Handler):
                     mapkeys={'accession_code':'access_code'})
 
 
+class _RelatedDatasetsHandler(_Handler):
+    category = '_ihm_related_datasets'
+
+    def __call__(self, d):
+        derived = self.sysr.datasets.get_by_id(d['dataset_list_id_derived'])
+        primary = self.sysr.datasets.get_by_id(d['dataset_list_id_primary'])
+        derived.parents.append(primary)
+
 
 def read(fh):
     """Read data from the mmCIF file handle `fh`.
@@ -390,7 +398,8 @@ def read(fh):
                     _StructAsymHandler(s), _AssemblyDetailsHandler(s),
                     _AssemblyHandler(s), _ExtRefHandler(s), _ExtFileHandler(s),
                     _DatasetListHandler(s), _DatasetGroupHandler(s),
-                    _DatasetExtRefHandler(s), _DatasetDBRefHandler(s)]
+                    _DatasetExtRefHandler(s), _DatasetDBRefHandler(s),
+                    _RelatedDatasetsHandler(s)]
         r = ihm.format.CifReader(fh, dict((h.category, h) for h in handlers))
         more_data = r.read_file()
         for h in handlers:
