@@ -478,5 +478,67 @@ _ihm_model_representation.model_object_count
         s1, = r3
         self.assertEqual(s1.__class__, ihm.representation.MultiResidueSegment)
 
+    def test_starting_model_details_handler(self):
+        """Test StartingModelDetailsHandler"""
+        fh = StringIO("""
+loop_
+_ihm_starting_model_details.starting_model_id
+_ihm_starting_model_details.entity_id
+_ihm_starting_model_details.entity_description
+_ihm_starting_model_details.asym_id
+_ihm_starting_model_details.seq_id_begin
+_ihm_starting_model_details.seq_id_end
+_ihm_starting_model_details.starting_model_source
+_ihm_starting_model_details.starting_model_auth_asym_id
+_ihm_starting_model_details.starting_model_sequence_offset
+_ihm_starting_model_details.dataset_list_id
+1 1 Nup84 A 7 483 'comparative model' Q 8 4
+2 1 Nup84 A . . 'comparative model' X . 6
+""")
+        s, = ihm.reader.read(fh)
+        m1, m2 = s.orphan_starting_models
+        self.assertEqual(m1.asym_unit._id, 'A')
+        self.assertEqual(m1.asym_unit.seq_id_range, (7,483))
+        self.assertEqual(m1.asym_id, 'Q')
+        self.assertEqual(m1.offset, 8)
+        self.assertEqual(m1.dataset._id, '4')
+
+        self.assertEqual(m2.asym_unit._id, 'A')
+        self.assertEqual(m2.asym_id, 'X')
+        self.assertEqual(m2.offset, 0)
+        self.assertEqual(m2.dataset._id, '6')
+
+    def test_starting_comparative_models_handler(self):
+        """Test StartingComparativeModelsHandler"""
+        fh = StringIO("""
+loop_
+_ihm_starting_comparative_models.ordinal_id
+_ihm_starting_comparative_models.starting_model_id
+_ihm_starting_comparative_models.starting_model_auth_asym_id
+_ihm_starting_comparative_models.starting_model_seq_id_begin
+_ihm_starting_comparative_models.starting_model_seq_id_end
+_ihm_starting_comparative_models.template_auth_asym_id
+_ihm_starting_comparative_models.template_seq_id_begin
+_ihm_starting_comparative_models.template_seq_id_end
+_ihm_starting_comparative_models.template_sequence_identity
+_ihm_starting_comparative_models.template_sequence_identity_denominator
+_ihm_starting_comparative_models.template_dataset_list_id
+_ihm_starting_comparative_models.alignment_file_id
+1 1 A 7 436 C 9 438 90.000 1 3 2
+2 1 A 33 424 C 33 424 100.000 1 1 .
+""")
+        s, = ihm.reader.read(fh)
+        m1, = s.orphan_starting_models
+        t1, t2 = m1.templates
+        self.assertEqual(t1.dataset._id, '3')
+        self.assertEqual(t1.asym_id, 'C')
+        self.assertEqual(t1.seq_id_range, (7,436))
+        self.assertEqual(t1.template_seq_id_range, (9,438))
+        self.assertAlmostEqual(t1.sequence_identity, 90.0, places=1)
+        self.assertEqual(t1.sequence_identity_denominator, 1)
+        self.assertEqual(t1.alignment_file._id, '2')
+        self.assertEqual(t2.alignment_file, None)
+
+
 if __name__ == '__main__':
     unittest.main()

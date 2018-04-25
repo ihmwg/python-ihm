@@ -22,6 +22,10 @@ def _get_int(d, key):
     """Return int(d[key]) or None if key is not in d"""
     return int(d[key]) if key in d else None
 
+def _get_float(d, key):
+    """Return float(d[key]) or None if key is not in d"""
+    return float(d[key]) if key in d else None
+
 class _IDMapper(object):
     """Handle mapping from mmCIF IDs to Python objects.
 
@@ -430,7 +434,7 @@ class _ModelRepresentationHandler(_Handler):
                         'by-feature': _make_feature_segment}
 
     def __call__(self, d):
-        asym = self.sysr.entities.get_by_id(d['entity_asym_id'])
+        asym = self.sysr.asym_units.get_by_id(d['entity_asym_id'])
         if 'seq_id_begin' in d and 'seq_id_end' in d:
             asym = asym(int(d['seq_id_begin']), int(d['seq_id_end']))
         rep = self.sysr.representations.get_by_id(d['representation_id'])
@@ -444,6 +448,43 @@ class _ModelRepresentationHandler(_Handler):
         segment = self._segment_factory[gran](asym, rigid, primitive,
                                               count, smodel)
         rep.append(segment)
+
+
+# todo: support user subclass of StartingModel, pass it coordinates, seqdif
+class _StartingModelDetailsHandler(_Handler):
+    category = '_ihm_starting_model_details'
+
+    def __call__(self, d):
+        m = self.sysr.starting_models.get_by_id(d['starting_model_id'])
+        asym = self.sysr.asym_units.get_by_id(d['asym_id'])
+        if 'seq_id_begin' in d and 'seq_id_end' in d:
+            asym = asym(int(d['seq_id_begin']), int(d['seq_id_end']))
+        m.asym_unit = asym
+        m.dataset = self.sysr.datasets.get_by_id(d['dataset_list_id'])
+        self._copy_if_present(m, d,
+                    mapkeys={'starting_model_auth_asym_id':'asym_id'})
+        if 'starting_model_sequence_offset' in d:
+            m.offset = int(d['starting_model_sequence_offset'])
+
+
+class _StartingComparativeModelsHandler(_Handler):
+    category = '_ihm_starting_comparative_models'
+
+    def __call__(self, d):
+        m = self.sysr.starting_models.get_by_id(d['starting_model_id'])
+        dataset = self.sysr.datasets.get_by_id(d['template_dataset_list_id'])
+        aln = self.sysr.external_files.get_by_id_or_none(
+                                            d, 'alignment_file_id')
+        asym_id = d.get('template_auth_asym_id', None)
+        seq_id_range = (int(d['starting_model_seq_id_begin']),
+                        int(d['starting_model_seq_id_end']))
+        template_seq_id_range = (int(d['template_seq_id_begin']),
+                                 int(d['template_seq_id_end']))
+        identity = _get_float(d, 'template_sequence_identity')
+        denom = _get_int(d, 'template_sequence_identity_denominator')
+        t = ihm.startmodel.Template(dataset, asym_id, seq_id_range,
+                        template_seq_id_range, identity, denom, aln)
+        m.templates.append(t)
 
 
 def read(fh):
@@ -464,7 +505,9 @@ def read(fh):
                     _DatasetListHandler(s), _DatasetGroupHandler(s),
                     _DatasetExtRefHandler(s), _DatasetDBRefHandler(s),
                     _RelatedDatasetsHandler(s),
-                    _ModelRepresentationHandler(s)]
+                    _ModelRepresentationHandler(s),
+                    _StartingModelDetailsHandler(s),
+                    _StartingComparativeModelsHandler(s)]
         r = ihm.format.CifReader(fh, dict((h.category, h) for h in handlers))
         more_data = r.read_file()
         for h in handlers:
