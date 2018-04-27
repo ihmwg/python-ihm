@@ -1702,13 +1702,15 @@ _ihm_geometric_object_half_torus.section
 loop_
 _ihm_geometric_object_axis.object_id
 _ihm_geometric_object_axis.axis_type
-4 x-axis
+_ihm_geometric_object_axis.transformation_id
+4 x-axis .
 #
 #
 loop_
 _ihm_geometric_object_plane.object_id
 _ihm_geometric_object_plane.plane_type
-5 xy-plane
+_ihm_geometric_object_plane.transformation_id
+5 xy-plane .
 #
 """)
 
@@ -1794,17 +1796,17 @@ _ihm_poly_atom_feature.atom_id
         out = _get_dumper_output(dumper, system)
         self.assertEqual(out, """#
 loop_
-_ihm_geometric_object_spatial_restraint.id
-_ihm_geometric_object_spatial_restraint.object_id
-_ihm_geometric_object_spatial_restraint.feature_id
-_ihm_geometric_object_spatial_restraint.object_characteristic
-_ihm_geometric_object_spatial_restraint.restraint_type
-_ihm_geometric_object_spatial_restraint.harmonic_force_constant
-_ihm_geometric_object_spatial_restraint.distance_lower_limit
-_ihm_geometric_object_spatial_restraint.distance_upper_limit
-_ihm_geometric_object_spatial_restraint.group_conditionality
-_ihm_geometric_object_spatial_restraint.dataset_list_id
-1 23 44 center 'distance restraint upper bound' 2.000 . 25.000 ANY 97
+_ihm_geometric_object_distance_restraint.id
+_ihm_geometric_object_distance_restraint.object_id
+_ihm_geometric_object_distance_restraint.feature_id
+_ihm_geometric_object_distance_restraint.object_characteristic
+_ihm_geometric_object_distance_restraint.restraint_type
+_ihm_geometric_object_distance_restraint.harmonic_force_constant
+_ihm_geometric_object_distance_restraint.distance_lower_limit
+_ihm_geometric_object_distance_restraint.distance_upper_limit
+_ihm_geometric_object_distance_restraint.group_conditionality
+_ihm_geometric_object_distance_restraint.dataset_list_id
+1 23 44 center 'upper bound' 2.000 . 25.000 ANY 97
 #
 """)
 

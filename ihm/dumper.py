@@ -948,7 +948,7 @@ class _GeometricObjectDumper(_Dumper):
             util._assign_id(o, seen_objects, self._objects_by_id)
             if hasattr(o, 'center'):
                 util._assign_id(o.center, seen_centers, self._centers_by_id)
-            if hasattr(o, 'transformation'):
+            if hasattr(o, 'transformation') and o.transformation:
                 util._assign_id(o.transformation, seen_transformations,
                                 self._transformations_by_id)
 
@@ -1005,7 +1005,8 @@ class _GeometricObjectDumper(_Dumper):
                 if not isinstance(o, geometry.Sphere):
                     continue
                 l.write(object_id=o._id, center_id=o.center._id,
-                        transformation_id=o.transformation._id,
+                        transformation_id=o.transformation._id
+                                          if o.transformation else None,
                         radius_r=o.radius)
 
     def dump_torus(self, writer):
@@ -1016,7 +1017,8 @@ class _GeometricObjectDumper(_Dumper):
                 if not isinstance(o, (geometry.Torus, geometry.HalfTorus)):
                     continue
                 l.write(object_id=o._id, center_id=o.center._id,
-                        transformation_id=o.transformation._id,
+                        transformation_id=o.transformation._id
+                                          if o.transformation else None,
                         major_radius_R=o.major_radius,
                         minor_radius_r=o.minor_radius)
 
@@ -1032,19 +1034,23 @@ class _GeometricObjectDumper(_Dumper):
 
     def dump_axis(self, writer):
         with writer.loop("_ihm_geometric_object_axis",
-                         ["object_id", "axis_type"]) as l:
+                         ["object_id", "axis_type", "transformation_id"]) as l:
             for o in self._objects_by_id:
                 if not isinstance(o, geometry.Axis):
                     continue
-                l.write(object_id=o._id, axis_type=o.axis_type)
+                l.write(object_id=o._id, axis_type=o.axis_type,
+                        transformation_id=o.transformation._id
+                                          if o.transformation else None)
 
     def dump_plane(self, writer):
         with writer.loop("_ihm_geometric_object_plane",
-                         ["object_id", "plane_type"]) as l:
+                         ["object_id", "plane_type", "transformation_id"]) as l:
             for o in self._objects_by_id:
                 if not isinstance(o, geometry.Plane):
                     continue
-                l.write(object_id=o._id, plane_type=o.plane_type)
+                l.write(object_id=o._id, plane_type=o.plane_type,
+                        transformation_id=o.transformation._id
+                                          if o.transformation else None)
 
 
 class _FeatureDumper(_Dumper):
@@ -1241,14 +1247,8 @@ class _GeometricRestraintDumper(_Dumper):
 
     def dump(self, system, writer):
         condmap = {True: 'ALL', False: 'ANY', None: None}
-        # Map DistanceRestraint types
-        rtmap = {'harmonic': 'harmonic restraint',
-                 'upper bound': 'distance restraint upper bound',
-                 'lower bound': 'distance restraint lower bound',
-                 'lower and upper bound':
-                      'distance restraint upper and lower bound'}
         ordinal = 1
-        with writer.loop("_ihm_geometric_object_spatial_restraint",
+        with writer.loop("_ihm_geometric_object_distance_restraint",
                          ["id", "object_id", "feature_id",
                           "object_characteristic", "restraint_type",
                           "harmonic_force_constant",
@@ -1258,8 +1258,7 @@ class _GeometricRestraintDumper(_Dumper):
                 l.write(id=r._id, object_id=r.geometric_object._id,
                         feature_id=r.feature._id,
                         object_characteristic=r.object_characteristic,
-                        restraint_type=rtmap.get(r.distance.restraint_type,
-                                                 'other'),
+                        restraint_type=r.distance.restraint_type,
                         distance_lower_limit=r.distance.distance_lower_limit,
                         distance_upper_limit=r.distance.distance_upper_limit,
                         harmonic_force_constant=r.harmonic_force_constant,
