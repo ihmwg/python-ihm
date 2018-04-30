@@ -565,10 +565,9 @@ class _PostProcessHandler(_Handler):
         typ = d.get('type', 'other').lower()
         step = self.sysr.analysis_steps.get_by_id(d['id'],
                                 self.type_map.get(typ, ihm.analysis.OtherStep))
-        if step._id not in [s._id for s in analysis.steps]:
-            analysis.steps.append(step)
+        analysis.steps.append(step)
 
-        if 'typ' == 'none':
+        if typ == 'none':
             # If this step was forward referenced, feature will have been set
             # to Python None - set it to explicit 'none' instead
             step.feature = 'none'
