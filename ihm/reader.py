@@ -6,6 +6,7 @@ import ihm.dataset
 import ihm.representation
 import ihm.startmodel
 import ihm.protocol
+import ihm.analysis
 import inspect
 
 def _make_new_entity():
@@ -50,6 +51,11 @@ class _IDMapper(object):
         self._cls_args = cls_args
         self._cls_keys = cls_keys
 
+    def _make_new_object(self, newcls=None):
+        if newcls is None:
+            newcls = self._cls
+        return newcls(*self._cls_args, **self._cls_keys)
+
     def get_by_id(self, objid, newcls=None):
         """Get the object with given ID, creating it if it doesn't already
            exist."""
@@ -62,9 +68,7 @@ class _IDMapper(object):
                 obj.__class__ = newcls
             return obj
         else:
-            if newcls is None:
-                newcls = self._cls
-            newobj = newcls(*self._cls_args, **self._cls_keys)
+            newobj = self._make_new_object(newcls)
             setattr(newobj, self.id_attr, objid)
             self._obj_by_id[objid] = newobj
             if self.system_list is not None:
@@ -101,6 +105,18 @@ class _ChemCompIDMapper(_IDMapper):
             return super(_ChemCompIDMapper, self).get_by_id(objid, newcls)
 
 
+class _AnalysisIDMapper(_IDMapper):
+    """Add extra handling to _IDMapper for the post processing category"""
+
+    def _make_new_object(self, newcls=None):
+        if newcls is None:
+            newcls = self._cls
+        if newcls is ihm.analysis.EmptyStep:
+            return newcls()
+        else:
+            return newcls(*self._cls_args, **self._cls_keys)
+
+
 class _SystemReader(object):
     """Track global information for a System being read from a file, such
        as the mapping from IDs to objects."""
@@ -130,6 +146,9 @@ class _SystemReader(object):
                                   ihm.representation.Representation)
         self.protocols = _IDMapper(self.system.orphan_protocols,
                                   ihm.protocol.Protocol)
+        self.analysis_steps = _AnalysisIDMapper(None, ihm.analysis.OtherStep,
+                                  *(None,)*3)
+        self.analyses = _IDMapper(None, ihm.analysis.Analysis)
 
 
 class _Handler(object):
@@ -518,6 +537,45 @@ class _ProtocolHandler(_Handler):
         p.steps.append(s)
 
 
+class _PostProcessHandler(_Handler):
+    category = '_ihm_modeling_post_process'
+
+    def __init__(self, *args):
+        super(_PostProcessHandler, self).__init__(*args)
+        # Map _ihm_modeling_post_process.type to corresponding subclass
+        # of ihm.analysis.Step
+        self.type_map = dict((x[1].type.lower(), x[1])
+                             for x in inspect.getmembers(ihm.analysis,
+                                                         inspect.isclass)
+                             if issubclass(x[1], ihm.analysis.Step)
+                             and x[1] is not ihm.analysis.Step)
+
+    def __call__(self, d):
+        protocol = self.sysr.protocols.get_by_id(d['protocol_id'])
+        analysis = self.sysr.analyses.get_by_id(d['analysis_id'])
+        if analysis._id not in [a._id for a in protocol.analyses]:
+            protocol.analyses.append(analysis)
+
+        typ = d.get('type', 'other').lower()
+        step = self.sysr.analysis_steps.get_by_id(d['id'],
+                                self.type_map.get(typ, ihm.analysis.OtherStep))
+        if step._id not in [s._id for s in analysis.steps]:
+            analysis.steps.append(step)
+
+        if 'typ' == 'none':
+            # If this step was forward referenced, feature will have been set
+            # to Python None - set it to explicit 'none' instead
+            step.feature = 'none'
+        else:
+            step.num_models_begin = _get_int(d, 'num_models_begin')
+            step.num_models_end = _get_int(d, 'num_models_end')
+            step.assembly = self.sysr.assemblies.get_by_id_or_none(
+                                            d, 'struct_assembly_id')
+            step.dataset_group = self.sysr.dataset_groups.get_by_id_or_none(
+                                            d, 'dataset_group_id')
+            self._copy_if_present(step, d, keys=['feature'])
+
+
 def read(fh):
     """Read data from the mmCIF file handle `fh`.
     
@@ -539,7 +597,7 @@ def read(fh):
                     _ModelRepresentationHandler(s),
                     _StartingModelDetailsHandler(s),
                     _StartingComparativeModelsHandler(s),
-                    _ProtocolHandler(s)]
+                    _ProtocolHandler(s), _PostProcessHandler(s)]
         r = ihm.format.CifReader(fh, dict((h.category, h) for h in handlers))
         more_data = r.read_file()
         for h in handlers:

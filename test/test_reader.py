@@ -577,6 +577,47 @@ _ihm_modeling_protocol.ordered_flag
         self.assertEqual(p1.steps[1].multi_state, None)
         self.assertEqual(p1.steps[1].ordered, False)
 
+    def test_post_process_handler(self):
+        """Test PostProcessHandler"""
+        fh = StringIO("""
+loop_
+_ihm_modeling_post_process.id
+_ihm_modeling_post_process.protocol_id
+_ihm_modeling_post_process.analysis_id
+_ihm_modeling_post_process.step_id
+_ihm_modeling_post_process.type
+_ihm_modeling_post_process.feature
+_ihm_modeling_post_process.num_models_begin
+_ihm_modeling_post_process.num_models_end
+_ihm_modeling_post_process.struct_assembly_id
+_ihm_modeling_post_process.dataset_group_id
+1  1   1   1   'filter'  'energy/score'  15000   6520 . .
+2  1   1   2   'cluster' 'dRMSD'         6520    6520 . .
+3  1   2   1   'filter'  'energy/score'  15000   6520 . .
+4  1   2   2   'filter'  'composition'   6520    6520 . .
+5  1   2   3   'cluster' 'dRMSD'         6520    6520 . .
+6  2   3   1   'none' .         .    . . .
+""")
+        s, = ihm.reader.read(fh)
+        p1, p2 = s.orphan_protocols
+        self.assertEqual(len(p1.analyses), 2)
+        self.assertEqual(len(p2.analyses), 1)
+        a1, a2 = p1.analyses
+        self.assertEqual(len(a1.steps), 2)
+        self.assertEqual(a1.steps[0].__class__, ihm.analysis.FilterStep)
+        self.assertEqual(a1.steps[0].feature, 'energy/score')
+        self.assertEqual(a1.steps[0].num_models_begin, 15000)
+        self.assertEqual(a1.steps[0].num_models_end, 6520)
+        self.assertEqual(a1.steps[1].__class__, ihm.analysis.ClusterStep)
+        self.assertEqual(len(a2.steps), 3)
+
+        a1, = p2.analyses
+        self.assertEqual(len(a1.steps), 1)
+        self.assertEqual(a1.steps[0].__class__, ihm.analysis.EmptyStep)
+        self.assertEqual(a1.steps[0].feature, 'none')
+        self.assertEqual(a1.steps[0].num_models_begin, None)
+        self.assertEqual(a1.steps[0].num_models_end, None)
+
 
 if __name__ == '__main__':
     unittest.main()
