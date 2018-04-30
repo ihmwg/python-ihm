@@ -5,6 +5,7 @@ import ihm.location
 import ihm.dataset
 import ihm.representation
 import ihm.startmodel
+import ihm.protocol
 import inspect
 
 def _make_new_entity():
@@ -25,6 +26,11 @@ def _get_int(d, key):
 def _get_float(d, key):
     """Return float(d[key]) or None if key is not in d"""
     return float(d[key]) if key in d else None
+
+_boolmap = {'YES':True, 'NO':False}
+def _get_bool(d, key):
+    """Convert d[key] to bool and return, or None if key is not in d"""
+    return _boolmap.get(d[key].upper(), None) if key in d else None
 
 class _IDMapper(object):
     """Handle mapping from mmCIF IDs to Python objects.
@@ -122,6 +128,8 @@ class _SystemReader(object):
                                   ihm.startmodel.StartingModel, *(None,)*3)
         self.representations = _IDMapper(self.system.orphan_representations,
                                   ihm.representation.Representation)
+        self.protocols = _IDMapper(self.system.orphan_protocols,
+                                  ihm.protocol.Protocol)
 
 
 class _Handler(object):
@@ -487,6 +495,29 @@ class _StartingComparativeModelsHandler(_Handler):
         m.templates.append(t)
 
 
+class _ProtocolHandler(_Handler):
+    category = '_ihm_modeling_protocol'
+
+    def __call__(self, d):
+        p = self.sysr.protocols.get_by_id(d['protocol_id'])
+        self._copy_if_present(p, d, mapkeys={'protocol_name':'name'})
+        nbegin = _get_int(d, 'num_models_begin')
+        nend = _get_int(d, 'num_models_end')
+        mscale = _get_bool(d, 'multi_scale_flag')
+        mstate = _get_bool(d, 'multi_state_flag')
+        ordered = _get_bool(d, 'ordered_flag')
+        assembly = self.sysr.assemblies.get_by_id_or_none(
+                                            d, 'struct_assembly_id')
+        dg = self.sysr.dataset_groups.get_by_id_or_none(d, 'dataset_group_id')
+        s = ihm.protocol.Step(assembly=assembly, dataset_group=dg,
+                              method=None, num_models_begin=nbegin,
+                              num_models_end=nend, multi_scale=mscale,
+                              multi_state=mstate, ordered=ordered)
+        self._copy_if_present(s, d,
+                mapkeys={'step_name':'name', 'step_method':'method'})
+        p.steps.append(s)
+
+
 def read(fh):
     """Read data from the mmCIF file handle `fh`.
     
@@ -507,7 +538,8 @@ def read(fh):
                     _RelatedDatasetsHandler(s),
                     _ModelRepresentationHandler(s),
                     _StartingModelDetailsHandler(s),
-                    _StartingComparativeModelsHandler(s)]
+                    _StartingComparativeModelsHandler(s),
+                    _ProtocolHandler(s)]
         r = ihm.format.CifReader(fh, dict((h.category, h) for h in handlers))
         more_data = r.read_file()
         for h in handlers:

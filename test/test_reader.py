@@ -539,6 +539,44 @@ _ihm_starting_comparative_models.alignment_file_id
         self.assertEqual(t1.alignment_file._id, '2')
         self.assertEqual(t2.alignment_file, None)
 
+    def test_protocol_handler(self):
+        """Test ProtocolHandler"""
+        fh = StringIO("""
+loop_
+_ihm_modeling_protocol.ordinal_id
+_ihm_modeling_protocol.protocol_id
+_ihm_modeling_protocol.step_id
+_ihm_modeling_protocol.struct_assembly_id
+_ihm_modeling_protocol.dataset_group_id
+_ihm_modeling_protocol.struct_assembly_description
+_ihm_modeling_protocol.protocol_name
+_ihm_modeling_protocol.step_name
+_ihm_modeling_protocol.step_method
+_ihm_modeling_protocol.num_models_begin
+_ihm_modeling_protocol.num_models_end
+_ihm_modeling_protocol.multi_scale_flag
+_ihm_modeling_protocol.multi_state_flag
+_ihm_modeling_protocol.ordered_flag
+1 1 1 1 1 . Prot1 Sampling 'Monte Carlo' 0 500 YES NO NO
+2 1 2 1 2 . Prot1 Sampling 'Monte Carlo' 500 5000 YES . NO
+""")
+        s, = ihm.reader.read(fh)
+        p1, = s.orphan_protocols
+        self.assertEqual(p1.name, "Prot1")
+        self.assertEqual(len(p1.steps), 2)
+        self.assertEqual(p1.steps[0].assembly._id, '1')
+        self.assertEqual(p1.steps[0].dataset_group._id, '1')
+        self.assertEqual(p1.steps[0].name, 'Sampling')
+        self.assertEqual(p1.steps[0].method, 'Monte Carlo')
+        self.assertEqual(p1.steps[0].num_models_begin, 0)
+        self.assertEqual(p1.steps[0].num_models_end, 500)
+        self.assertEqual(p1.steps[0].multi_scale, True)
+        self.assertEqual(p1.steps[0].multi_state, False)
+        self.assertEqual(p1.steps[0].ordered, False)
+        self.assertEqual(p1.steps[1].multi_scale, True)
+        self.assertEqual(p1.steps[1].multi_state, None)
+        self.assertEqual(p1.steps[1].ordered, False)
+
 
 if __name__ == '__main__':
     unittest.main()
