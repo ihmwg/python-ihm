@@ -618,6 +618,39 @@ _ihm_modeling_post_process.dataset_group_id
         self.assertEqual(a1.steps[0].num_models_begin, None)
         self.assertEqual(a1.steps[0].num_models_end, None)
 
+    def test_model_list_handler(self):
+        """Test ModelListHandler"""
+        fh = StringIO("""
+loop_
+_ihm_model_list.ordinal_id
+_ihm_model_list.model_id
+_ihm_model_list.model_group_id
+_ihm_model_list.model_name
+_ihm_model_list.model_group_name
+_ihm_model_list.assembly_id
+_ihm_model_list.protocol_id
+_ihm_model_list.representation_id
+1 1 1 'Best scoring model' 'Cluster 1' 1 2 3
+2 2 2 'Best scoring model' 'Cluster 2' 1 1 1
+""")
+        s, = ihm.reader.read(fh)
+        sg, = s.state_groups
+        state, = sg
+        self.assertEqual(state.name, None) # auto-created state
+        mg1, mg2 = state
+        self.assertEqual(mg1.name, 'Cluster 1')
+        self.assertEqual(mg1._id, '1')
+        m, = mg1
+        self.assertEqual(m._id, '1')
+        self.assertEqual(m.name, 'Best scoring model')
+        self.assertEqual(m.assembly._id, '1')
+        self.assertEqual(m.protocol._id, '2')
+        self.assertEqual(m.representation._id, '3')
+        self.assertEqual(mg2.name, 'Cluster 2')
+        self.assertEqual(mg2._id, '2')
+        m, = mg2
+        self.assertEqual(m._id, '2')
+
 
 if __name__ == '__main__':
     unittest.main()

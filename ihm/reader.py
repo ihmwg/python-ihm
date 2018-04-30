@@ -7,6 +7,7 @@ import ihm.representation
 import ihm.startmodel
 import ihm.protocol
 import ihm.analysis
+import ihm.model
 import inspect
 
 def _make_new_entity():
@@ -149,6 +150,8 @@ class _SystemReader(object):
         self.analysis_steps = _AnalysisIDMapper(None, ihm.analysis.OtherStep,
                                   *(None,)*3)
         self.analyses = _IDMapper(None, ihm.analysis.Analysis)
+        self.models = _IDMapper(None, ihm.model.Model, *(None,)*3)
+        self.model_groups = _IDMapper(None, ihm.model.ModelGroup)
 
 
 class _Handler(object):
@@ -576,6 +579,41 @@ class _PostProcessHandler(_Handler):
             self._copy_if_present(step, d, keys=['feature'])
 
 
+class _ModelListHandler(_Handler):
+    category = '_ihm_model_list'
+
+    def __call__(self, d):
+        model_group = self.sysr.model_groups.get_by_id(d['model_group_id'])
+        self._copy_if_present(model_group, d,
+                              mapkeys={'model_group_name':'name'})
+
+        model = self.sysr.models.get_by_id(d['model_id'])
+
+        if model._id not in [m._id for m in model_group]:
+            model_group.append(model)
+
+        self._copy_if_present(model, d, mapkeys={'model_name':'name'})
+        model.assembly = self.sysr.assemblies.get_by_id_or_none(
+                                            d, 'assembly_id')
+        model.representation = self.sysr.representations.get_by_id_or_none(
+                                            d, 'representation_id')
+        model.protocol = self.sysr.protocols.get_by_id_or_none(
+                                            d, 'protocol_id')
+
+    def finalize(self):
+        # Put all model groups not assigned to a state in their own state
+        model_groups_in_states = set()
+        for sg in self.system.state_groups:
+            for state in sg:
+                for model_group in state:
+                    model_groups_in_states.append(model_group._id)
+        mgs = [mg for mgid, mg in self.sysr.model_groups._obj_by_id.items()
+               if mgid not in model_groups_in_states]
+        if mgs:
+            s = ihm.model.State(mgs)
+            self.system.state_groups.append(ihm.model.StateGroup([s]))
+
+
 def read(fh):
     """Read data from the mmCIF file handle `fh`.
     
@@ -597,7 +635,8 @@ def read(fh):
                     _ModelRepresentationHandler(s),
                     _StartingModelDetailsHandler(s),
                     _StartingComparativeModelsHandler(s),
-                    _ProtocolHandler(s), _PostProcessHandler(s)]
+                    _ProtocolHandler(s), _PostProcessHandler(s),
+                    _ModelListHandler(s)]
         r = ihm.format.CifReader(fh, dict((h.category, h) for h in handlers))
         more_data = r.read_file()
         for h in handlers:
