@@ -152,6 +152,9 @@ class _SystemReader(object):
         self.analyses = _IDMapper(None, ihm.analysis.Analysis)
         self.models = _IDMapper(None, ihm.model.Model, *(None,)*3)
         self.model_groups = _IDMapper(None, ihm.model.ModelGroup)
+        self.states = _IDMapper(None, ihm.model.State)
+        self.state_groups = _IDMapper(self.system.state_groups,
+                                  ihm.model.StateGroup)
 
 
 class _Handler(object):
@@ -606,12 +609,31 @@ class _ModelListHandler(_Handler):
         for sg in self.system.state_groups:
             for state in sg:
                 for model_group in state:
-                    model_groups_in_states.append(model_group._id)
+                    model_groups_in_states.add(model_group._id)
         mgs = [mg for mgid, mg in self.sysr.model_groups._obj_by_id.items()
                if mgid not in model_groups_in_states]
         if mgs:
             s = ihm.model.State(mgs)
             self.system.state_groups.append(ihm.model.StateGroup([s]))
+
+
+class _MultiStateHandler(_Handler):
+    category = '_ihm_multi_state_modeling'
+
+    def __call__(self, d):
+        state_group = self.sysr.state_groups.get_by_id(d['state_group_id'])
+        state = self.sysr.states.get_by_id(d['state_id'])
+
+        if state._id not in [s._id for s in state_group]:
+            state_group.append(state)
+
+        model_group = self.sysr.model_groups.get_by_id(d['model_group_id'])
+        state.append(model_group)
+
+        state.population_fraction = _get_float(d, 'population_fraction')
+        self._copy_if_present(state, d,
+                keys=['experiment_type', 'details'],
+                mapkeys={'state_name':'name', 'state_type':'type'})
 
 
 def read(fh):
@@ -636,7 +658,7 @@ def read(fh):
                     _StartingModelDetailsHandler(s),
                     _StartingComparativeModelsHandler(s),
                     _ProtocolHandler(s), _PostProcessHandler(s),
-                    _ModelListHandler(s)]
+                    _ModelListHandler(s), _MultiStateHandler(s)]
         r = ihm.format.CifReader(fh, dict((h.category, h) for h in handlers))
         more_data = r.read_file()
         for h in handlers:

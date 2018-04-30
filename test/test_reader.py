@@ -651,6 +651,48 @@ _ihm_model_list.representation_id
         m, = mg2
         self.assertEqual(m._id, '2')
 
+    def test_multi_state_handler(self):
+        """Test MultiStateHandler"""
+        fh = StringIO("""
+loop_
+_ihm_model_list.ordinal_id
+_ihm_model_list.model_id
+_ihm_model_list.model_group_id
+_ihm_model_list.model_name
+_ihm_model_list.model_group_name
+_ihm_model_list.assembly_id
+_ihm_model_list.protocol_id
+_ihm_model_list.representation_id
+1 1 1 'Best scoring model' 'Cluster 1' 1 2 3
+#
+#
+loop_
+_ihm_multi_state_modeling.ordinal_id
+_ihm_multi_state_modeling.state_id
+_ihm_multi_state_modeling.state_group_id
+_ihm_multi_state_modeling.population_fraction
+_ihm_multi_state_modeling.state_type
+_ihm_multi_state_modeling.state_name
+_ihm_multi_state_modeling.model_group_id
+_ihm_multi_state_modeling.experiment_type
+_ihm_multi_state_modeling.details
+1 1 1 0.4 'complex formation' 'unbound' 1  'Fraction of bulk'  'unbound molecule 1'
+2 2 1 .  'complex formation' 'unbound' 2  'Fraction of bulk'  'unbound molecule 2'
+3 3 1 .  'complex formation' 'bound'   3  'Fraction of bulk'  'bound molecules 1 and 2'
+""")
+        s, = ihm.reader.read(fh)
+        sg, = s.state_groups
+        s1, s2, s3, = sg
+        self.assertAlmostEqual(s1.population_fraction, 0.4, places=1)
+        self.assertEqual(s1.type, 'complex formation')
+        self.assertEqual(s1.name, 'unbound')
+        mg1, = s1
+        self.assertEqual(mg1.name, 'Cluster 1')
+        self.assertEqual(s1.experiment_type, 'Fraction of bulk')
+        self.assertEqual(s1.details, 'unbound molecule 1')
+
+        self.assertEqual(s2.population_fraction, None)
+
 
 if __name__ == '__main__':
     unittest.main()
