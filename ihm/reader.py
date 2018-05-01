@@ -155,6 +155,8 @@ class _SystemReader(object):
         self.states = _IDMapper(None, ihm.model.State)
         self.state_groups = _IDMapper(self.system.state_groups,
                                   ihm.model.StateGroup)
+        self.ensembles = _IDMapper(self.system.ensembles,
+                                   ihm.model.Ensemble, *(None,)*2)
 
 
 class _Handler(object):
@@ -635,6 +637,28 @@ class _MultiStateHandler(_Handler):
                 mapkeys={'state_name':'name', 'state_type':'type'})
 
 
+class _EnsembleHandler(_Handler):
+    category = '_ihm_ensemble_info'
+
+    def __call__(self, d):
+        ensemble = self.sysr.ensembles.get_by_id(d['ensemble_id'])
+        mg = self.sysr.model_groups.get_by_id(d['model_group_id'])
+        pp = self.sysr.analysis_steps.get_by_id_or_none(d, 'post_process_id')
+        f = self.sysr.external_files.get_by_id_or_none(d, 'ensemble_file_id')
+
+        ensemble.model_group = mg
+        ensemble.num_models = _get_int(d, 'num_ensemble_models')
+        ensemble.precision = _get_float(d, 'ensemble_precision_value')
+        # note that num_ensemble_models_deposited is ignored (should be size of
+        # model group anyway)
+        ensemble.post_process = pp
+        ensemble.file = f
+        self._copy_if_present(ensemble, d,
+                mapkeys={'ensemble_name':'name',
+                         'ensemble_clustering_method':'clustering_method',
+                         'ensemble_clustering_feature':'clustering_feature'})
+
+
 def read(fh):
     """Read data from the mmCIF file handle `fh`.
     
@@ -657,7 +681,8 @@ def read(fh):
                     _StartingModelDetailsHandler(s),
                     _StartingComparativeModelsHandler(s),
                     _ProtocolHandler(s), _PostProcessHandler(s),
-                    _ModelListHandler(s), _MultiStateHandler(s)]
+                    _ModelListHandler(s), _MultiStateHandler(s),
+                    _EnsembleHandler(s)]
         r = ihm.format.CifReader(fh, dict((h.category, h) for h in handlers))
         more_data = r.read_file()
         for h in handlers:

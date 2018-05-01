@@ -693,6 +693,33 @@ _ihm_multi_state_modeling.details
 
         self.assertEqual(s2.population_fraction, None)
 
+    def test_ensemble_handler(self):
+        """Test EnsembleHandler"""
+        fh = StringIO("""
+loop_
+_ihm_ensemble_info.ensemble_id
+_ihm_ensemble_info.ensemble_name
+_ihm_ensemble_info.post_process_id
+_ihm_ensemble_info.model_group_id
+_ihm_ensemble_info.ensemble_clustering_method
+_ihm_ensemble_info.ensemble_clustering_feature
+_ihm_ensemble_info.num_ensemble_models
+_ihm_ensemble_info.num_ensemble_models_deposited
+_ihm_ensemble_info.ensemble_precision_value
+_ihm_ensemble_info.ensemble_file_id
+1 'Cluster 1' 2 3 . dRMSD 1257 1 15.400 9
+""")
+        s, = ihm.reader.read(fh)
+        e, = s.ensembles
+        self.assertEqual(e.model_group._id, '3')
+        self.assertEqual(e.num_models, 1257)
+        self.assertEqual(e.post_process._id, '2')
+        self.assertEqual(e.clustering_method, None)
+        self.assertEqual(e.clustering_feature, 'dRMSD')
+        self.assertEqual(e.name, 'Cluster 1')
+        self.assertAlmostEqual(e.precision, 15.4, places=1)
+        self.assertEqual(e.file._id, '9')
+
 
 if __name__ == '__main__':
     unittest.main()
