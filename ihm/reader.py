@@ -157,6 +157,8 @@ class _SystemReader(object):
                                   ihm.model.StateGroup)
         self.ensembles = _IDMapper(self.system.ensembles,
                                    ihm.model.Ensemble, *(None,)*2)
+        self.densities = _IDMapper(None,
+                                   ihm.model.LocalizationDensity, *(None,)*2)
 
 
 class _Handler(object):
@@ -659,6 +661,23 @@ class _EnsembleHandler(_Handler):
                          'ensemble_clustering_feature':'clustering_feature'})
 
 
+class _DensityHandler(_Handler):
+    category = '_ihm_localization_density_files'
+
+    def __call__(self, d):
+        density = self.sysr.densities.get_by_id(d['id'])
+        ensemble = self.sysr.ensembles.get_by_id(d['ensemble_id'])
+        f = self.sysr.external_files.get_by_id(d['file_id'])
+
+        asym = self.sysr.asym_units.get_by_id(d['asym_id'])
+        if 'seq_id_begin' in d and 'seq_id_end' in d:
+            asym = asym(int(d['seq_id_begin']), int(d['seq_id_end']))
+
+        density.asym_unit = asym
+        density.file = f
+        ensemble.densities.append(density)
+
+
 def read(fh):
     """Read data from the mmCIF file handle `fh`.
     
@@ -682,7 +701,7 @@ def read(fh):
                     _StartingComparativeModelsHandler(s),
                     _ProtocolHandler(s), _PostProcessHandler(s),
                     _ModelListHandler(s), _MultiStateHandler(s),
-                    _EnsembleHandler(s)]
+                    _EnsembleHandler(s), _DensityHandler(s)]
         r = ihm.format.CifReader(fh, dict((h.category, h) for h in handlers))
         more_data = r.read_file()
         for h in handlers:

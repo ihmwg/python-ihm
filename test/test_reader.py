@@ -720,6 +720,31 @@ _ihm_ensemble_info.ensemble_file_id
         self.assertAlmostEqual(e.precision, 15.4, places=1)
         self.assertEqual(e.file._id, '9')
 
+    def test_density_handler(self):
+        """Test DensityHandler"""
+        fh = StringIO("""
+loop_
+_ihm_localization_density_files.id
+_ihm_localization_density_files.file_id
+_ihm_localization_density_files.ensemble_id
+_ihm_localization_density_files.entity_id
+_ihm_localization_density_files.asym_id
+_ihm_localization_density_files.seq_id_begin
+_ihm_localization_density_files.seq_id_end
+1 22 9 1 A 1 726
+2 23 9 2 B . .
+""")
+        s, = ihm.reader.read(fh)
+        e, = s.ensembles
+        self.assertEqual(e._id, '9')
+        d1, d2 = e.densities
+        self.assertEqual(d1._id, '1')
+        self.assertEqual(d1.file._id, '22')
+        self.assertEqual(d1.asym_unit.__class__, ihm.AsymUnitRange)
+        self.assertEqual(d1.asym_unit.seq_id_range, (1,726))
+        self.assertEqual(d2._id, '2')
+        self.assertEqual(d2.asym_unit.__class__, ihm.AsymUnit)
+
 
 if __name__ == '__main__':
     unittest.main()
