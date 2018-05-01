@@ -679,6 +679,7 @@ _ihm_multi_state_modeling.details
 1 1 1 0.4 'complex formation' 'unbound' 1  'Fraction of bulk'  'unbound molecule 1'
 2 2 1 .  'complex formation' 'unbound' 2  'Fraction of bulk'  'unbound molecule 2'
 3 3 1 .  'complex formation' 'bound'   3  'Fraction of bulk'  'bound molecules 1 and 2'
+4 3 1 .  'complex formation' 'bound'   4  'Fraction of bulk'  'bound molecules 1 and 2'
 """)
         s, = ihm.reader.read(fh)
         sg, = s.state_groups
@@ -686,12 +687,15 @@ _ihm_multi_state_modeling.details
         self.assertAlmostEqual(s1.population_fraction, 0.4, places=1)
         self.assertEqual(s1.type, 'complex formation')
         self.assertEqual(s1.name, 'unbound')
+        self.assertEqual(len(s1), 1)
         mg1, = s1
         self.assertEqual(mg1.name, 'Cluster 1')
         self.assertEqual(s1.experiment_type, 'Fraction of bulk')
         self.assertEqual(s1.details, 'unbound molecule 1')
 
         self.assertEqual(s2.population_fraction, None)
+        self.assertEqual(len(s2), 1)
+        self.assertEqual(len(s3), 2)
 
     def test_ensemble_handler(self):
         """Test EnsembleHandler"""
