@@ -595,8 +595,8 @@ class _ModelListHandler(_Handler):
 
         model = self.sysr.models.get_by_id(d['model_id'])
 
-        if model._id not in [m._id for m in model_group]:
-            model_group.append(model)
+        assert model._id not in (m._id for m in model_group)
+        model_group.append(model)
 
         self._copy_if_present(model, d, mapkeys={'model_name':'name'})
         model.assembly = self.sysr.assemblies.get_by_id_or_none(
