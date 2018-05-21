@@ -21,13 +21,15 @@ class FilterStep(Step):
        :param dataset_group: The collection of datasets used in this analysis,
               if applicable
        :type dataset_group: :class:`~ihm.dataset.DatasetGroup`
+       :param software: The software used in this step
+       :type software: :class:`~ihm.Software`
     """
     type = 'filter'
 
     def __init__(self, feature, num_models_begin, num_models_end,
-                 assembly=None, dataset_group=None):
+                 assembly=None, dataset_group=None, software=None):
         self.assembly, self.dataset_group = assembly, dataset_group
-        self.feature = feature
+        self.feature, self.software = feature, software
         self.num_models_begin = num_models_begin
         self.num_models_end = num_models_end
 
@@ -44,13 +46,15 @@ class ClusterStep(Step):
        :param dataset_group: The collection of datasets used in this analysis,
               if applicable
        :type dataset_group: :class:`~ihm.dataset.DatasetGroup`
+       :param software: The software used in this step
+       :type software: :class:`~ihm.Software`
     """
     type = 'cluster'
 
     def __init__(self, feature, num_models_begin, num_models_end,
-                 assembly=None, dataset_group=None):
+                 assembly=None, dataset_group=None, software=None):
         self.assembly, self.dataset_group = assembly, dataset_group
-        self.feature = feature
+        self.feature, self.software = feature, software
         self.num_models_begin = num_models_begin
         self.num_models_end = num_models_end
 
@@ -67,13 +71,15 @@ class RescoreStep(Step):
        :param dataset_group: The collection of datasets used in this analysis,
               if applicable
        :type dataset_group: :class:`~ihm.dataset.DatasetGroup`
+       :param software: The software used in this step
+       :type software: :class:`~ihm.Software`
     """
     type = 'rescore'
 
     def __init__(self, feature, num_models_begin, num_models_end,
-                 assembly=None, dataset_group=None):
+                 assembly=None, dataset_group=None, software=None):
         self.assembly, self.dataset_group = assembly, dataset_group
-        self.feature = feature
+        self.feature, self.software = feature, software
         self.num_models_begin = num_models_begin
         self.num_models_end = num_models_end
 
@@ -90,13 +96,15 @@ class ValidationStep(Step):
        :param dataset_group: The collection of datasets used in this analysis,
               if applicable
        :type dataset_group: :class:`~ihm.dataset.DatasetGroup`
+       :param software: The software used in this step
+       :type software: :class:`~ihm.Software`
     """
     type = 'validation'
 
     def __init__(self, feature, num_models_begin, num_models_end,
-                 assembly=None, dataset_group=None):
+                 assembly=None, dataset_group=None, software=None):
         self.assembly, self.dataset_group = assembly, dataset_group
-        self.feature = feature
+        self.feature, self.software = feature, software
         self.num_models_begin = num_models_begin
         self.num_models_end = num_models_end
 
@@ -113,13 +121,15 @@ class OtherStep(Step):
        :param dataset_group: The collection of datasets used in this analysis,
               if applicable
        :type dataset_group: :class:`~ihm.dataset.DatasetGroup`
+       :param software: The software used in this step
+       :type software: :class:`~ihm.Software`
     """
     type = 'other'
 
     def __init__(self, feature, num_models_begin, num_models_end,
-                 assembly=None, dataset_group=None):
+                 assembly=None, dataset_group=None, software=None):
         self.assembly, self.dataset_group = assembly, dataset_group
-        self.feature = feature
+        self.feature, self.software = feature, software
         self.num_models_begin = num_models_begin
         self.num_models_end = num_models_end
 
@@ -133,6 +143,7 @@ class EmptyStep(Step):
     feature = 'none'
     num_models_begin = num_models_end = None
     assembly = dataset_group = None
+    software = None
 
 
 class Analysis(object):

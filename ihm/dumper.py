@@ -698,7 +698,8 @@ class _ProtocolDumper(_Dumper):
                           "struct_assembly_description", "protocol_name",
                           "step_name", "step_method", "num_models_begin",
                           "num_models_end", "multi_scale_flag",
-                          "multi_state_flag", "ordered_flag"]) as l:
+                          "multi_state_flag", "ordered_flag",
+                          "software_id"]) as l:
             for p in system._all_protocols():
                 for s in p.steps:
                     l.write(ordinal_id=ordinal, protocol_id=p._id,
@@ -713,7 +714,8 @@ class _ProtocolDumper(_Dumper):
                             num_models_end=s.num_models_end,
                             multi_state_flag=s.multi_state,
                             ordered_flag=s.ordered,
-                            multi_scale_flag=s.multi_scale)
+                            multi_scale_flag=s.multi_scale,
+                            software_id=s.software._id if s.software else None)
                     ordinal += 1
 
 
@@ -737,7 +739,7 @@ class _PostProcessDumper(_Dumper):
                          ["id", "protocol_id", "analysis_id", "step_id",
                           "type", "feature", "num_models_begin",
                           "num_models_end", "struct_assembly_id",
-                          "dataset_group_id"]) as l:
+                          "dataset_group_id", "software_id"]) as l:
             for p in system._all_protocols():
                 for a in p.analyses:
                     for s in a.steps:
@@ -749,7 +751,9 @@ class _PostProcessDumper(_Dumper):
                                 struct_assembly_id=s.assembly._id if s.assembly
                                                                   else None,
                                 dataset_group_id=s.dataset_group._id
-                                                 if s.dataset_group else None)
+                                                 if s.dataset_group else None,
+                                software_id=s.software._id if s.software
+                                                           else None)
 
 
 class _ModelDumper(object):

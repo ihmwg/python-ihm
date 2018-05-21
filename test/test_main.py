@@ -421,8 +421,22 @@ class Tests(unittest.TestCase):
         s = ihm.System()
         s.orphan_starting_models.extend((sm1, sm2))
         s.software.extend((s2, s2))
+
+        step1 = MockObject()
+        step2 = MockObject()
+        step1.software = None
+        step2.software = s2
+        protocol1 = MockObject()
+        protocol1.steps = [step1, step2]
+        analysis1 = MockObject()
+        astep1 = MockObject()
+        astep1.software = s2
+        analysis1.steps = [astep1]
+        protocol1.analyses = [analysis1]
+        s.orphan_protocols.append(protocol1)
+
         # duplicates are kept
-        self.assertEqual(list(s._all_software()), [s2, s2, s1])
+        self.assertEqual(list(s._all_software()), [s2, s2, s1, s2, s2])
 
     def test_all_dataset_groups(self):
         """Test _all_dataset_groups() method"""

@@ -350,7 +350,11 @@ class System(object):
         return (itertools.chain(
                         self.software,
                         (sm.software for sm in self._all_starting_models()
-                              if sm.software)))
+                              if sm.software),
+                        (step.software for step in self._all_protocol_steps()
+                                       if step.software),
+                        (step.software for step in self._all_analysis_steps()
+                                       if step.software)))
 
     def _all_citations(self):
         """Iterate over all Citations in the system.

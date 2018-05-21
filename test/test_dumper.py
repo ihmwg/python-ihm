@@ -926,6 +926,8 @@ _ihm_starting_model_seq_dif.details
         dsg._id = 99
         dsg2 = MockObject()
         dsg2._id = 101
+        software = MockObject()
+        software._id = 80
         p1.steps.append(ihm.protocol.Step(assembly=assembly, dataset_group=dsg,
                                method='Monte Carlo', num_models_begin=0,
                                num_models_end=500, multi_scale=True, name='s1'))
@@ -937,7 +939,8 @@ _ihm_starting_model_seq_dif.details
         p2 = ihm.protocol.Protocol('sampling')
         p2.steps.append(ihm.protocol.Step(assembly=assembly, dataset_group=dsg2,
                                method='Replica exchange', num_models_begin=2000,
-                               num_models_end=1000, multi_scale=True))
+                               num_models_end=1000, multi_scale=True,
+                               software=software))
         system.orphan_protocols.append(p2)
 
         dumper = ihm.dumper._ProtocolDumper()
@@ -959,9 +962,10 @@ _ihm_modeling_protocol.num_models_end
 _ihm_modeling_protocol.multi_scale_flag
 _ihm_modeling_protocol.multi_state_flag
 _ihm_modeling_protocol.ordered_flag
-1 1 1 42 99 foo equilibration s1 'Monte Carlo' 0 500 YES NO NO
-2 1 2 42 99 foo equilibration . 'Replica exchange' 500 2000 YES NO NO
-3 2 1 42 101 foo sampling . 'Replica exchange' 2000 1000 YES NO NO
+_ihm_modeling_protocol.software_id
+1 1 1 42 99 foo equilibration s1 'Monte Carlo' 0 500 YES NO NO .
+2 1 2 42 99 foo equilibration . 'Replica exchange' 500 2000 YES NO NO .
+3 2 1 42 101 foo sampling . 'Replica exchange' 2000 1000 YES NO NO 80
 #
 """)
 
@@ -986,10 +990,13 @@ _ihm_modeling_protocol.ordered_flag
         asmb1._id = 101
         dg1 = MockObject()
         dg1._id = 301
+        software = MockObject()
+        software._id = 401
         a2.steps.append(ihm.analysis.ValidationStep(
                              feature='energy/score', num_models_begin=42,
                              num_models_end=42,
-                             assembly=asmb1, dataset_group=dg1))
+                             assembly=asmb1, dataset_group=dg1,
+                             software=software))
         p1.analyses.extend((a1, a2))
 
         dumper = ihm.dumper._ProtocolDumper()
@@ -1011,10 +1018,11 @@ _ihm_modeling_post_process.num_models_begin
 _ihm_modeling_post_process.num_models_end
 _ihm_modeling_post_process.struct_assembly_id
 _ihm_modeling_post_process.dataset_group_id
-1 1 1 1 none none . . . .
-2 1 2 1 filter energy/score 1000 200 . .
-3 1 2 2 cluster RMSD 200 42 . .
-4 1 2 3 validation energy/score 42 42 101 301
+_ihm_modeling_post_process.software_id
+1 1 1 1 none none . . . . .
+2 1 2 1 filter energy/score 1000 200 . . .
+3 1 2 2 cluster RMSD 200 42 . . .
+4 1 2 3 validation energy/score 42 42 101 301 401
 #
 """)
 
