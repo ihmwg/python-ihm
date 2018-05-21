@@ -147,7 +147,7 @@ class _SystemReader(object):
                                   ihm.representation.Representation)
         self.protocols = _IDMapper(self.system.orphan_protocols,
                                   ihm.protocol.Protocol)
-        self.analysis_steps = _AnalysisIDMapper(None, ihm.analysis.OtherStep,
+        self.analysis_steps = _AnalysisIDMapper(None, ihm.analysis.Step,
                                   *(None,)*3)
         self.analyses = _IDMapper(None, ihm.analysis.Analysis)
         self.models = _IDMapper(None, ihm.model.Model, *(None,)*3)
@@ -573,7 +573,7 @@ class _PostProcessHandler(_Handler):
 
         typ = d.get('type', 'other').lower()
         step = self.sysr.analysis_steps.get_by_id(d['id'],
-                                self.type_map.get(typ, ihm.analysis.OtherStep))
+                                self.type_map.get(typ, ihm.analysis.Step))
         analysis.steps.append(step)
 
         if typ == 'none':
