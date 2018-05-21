@@ -401,6 +401,29 @@ class Tests(unittest.TestCase):
         # duplicates should be filtered globally
         self.assertEqual(list(s._all_citations()), [c2, c1])
 
+    def test_all_software(self):
+        """Test _all_software() method"""
+        class MockObject(object):
+            pass
+
+        s1 = ihm.Software(name='test', classification='test code',
+                          description='Some test program',
+                          version=1, location='http://test.org')
+        s2 = ihm.Software(name='foo', classification='test code',
+                          description='Other test program',
+                          location='http://test2.org')
+
+        sm1 = MockObject()
+        sm1.software = None
+        sm2 = MockObject()
+        sm2.software = s1
+
+        s = ihm.System()
+        s.orphan_starting_models.extend((sm1, sm2))
+        s.software.extend((s2, s2))
+        # duplicates are kept
+        self.assertEqual(list(s._all_software()), [s2, s2, s1])
+
     def test_all_dataset_groups(self):
         """Test _all_dataset_groups() method"""
         class MockObject(object):

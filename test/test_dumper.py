@@ -87,6 +87,7 @@ _struct.title 'test model'
                           name='foo', classification='x',
                           description='y', location='z'))
         dumper = ihm.dumper._SoftwareDumper()
+        dumper.finalize(system)
         out = _get_dumper_output(dumper, system)
         self.assertEqual(out, """#
 loop_
@@ -817,6 +818,9 @@ _ihm_model_representation.model_object_count
         dstarget = ihm.dataset.PDBDataset(l)
         ali = ihm.location.InputFileLocation(repo='foo', path='test.ali')
         script = ihm.location.WorkflowFileLocation(repo='foo', path='test.py')
+        software = ihm.Software(name='test', classification='test code',
+                                description='Some test program',
+                                version=1, location='http://test.org')
 
         s1 = ihm.startmodel.Template(dataset=dstemplate, asym_id='C',
                              seq_id_range=(-9,0), # 1,10 in IHM numbering
@@ -829,7 +833,7 @@ _ihm_model_representation.model_object_count
                              alignment_file=ali)
 
         sm = TestStartingModel(asym(1,15), dstarget, 'A', [s1, s2], offset=10,
-                               script_file=script)
+                               script_file=script, software=software)
         system.orphan_starting_models.append(sm)
 
         e1._id = 42
@@ -838,6 +842,7 @@ _ihm_model_representation.model_object_count
         dstarget._id = 102
         ali._id = 5
         script._id = 8
+        software._id = 99
         dumper = ihm.dumper._StartingModelDumper()
         dumper.finalize(system) # assign IDs
         out = _get_dumper_output(dumper, system)
@@ -869,9 +874,10 @@ _ihm_starting_comparative_models.template_sequence_identity
 _ihm_starting_comparative_models.template_sequence_identity_denominator
 _ihm_starting_comparative_models.template_dataset_list_id
 _ihm_starting_comparative_models.alignment_file_id
+_ihm_starting_comparative_models.software_id
 _ihm_starting_comparative_models.script_file_id
-1 1 A 1 10 C 101 110 30.000 1 101 . 8
-2 1 A 5 12 D 201 210 40.000 1 101 5 8
+1 1 A 1 10 C 101 110 30.000 1 101 . 99 8
+2 1 A 5 12 D 201 210 40.000 1 101 5 99 8
 #
 #
 loop_

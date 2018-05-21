@@ -342,6 +342,16 @@ class System(object):
                           if hasattr(restraint, 'feature')
                           and restraint.feature))
 
+    def _all_software(self):
+        """Iterate over all Software in the system.
+           This includes all Software referenced from other objects, plus
+           any referenced from the top-level system.
+           Duplicates may be present."""
+        return (itertools.chain(
+                        self.software,
+                        (sm.software for sm in self._all_starting_models()
+                              if sm.software)))
+
     def _all_citations(self):
         """Iterate over all Citations in the system.
            This includes all Citations referenced from other objects, plus

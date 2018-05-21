@@ -43,24 +43,23 @@ class _CommentDumper(_Dumper):
 
 
 class _SoftwareDumper(_Dumper):
-    def dump(self, system, writer):
-        ordinal = 1
+    def finalize(self, system):
         seen_software = {}
+        self._software_by_id = []
+        for s in system._all_software():
+            util._assign_id(s, seen_software, self._software_by_id)
+
+    def dump(self, system, writer):
         # todo: specify these attributes in only one place (e.g. in the Software
         # class)
         with writer.loop("_software",
                          ["pdbx_ordinal", "name", "classification",
                           "description", "version", "type", "location"]) as l:
-            for s in system.software:
-                # Remove duplicates
-                if s in seen_software:
-                    continue
-                seen_software[s] = None
-                l.write(pdbx_ordinal=ordinal, name=s.name,
+            for s in self._software_by_id:
+                l.write(pdbx_ordinal=s._id, name=s.name,
                         classification=s.classification,
                         description=s.description, version=s.version,
                         type=s.type, location=s.location)
-                ordinal += 1
 
 
 class _CitationDumper(_Dumper):
@@ -610,7 +609,8 @@ class _StartingModelDumper(_Dumper):
                       "template_seq_id_end", "template_sequence_identity",
                       "template_sequence_identity_denominator",
                       "template_dataset_list_id",
-                      "alignment_file_id", "script_file_id"]) as l:
+                      "alignment_file_id", "software_id",
+                      "script_file_id"]) as l:
             ordinal = 1
             for sm in system._all_starting_models():
                 off = sm.offset
@@ -630,6 +630,7 @@ class _StartingModelDumper(_Dumper):
                                                if template.dataset else None,
                       alignment_file_id=template.alignment_file._id
                                         if template.alignment_file else None,
+                      software_id=sm.software._id if sm.software else None,
                       script_file_id=sm.script_file._id
                                         if sm.script_file else None)
                     ordinal += 1

@@ -512,6 +512,8 @@ class _StartingComparativeModelsHandler(_Handler):
         if 'script_file_id' in d:
             m.script_file = self.sysr.external_files.get_by_id(
                                                       d['script_file_id'])
+        if 'software_id' in d:
+            m.software = self.sysr.external_files.get_by_id(d['software_id'])
         dataset = self.sysr.datasets.get_by_id(d['template_dataset_list_id'])
         aln = self.sysr.external_files.get_by_id_or_none(
                                             d, 'alignment_file_id')
