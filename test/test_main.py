@@ -455,6 +455,7 @@ class Tests(unittest.TestCase):
 
         start_model = MockObject()
         start_model.dataset = None
+        start_model.script_file = loc2
         template = MockObject()
         template.dataset = None
         template.alignment_file = loc3
@@ -463,7 +464,7 @@ class Tests(unittest.TestCase):
 
         # duplicates should not be filtered
         self.assertEqual(list(s._all_locations()), [loc1, loc1, loc2,
-                                                    loc1, loc3])
+                                                    loc1, loc2, loc3])
 
     def test_all_datasets(self):
         """Test _all_datasets() method"""

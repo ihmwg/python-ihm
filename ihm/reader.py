@@ -509,6 +509,9 @@ class _StartingComparativeModelsHandler(_Handler):
 
     def __call__(self, d):
         m = self.sysr.starting_models.get_by_id(d['starting_model_id'])
+        if 'script_file_id' in d:
+            m.script_file = self.sysr.external_files.get_by_id(
+                                                      d['script_file_id'])
         dataset = self.sysr.datasets.get_by_id(d['template_dataset_list_id'])
         aln = self.sysr.external_files.get_by_id_or_none(
                                             d, 'alignment_file_id')

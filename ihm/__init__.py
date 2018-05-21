@@ -315,6 +315,7 @@ class System(object):
                           if hasattr(dataset, 'location') and dataset.location),
                 (ensemble.file for ensemble in self.ensembles if ensemble.file),
                 (density.file for density in all_densities() if density.file),
+                (sm.script_file for sm in self._all_starting_models()),
                 (template.alignment_file for template in self._all_templates()
                                          if template.alignment_file))
 

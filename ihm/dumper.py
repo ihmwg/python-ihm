@@ -610,7 +610,7 @@ class _StartingModelDumper(_Dumper):
                       "template_seq_id_end", "template_sequence_identity",
                       "template_sequence_identity_denominator",
                       "template_dataset_list_id",
-                      "alignment_file_id"]) as l:
+                      "alignment_file_id", "script_file_id"]) as l:
             ordinal = 1
             for sm in system._all_starting_models():
                 off = sm.offset
@@ -629,7 +629,9 @@ class _StartingModelDumper(_Dumper):
                       template_dataset_list_id=template.dataset._id
                                                if template.dataset else None,
                       alignment_file_id=template.alignment_file._id
-                                        if template.alignment_file else None)
+                                        if template.alignment_file else None,
+                      script_file_id=sm.script_file._id
+                                        if sm.script_file else None)
                     ordinal += 1
 
     def dump_coords(self, system, writer):
