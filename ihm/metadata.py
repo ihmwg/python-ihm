@@ -120,7 +120,7 @@ class PDBParser(Parser):
                     'software' pointing to a list of software used to generate
                     the file (as :class:`ihm.Software` objects);
                     'script' pointing to the script used to generate the
-                    file, if any (as :class:`ihm.location.WorkflowFileLocation
+                    file, if any (as :class:`ihm.location.WorkflowFileLocation`
                     objects);
                     'metadata' a list of PDB metadata records.
 
