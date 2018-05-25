@@ -513,7 +513,7 @@ class _StartingComputationalModelsHandler(_Handler):
             m.script_file = self.sysr.external_files.get_by_id(
                                                       d['script_file_id'])
         if 'software_id' in d:
-            m.software = self.sysr.external_files.get_by_id(d['software_id'])
+            m.software = self.sysr.software.get_by_id(d['software_id'])
 
 
 class _StartingComparativeModelsHandler(_Handler):
