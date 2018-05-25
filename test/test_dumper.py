@@ -836,6 +836,9 @@ _ihm_model_representation.model_object_count
                                script_file=script, software=software)
         system.orphan_starting_models.append(sm)
 
+        sm = TestStartingModel(asym(1,15), dstarget, 'A', [])
+        system.orphan_starting_models.append(sm)
+
         e1._id = 42
         asym._id = 99
         dstemplate._id = 101
@@ -859,6 +862,7 @@ _ihm_starting_model_details.starting_model_auth_asym_id
 _ihm_starting_model_details.starting_model_sequence_offset
 _ihm_starting_model_details.dataset_list_id
 1 42 foo 99 1 12 'experimental model' A 10 102
+2 42 foo 99 1 15 'experimental model' A 0 102
 #
 #
 loop_
@@ -901,6 +905,7 @@ _ihm_starting_model_coord.Cartn_z
 _ihm_starting_model_coord.B_iso_or_equiv
 _ihm_starting_model_coord.ordinal_id
 1 ATOM 1 C CA ALA 42 99 1 -8.000 -5.000 91.000 42.000 1
+2 ATOM 1 C CA ALA 42 99 1 -8.000 -5.000 91.000 42.000 2
 #
 #
 loop_
@@ -916,6 +921,8 @@ _ihm_starting_model_seq_dif.db_comp_id
 _ihm_starting_model_seq_dif.details
 1 42 99 7 MET 1 A 5 MSE 'Conversion of modified residue MSE to MET'
 2 42 99 8 GLY 1 A 6 LEU 'LEU -> GLY'
+3 42 99 7 MET 2 A 5 MSE 'Conversion of modified residue MSE to MET'
+4 42 99 8 GLY 2 A 6 LEU 'LEU -> GLY'
 #
 """)
 

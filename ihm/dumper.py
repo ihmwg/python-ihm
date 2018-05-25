@@ -605,10 +605,12 @@ class _StartingModelDumper(_Dumper):
                      ["starting_model_id", "software_id",
                       "script_file_id"]) as l:
             for sm in system._all_starting_models():
-                l.write(starting_model_id=sm._id,
-                        software_id=sm.software._id if sm.software else None,
-                        script_file_id=sm.script_file._id
-                                        if sm.script_file else None)
+                if sm.software or sm.script_file:
+                    l.write(starting_model_id=sm._id,
+                            software_id=sm.software._id
+                                        if sm.software else None,
+                            script_file_id=sm.script_file._id
+                                            if sm.script_file else None)
 
     def dump_comparative(self, system, writer):
         """Dump details on comparative models."""
