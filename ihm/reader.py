@@ -550,12 +550,13 @@ class _ProtocolHandler(_Handler):
         assembly = self.sysr.assemblies.get_by_id_or_none(
                                             d, 'struct_assembly_id')
         dg = self.sysr.dataset_groups.get_by_id_or_none(d, 'dataset_group_id')
+        software = self.sysr.software.get_by_id_or_none(d, 'software_id')
         script = self.sysr.external_files.get_by_id_or_none(d, 'script_file_id')
         s = ihm.protocol.Step(assembly=assembly, dataset_group=dg,
                               method=None, num_models_begin=nbegin,
                               num_models_end=nend, multi_scale=mscale,
                               multi_state=mstate, ordered=ordered,
-                              script_file=script)
+                              software=software, script_file=script)
         self._copy_if_present(s, d,
                 mapkeys={'step_name':'name', 'step_method':'method'})
         p.steps.append(s)
@@ -596,6 +597,8 @@ class _PostProcessHandler(_Handler):
                                             d, 'struct_assembly_id')
             step.dataset_group = self.sysr.dataset_groups.get_by_id_or_none(
                                             d, 'dataset_group_id')
+            step.software = self.sysr.software.get_by_id_or_none(
+                                            d, 'software_id')
             step.script_file = self.sysr.external_files.get_by_id_or_none(
                                             d, 'script_file_id')
             self._copy_if_present(step, d, keys=['feature'])
