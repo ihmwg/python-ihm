@@ -574,8 +574,9 @@ _ihm_modeling_protocol.num_models_end
 _ihm_modeling_protocol.multi_scale_flag
 _ihm_modeling_protocol.multi_state_flag
 _ihm_modeling_protocol.ordered_flag
-1 1 1 1 1 . Prot1 Sampling 'Monte Carlo' 0 500 YES NO NO
-2 1 2 1 2 . Prot1 Sampling 'Monte Carlo' 500 5000 YES . NO
+_ihm_modeling_protocol.script_file_id
+1 1 1 1 1 . Prot1 Sampling 'Monte Carlo' 0 500 YES NO NO .
+2 1 2 1 2 . Prot1 Sampling 'Monte Carlo' 500 5000 YES . NO 501
 """)
         s, = ihm.reader.read(fh)
         p1, = s.orphan_protocols
@@ -590,9 +591,11 @@ _ihm_modeling_protocol.ordered_flag
         self.assertEqual(p1.steps[0].multi_scale, True)
         self.assertEqual(p1.steps[0].multi_state, False)
         self.assertEqual(p1.steps[0].ordered, False)
+        self.assertEqual(p1.steps[0].script_file, None)
         self.assertEqual(p1.steps[1].multi_scale, True)
         self.assertEqual(p1.steps[1].multi_state, None)
         self.assertEqual(p1.steps[1].ordered, False)
+        self.assertEqual(p1.steps[1].script_file._id, '501')
 
     def test_post_process_handler(self):
         """Test PostProcessHandler"""
@@ -608,12 +611,13 @@ _ihm_modeling_post_process.num_models_begin
 _ihm_modeling_post_process.num_models_end
 _ihm_modeling_post_process.struct_assembly_id
 _ihm_modeling_post_process.dataset_group_id
-1  1   1   1   'filter'  'energy/score'  15000   6520 . .
-2  1   1   2   'cluster' 'dRMSD'         6520    6520 . .
-3  1   2   1   'filter'  'energy/score'  15000   6520 . .
-4  1   2   2   'filter'  'composition'   6520    6520 . .
-5  1   2   3   'cluster' 'dRMSD'         6520    6520 . .
-6  2   3   1   'none' .         .    . . .
+_ihm_modeling_post_process.script_file_id
+1  1   1   1   'filter'  'energy/score'  15000   6520 . . 501
+2  1   1   2   'cluster' 'dRMSD'         6520    6520 . . .
+3  1   2   1   'filter'  'energy/score'  15000   6520 . . .
+4  1   2   2   'filter'  'composition'   6520    6520 . . .
+5  1   2   3   'cluster' 'dRMSD'         6520    6520 . . .
+6  2   3   1   'none' .         .    . . . .
 """)
         s, = ihm.reader.read(fh)
         p1, p2 = s.orphan_protocols
@@ -625,7 +629,9 @@ _ihm_modeling_post_process.dataset_group_id
         self.assertEqual(a1.steps[0].feature, 'energy/score')
         self.assertEqual(a1.steps[0].num_models_begin, 15000)
         self.assertEqual(a1.steps[0].num_models_end, 6520)
+        self.assertEqual(a1.steps[0].script_file._id, '501')
         self.assertEqual(a1.steps[1].__class__, ihm.analysis.ClusterStep)
+        self.assertEqual(a1.steps[1].script_file, None)
         self.assertEqual(len(a2.steps), 3)
 
         a1, = p2.analyses
