@@ -862,6 +862,13 @@ _ihm_starting_model_details.dataset_list_id
 #
 #
 loop_
+_ihm_starting_computational_models.starting_model_id
+_ihm_starting_computational_models.software_id
+_ihm_starting_computational_models.script_file_id
+1 99 8
+#
+#
+loop_
 _ihm_starting_comparative_models.ordinal_id
 _ihm_starting_comparative_models.starting_model_id
 _ihm_starting_comparative_models.starting_model_auth_asym_id
@@ -874,10 +881,8 @@ _ihm_starting_comparative_models.template_sequence_identity
 _ihm_starting_comparative_models.template_sequence_identity_denominator
 _ihm_starting_comparative_models.template_dataset_list_id
 _ihm_starting_comparative_models.alignment_file_id
-_ihm_starting_comparative_models.software_id
-_ihm_starting_comparative_models.script_file_id
-1 1 A 1 10 C 101 110 30.000 1 101 . 99 8
-2 1 A 5 12 D 201 210 40.000 1 101 5 99 8
+1 1 A 1 10 C 101 110 30.000 1 101 .
+2 1 A 5 12 D 201 210 40.000 1 101 5
 #
 #
 loop_

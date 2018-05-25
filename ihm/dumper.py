@@ -569,6 +569,7 @@ class _StartingModelDumper(_Dumper):
 
     def dump(self, system, writer):
         self.dump_details(system, writer)
+        self.dump_computational(system, writer)
         self.dump_comparative(system, writer)
         self.dump_coords(system, writer)
         self.dump_seq_dif(system, writer)
@@ -598,6 +599,17 @@ class _StartingModelDumper(_Dumper):
                         dataset_list_id=sm.dataset._id,
                         starting_model_sequence_offset=sm.offset)
 
+    def dump_computational(self, system, writer):
+        """Dump details on computational models."""
+        with writer.loop("_ihm_starting_computational_models",
+                     ["starting_model_id", "software_id",
+                      "script_file_id"]) as l:
+            for sm in system._all_starting_models():
+                l.write(starting_model_id=sm._id,
+                        software_id=sm.software._id if sm.software else None,
+                        script_file_id=sm.script_file._id
+                                        if sm.script_file else None)
+
     def dump_comparative(self, system, writer):
         """Dump details on comparative models."""
         with writer.loop("_ihm_starting_comparative_models",
@@ -609,8 +621,7 @@ class _StartingModelDumper(_Dumper):
                       "template_seq_id_end", "template_sequence_identity",
                       "template_sequence_identity_denominator",
                       "template_dataset_list_id",
-                      "alignment_file_id", "software_id",
-                      "script_file_id"]) as l:
+                      "alignment_file_id"]) as l:
             ordinal = 1
             for sm in system._all_starting_models():
                 off = sm.offset
@@ -629,10 +640,7 @@ class _StartingModelDumper(_Dumper):
                       template_dataset_list_id=template.dataset._id
                                                if template.dataset else None,
                       alignment_file_id=template.alignment_file._id
-                                        if template.alignment_file else None,
-                      software_id=sm.software._id if sm.software else None,
-                      script_file_id=sm.script_file._id
-                                        if sm.script_file else None)
+                                        if template.alignment_file else None)
                     ordinal += 1
 
     def dump_coords(self, system, writer):

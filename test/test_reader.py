@@ -508,6 +508,23 @@ _ihm_starting_model_details.dataset_list_id
         self.assertEqual(m2.offset, 0)
         self.assertEqual(m2.dataset._id, '6')
 
+    def test_starting_computational_models_handler(self):
+        """Test StartingComputationModelsHandler"""
+        fh = StringIO("""
+loop_
+_ihm_starting_computational_models.starting_model_id
+_ihm_starting_computational_models.software_id
+_ihm_starting_computational_models.script_file_id
+1 99 8
+2 . .
+""")
+        s, = ihm.reader.read(fh)
+        m1, m2 = s.orphan_starting_models
+        self.assertEqual(m1.script_file._id, '8')
+        self.assertEqual(m1.software._id, '99')
+        self.assertEqual(m2.script_file, None)
+        self.assertEqual(m2.software, None)
+
     def test_starting_comparative_models_handler(self):
         """Test StartingComparativeModelsHandler"""
         fh = StringIO("""
@@ -524,15 +541,11 @@ _ihm_starting_comparative_models.template_sequence_identity
 _ihm_starting_comparative_models.template_sequence_identity_denominator
 _ihm_starting_comparative_models.template_dataset_list_id
 _ihm_starting_comparative_models.alignment_file_id
-_ihm_starting_comparative_models.script_file_id
-_ihm_starting_comparative_models.software_id
-1 1 A 7 436 C 9 438 90.000 1 3 2 8 99
-2 1 A 33 424 C 33 424 100.000 1 1 . . .
+1 1 A 7 436 C 9 438 90.000 1 3 2
+2 1 A 33 424 C 33 424 100.000 1 1 .
 """)
         s, = ihm.reader.read(fh)
         m1, = s.orphan_starting_models
-        self.assertEqual(m1.script_file._id, '8')
-        self.assertEqual(m1.software._id, '99')
         t1, t2 = m1.templates
         self.assertEqual(t1.dataset._id, '3')
         self.assertEqual(t1.asym_id, 'C')

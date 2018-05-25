@@ -504,8 +504,8 @@ class _StartingModelDetailsHandler(_Handler):
             m.offset = int(d['starting_model_sequence_offset'])
 
 
-class _StartingComparativeModelsHandler(_Handler):
-    category = '_ihm_starting_comparative_models'
+class _StartingComputationalModelsHandler(_Handler):
+    category = '_ihm_starting_computational_models'
 
     def __call__(self, d):
         m = self.sysr.starting_models.get_by_id(d['starting_model_id'])
@@ -514,6 +514,13 @@ class _StartingComparativeModelsHandler(_Handler):
                                                       d['script_file_id'])
         if 'software_id' in d:
             m.software = self.sysr.external_files.get_by_id(d['software_id'])
+
+
+class _StartingComparativeModelsHandler(_Handler):
+    category = '_ihm_starting_comparative_models'
+
+    def __call__(self, d):
+        m = self.sysr.starting_models.get_by_id(d['starting_model_id'])
         dataset = self.sysr.datasets.get_by_id(d['template_dataset_list_id'])
         aln = self.sysr.external_files.get_by_id_or_none(
                                             d, 'alignment_file_id')
@@ -703,6 +710,7 @@ def read(fh):
                     _RelatedDatasetsHandler(s),
                     _ModelRepresentationHandler(s),
                     _StartingModelDetailsHandler(s),
+                    _StartingComputationalModelsHandler(s),
                     _StartingComparativeModelsHandler(s),
                     _ProtocolHandler(s), _PostProcessHandler(s),
                     _ModelListHandler(s), _MultiStateHandler(s),
