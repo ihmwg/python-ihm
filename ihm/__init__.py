@@ -785,7 +785,10 @@ class AsymUnit(object):
               (`auth_seq_id`). This can be either be an int offset, in
               which case ``auth_seq_id = seq_id + auth_seq_id_map``, or
               a mapping type (dict, list, tuple) in which case
-              ``auth_seq_id = auth_seq_id_map[seq_id]``. The default if
+              ``auth_seq_id = auth_seq_id_map[seq_id]``. (Note that if a `list`
+              or `tuple` is used, the first element in the list or tuple does
+              **not** correspond to the first residue and will never be used -
+              since `seq_id` can never be zero.) The default if
               not specified, or not in the mapping, is for
               ``auth_seq_id == seq_id``.
        :param str id: User-specified ID (usually a string of one or more
