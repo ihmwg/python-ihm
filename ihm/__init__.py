@@ -399,7 +399,11 @@ class Software(object):
        :param str type: Type of software (program/package/library/other).
        :param str version: The version used.
 
-       See :attr:`System.software`."""
+       Generally these objects are added to :attr:`System.software` or
+       passed to :class:`ihm.startmodel.StartingModel`,
+       :class:`ihm.protocol.Step`, or
+       :class:`ihm.analysis.Step` objects.
+    """
     def __init__(self, name, classification, description, location,
                  type='program', version=None):
         self.name = name
