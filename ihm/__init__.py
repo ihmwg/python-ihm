@@ -421,7 +421,8 @@ class Software(object):
 class Citation(object):
     """A publication that describes the modeling.
 
-       See :attr:`System.citations`.
+       Generally citations are added to :attr:`System.citations` or
+       passed to :class:`ihm.restraint.EM3DRestraint` objects.
 
        :param str pmid: The PubMed ID.
        :param str title: Full title of the publication.
