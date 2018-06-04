@@ -459,6 +459,12 @@ class Citation(object):
             for art_id in ref['articleids']:
                 if art_id['idtype'] == 'doi':
                     return enc(art_id['value'])
+        def get_page_range(ref):
+            rng = enc(ref['pages']).split('-')
+            if len(rng) == 2 and len(rng[1]) < len(rng[0]):
+                # map ranges like "2730-43" to 2730,2743 not 2730, 43
+                rng[1] = rng[0][:len(rng[0])-len(rng[1])] + rng[1]
+            return rng
         # JSON values are always Unicode, but on Python 2 we want non-Unicode
         # strings, so convert to ASCII
         if sys.version_info[0] < 3:
@@ -479,7 +485,7 @@ class Citation(object):
 
         return cls(pmid=pubmed_id, title=enc(ref['title']),
                    journal=enc(ref['source']), volume=enc(ref['volume']),
-                   page_range=enc(ref['pages']).split('-'),
+                   page_range=get_page_range(ref),
                    year=enc(ref['pubdate']).split()[0],
                    authors=authors, doi=get_doi(ref))
 
