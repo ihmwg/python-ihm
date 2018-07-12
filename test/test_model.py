@@ -39,15 +39,13 @@ class Tests(unittest.TestCase):
         new_spheres = [s for s in m.get_spheres()]
         self.assertEqual(new_spheres, spheres)
 
-    def test_model_set_spheres(self):
-        """Test Model.set_spheres()"""
+    def test_model_add_sphere(self):
+        """Test Model.add_sphere()"""
         spheres = ['sphere1', 'sphere2']
-        def spheregen():
-            for s in spheres:
-                yield s
         m = ihm.model.Model(assembly='foo', protocol='bar',
                             representation='baz')
-        m.set_spheres(spheregen())
+        m.add_sphere(spheres[0])
+        m.add_sphere(spheres[1])
         self.assertEqual(m._spheres, spheres)
 
     def test_model_get_atoms(self):

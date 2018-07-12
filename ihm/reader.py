@@ -682,6 +682,7 @@ class _ModelListHandler(_Handler):
 
     def finalize(self):
         # Put all model groups not assigned to a state in their own state
+        # todo: handle models not in model groups too?
         model_groups_in_states = set()
         for sg in self.system.state_groups:
             for state in sg:
@@ -821,6 +822,21 @@ class _SASRestraintHandler(_Handler):
                                  chi_value=_get_float(d, 'chi_value'))
 
 
+class _SphereObjSiteHandler(_Handler):
+    category = '_ihm_sphere_obj_site'
+
+    def __call__(self, d):
+        model = self.sysr.models.get_by_id(d['model_id'])
+        asym = self.sysr.asym_units.get_by_id(d['asym_id'])
+        rmsf = float(d['rmsf']) if 'rmsf' in d else None
+        s = ihm.model.Sphere(asym_unit=asym,
+                seq_id_range=(int(d['seq_id_begin']), int(d['seq_id_end'])),
+                x=float(d['cartn_x']), y=float(d['cartn_y']),
+                z=float(d['cartn_z']), radius=float(d['object_radius']),
+                rmsf=rmsf)
+        model.add_sphere(s)
+
+
 def read(fh):
     """Read data from the mmCIF file handle `fh`.
     
@@ -847,7 +863,8 @@ def read(fh):
                     _ModelListHandler(s), _MultiStateHandler(s),
                     _EnsembleHandler(s), _DensityHandler(s),
                     _EM3DRestraintHandler(s), _EM2DRestraintHandler(s),
-                    _EM2DFittingHandler(s), _SASRestraintHandler(s)]
+                    _EM2DFittingHandler(s), _SASRestraintHandler(s),
+                    _SphereObjSiteHandler(s)]
         r = ihm.format.CifReader(fh, dict((h.category, h) for h in handlers))
         more_data = r.read_file()
         for h in handlers:

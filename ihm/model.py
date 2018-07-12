@@ -93,13 +93,12 @@ class Model(object):
         for s in self._spheres:
             yield s
 
-    def set_spheres(self, spheregen):
-        """Populate the model's set of :class:`Sphere` objects from the
-           given Python generator.
+    def add_sphere(self, sphere):
+        """Add to the model's set of :class:`Sphere` objects.
 
            See :meth:`get_spheres` for more details.
         """
-        self._spheres = [s for s in spheregen]
+        self._spheres.append(sphere)
 
     def get_atoms(self):
         """Yield :class:`Atom` objects that represent this model.

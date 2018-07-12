@@ -917,6 +917,47 @@ _ihm_sas_restraint.details
         self.assertEqual(fit[0]._id, '8')
         self.assertAlmostEqual(fit[1].chi_value, 1.36, places=2)
 
+    def test_sphere_obj_site_handler(self):
+        """Test SphereObjSiteHandler"""
+        fh = StringIO("""
+loop_
+_ihm_model_list.ordinal_id
+_ihm_model_list.model_id
+_ihm_model_list.model_group_id
+_ihm_model_list.model_name
+_ihm_model_list.model_group_name
+_ihm_model_list.assembly_id
+_ihm_model_list.protocol_id
+_ihm_model_list.representation_id
+1 1 1 . 'Cluster 1' 1 1 1
+#
+loop_
+_ihm_sphere_obj_site.ordinal_id
+_ihm_sphere_obj_site.entity_id
+_ihm_sphere_obj_site.seq_id_begin
+_ihm_sphere_obj_site.seq_id_end
+_ihm_sphere_obj_site.asym_id
+_ihm_sphere_obj_site.Cartn_x
+_ihm_sphere_obj_site.Cartn_y
+_ihm_sphere_obj_site.Cartn_z
+_ihm_sphere_obj_site.object_radius
+_ihm_sphere_obj_site.rmsf
+_ihm_sphere_obj_site.model_id
+1 1 1 6 A 389.993 145.089 134.782 4.931 . 1
+2 1 7 7 B 406.895 142.176 135.653 3.318 1.34 1
+""")
+        s, = ihm.reader.read(fh)
+        m = s.state_groups[0][0][0][0]
+        s1, s2 = m._spheres
+        self.assertEqual(s1.asym_unit._id, 'A')
+        self.assertEqual(s1.seq_id_range, (1,6))
+        self.assertAlmostEqual(s1.x, 389.993, places=2)
+        self.assertAlmostEqual(s1.y, 145.089, places=2)
+        self.assertAlmostEqual(s1.z, 134.782, places=2)
+        self.assertAlmostEqual(s1.radius, 4.931, places=2)
+        self.assertEqual(s1.rmsf, None)
+        self.assertAlmostEqual(s2.rmsf, 1.34, places=1)
+
 
 if __name__ == '__main__':
     unittest.main()
