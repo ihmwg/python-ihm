@@ -778,6 +778,37 @@ _ihm_localization_density_files.seq_id_end
         self.assertEqual(d2._id, '2')
         self.assertEqual(d2.asym_unit.__class__, ihm.AsymUnit)
 
+    def test_em3d_restraint_handler(self):
+        """Test EM3DRestraintHandler"""
+        fh = StringIO("""
+loop_
+_ihm_3dem_restraint.ordinal_id
+_ihm_3dem_restraint.dataset_list_id
+_ihm_3dem_restraint.fitting_method
+_ihm_3dem_restraint.fitting_method_citation_id
+_ihm_3dem_restraint.struct_assembly_id
+_ihm_3dem_restraint.number_of_gaussians
+_ihm_3dem_restraint.model_id
+_ihm_3dem_restraint.cross_correlation_coefficient
+1 26 'Gaussian mixture models' 9 2 400 1 .
+2 26 'Gaussian mixture models' 9 2 400 2 0.9
+""")
+        s, = ihm.reader.read(fh)
+        r, = s.restraints
+        self.assertEqual(r.dataset._id, '26')
+        self.assertEqual(r.fitting_method, 'Gaussian mixture models')
+        self.assertEqual(r.fitting_method_citation._id, '9')
+        self.assertEqual(r.assembly._id, '2')
+        self.assertEqual(r.number_of_gaussians, 400)
+        # Sort fits by model ID
+        fits = sorted(r.fits.items(), key=lambda x:x[0]._id)
+        self.assertEqual(len(fits), 2)
+        self.assertEqual(fits[0][0]._id, '1')
+        self.assertEqual(fits[0][1].cross_correlation_coefficient, None)
+        self.assertEqual(fits[1][0]._id, '2')
+        self.assertAlmostEqual(fits[1][1].cross_correlation_coefficient,
+                               0.9, places=1)
+
 
 if __name__ == '__main__':
     unittest.main()

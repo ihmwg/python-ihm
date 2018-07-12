@@ -8,6 +8,7 @@ import ihm.startmodel
 import ihm.protocol
 import ihm.analysis
 import ihm.model
+import ihm.restraint
 import inspect
 
 def _make_new_entity():
@@ -697,6 +698,35 @@ class _DensityHandler(_Handler):
         ensemble.densities.append(density)
 
 
+class _EM3DRestraintHandler(_Handler):
+    category = '_ihm_3dem_restraint'
+
+    def __init__(self, *args):
+        super(_EM3DRestraintHandler, self).__init__(*args)
+        # map from dataset to restraint object (since EM3D restraints don't
+        # have their own IDs - they use the dataset id)
+        self._em3d_restraints = {}
+
+    def __call__(self, d):
+        dataset = self.sysr.datasets.get_by_id(d['dataset_list_id'])
+        if dataset._id not in self._em3d_restraints:
+            r = ihm.restraint.EM3DRestraint(dataset, None)
+            self.sysr.system.restraints.append(r)
+            self._em3d_restraints[dataset._id] = r
+        else:
+            r = self._em3d_restraints[dataset._id]
+        r.assembly = self.sysr.assemblies.get_by_id_or_none(
+                                            d, 'struct_assembly_id')
+        r.fitting_method_citation = self.sysr.citations.get_by_id_or_none(
+                                            d, 'fitting_method_citation_id')
+        self._copy_if_present(r, d, keys=('fitting_method',))
+        r.number_of_gaussians = _get_int(d, 'number_of_gaussians')
+
+        model = self.sysr.models.get_by_id(d['model_id'])
+        ccc = _get_float(d, 'cross_correlation_coefficient')
+        r.fits[model] = ihm.restraint.EM3DRestraintFit(ccc)
+
+
 def read(fh):
     """Read data from the mmCIF file handle `fh`.
     
@@ -721,7 +751,8 @@ def read(fh):
                     _StartingComparativeModelsHandler(s),
                     _ProtocolHandler(s), _PostProcessHandler(s),
                     _ModelListHandler(s), _MultiStateHandler(s),
-                    _EnsembleHandler(s), _DensityHandler(s)]
+                    _EnsembleHandler(s), _DensityHandler(s),
+                    _EM3DRestraintHandler(s)]
         r = ihm.format.CifReader(fh, dict((h.category, h) for h in handlers))
         more_data = r.read_file()
         for h in handlers:
