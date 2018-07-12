@@ -134,6 +134,37 @@ class _AnalysisIDMapper(_IDMapper):
             return newcls(*self._cls_args, **self._cls_keys)
 
 
+class _DatasetIDMapper(object):
+    """Handle mapping from mmCIF dataset IDs to Python objects.
+
+       This is similar to _IDMapper but is intended for objects like restraints
+       that don't have their own IDs but instead use the dataset ID.
+
+       :param list system_list: The list in :class:`ihm.System` that keeps
+              track of these objects.
+       :param datasets: Mapping from IDs to Dataset objects.
+       :param class cls: The base class for the Python objects. Its constructor
+              is expected to take a Dataset object as the first argument.
+    """
+    def __init__(self, system_list, datasets, cls, *cls_args, **cls_keys):
+        self.system_list = system_list
+        self.datasets = datasets
+        self._obj_by_id = {}
+        self._cls = cls
+        self._cls_args = cls_args
+        self._cls_keys = cls_keys
+
+    def get_by_dataset(self, dataset_id):
+        dataset = self.datasets.get_by_id(dataset_id)
+        if dataset._id not in self._obj_by_id:
+            r = self._cls(dataset, *self._cls_args, **self._cls_keys)
+            self.system_list.append(r)
+            self._obj_by_id[dataset._id] = r
+        else:
+            r = self._obj_by_id[dataset._id]
+        return r
+
+
 class _SystemReader(object):
     """Track global information for a System being read from a file, such
        as the mapping from IDs to objects."""
@@ -175,6 +206,9 @@ class _SystemReader(object):
                                    ihm.model.Ensemble, *(None,)*2)
         self.densities = _IDMapper(None,
                                    ihm.model.LocalizationDensity, *(None,)*2)
+        self.em3d_restraints = _DatasetIDMapper(self.system.restraints,
+                                   self.datasets,
+                                   ihm.restraint.EM3DRestraint, None)
         self.em2d_restraints = _IDMapper(self.system.restraints,
                                    ihm.restraint.EM2DRestraint, *(None,)*2)
 
@@ -718,20 +752,9 @@ class _DensityHandler(_Handler):
 class _EM3DRestraintHandler(_Handler):
     category = '_ihm_3dem_restraint'
 
-    def __init__(self, *args):
-        super(_EM3DRestraintHandler, self).__init__(*args)
-        # map from dataset to restraint object (since EM3D restraints don't
-        # have their own IDs - they use the dataset id)
-        self._em3d_restraints = {}
-
     def __call__(self, d):
-        dataset = self.sysr.datasets.get_by_id(d['dataset_list_id'])
-        if dataset._id not in self._em3d_restraints:
-            r = ihm.restraint.EM3DRestraint(dataset, None)
-            self.sysr.system.restraints.append(r)
-            self._em3d_restraints[dataset._id] = r
-        else:
-            r = self._em3d_restraints[dataset._id]
+        # EM3D restraints don't have their own IDs - they use the dataset id
+        r = self.sysr.em3d_restraints.get_by_dataset(d['dataset_list_id'])
         r.assembly = self.sysr.assemblies.get_by_id_or_none(
                                             d, 'struct_assembly_id')
         r.fitting_method_citation = self.sysr.citations.get_by_id_or_none(
