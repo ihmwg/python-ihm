@@ -958,6 +958,60 @@ _ihm_sphere_obj_site.model_id
         self.assertEqual(s1.rmsf, None)
         self.assertAlmostEqual(s2.rmsf, 1.34, places=1)
 
+    def test_atom_site_handler(self):
+        """Test AtomSiteHandler"""
+        fh = StringIO("""
+loop_
+_ihm_model_list.ordinal_id
+_ihm_model_list.model_id
+_ihm_model_list.model_group_id
+_ihm_model_list.model_name
+_ihm_model_list.model_group_name
+_ihm_model_list.assembly_id
+_ihm_model_list.protocol_id
+_ihm_model_list.representation_id
+1 1 1 . 'Cluster 1' 1 1 1
+#
+loop_
+_atom_site.group_PDB
+_atom_site.id
+_atom_site.type_symbol
+_atom_site.label_atom_id
+_atom_site.label_alt_id
+_atom_site.label_comp_id
+_atom_site.label_seq_id
+_atom_site.label_asym_id
+_atom_site.Cartn_x
+_atom_site.Cartn_y
+_atom_site.Cartn_z
+_atom_site.label_entity_id
+_atom_site.auth_asym_id
+_atom_site.B_iso_or_equiv
+_atom_site.pdbx_PDB_model_num
+_atom_site.ihm_model_id
+ATOM 1 N N . SER 1 A 54.401 -49.984 -35.287 1 A . 1 1
+HETATM 2 C CA . SER 19 B 54.452 -48.492 -35.210 1 A 42.0 1 1
+""")
+        s, = ihm.reader.read(fh)
+        m = s.state_groups[0][0][0][0]
+        a1, a2 = m._atoms
+        self.assertEqual(a1.asym_unit._id, 'A')
+        self.assertEqual(a1.seq_id, 1)
+        self.assertEqual(a1.atom_id, 'N')
+        self.assertEqual(a1.type_symbol, 'N')
+        self.assertAlmostEqual(a1.x, 54.401, places=2)
+        self.assertAlmostEqual(a1.y, -49.984, places=2)
+        self.assertAlmostEqual(a1.z, -35.287, places=2)
+        self.assertEqual(a1.het, False)
+        self.assertEqual(a1.biso, None)
+
+        self.assertEqual(a2.asym_unit._id, 'B')
+        self.assertEqual(a2.seq_id, 19)
+        self.assertEqual(a2.atom_id, 'CA')
+        self.assertEqual(a2.type_symbol, 'C')
+        self.assertEqual(a2.het, True)
+        self.assertAlmostEqual(a2.biso, 42.0, places=0)
+
 
 if __name__ == '__main__':
     unittest.main()

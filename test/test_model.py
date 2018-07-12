@@ -57,15 +57,13 @@ class Tests(unittest.TestCase):
         new_atoms = [a for a in m.get_atoms()]
         self.assertEqual(new_atoms, atoms)
 
-    def test_model_set_atoms(self):
-        """Test Model.set_atoms()"""
+    def test_model_add_atom(self):
+        """Test Model.add_atom()"""
         atoms = ['atom1', 'atom2']
-        def atomgen():
-            for a in atoms:
-                yield a
         m = ihm.model.Model(assembly='foo', protocol='bar',
                             representation='baz')
-        m.set_atoms(atomgen())
+        m.add_atom(atoms[0])
+        m.add_atom(atoms[1])
         self.assertEqual(m._atoms, atoms)
 
     def test_model_group(self):

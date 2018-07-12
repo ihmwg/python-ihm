@@ -108,13 +108,12 @@ class Model(object):
         for a in self._atoms:
             yield a
 
-    def set_atoms(self, atomgen):
-        """Populate the model's set of :class:`Atom` objects from the
-           given Python generator.
+    def add_atom(self, atom):
+        """Add to the model's set of :class:`Atom` objects.
 
            See :meth:`get_spheres` for more details.
         """
-        self._atoms = [a for a in atomgen]
+        self._atoms.append(atom)
 
 
 class ModelGroup(list):

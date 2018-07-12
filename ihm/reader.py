@@ -837,6 +837,25 @@ class _SphereObjSiteHandler(_Handler):
         model.add_sphere(s)
 
 
+class _AtomSiteHandler(_Handler):
+    category = '_atom_site'
+
+    def __call__(self, d):
+        # todo: handle fields other than those output by us
+        # todo: handle auth_seq_id
+        model = self.sysr.models.get_by_id(d['pdbx_pdb_model_num'])
+        asym = self.sysr.asym_units.get_by_id(d['label_asym_id'])
+        biso = float(d['b_iso_or_equiv']) if 'b_iso_or_equiv' in d else None
+        a = ihm.model.Atom(asym_unit=asym,
+                seq_id=int(d['label_seq_id']),
+                atom_id=d['label_atom_id'],
+                type_symbol=d['type_symbol'],
+                x=float(d['cartn_x']), y=float(d['cartn_y']),
+                z=float(d['cartn_z']), het=d.get('group_pdb', 'ATOM') != 'ATOM',
+                biso=biso)
+        model.add_atom(a)
+
+
 def read(fh):
     """Read data from the mmCIF file handle `fh`.
     
@@ -864,7 +883,7 @@ def read(fh):
                     _EnsembleHandler(s), _DensityHandler(s),
                     _EM3DRestraintHandler(s), _EM2DRestraintHandler(s),
                     _EM2DFittingHandler(s), _SASRestraintHandler(s),
-                    _SphereObjSiteHandler(s)]
+                    _SphereObjSiteHandler(s), _AtomSiteHandler(s)]
         r = ihm.format.CifReader(fh, dict((h.category, h) for h in handlers))
         more_data = r.read_file()
         for h in handlers:
