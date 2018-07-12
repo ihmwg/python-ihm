@@ -887,6 +887,36 @@ _ihm_2dem_class_average_fitting.tr_vector[3]
         self.assertAlmostEqual(fit[1].rot_matrix[1][2], 0.988628, places=2)
         self.assertEqual([int(x) for x in fit[1].tr_vector], [327, 83, -227])
 
+    def test_sas_restraint_handler(self):
+        """Test SASRestraintHandler"""
+        fh = StringIO("""
+loop_
+_ihm_sas_restraint.ordinal_id
+_ihm_sas_restraint.dataset_list_id
+_ihm_sas_restraint.model_id
+_ihm_sas_restraint.struct_assembly_id
+_ihm_sas_restraint.profile_segment_flag
+_ihm_sas_restraint.fitting_atom_type
+_ihm_sas_restraint.fitting_method
+_ihm_sas_restraint.fitting_state
+_ihm_sas_restraint.radius_of_gyration
+_ihm_sas_restraint.chi_value
+_ihm_sas_restraint.details
+1 27 8 3 NO 'Heavy atoms' FoXS Single 27.9 1.36 .
+""")
+        s, = ihm.reader.read(fh)
+        r, = s.restraints
+        self.assertEqual(r.dataset._id, '27')
+        self.assertEqual(r.assembly._id, '3')
+        self.assertEqual(r.segment, False)
+        self.assertEqual(r.fitting_method, 'FoXS')
+        self.assertEqual(r.fitting_atom_type, 'Heavy atoms')
+        self.assertEqual(r.multi_state, False)
+        self.assertAlmostEqual(r.radius_of_gyration, 27.9, places=1)
+        fit, = list(r.fits.items())
+        self.assertEqual(fit[0]._id, '8')
+        self.assertAlmostEqual(fit[1].chi_value, 1.36, places=2)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -211,6 +211,9 @@ class _SystemReader(object):
                                    ihm.restraint.EM3DRestraint, None)
         self.em2d_restraints = _IDMapper(self.system.restraints,
                                    ihm.restraint.EM2DRestraint, *(None,)*2)
+        self.sas_restraints = _DatasetIDMapper(self.system.restraints,
+                                   self.datasets,
+                                   ihm.restraint.SASRestraint, None)
 
 
 class _Handler(object):
@@ -798,6 +801,26 @@ class _EM2DFittingHandler(_Handler):
                                   rot_matrix=rot_matrix, tr_vector=tr_vector)
 
 
+class _SASRestraintHandler(_Handler):
+    category = '_ihm_sas_restraint'
+
+    def __call__(self, d):
+        # SAS restraints don't have their own IDs - they use the dataset id
+        r = self.sysr.sas_restraints.get_by_dataset(d['dataset_list_id'])
+        r.assembly = self.sysr.assemblies.get_by_id_or_none(
+                                            d, 'struct_assembly_id')
+        r.segment = _get_bool(d, 'profile_segment_flag')
+        self._copy_if_present(r, d,
+                keys=('fitting_atom_type', 'fitting_method', 'details'))
+        r.multi_state = d.get('fitting_state', 'Single') != 'Single'
+        r.radius_of_gyration = _get_float(d, 'radius_of_gyration')
+        r.number_of_gaussians = _get_int(d, 'number_of_gaussians')
+
+        model = self.sysr.models.get_by_id(d['model_id'])
+        r.fits[model] = ihm.restraint.SASRestraintFit(
+                                 chi_value=_get_float(d, 'chi_value'))
+
+
 def read(fh):
     """Read data from the mmCIF file handle `fh`.
     
@@ -824,7 +847,7 @@ def read(fh):
                     _ModelListHandler(s), _MultiStateHandler(s),
                     _EnsembleHandler(s), _DensityHandler(s),
                     _EM3DRestraintHandler(s), _EM2DRestraintHandler(s),
-                    _EM2DFittingHandler(s)]
+                    _EM2DFittingHandler(s), _SASRestraintHandler(s)]
         r = ihm.format.CifReader(fh, dict((h.category, h) for h in handlers))
         more_data = r.read_file()
         for h in handlers:
