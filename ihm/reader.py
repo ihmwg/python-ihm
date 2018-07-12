@@ -30,6 +30,21 @@ def _get_float(d, key):
     """Return float(d[key]) or None if key is not in d"""
     return float(d[key]) if key in d else None
 
+def _get_vector3(d, key):
+    """Return a 3D vector (as a list) from d[key+[1..3]] or None if key
+       is not in d"""
+    if key+'[1]' in d:
+        # Assume if one element is present, all are
+        return [float(d[key+"[%d]" % k]) for k in (1,2,3)]
+
+def _get_matrix33(d, key):
+    """Return a 3x3 matrix (as a list of lists) from d[key+[1..3][1..3]]
+       or None if key is not in d"""
+    if key+'[1][1]' in d:
+        # Assume if one element is present, all are
+        return [[float(d[key+"[%d][%d]" % (i,j)]) for j in (1,2,3)]
+                for i in (1,2,3)]
+
 _boolmap = {'YES':True, 'NO':False}
 def _get_bool(d, key):
     """Convert d[key] to bool and return, or None if key is not in d"""
@@ -160,6 +175,8 @@ class _SystemReader(object):
                                    ihm.model.Ensemble, *(None,)*2)
         self.densities = _IDMapper(None,
                                    ihm.model.LocalizationDensity, *(None,)*2)
+        self.em2d_restraints = _IDMapper(self.system.restraints,
+                                   ihm.restraint.EM2DRestraint, *(None,)*2)
 
 
 class _Handler(object):
@@ -727,6 +744,37 @@ class _EM3DRestraintHandler(_Handler):
         r.fits[model] = ihm.restraint.EM3DRestraintFit(ccc)
 
 
+class _EM2DRestraintHandler(_Handler):
+    category = '_ihm_2dem_class_average_restraint'
+
+    def __call__(self, d):
+        r = self.sysr.em2d_restraints.get_by_id(d['id'])
+        r.dataset = self.sysr.datasets.get_by_id(d['dataset_list_id'])
+        r.number_raw_micrographs = _get_int(d, 'number_raw_micrographs')
+        r.pixel_size_width = _get_float(d, 'pixel_size_width')
+        r.pixel_size_height = _get_float(d, 'pixel_size_height')
+        r.image_resolution = _get_float(d, 'image_resolution')
+        r.segment = _get_bool(d, 'image_segment_flag')
+        r.number_of_projections = _get_int(d, 'number_of_projections')
+        r.assembly = self.sysr.assemblies.get_by_id_or_none(
+                                            d, 'struct_assembly_id')
+        self._copy_if_present(r, d, keys=('details',))
+
+
+class _EM2DFittingHandler(_Handler):
+    category = '_ihm_2dem_class_average_fitting'
+
+    def __call__(self, d):
+        r = self.sysr.em2d_restraints.get_by_id(d['restraint_id'])
+        model = self.sysr.models.get_by_id(d['model_id'])
+        ccc = _get_float(d, 'cross_correlation_coefficient')
+        tr_vector = _get_vector3(d, 'tr_vector')
+        rot_matrix = _get_matrix33(d, 'rot_matrix')
+        r.fits[model] = ihm.restraint.EM2DRestraintFit(
+                                  cross_correlation_coefficient=ccc,
+                                  rot_matrix=rot_matrix, tr_vector=tr_vector)
+
+
 def read(fh):
     """Read data from the mmCIF file handle `fh`.
     
@@ -752,7 +800,8 @@ def read(fh):
                     _ProtocolHandler(s), _PostProcessHandler(s),
                     _ModelListHandler(s), _MultiStateHandler(s),
                     _EnsembleHandler(s), _DensityHandler(s),
-                    _EM3DRestraintHandler(s)]
+                    _EM3DRestraintHandler(s), _EM2DRestraintHandler(s),
+                    _EM2DFittingHandler(s)]
         r = ihm.format.CifReader(fh, dict((h.category, h) for h in handlers))
         more_data = r.read_file()
         for h in handlers:

@@ -809,6 +809,84 @@ _ihm_3dem_restraint.cross_correlation_coefficient
         self.assertAlmostEqual(fits[1][1].cross_correlation_coefficient,
                                0.9, places=1)
 
+    def test_get_vector3(self):
+        """Test _get_vector3 function"""
+        d = {'tr_vector[1]':4.0, 'tr_vector[2]':6.0, 'tr_vector[3]':9.0}
+        r = ihm.reader._get_vector3(d, 'tr_vector')
+        # Coerce to int so we can compare exactly
+        self.assertEqual([int(x) for x in r], [4,6,9])
+
+        self.assertEqual(ihm.reader._get_vector3(d, 'not_there'), None)
+
+    def test_get_matrix33(self):
+        """Test _get_matrix33 function"""
+        d = {'m[1][1]':4.0, 'm[1][2]':6.0, 'm[1][3]':9.0,
+             'm[2][1]':1.0, 'm[2][2]':2.0, 'm[2][3]':3.0,
+             'm[3][1]':8.0, 'm[3][2]':1.0, 'm[3][3]':7.0}
+        r = ihm.reader._get_matrix33(d, 'm')
+        # Coerce to int so we can compare exactly
+        self.assertEqual([[int(x) for x in row] for row in r],
+                         [[4,6,9],
+                          [1,2,3],
+                          [8,1,7]])
+
+        self.assertEqual(ihm.reader._get_matrix33(d, 'not_there'), None)
+
+    def test_em2d_restraint_handler(self):
+        """Test EM2DRestraintHandler"""
+        fh = StringIO("""
+loop_
+_ihm_2dem_class_average_restraint.id
+_ihm_2dem_class_average_restraint.dataset_list_id
+_ihm_2dem_class_average_restraint.number_raw_micrographs
+_ihm_2dem_class_average_restraint.pixel_size_width
+_ihm_2dem_class_average_restraint.pixel_size_height
+_ihm_2dem_class_average_restraint.image_resolution
+_ihm_2dem_class_average_restraint.image_segment_flag
+_ihm_2dem_class_average_restraint.number_of_projections
+_ihm_2dem_class_average_restraint.struct_assembly_id
+_ihm_2dem_class_average_restraint.details
+1 65 800 2.030 4.030 35.000 NO 10000 42 .
+#
+loop_
+_ihm_2dem_class_average_fitting.ordinal_id
+_ihm_2dem_class_average_fitting.restraint_id
+_ihm_2dem_class_average_fitting.model_id
+_ihm_2dem_class_average_fitting.cross_correlation_coefficient
+_ihm_2dem_class_average_fitting.rot_matrix[1][1]
+_ihm_2dem_class_average_fitting.rot_matrix[2][1]
+_ihm_2dem_class_average_fitting.rot_matrix[3][1]
+_ihm_2dem_class_average_fitting.rot_matrix[1][2]
+_ihm_2dem_class_average_fitting.rot_matrix[2][2]
+_ihm_2dem_class_average_fitting.rot_matrix[3][2]
+_ihm_2dem_class_average_fitting.rot_matrix[1][3]
+_ihm_2dem_class_average_fitting.rot_matrix[2][3]
+_ihm_2dem_class_average_fitting.rot_matrix[3][3]
+_ihm_2dem_class_average_fitting.tr_vector[1]
+_ihm_2dem_class_average_fitting.tr_vector[2]
+_ihm_2dem_class_average_fitting.tr_vector[3]
+1 1 9 0.853 -0.637588 0.089507 0.765160 0.755616 -0.120841 0.643771 0.150085
+0.988628 0.009414 327.161 83.209 -227.800
+""")
+        s, = ihm.reader.read(fh)
+        r, = s.restraints
+        self.assertEqual(r._id, '1')
+        self.assertEqual(r.dataset._id, '65')
+        self.assertEqual(r.number_raw_micrographs, 800)
+        self.assertAlmostEqual(r.pixel_size_width, 2.030, places=2)
+        self.assertAlmostEqual(r.pixel_size_height, 4.030, places=2)
+        self.assertAlmostEqual(r.image_resolution, 35.0, places=1)
+        self.assertEqual(r.segment, False)
+        self.assertEqual(r.number_of_projections, 10000)
+        self.assertEqual(r.assembly._id, '42')
+        fit, = list(r.fits.items())
+        self.assertEqual(fit[0]._id, '9')
+        self.assertAlmostEqual(fit[1].cross_correlation_coefficient, 0.853,
+                               places=2)
+        self.assertAlmostEqual(fit[1].tr_vector[0], 327.161, places=2)
+        self.assertAlmostEqual(fit[1].rot_matrix[1][2], 0.988628, places=2)
+        self.assertEqual([int(x) for x in fit[1].tr_vector], [327, 83, -227])
+
 
 if __name__ == '__main__':
     unittest.main()
