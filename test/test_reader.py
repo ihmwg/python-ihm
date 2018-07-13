@@ -1100,6 +1100,7 @@ _atom_site.pdbx_PDB_model_num
 _atom_site.ihm_model_id
 ATOM 1 N N . SER 1 2 A 54.401 -49.984 -35.287 1 A . 1 1
 HETATM 2 C CA . SER 2 20A A 54.452 -48.492 -35.210 1 A 42.0 1 1
+ATOM 3 N N . SER 3 3 A 54.401 -49.984 -35.287 1 A . 1 1
 """)
         s, = ihm.reader.read(fh)
         asym, = s.asym_units
@@ -1439,6 +1440,24 @@ A 1 4 9
     def test_poly_seq_scheme_handler_empty(self):
         """Test PolySeqSchemeHandler with no poly_seq_scheme"""
         fh = StringIO(ASYM_ENTITY)
+        s, = ihm.reader.read(fh)
+        asym, = s.asym_units
+        self.assertEqual(asym.auth_seq_id_map, 0)
+        self.assertEqual([asym.residue(i).auth_seq_id for i in range(1,5)],
+                         [1,2,3,4])
+
+    def test_poly_seq_scheme_handler_nop(self):
+        """Test PolySeqSchemeHandler with a do-nothing poly_seq_scheme"""
+        fh = StringIO(ASYM_ENTITY + """
+loop_
+_pdbx_poly_seq_scheme.asym_id
+_pdbx_poly_seq_scheme.entity_id
+_pdbx_poly_seq_scheme.seq_id
+_pdbx_poly_seq_scheme.auth_seq_num
+A 1 1 1
+A 1 2 2
+A 1 3 3
+""")
         s, = ihm.reader.read(fh)
         asym, = s.asym_units
         self.assertEqual(asym.auth_seq_id_map, 0)
