@@ -11,6 +11,25 @@ TOPDIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 utils.set_search_paths(TOPDIR)
 import ihm.reader
 
+
+ASYM_ENTITY = """
+loop_
+_entity_poly_seq.entity_id
+_entity_poly_seq.num
+_entity_poly_seq.mon_id
+_entity_poly_seq.hetero
+1 1 MET .
+1 2 CYS .
+1 3 MET .
+1 4 SER .
+#
+loop_
+_struct_asym.id
+_struct_asym.entity_id
+_struct_asym.details
+A 1 foo
+"""
+
 CENTERS_TRANSFORMS = """
 loop_
 _ihm_geometric_object_center.id
@@ -1351,6 +1370,72 @@ _ihm_geometric_object_distance_restraint.dataset_list_id
                              ihm.restraint.LowerUpperBoundDistanceRestraint))
         self.assertTrue(isinstance(r4.distance,
                              ihm.restraint.HarmonicDistanceRestraint))
+
+    def test_poly_seq_scheme_handler_offset(self):
+        """Test PolySeqSchemeHandler with constant offset"""
+        fh = StringIO(ASYM_ENTITY + """
+loop_
+_pdbx_poly_seq_scheme.asym_id
+_pdbx_poly_seq_scheme.entity_id
+_pdbx_poly_seq_scheme.seq_id
+_pdbx_poly_seq_scheme.auth_seq_num
+A 1 1 6
+A 1 2 7
+A 1 3 8
+A 1 4 9
+""")
+        s, = ihm.reader.read(fh)
+        asym, = s.asym_units
+        self.assertEqual(asym.auth_seq_id_map, 5)
+        self.assertEqual([asym.residue(i).auth_seq_id for i in range(1,5)],
+                         [6,7,8,9])
+
+    def test_poly_seq_scheme_handler_empty(self):
+        """Test PolySeqSchemeHandler with no poly_seq_scheme"""
+        fh = StringIO(ASYM_ENTITY)
+        s, = ihm.reader.read(fh)
+        asym, = s.asym_units
+        self.assertEqual(asym.auth_seq_id_map, 0)
+        self.assertEqual([asym.residue(i).auth_seq_id for i in range(1,5)],
+                         [1,2,3,4])
+
+    def test_poly_seq_scheme_handler_partial(self):
+        """Test PolySeqSchemeHandler with partial information"""
+        fh = StringIO(ASYM_ENTITY + """
+loop_
+_pdbx_poly_seq_scheme.asym_id
+_pdbx_poly_seq_scheme.entity_id
+_pdbx_poly_seq_scheme.seq_id
+_pdbx_poly_seq_scheme.auth_seq_num
+A 1 1 6
+A 1 2 7
+A 1 3 8
+""")
+        s, = ihm.reader.read(fh)
+        asym, = s.asym_units
+        # No mapping for residue 4
+        self.assertEqual(asym.auth_seq_id_map, {1:6, 2:7, 3:8})
+        self.assertEqual([asym.residue(i).auth_seq_id for i in range(1,5)],
+                         [6,7,8,4])
+
+    def test_poly_seq_scheme_handler_incon_off(self):
+        """Test PolySeqSchemeHandler with inconsistent offset"""
+        fh = StringIO(ASYM_ENTITY + """
+loop_
+_pdbx_poly_seq_scheme.asym_id
+_pdbx_poly_seq_scheme.entity_id
+_pdbx_poly_seq_scheme.seq_id
+_pdbx_poly_seq_scheme.auth_seq_num
+A 1 1 6
+A 1 2 7
+A 1 3 8
+A 1 4 10
+""")
+        s, = ihm.reader.read(fh)
+        asym, = s.asym_units
+        self.assertEqual(asym.auth_seq_id_map, {1:6, 2:7, 3:8, 4:10})
+        self.assertEqual([asym.residue(i).auth_seq_id for i in range(1,5)],
+                         [6,7,8,10])
 
 
 if __name__ == '__main__':

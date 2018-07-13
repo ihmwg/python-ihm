@@ -924,7 +924,7 @@ class _AtomSiteHandler(_Handler):
 
     def __call__(self, d):
         # todo: handle fields other than those output by us
-        # todo: handle auth_seq_id
+        # todo: handle auth_seq_id, insertion codes
         model = self.sysr.models.get_by_id(d['pdbx_pdb_model_num'])
         asym = self.sysr.asym_units.get_by_id(d['label_asym_id'])
         biso = float(d['b_iso_or_equiv']) if 'b_iso_or_equiv' in d else None
@@ -1130,6 +1130,51 @@ class _GeometricRestraintHandler(_Handler):
         r.restrain_all = self._cond_map[d.get('group_conditionality', None)]
 
 
+class _PolySeqSchemeHandler(_Handler):
+    category = '_pdbx_poly_seq_scheme'
+
+    def __call__(self, d):
+        asym = self.sysr.asym_units.get_by_id(d['asym_id'])
+        seq_id = _get_int(d, 'seq_id')
+        auth_seq_num = _get_int(d, 'auth_seq_num')
+        # Note any residues that have different seq_id and auth_seq_id
+        if seq_id is not None and auth_seq_num is not None \
+           and seq_id != auth_seq_num:
+            if asym.auth_seq_id_map == 0:
+                asym.auth_seq_id_map = {}
+            asym.auth_seq_id_map[seq_id] = auth_seq_num
+
+    def finalize(self):
+        for asym in self.sysr.system.asym_units:
+            # If every residue in auth_seq_id_map is offset by the same
+            # amount, replace the map with a simple offset
+            offset = self._get_auth_seq_id_offset(asym)
+            if offset is not None:
+                asym.auth_seq_id_map = offset
+
+    def _get_auth_seq_id_offset(self, asym):
+        """Get the offset from seq_id to auth_seq_id. Return None if no
+           consistent offset exists."""
+        # Do nothing if no map exists
+        if asym.auth_seq_id_map == 0:
+            return
+        rng = asym.seq_id_range
+        offset = None
+        for seq_id in range(rng[0], rng[1]+1):
+            # If a residue isn't in the map, it has an effective offset of 0,
+            # which has to be inconsistent (since everything in the map has
+            # a nonzero offset by construction)
+            if seq_id not in asym.auth_seq_id_map:
+                return
+            this_offset = asym.auth_seq_id_map[seq_id] - seq_id
+            if offset is None:
+                offset = this_offset
+            elif offset != this_offset:
+                # Offset is inconsistent
+                return
+        return offset
+
+
 def read(fh):
     """Read data from the mmCIF file handle `fh`.
     
@@ -1164,7 +1209,7 @@ def read(fh):
                     _GeometricObjectHandler(s), _SphereHandler(s),
                     _TorusHandler(s), _HalfTorusHandler(s),
                     _AxisHandler(s), _PlaneHandler(s),
-                    _GeometricRestraintHandler(s)]
+                    _GeometricRestraintHandler(s), _PolySeqSchemeHandler(s)]
         r = ihm.format.CifReader(fh, dict((h.category, h) for h in handlers))
         more_data = r.read_file()
         for h in handlers:
