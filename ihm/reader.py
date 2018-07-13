@@ -27,6 +27,13 @@ def _get_int(d, key):
     """Return int(d[key]) or None if key is not in d"""
     return int(d[key]) if key in d else None
 
+def _get_int_or_string(d, key):
+    """Return d[key] as an int or str as appropriate,
+       or None if key is not in d"""
+    if key in d:
+        val = d[key]
+        return int(val) if val.isdigit() else val
+
 def _get_float(d, key):
     """Return float(d[key]) or None if key is not in d"""
     return float(d[key]) if key in d else None
@@ -938,7 +945,7 @@ class _AtomSiteHandler(_Handler):
                 biso=biso)
         model.add_atom(a)
 
-        auth_seq_id = _get_int(d, 'auth_seq_id')
+        auth_seq_id = _get_int_or_string(d, 'auth_seq_id')
         # Note any residues that have different seq_id and auth_seq_id
         if auth_seq_id is not None and seq_id != auth_seq_id:
             if asym.auth_seq_id_map == 0:
@@ -1144,7 +1151,7 @@ class _PolySeqSchemeHandler(_Handler):
     def __call__(self, d):
         asym = self.sysr.asym_units.get_by_id(d['asym_id'])
         seq_id = _get_int(d, 'seq_id')
-        auth_seq_num = _get_int(d, 'auth_seq_num')
+        auth_seq_num = _get_int_or_string(d, 'auth_seq_num')
         # Note any residues that have different seq_id and auth_seq_id
         if seq_id is not None and auth_seq_num is not None \
            and seq_id != auth_seq_num:
@@ -1174,7 +1181,11 @@ class _PolySeqSchemeHandler(_Handler):
             # a nonzero offset by construction)
             if seq_id not in asym.auth_seq_id_map:
                 return
-            this_offset = asym.auth_seq_id_map[seq_id] - seq_id
+            auth_seq_id = asym.auth_seq_id_map[seq_id]
+            # If auth_seq_id is a string, we can't use any offset
+            if not isinstance(auth_seq_id, int):
+                return
+            this_offset = auth_seq_id - seq_id
             if offset is None:
                 offset = this_offset
             elif offset != this_offset:

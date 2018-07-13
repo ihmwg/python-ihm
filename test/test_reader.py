@@ -856,6 +856,13 @@ _ihm_3dem_restraint.cross_correlation_coefficient
         self.assertAlmostEqual(fits[1][1].cross_correlation_coefficient,
                                0.9, places=1)
 
+    def test_get_int_or_string(self):
+        """Test _get_int_or_string function"""
+        d = {'strval':'45A', 'intval':'45'}
+        self.assertEqual(ihm.reader._get_int_or_string(d, 'strval'), '45A')
+        self.assertEqual(ihm.reader._get_int_or_string(d, 'intval'), 45)
+        self.assertEqual(ihm.reader._get_int_or_string(d, 'notpresent'), None)
+
     def test_get_vector3(self):
         """Test _get_vector3 function"""
         d = {'tr_vector[1]':4.0, 'tr_vector[2]':6.0, 'tr_vector[3]':9.0}
@@ -1092,11 +1099,11 @@ _atom_site.B_iso_or_equiv
 _atom_site.pdbx_PDB_model_num
 _atom_site.ihm_model_id
 ATOM 1 N N . SER 1 2 A 54.401 -49.984 -35.287 1 A . 1 1
-HETATM 2 C CA . SER 2 20 A 54.452 -48.492 -35.210 1 A 42.0 1 1
+HETATM 2 C CA . SER 2 20A A 54.452 -48.492 -35.210 1 A 42.0 1 1
 """)
         s, = ihm.reader.read(fh)
         asym, = s.asym_units
-        self.assertEqual(asym.auth_seq_id_map, {1: 2, 2: 20})
+        self.assertEqual(asym.auth_seq_id_map, {1: 2, 2: '20A'})
 
     def test_derived_distance_restraint_handler(self):
         """Test DerivedDistanceRestraintHandler"""
@@ -1475,6 +1482,25 @@ A 1 4 10
         self.assertEqual(asym.auth_seq_id_map, {1:6, 2:7, 3:8, 4:10})
         self.assertEqual([asym.residue(i).auth_seq_id for i in range(1,5)],
                          [6,7,8,10])
+
+    def test_poly_seq_scheme_handler_str_seq_id(self):
+        """Test PolySeqSchemeHandler with a non-integer auth_seq_num"""
+        fh = StringIO(ASYM_ENTITY + """
+loop_
+_pdbx_poly_seq_scheme.asym_id
+_pdbx_poly_seq_scheme.entity_id
+_pdbx_poly_seq_scheme.seq_id
+_pdbx_poly_seq_scheme.auth_seq_num
+A 1 1 6
+A 1 2 7
+A 1 3 8
+A 1 4 9A
+""")
+        s, = ihm.reader.read(fh)
+        asym, = s.asym_units
+        self.assertEqual(asym.auth_seq_id_map, {1:6, 2:7, 3:8, 4:'9A'})
+        self.assertEqual([asym.residue(i).auth_seq_id for i in range(1,5)],
+                         [6,7,8,'9A'])
 
 
 if __name__ == '__main__':
