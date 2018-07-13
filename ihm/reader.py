@@ -293,6 +293,9 @@ class _SystemReader(object):
         self.centers = _IDMapper(None, ihm.geometry.Center, *(None,)*3)
         self.transformations = _IDMapper(None, ihm.geometry.Transformation,
                                          *(None,)*2)
+        self.geom_restraints = _IDMapper(self.system.restraints,
+                                   ihm.restraint.GeometricRestraint,
+                                   *(None,)*4)
 
 
 class _Handler(object):
@@ -1105,6 +1108,28 @@ class _PlaneHandler(_Handler):
                                                   d, 'transformation_id')
 
 
+class _GeometricRestraintHandler(_Handler):
+    category = '_ihm_geometric_object_distance_restraint'
+
+    _cond_map = {'ALL': True, 'ANY': False, None: None}
+
+    # Map object_characteristic to corresponding subclass
+    _type_map = dict((x[1].object_characteristic.lower(), x[1])
+                     for x in inspect.getmembers(ihm.restraint, inspect.isclass)
+                     if issubclass(x[1], ihm.restraint.GeometricRestraint))
+
+    def __call__(self, d):
+        typ = d.get('object_characteristic', 'other').lower()
+        r = self.sysr.geom_restraints.get_by_id(d['id'],
+                      self._type_map.get(typ, ihm.restraint.GeometricRestraint))
+        r.dataset = self.sysr.datasets.get_by_id_or_none(d, 'dataset_list_id')
+        r.geometric_object = self.sysr.geometries.get_by_id(d['object_id'])
+        r.feature = self.sysr.features.get_by_id(d['feature_id'])
+        r.distance = _handle_distance[d['restraint_type']](d)
+        r.harmonic_force_constant = _get_float(d, 'harmonic_force_constant')
+        r.restrain_all = self._cond_map[d.get('group_conditionality', None)]
+
+
 def read(fh):
     """Read data from the mmCIF file handle `fh`.
     
@@ -1138,7 +1163,8 @@ def read(fh):
                     _CenterHandler(s), _TransformationHandler(s),
                     _GeometricObjectHandler(s), _SphereHandler(s),
                     _TorusHandler(s), _HalfTorusHandler(s),
-                    _AxisHandler(s), _PlaneHandler(s)]
+                    _AxisHandler(s), _PlaneHandler(s),
+                    _GeometricRestraintHandler(s)]
         r = ihm.format.CifReader(fh, dict((h.category, h) for h in handlers))
         more_data = r.read_file()
         for h in handlers:

@@ -1303,6 +1303,55 @@ _ihm_geometric_object_plane.transformation_id
                                    places=1)
             self.assertEqual(p2.transformation, None)
 
+    def test_geometric_restraint_handler(self):
+        """Test GeometricRestraintHandler"""
+        fh = StringIO("""
+loop_
+_ihm_geometric_object_distance_restraint.id
+_ihm_geometric_object_distance_restraint.object_id
+_ihm_geometric_object_distance_restraint.feature_id
+_ihm_geometric_object_distance_restraint.object_characteristic
+_ihm_geometric_object_distance_restraint.restraint_type
+_ihm_geometric_object_distance_restraint.harmonic_force_constant
+_ihm_geometric_object_distance_restraint.distance_lower_limit
+_ihm_geometric_object_distance_restraint.distance_upper_limit
+_ihm_geometric_object_distance_restraint.group_conditionality
+_ihm_geometric_object_distance_restraint.dataset_list_id
+1 23 44 other 'upper bound' 2.000 . 25.000 ANY 97
+2 23 44 center 'lower bound' 2.000 15.000 . ALL .
+3 23 44 'inner surface' 'lower and upper bound' 2.000 10.000 25.000 . 97
+4 23 44 'outer surface' 'harmonic' 2.000 . 25.000 . 97
+#
+""")
+        s, = ihm.reader.read(fh)
+        r1, r2, r3, r4 = s.restraints
+        self.assertTrue(isinstance(r1,
+                             ihm.restraint.GeometricRestraint))
+        self.assertEqual(r1.dataset._id, '97')
+        self.assertEqual(r1.geometric_object._id, '23')
+        self.assertEqual(r1.feature._id, '44')
+        self.assertTrue(isinstance(r1.distance,
+                             ihm.restraint.UpperBoundDistanceRestraint))
+        self.assertAlmostEqual(r1.distance.distance, 25.000, places=1)
+        self.assertAlmostEqual(r1.harmonic_force_constant, 2.000, places=1)
+        self.assertEqual(r1.restrain_all, False)
+        self.assertEqual(r2.restrain_all, True)
+        self.assertEqual(r3.restrain_all, None)
+
+        self.assertTrue(isinstance(r2,
+                             ihm.restraint.CenterGeometricRestraint))
+        self.assertTrue(isinstance(r3,
+                             ihm.restraint.InnerSurfaceGeometricRestraint))
+        self.assertTrue(isinstance(r4,
+                             ihm.restraint.OuterSurfaceGeometricRestraint))
+
+        self.assertTrue(isinstance(r2.distance,
+                             ihm.restraint.LowerBoundDistanceRestraint))
+        self.assertTrue(isinstance(r3.distance,
+                             ihm.restraint.LowerUpperBoundDistanceRestraint))
+        self.assertTrue(isinstance(r4.distance,
+                             ihm.restraint.HarmonicDistanceRestraint))
+
 
 if __name__ == '__main__':
     unittest.main()
