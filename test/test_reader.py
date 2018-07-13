@@ -1057,6 +1057,7 @@ _ihm_derived_distance_restraint.dataset_list_id
         for text in (feats+rsr, rsr+feats):
             fh = StringIO(text)
             s, = ihm.reader.read(fh)
+            self.assertEqual(len(s.orphan_features), 2)
             r1, r2, r3, r4 = s.restraints
             self.assertEqual(r1.dataset._id, '97')
             self.assertTrue(isinstance(r1.feature1,

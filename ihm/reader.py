@@ -239,7 +239,8 @@ class _SystemReader(object):
         self.sas_restraints = _DatasetIDMapper(self.system.restraints,
                                    self.datasets,
                                    ihm.restraint.SASRestraint, None)
-        self.features = _FeatureIDMapper(None, ihm.restraint.Feature)
+        self.features = _FeatureIDMapper(self.system.orphan_features,
+                                   ihm.restraint.Feature)
         self.dist_restraints = _IDMapper(self.system.restraints,
                                    ihm.restraint.DerivedDistanceRestraint,
                                    *(None,)*4)
