@@ -9,6 +9,7 @@ import ihm.protocol
 import ihm.analysis
 import ihm.model
 import ihm.restraint
+import ihm.geometry
 import inspect
 
 def _make_new_entity():
@@ -159,6 +160,48 @@ class _FeatureIDMapper(_IDMapper):
             obj.atoms = []
 
 
+class _GeometryIDMapper(_IDMapper):
+    """Add extra handling to _IDMapper for geometric objects"""
+
+    _members = {ihm.geometry.Sphere: ('center', 'radius', 'transformation'),
+                ihm.geometry.Torus: ('center', 'transformation',
+                                     'major_radius', 'minor_radius'),
+                ihm.geometry.HalfTorus: ('center', 'transformation',
+                                         'major_radius', 'minor_radius',
+                                         'thickness'),
+                ihm.geometry.XAxis: ('transformation',),
+                ihm.geometry.YAxis: ('transformation',),
+                ihm.geometry.ZAxis: ('transformation',),
+                ihm.geometry.XYPlane: ('transformation',),
+                ihm.geometry.YZPlane: ('transformation',),
+                ihm.geometry.XZPlane: ('transformation',)}
+
+    def _make_new_object(self, newcls=None):
+        if newcls is None:
+            # Make GeometricObject base class (takes no args)
+            return self._cls()
+        else:
+            # Make subclass (takes variable number of args)
+            len_args = {ihm.geometry.Sphere: 2,
+                        ihm.geometry.Torus: 3,
+                        ihm.geometry.HalfTorus: 4}.get(newcls, 0)
+            return newcls(*(None,)*len_args)
+
+    def _update_old_object(self, obj, newcls=None):
+        # Don't revert a HalfTorus back to a Torus
+        if newcls is ihm.geometry.Torus \
+           and isinstance(obj, ihm.geometry.HalfTorus):
+            return
+        # Don't revert a derived class back to a base class
+        elif newcls and isinstance(obj, newcls):
+            return
+        super(_GeometryIDMapper, self)._update_old_object(obj, newcls)
+        # Add missing members if the base class was originally instantianted
+        for member in self._members.get(newcls, ()):
+           if not hasattr(obj, member):
+               setattr(obj, member, None)
+
+
 class _DatasetIDMapper(object):
     """Handle mapping from mmCIF dataset IDs to Python objects.
 
@@ -244,6 +287,12 @@ class _SystemReader(object):
         self.dist_restraints = _IDMapper(self.system.restraints,
                                    ihm.restraint.DerivedDistanceRestraint,
                                    *(None,)*4)
+        self.geometries = _GeometryIDMapper(
+                                self.system.orphan_geometric_objects,
+                                ihm.geometry.GeometricObject)
+        self.centers = _IDMapper(None, ihm.geometry.Center, *(None,)*3)
+        self.transformations = _IDMapper(None, ihm.geometry.Transformation,
+                                         *(None,)*2)
 
 
 class _Handler(object):
@@ -949,6 +998,113 @@ class _DerivedDistanceRestraintHandler(_Handler):
         r.probability = _get_float(d, 'probability')
 
 
+class _CenterHandler(_Handler):
+    category = '_ihm_geometric_object_center'
+
+    def __call__(self, d):
+        c = self.sysr.centers.get_by_id(d['id'])
+        c.x = _get_float(d, 'xcoord')
+        c.y = _get_float(d, 'ycoord')
+        c.z = _get_float(d, 'zcoord')
+
+
+class _TransformationHandler(_Handler):
+    category = '_ihm_geometric_object_transformation'
+
+    def __call__(self, d):
+        t = self.sysr.transformations.get_by_id(d['id'])
+        t.rot_matrix = _get_matrix33(d, 'rot_matrix')
+        t.tr_vector = _get_vector3(d, 'tr_vector')
+
+
+class _GeometricObjectHandler(_Handler):
+    category = '_ihm_geometric_object_list'
+
+    # Map object_type to corresponding subclass (but not subsubclasses such
+    # as XYPlane)
+    _type_map = dict((x[1].type.lower(), x[1])
+                     for x in inspect.getmembers(ihm.geometry, inspect.isclass)
+                     if issubclass(x[1], ihm.geometry.GeometricObject)
+                        and ihm.geometry.GeometricObject in x[1].__bases__)
+
+    def __call__(self, d):
+        typ = d.get('object_type', 'other').lower()
+        g = self.sysr.geometries.get_by_id(d['object_id'],
+                          self._type_map.get(typ, ihm.geometry.GeometricObject))
+        self._copy_if_present(g, d,
+                              mapkeys={'object_name': 'name',
+                                       'object_description': 'description',
+                                       'other_details': 'details'})
+
+
+class _SphereHandler(_Handler):
+    category = '_ihm_geometric_object_sphere'
+
+    def __call__(self, d):
+        s = self.sysr.geometries.get_by_id(d['object_id'], ihm.geometry.Sphere)
+        s.center = self.sysr.centers.get_by_id_or_none(d, 'center_id')
+        s.transformation = self.sysr.transformations.get_by_id_or_none(
+                                                  d, 'transformation_id')
+        s.radius = _get_float(d, 'radius_r')
+
+
+class _TorusHandler(_Handler):
+    category = '_ihm_geometric_object_torus'
+
+    def __call__(self, d):
+        t = self.sysr.geometries.get_by_id(d['object_id'], ihm.geometry.Torus)
+        t.center = self.sysr.centers.get_by_id_or_none(d, 'center_id')
+        t.transformation = self.sysr.transformations.get_by_id_or_none(
+                                                  d, 'transformation_id')
+        t.major_radius = _get_float(d, 'major_radius_r')
+        t.minor_radius = _get_float(d, 'minor_radius_r')
+
+
+class _HalfTorusHandler(_Handler):
+    category = '_ihm_geometric_object_half_torus'
+
+    _inner_map = {'inner half': True, 'outer half': False}
+
+    def __call__(self, d):
+        t = self.sysr.geometries.get_by_id(d['object_id'],
+                                           ihm.geometry.HalfTorus)
+        t.thickness = _get_float(d, 'thickness_th')
+        t.inner = self._inner_map.get(d.get('section', '').lower(), None)
+
+
+class _AxisHandler(_Handler):
+    category = '_ihm_geometric_object_axis'
+
+    # Map axis_type to corresponding subclass
+    _type_map = dict((x[1].axis_type.lower(), x[1])
+                     for x in inspect.getmembers(ihm.geometry, inspect.isclass)
+                     if issubclass(x[1], ihm.geometry.Axis)
+                        and x[1] is not ihm.geometry.Axis)
+
+    def __call__(self, d):
+        typ = d.get('axis_type', 'other').lower()
+        a = self.sysr.geometries.get_by_id(d['object_id'],
+                          self._type_map.get(typ, ihm.geometry.Axis))
+        a.transformation = self.sysr.transformations.get_by_id_or_none(
+                                                  d, 'transformation_id')
+
+class _PlaneHandler(_Handler):
+    category = '_ihm_geometric_object_plane'
+
+    # Map plane_type to corresponding subclass
+    _type_map = dict((x[1].plane_type.lower(), x[1])
+                     for x in inspect.getmembers(ihm.geometry, inspect.isclass)
+                     if issubclass(x[1], ihm.geometry.Plane)
+                        and x[1] is not ihm.geometry.Plane)
+
+    def __call__(self, d):
+        typ = d.get('plane_type', 'other').lower()
+        a = self.sysr.geometries.get_by_id(d['object_id'],
+                          self._type_map.get(typ, ihm.geometry.Plane))
+        a.transformation = self.sysr.transformations.get_by_id_or_none(
+                                                  d, 'transformation_id')
+
+
 def read(fh):
     """Read data from the mmCIF file handle `fh`.
     
@@ -978,7 +1134,11 @@ def read(fh):
                     _EM2DFittingHandler(s), _SASRestraintHandler(s),
                     _SphereObjSiteHandler(s), _AtomSiteHandler(s),
                     _PolyResidueFeatureHandler(s), _PolyAtomFeatureHandler(s),
-                    _DerivedDistanceRestraintHandler(s)]
+                    _DerivedDistanceRestraintHandler(s),
+                    _CenterHandler(s), _TransformationHandler(s),
+                    _GeometricObjectHandler(s), _SphereHandler(s),
+                    _TorusHandler(s), _HalfTorusHandler(s),
+                    _AxisHandler(s), _PlaneHandler(s)]
         r = ihm.format.CifReader(fh, dict((h.category, h) for h in handlers))
         more_data = r.read_file()
         for h in handlers:

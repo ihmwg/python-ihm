@@ -11,6 +11,34 @@ TOPDIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 utils.set_search_paths(TOPDIR)
 import ihm.reader
 
+CENTERS_TRANSFORMS = """
+loop_
+_ihm_geometric_object_center.id
+_ihm_geometric_object_center.xcoord
+_ihm_geometric_object_center.ycoord
+_ihm_geometric_object_center.zcoord
+1 1.000 2.000 3.000
+#
+#
+loop_
+_ihm_geometric_object_transformation.id
+_ihm_geometric_object_transformation.rot_matrix[1][1]
+_ihm_geometric_object_transformation.rot_matrix[2][1]
+_ihm_geometric_object_transformation.rot_matrix[3][1]
+_ihm_geometric_object_transformation.rot_matrix[1][2]
+_ihm_geometric_object_transformation.rot_matrix[2][2]
+_ihm_geometric_object_transformation.rot_matrix[3][2]
+_ihm_geometric_object_transformation.rot_matrix[1][3]
+_ihm_geometric_object_transformation.rot_matrix[2][3]
+_ihm_geometric_object_transformation.rot_matrix[3][3]
+_ihm_geometric_object_transformation.tr_vector[1]
+_ihm_geometric_object_transformation.tr_vector[2]
+_ihm_geometric_object_transformation.tr_vector[3]
+1 1.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 0.000000
+1.000000 1.000 2.000 3.000
+#
+"""
+
 class Tests(unittest.TestCase):
     def test_read(self):
         """Test read() function"""
@@ -1082,6 +1110,198 @@ _ihm_derived_distance_restraint.dataset_list_id
                              ihm.restraint.LowerUpperBoundDistanceRestraint))
             self.assertTrue(isinstance(r4.distance,
                                  ihm.restraint.HarmonicDistanceRestraint))
+
+    def test_sphere_handler(self):
+        """Test SphereHandler"""
+        obj_list = CENTERS_TRANSFORMS + """
+loop_
+_ihm_geometric_object_list.object_id
+_ihm_geometric_object_list.object_type
+_ihm_geometric_object_list.object_name
+_ihm_geometric_object_list.object_description
+_ihm_geometric_object_list.other_details
+1 sphere 'my sphere' 'a test sphere' 'some details'
+"""
+        spheres = """
+loop_
+_ihm_geometric_object_sphere.object_id
+_ihm_geometric_object_sphere.center_id
+_ihm_geometric_object_sphere.transformation_id
+_ihm_geometric_object_sphere.radius_r
+1 1 1 2.200
+2 . . 3.200
+"""
+        # Order of categories shouldn't matter
+        for text in (obj_list+spheres, spheres+obj_list):
+            fh = StringIO(text)
+            s, = ihm.reader.read(fh)
+            s1, s2 = s.orphan_geometric_objects
+            self.assertTrue(isinstance(s1, ihm.geometry.Sphere))
+            self.assertTrue(isinstance(s2, ihm.geometry.Sphere))
+            self.assertEqual(s1.name, 'my sphere')
+            self.assertEqual(s1.description, 'a test sphere')
+            self.assertEqual(s1.details, 'some details')
+            self.assertAlmostEqual(s1.center.x, 1.000, places=1)
+            self.assertAlmostEqual(s1.center.y, 2.000, places=1)
+            self.assertAlmostEqual(s1.center.z, 3.000, places=1)
+            self.assertAlmostEqual(s1.transformation.tr_vector[1], 2.000,
+                                   places=1)
+            self.assertEqual(s2.name, None)
+            self.assertEqual(s2.center, None)
+            self.assertEqual(s2.transformation, None)
+
+    def test_torus_handler(self):
+        """Test TorusHandler"""
+        obj_list = CENTERS_TRANSFORMS + """
+loop_
+_ihm_geometric_object_list.object_id
+_ihm_geometric_object_list.object_type
+_ihm_geometric_object_list.object_name
+_ihm_geometric_object_list.object_description
+_ihm_geometric_object_list.other_details
+1 torus . . .
+"""
+        tori = """
+loop_
+_ihm_geometric_object_torus.object_id
+_ihm_geometric_object_torus.center_id
+_ihm_geometric_object_torus.transformation_id
+_ihm_geometric_object_torus.major_radius_R
+_ihm_geometric_object_torus.minor_radius_r
+1 1 1 5.600 1.200
+2 . . 3.600 2.200
+"""
+        # Order of categories shouldn't matter
+        for text in (obj_list+tori, tori+obj_list):
+            fh = StringIO(text)
+            s, = ihm.reader.read(fh)
+            t1, t2 = s.orphan_geometric_objects
+            self.assertTrue(isinstance(t1, ihm.geometry.Torus))
+            self.assertTrue(isinstance(t2, ihm.geometry.Torus))
+            self.assertAlmostEqual(t1.center.x, 1.000, places=1)
+            self.assertAlmostEqual(t1.transformation.tr_vector[1], 2.000,
+                                   places=1)
+            self.assertAlmostEqual(t1.major_radius, 5.600, places=1)
+            self.assertAlmostEqual(t1.minor_radius, 1.200, places=1)
+            self.assertEqual(t2.center, None)
+            self.assertEqual(t2.transformation, None)
+
+    def test_half_torus_handler(self):
+        """Test HalfTorusHandler"""
+        obj_list = CENTERS_TRANSFORMS + """
+loop_
+_ihm_geometric_object_list.object_id
+_ihm_geometric_object_list.object_type
+_ihm_geometric_object_list.object_name
+_ihm_geometric_object_list.object_description
+_ihm_geometric_object_list.other_details
+1 half-torus . . .
+2 half-torus . . .
+3 half-torus . . .
+"""
+        tori = """
+loop_
+_ihm_geometric_object_torus.object_id
+_ihm_geometric_object_torus.center_id
+_ihm_geometric_object_torus.transformation_id
+_ihm_geometric_object_torus.major_radius_R
+_ihm_geometric_object_torus.minor_radius_r
+1 1 1 5.600 1.200
+2 . . 3.600 2.200
+3 . . 3.600 2.200
+"""
+        half_tori = """
+loop_
+_ihm_geometric_object_half_torus.object_id
+_ihm_geometric_object_half_torus.thickness_th
+_ihm_geometric_object_half_torus.section
+1 0.100 'inner half'
+2 0.200 'outer half'
+3 0.200 .
+"""
+
+        # Order of categories shouldn't matter
+        for text in (obj_list+tori+half_tori, tori+half_tori+obj_list,
+                     obj_list+half_tori+tori, half_tori+tori+obj_list):
+            fh = StringIO(text)
+            s, = ihm.reader.read(fh)
+            t1, t2, t3 = s.orphan_geometric_objects
+            self.assertTrue(isinstance(t1, ihm.geometry.HalfTorus))
+            self.assertTrue(isinstance(t2, ihm.geometry.HalfTorus))
+            self.assertTrue(isinstance(t3, ihm.geometry.HalfTorus))
+            self.assertAlmostEqual(t1.center.x, 1.000, places=1)
+            self.assertAlmostEqual(t1.transformation.tr_vector[1], 2.000,
+                                   places=1)
+            self.assertAlmostEqual(t1.major_radius, 5.600, places=1)
+            self.assertAlmostEqual(t1.minor_radius, 1.200, places=1)
+            self.assertAlmostEqual(t1.thickness, 0.100, places=1)
+            self.assertEqual(t1.inner, True)
+            self.assertEqual(t2.center, None)
+            self.assertEqual(t2.transformation, None)
+            self.assertEqual(t2.inner, False)
+            self.assertEqual(t3.inner, None)
+
+    def test_axis_handler(self):
+        """Test AxisHandler"""
+        obj_list = CENTERS_TRANSFORMS + """
+loop_
+_ihm_geometric_object_list.object_id
+_ihm_geometric_object_list.object_type
+_ihm_geometric_object_list.object_name
+_ihm_geometric_object_list.object_description
+_ihm_geometric_object_list.other_details
+1 axis . . .
+2 axis . . .
+"""
+        axes = """
+loop_
+_ihm_geometric_object_axis.object_id
+_ihm_geometric_object_axis.axis_type
+_ihm_geometric_object_axis.transformation_id
+1 x-axis 1
+2 y-axis .
+"""
+        # Order of categories shouldn't matter
+        for text in (obj_list+axes, axes+obj_list):
+            fh = StringIO(text)
+            s, = ihm.reader.read(fh)
+            a1, a2 = s.orphan_geometric_objects
+            self.assertTrue(isinstance(a1, ihm.geometry.XAxis))
+            self.assertTrue(isinstance(a2, ihm.geometry.YAxis))
+            self.assertAlmostEqual(a1.transformation.tr_vector[1], 2.000,
+                                   places=1)
+            self.assertEqual(a2.transformation, None)
+
+    def test_plane_handler(self):
+        """Test PlaneHandler"""
+        obj_list = CENTERS_TRANSFORMS + """
+loop_
+_ihm_geometric_object_list.object_id
+_ihm_geometric_object_list.object_type
+_ihm_geometric_object_list.object_name
+_ihm_geometric_object_list.object_description
+_ihm_geometric_object_list.other_details
+1 plane . . .
+2 plane . . .
+"""
+        planes = """
+loop_
+_ihm_geometric_object_plane.object_id
+_ihm_geometric_object_plane.plane_type
+_ihm_geometric_object_plane.transformation_id
+1 xy-plane 1
+2 yz-plane .
+"""
+        # Order of categories shouldn't matter
+        for text in (obj_list+planes, planes+obj_list):
+            fh = StringIO(text)
+            s, = ihm.reader.read(fh)
+            p1, p2 = s.orphan_geometric_objects
+            self.assertTrue(isinstance(p1, ihm.geometry.XYPlane))
+            self.assertTrue(isinstance(p2, ihm.geometry.YZPlane))
+            self.assertAlmostEqual(p1.transformation.tr_vector[1], 2.000,
+                                   places=1)
+            self.assertEqual(p2.transformation, None)
 
 
 if __name__ == '__main__':
