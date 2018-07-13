@@ -73,16 +73,19 @@ class _IDMapper(object):
             newcls = self._cls
         return newcls(*self._cls_args, **self._cls_keys)
 
+    def _update_old_object(self, obj, newcls=None):
+        # If this object was referenced by another table before it was
+        # created, it may have the wrong class - fix that retroactively
+        # (need to be careful that old and new classes are compatible)
+        if newcls:
+            obj.__class__ = newcls
+
     def get_by_id(self, objid, newcls=None):
         """Get the object with given ID, creating it if it doesn't already
            exist."""
         if objid in self._obj_by_id:
             obj = self._obj_by_id[objid]
-            # If this object was referenced by another table before it was
-            # created, it may have the wrong class - fix that retroactively
-            # (need to be careful that old and new classes are compatible)
-            if newcls:
-                obj.__class__ = newcls
+            self._update_old_object(obj, newcls)
             return obj
         else:
             newobj = self._make_new_object(newcls)
@@ -132,6 +135,28 @@ class _AnalysisIDMapper(_IDMapper):
             return newcls()
         else:
             return newcls(*self._cls_args, **self._cls_keys)
+
+
+class _FeatureIDMapper(_IDMapper):
+    """Add extra handling to _IDMapper for restraint features"""
+
+    def _make_new_object(self, newcls=None):
+        if newcls is None:
+            # Make Feature base class (takes no args)
+            return self._cls()
+        else:
+            # Make subclass (takes one ranges/atoms argument)
+            return newcls([])
+
+    def _update_old_object(self, obj, newcls=None):
+        super(_FeatureIDMapper, self)._update_old_object(obj, newcls)
+        # Add missing members if the base class was originally instantianted
+        if newcls is ihm.restraint.PolyResidueFeature \
+           and not hasattr(obj, 'ranges'):
+            obj.ranges = []
+        elif newcls is ihm.restraint.PolyAtomFeature \
+           and not hasattr(obj, 'atoms'):
+            obj.atoms = []
 
 
 class _DatasetIDMapper(object):
@@ -214,6 +239,10 @@ class _SystemReader(object):
         self.sas_restraints = _DatasetIDMapper(self.system.restraints,
                                    self.datasets,
                                    ihm.restraint.SASRestraint, None)
+        self.features = _FeatureIDMapper(None, ihm.restraint.Feature)
+        self.dist_restraints = _IDMapper(self.system.restraints,
+                                   ihm.restraint.DerivedDistanceRestraint,
+                                   *(None,)*4)
 
 
 class _Handler(object):
@@ -856,6 +885,69 @@ class _AtomSiteHandler(_Handler):
         model.add_atom(a)
 
 
+class _PolyResidueFeatureHandler(_Handler):
+    category = '_ihm_poly_residue_feature'
+
+    def __call__(self, d):
+        f = self.sysr.features.get_by_id(
+                           d['feature_id'], ihm.restraint.PolyResidueFeature)
+        asym = self.sysr.asym_units.get_by_id(d['asym_id'])
+        r1 = int(d['seq_id_begin'])
+        r2 = int(d['seq_id_end'])
+        f.ranges.append(asym(r1,r2))
+
+
+class _PolyAtomFeatureHandler(_Handler):
+    category = '_ihm_poly_atom_feature'
+
+    def __call__(self, d):
+        f = self.sysr.features.get_by_id(
+                           d['feature_id'], ihm.restraint.PolyAtomFeature)
+        asym = self.sysr.asym_units.get_by_id(d['asym_id'])
+        seq_id = int(d['seq_id'])
+        atom = asym.residue(seq_id).atom(d['atom_id'])
+        f.atoms.append(atom)
+
+
+def _make_harmonic(d):
+    low = _get_float(d, 'distance_lower_limit')
+    up = _get_float(d, 'distance_upper_limit')
+    return ihm.restraint.HarmonicDistanceRestraint(up if low is None else low)
+
+def _make_upper_bound(d):
+    up = _get_float(d, 'distance_upper_limit')
+    return ihm.restraint.UpperBoundDistanceRestraint(up)
+
+def _make_lower_bound(d):
+    low = _get_float(d, 'distance_lower_limit')
+    return ihm.restraint.LowerBoundDistanceRestraint(low)
+
+def _make_lower_upper_bound(d):
+    low = _get_float(d, 'distance_lower_limit')
+    up = _get_float(d, 'distance_upper_limit')
+    return ihm.restraint.LowerUpperBoundDistanceRestraint(
+                    distance_lower_limit=low, distance_upper_limit=up)
+
+# todo: add a handler for an unknown restraint_type
+_handle_distance = {'harmonic': _make_harmonic,
+                    'upper bound': _make_upper_bound,
+                    'lower bound': _make_lower_bound,
+                    'lower and upper bound': _make_lower_upper_bound}
+
+class _DerivedDistanceRestraintHandler(_Handler):
+    category = '_ihm_derived_distance_restraint'
+    _cond_map = {'ALL': True, 'ANY': False, None: None}
+
+    def __call__(self, d):
+        r = self.sysr.dist_restraints.get_by_id(d['id'])
+        r.dataset = self.sysr.datasets.get_by_id_or_none(d, 'dataset_list_id')
+        r.feature1 = self.sysr.features.get_by_id(d['feature_id_1'])
+        r.feature2 = self.sysr.features.get_by_id(d['feature_id_2'])
+        r.distance = _handle_distance[d['restraint_type']](d)
+        r.restrain_all = self._cond_map[d.get('group_conditionality', None)]
+        r.probability = _get_float(d, 'probability')
+
+
 def read(fh):
     """Read data from the mmCIF file handle `fh`.
     
@@ -883,7 +975,9 @@ def read(fh):
                     _EnsembleHandler(s), _DensityHandler(s),
                     _EM3DRestraintHandler(s), _EM2DRestraintHandler(s),
                     _EM2DFittingHandler(s), _SASRestraintHandler(s),
-                    _SphereObjSiteHandler(s), _AtomSiteHandler(s)]
+                    _SphereObjSiteHandler(s), _AtomSiteHandler(s),
+                    _PolyResidueFeatureHandler(s), _PolyAtomFeatureHandler(s),
+                    _DerivedDistanceRestraintHandler(s)]
         r = ihm.format.CifReader(fh, dict((h.category, h) for h in handlers))
         more_data = r.read_file()
         for h in handlers:
