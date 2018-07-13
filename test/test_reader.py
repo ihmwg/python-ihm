@@ -1059,6 +1059,45 @@ HETATM 2 C CA . SER 19 B 54.452 -48.492 -35.210 1 A 42.0 1 1
         self.assertEqual(a2.het, True)
         self.assertAlmostEqual(a2.biso, 42.0, places=0)
 
+    def test_atom_site_handler_auth_seq_id(self):
+        """Test AtomSiteHandler handling of auth_seq_id"""
+        fh = StringIO(ASYM_ENTITY + """
+loop_
+_ihm_model_list.ordinal_id
+_ihm_model_list.model_id
+_ihm_model_list.model_group_id
+_ihm_model_list.model_name
+_ihm_model_list.model_group_name
+_ihm_model_list.assembly_id
+_ihm_model_list.protocol_id
+_ihm_model_list.representation_id
+1 1 1 . 'Cluster 1' 1 1 1
+#
+loop_
+_atom_site.group_PDB
+_atom_site.id
+_atom_site.type_symbol
+_atom_site.label_atom_id
+_atom_site.label_alt_id
+_atom_site.label_comp_id
+_atom_site.label_seq_id
+_atom_site.auth_seq_id
+_atom_site.label_asym_id
+_atom_site.Cartn_x
+_atom_site.Cartn_y
+_atom_site.Cartn_z
+_atom_site.label_entity_id
+_atom_site.auth_asym_id
+_atom_site.B_iso_or_equiv
+_atom_site.pdbx_PDB_model_num
+_atom_site.ihm_model_id
+ATOM 1 N N . SER 1 2 A 54.401 -49.984 -35.287 1 A . 1 1
+HETATM 2 C CA . SER 2 20 A 54.452 -48.492 -35.210 1 A 42.0 1 1
+""")
+        s, = ihm.reader.read(fh)
+        asym, = s.asym_units
+        self.assertEqual(asym.auth_seq_id_map, {1: 2, 2: 20})
+
     def test_derived_distance_restraint_handler(self):
         """Test DerivedDistanceRestraintHandler"""
         feats = """

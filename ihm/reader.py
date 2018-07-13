@@ -924,18 +924,26 @@ class _AtomSiteHandler(_Handler):
 
     def __call__(self, d):
         # todo: handle fields other than those output by us
-        # todo: handle auth_seq_id, insertion codes
+        # todo: handle insertion codes
         model = self.sysr.models.get_by_id(d['pdbx_pdb_model_num'])
         asym = self.sysr.asym_units.get_by_id(d['label_asym_id'])
         biso = float(d['b_iso_or_equiv']) if 'b_iso_or_equiv' in d else None
+        seq_id = int(d['label_seq_id'])
         a = ihm.model.Atom(asym_unit=asym,
-                seq_id=int(d['label_seq_id']),
+                seq_id=seq_id,
                 atom_id=d['label_atom_id'],
                 type_symbol=d['type_symbol'],
                 x=float(d['cartn_x']), y=float(d['cartn_y']),
                 z=float(d['cartn_z']), het=d.get('group_pdb', 'ATOM') != 'ATOM',
                 biso=biso)
         model.add_atom(a)
+
+        auth_seq_id = _get_int(d, 'auth_seq_id')
+        # Note any residues that have different seq_id and auth_seq_id
+        if auth_seq_id is not None and seq_id != auth_seq_id:
+            if asym.auth_seq_id_map == 0:
+                asym.auth_seq_id_map = {}
+            asym.auth_seq_id_map[seq_id] = auth_seq_id
 
 
 class _PolyResidueFeatureHandler(_Handler):
