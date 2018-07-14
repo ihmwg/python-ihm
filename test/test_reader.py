@@ -67,7 +67,7 @@ class Tests(unittest.TestCase):
 
     def test_system_reader(self):
         """Test SystemReader class"""
-        s = ihm.reader._SystemReader()
+        s = ihm.reader._SystemReader(ihm.model.Model)
 
     def test_id_mapper(self):
         """Test IDMapper class"""
@@ -973,6 +973,11 @@ _ihm_sas_restraint.details
 
     def test_sphere_obj_site_handler(self):
         """Test SphereObjSiteHandler"""
+        class MyModel(ihm.model.Model):
+            def add_sphere(self, sphere):
+                super(MyModel, self).add_sphere(sphere)
+                self.sphere_count = len(self._spheres)
+
         fh = StringIO("""
 loop_
 _ihm_model_list.ordinal_id
@@ -1000,8 +1005,9 @@ _ihm_sphere_obj_site.model_id
 1 1 1 6 A 389.993 145.089 134.782 4.931 . 1
 2 1 7 7 B 406.895 142.176 135.653 3.318 1.34 1
 """)
-        s, = ihm.reader.read(fh)
+        s, = ihm.reader.read(fh, model_class=MyModel)
         m = s.state_groups[0][0][0][0]
+        self.assertEqual(m.sphere_count, 2)
         s1, s2 = m._spheres
         self.assertEqual(s1.asym_unit._id, 'A')
         self.assertEqual(s1.seq_id_range, (1,6))

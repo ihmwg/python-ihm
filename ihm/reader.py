@@ -243,7 +243,7 @@ class _DatasetIDMapper(object):
 class _SystemReader(object):
     """Track global information for a System being read from a file, such
        as the mapping from IDs to objects."""
-    def __init__(self):
+    def __init__(self, model_class):
         self.system = ihm.System()
         self.software = _IDMapper(self.system.software, ihm.Software,
                                   *(None,)*4)
@@ -272,7 +272,7 @@ class _SystemReader(object):
         self.analysis_steps = _AnalysisIDMapper(None, ihm.analysis.Step,
                                   *(None,)*3)
         self.analyses = _IDMapper(None, ihm.analysis.Analysis)
-        self.models = _IDMapper(None, ihm.model.Model, *(None,)*3)
+        self.models = _IDMapper(None, model_class, *(None,)*3)
         self.model_groups = _IDMapper(None, ihm.model.ModelGroup)
         self.states = _IDMapper(None, ihm.model.State)
         self.state_groups = _IDMapper(self.system.state_groups,
@@ -1194,7 +1194,7 @@ class _PolySeqSchemeHandler(_Handler):
         return offset
 
 
-def read(fh):
+def read(fh, model_class=ihm.model.Model):
     """Read data from the mmCIF file handle `fh`.
     
        Note that the reader currently expects to see an mmCIF file compliant
@@ -1205,12 +1205,19 @@ def read(fh):
        encounter such a problem.
 
        :param file fh: The file handle to read from.
+       :param model_class: The class to use to store model coordinates.
+              For use with other software, it is recommended to subclass
+              :class:`ihm.model.Model` and override
+              :meth:`~ihm.model.Model.add_sphere` and/or
+              :meth:`~ihm.model.Model.add_atom`, and provide that subclass
+              here. See :meth:`ihm.model.Model.get_spheres` for more
+              information.
        :return: A list of :class:`ihm.System` objects.
     """
     systems = []
 
     while True:
-        s = _SystemReader()
+        s = _SystemReader(model_class)
         handlers = [_StructHandler(s), _SoftwareHandler(s), _CitationHandler(s),
                     _CitationAuthorHandler(s), _ChemCompHandler(s),
                     _EntityHandler(s), _EntityPolySeqHandler(s),
