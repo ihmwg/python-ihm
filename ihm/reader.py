@@ -1201,8 +1201,8 @@ def read(fh, model_class=ihm.model.Model):
        with the PDBx and/or IHM dictionaries. It is not particularly tolerant
        of noncompliant or incomplete files, and will probably throw an
        exception rather than warning about and trying to handle such files.
-       Please [open an issue](https://github.com/ihmwg/python-ihm/issues) if you
-       encounter such a problem.
+       Please `open an issue <https://github.com/ihmwg/python-ihm/issues>`_
+       if you encounter such a problem.
 
        :param file fh: The file handle to read from.
        :param model_class: The class to use to store model coordinates.
