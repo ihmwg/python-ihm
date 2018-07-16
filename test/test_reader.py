@@ -1527,6 +1527,42 @@ A 1 4 9A
         self.assertEqual([asym.residue(i).auth_seq_id for i in range(1,5)],
                          [6,7,8,'9A'])
 
+    def test_cross_link_list_handler(self):
+        """Test CrossLinkListHandler"""
+        fh = StringIO("""
+loop_
+_ihm_cross_link_list.id
+_ihm_cross_link_list.group_id
+_ihm_cross_link_list.entity_description_1
+_ihm_cross_link_list.entity_id_1
+_ihm_cross_link_list.seq_id_1
+_ihm_cross_link_list.comp_id_1
+_ihm_cross_link_list.entity_description_2
+_ihm_cross_link_list.entity_id_2
+_ihm_cross_link_list.seq_id_2
+_ihm_cross_link_list.comp_id_2
+_ihm_cross_link_list.linker_type
+_ihm_cross_link_list.dataset_list_id
+1 1 foo 1 2 THR foo 1 3 CYS DSS 97
+2 2 foo 1 2 THR bar 2 3 PHE DSS 97
+3 2 foo 1 2 THR bar 2 2 GLU DSS 97
+4 3 foo 1 1 ALA bar 2 1 ASP DSS 97
+5 4 foo 1 1 ALA bar 2 1 ASP EDC 97
+6 5 foo 1 1 ALA bar 2 1 ASP DSS 98
+""")
+        s, = ihm.reader.read(fh)
+        # Check grouping
+        self.assertEqual([[len(g) for g in r.experimental_cross_links]
+                          for r in s.restraints], [[1, 2, 1], [1], [1]])
+        r1, r2, r3 = s.restraints
+        self.assertEqual(r1.dataset._id, '97')
+        self.assertEqual(r1.linker_type, 'DSS')
+        xl = r1.experimental_cross_links[1][0]
+        self.assertEqual(xl.residue1.entity._id, '1')
+        self.assertEqual(xl.residue2.entity._id, '2')
+        self.assertEqual(xl.residue1.seq_id, 2)
+        self.assertEqual(xl.residue2.seq_id, 3)
+
 
 if __name__ == '__main__':
     unittest.main()

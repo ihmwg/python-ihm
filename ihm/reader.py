@@ -97,7 +97,8 @@ class _IDMapper(object):
             return obj
         else:
             newobj = self._make_new_object(newcls)
-            setattr(newobj, self.id_attr, objid)
+            if self.id_attr is not None:
+                setattr(newobj, self.id_attr, objid)
             self._obj_by_id[objid] = newobj
             if self.system_list is not None:
                 self.system_list.append(newobj)
@@ -240,6 +241,24 @@ class _DatasetIDMapper(object):
         return r
 
 
+class _XLRestraintMapper(object):
+    """Map entries to CrossLinkRestraint"""
+
+    def __init__(self, system_list):
+        self.system_list = system_list
+        self._seen_rsrs = {}
+
+    def get_by_attrs(self, dataset, linker_type):
+        """Group all crosslinks with same dataset and linker type in one
+           CrossLinkRestraint object"""
+        k = (dataset._id, linker_type)
+        if k not in self._seen_rsrs:
+            r = ihm.restraint.CrossLinkRestraint(dataset, linker_type)
+            self.system_list.append(r)
+            self._seen_rsrs[k] = r
+        return self._seen_rsrs[k]
+
+
 class _SystemReader(object):
     """Track global information for a System being read from a file, such
        as the mapping from IDs to objects."""
@@ -303,6 +322,12 @@ class _SystemReader(object):
         self.geom_restraints = _IDMapper(self.system.restraints,
                                    ihm.restraint.GeometricRestraint,
                                    *(None,)*4)
+        self.xl_restraints = _XLRestraintMapper(self.system.restraints)
+        self.experimental_xl_groups = _IDMapper(None, list)
+        self.experimental_xl_groups.id_attr = None
+        self.experimental_xls = _IDMapper(None,
+                                    ihm.restraint.ExperimentalCrossLink,
+                                    *(None,)*2)
 
 
 class _Handler(object):
@@ -1194,6 +1219,41 @@ class _PolySeqSchemeHandler(_Handler):
         return offset
 
 
+class _CrossLinkListHandler(_Handler):
+    category = '_ihm_cross_link_list'
+
+    def __init__(self, *args):
+        super(_CrossLinkListHandler, self).__init__(*args)
+        self._seen_group_ids = set()
+        self._seen_ids = set()
+
+    def __call__(self, d):
+        dataset = self.sysr.datasets.get_by_id_or_none(d, 'dataset_list_id')
+        linker_type = d['linker_type'].upper()
+        # Group all crosslinks with same dataset and linker type in one
+        # CrossLinkRestraint object
+        r = self.sysr.xl_restraints.get_by_attrs(dataset, linker_type)
+
+        group_id = d['group_id']
+        id = d['id']
+        xl_group = self.sysr.experimental_xl_groups.get_by_id(group_id)
+        xl = self.sysr.experimental_xls.get_by_id(id)
+
+        if group_id not in self._seen_group_ids:
+            self._seen_group_ids.add(group_id)
+            r.experimental_cross_links.append(xl_group)
+        if id not in self._seen_ids:
+            self._seen_ids.add(id)
+            xl_group.append(xl)
+        xl.residue1 = self._get_entity_residue(d, '_1')
+        xl.residue2 = self._get_entity_residue(d, '_2')
+
+    def _get_entity_residue(self, d, suffix):
+        entity = self.sysr.entities.get_by_id(d['entity_id' + suffix])
+        seq_id = int(d['seq_id' + suffix])
+        return entity.residue(seq_id)
+
+
 def read(fh, model_class=ihm.model.Model):
     """Read data from the mmCIF file handle `fh`.
     
@@ -1242,7 +1302,8 @@ def read(fh, model_class=ihm.model.Model):
                     _GeometricObjectHandler(s), _SphereHandler(s),
                     _TorusHandler(s), _HalfTorusHandler(s),
                     _AxisHandler(s), _PlaneHandler(s),
-                    _GeometricRestraintHandler(s), _PolySeqSchemeHandler(s)]
+                    _GeometricRestraintHandler(s), _PolySeqSchemeHandler(s),
+                    _CrossLinkListHandler(s)]
         r = ihm.format.CifReader(fh, dict((h.category, h) for h in handlers))
         more_data = r.read_file()
         for h in handlers:
