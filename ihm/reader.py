@@ -1225,7 +1225,6 @@ class _CrossLinkListHandler(_Handler):
     def __init__(self, *args):
         super(_CrossLinkListHandler, self).__init__(*args)
         self._seen_group_ids = set()
-        self._seen_ids = set()
 
     def __call__(self, d):
         dataset = self.sysr.datasets.get_by_id_or_none(d, 'dataset_list_id')
@@ -1235,16 +1234,13 @@ class _CrossLinkListHandler(_Handler):
         r = self.sysr.xl_restraints.get_by_attrs(dataset, linker_type)
 
         group_id = d['group_id']
-        id = d['id']
         xl_group = self.sysr.experimental_xl_groups.get_by_id(group_id)
-        xl = self.sysr.experimental_xls.get_by_id(id)
+        xl = self.sysr.experimental_xls.get_by_id(d['id'])
 
         if group_id not in self._seen_group_ids:
             self._seen_group_ids.add(group_id)
             r.experimental_cross_links.append(xl_group)
-        if id not in self._seen_ids:
-            self._seen_ids.add(id)
-            xl_group.append(xl)
+        xl_group.append(xl)
         xl.residue1 = self._get_entity_residue(d, '_1')
         xl.residue2 = self._get_entity_residue(d, '_2')
 
