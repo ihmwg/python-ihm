@@ -76,6 +76,10 @@ class _IDMapper(object):
         self._cls_args = cls_args
         self._cls_keys = cls_keys
 
+    def get_all(self):
+        """Yield all objects seen so far (unordered)"""
+        return self._obj_by_id.values()
+
     def _make_new_object(self, newcls=None):
         if newcls is None:
             newcls = self._cls
@@ -210,6 +214,22 @@ class _GeometryIDMapper(_IDMapper):
                setattr(obj, member, None)
 
 
+class _CrossLinkIDMapper(_IDMapper):
+    """Add extra handling to _IDMapper for cross links"""
+
+    def _make_new_object(self, newcls=None):
+        if newcls is None:
+            # Make base class (takes no args)
+            obj = self._cls()
+            # Need fits in case we never decide on a type
+            obj.fits = {}
+            return obj
+        elif newcls is ihm.restraint.AtomCrossLink:
+            return newcls(*(None,)*6)
+        else:
+            return newcls(*(None,)*4)
+
+
 class _DatasetIDMapper(object):
     """Handle mapping from mmCIF dataset IDs to Python objects.
 
@@ -257,6 +277,11 @@ class _XLRestraintMapper(object):
             self.system_list.append(r)
             self._seen_rsrs[k] = r
         return self._seen_rsrs[k]
+
+    def get_all(self):
+        """Yield all objects seen so far (unordered)"""
+        return self._seen_rsrs.values()
+
 
 
 class _SystemReader(object):
@@ -328,6 +353,8 @@ class _SystemReader(object):
         self.experimental_xls = _IDMapper(None,
                                     ihm.restraint.ExperimentalCrossLink,
                                     *(None,)*2)
+        self.cross_links = _CrossLinkIDMapper(None,
+                                ihm.restraint.CrossLink)
 
 
 class _Handler(object):
@@ -1250,6 +1277,53 @@ class _CrossLinkListHandler(_Handler):
         return entity.residue(seq_id)
 
 
+class _CrossLinkRestraintHandler(_Handler):
+    category = '_ihm_cross_link_restraint'
+
+    _cond_map = {'ALL': True, 'ANY': False, None: None}
+    _distance_map = {'harmonic': ihm.restraint.HarmonicDistanceRestraint,
+                     'lower bound': ihm.restraint.LowerBoundDistanceRestraint,
+                     'upper bound': ihm.restraint.UpperBoundDistanceRestraint}
+
+    # Map granularity to corresponding subclass
+    _type_map = dict((x[1].granularity.lower(), x[1])
+                     for x in inspect.getmembers(ihm.restraint, inspect.isclass)
+                     if issubclass(x[1], ihm.restraint.CrossLink)
+                     and x[1] is not ihm.restraint.CrossLink)
+
+    def __call__(self, d):
+        typ = d.get('model_granularity', 'other').lower()
+        xl = self.sysr.cross_links.get_by_id(d['id'],
+                      self._type_map.get(typ, ihm.restraint.ResidueCrossLink))
+        ex_xl = self.sysr.experimental_xls.get_by_id(d['group_id'])
+
+        xl.experimental_cross_link = ex_xl
+        xl.asym1 = self.sysr.asym_units.get_by_id(d['asym_id_1'])
+        xl.asym2 = self.sysr.asym_units.get_by_id(d['asym_id_2'])
+        # todo: handle unknown restraint type
+        _distcls = self._distance_map[d['restraint_type'].lower()]
+        xl.distance = _distcls(float(d['distance_threshold']))
+        xl.restrain_all = self._cond_map[d.get('conditional_crosslink_flag',
+                                               None)]
+        if isinstance(xl, ihm.restraint.AtomCrossLink):
+            xl.atom1 = d['atom_id_1']
+            xl.atom2 = d['atom_id_2']
+        xl.psi = _get_float(d, 'psi')
+        xl.sigma1 = _get_float(d, 'sigma_1')
+        xl.sigma2 = _get_float(d, 'sigma_2')
+
+    def finalize(self):
+        # Put each cross link in the restraint that owns its experimental xl
+        rsr_for_ex_xl = {}
+        for r in self.sysr.xl_restraints.get_all():
+            for ex_xl_group in r.experimental_cross_links:
+                for ex_xl in ex_xl_group:
+                    rsr_for_ex_xl[ex_xl] = r
+        for xl in self.sysr.cross_links.get_all():
+            r = rsr_for_ex_xl[xl.experimental_cross_link]
+            r.cross_links.append(xl)
+
+
 def read(fh, model_class=ihm.model.Model):
     """Read data from the mmCIF file handle `fh`.
     
@@ -1299,7 +1373,7 @@ def read(fh, model_class=ihm.model.Model):
                     _TorusHandler(s), _HalfTorusHandler(s),
                     _AxisHandler(s), _PlaneHandler(s),
                     _GeometricRestraintHandler(s), _PolySeqSchemeHandler(s),
-                    _CrossLinkListHandler(s)]
+                    _CrossLinkListHandler(s), _CrossLinkRestraintHandler(s)]
         r = ihm.format.CifReader(fh, dict((h.category, h) for h in handlers))
         more_data = r.read_file()
         for h in handlers:

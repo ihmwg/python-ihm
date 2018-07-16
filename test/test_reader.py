@@ -1563,6 +1563,80 @@ _ihm_cross_link_list.dataset_list_id
         self.assertEqual(xl.residue1.seq_id, 2)
         self.assertEqual(xl.residue2.seq_id, 3)
 
+    def test_cross_link_restraint_handler(self):
+        """Test CrossLinkRestraintHandler"""
+        xl_list = """
+loop_
+_ihm_cross_link_list.id
+_ihm_cross_link_list.group_id
+_ihm_cross_link_list.entity_description_1
+_ihm_cross_link_list.entity_id_1
+_ihm_cross_link_list.seq_id_1
+_ihm_cross_link_list.comp_id_1
+_ihm_cross_link_list.entity_description_2
+_ihm_cross_link_list.entity_id_2
+_ihm_cross_link_list.seq_id_2
+_ihm_cross_link_list.comp_id_2
+_ihm_cross_link_list.linker_type
+_ihm_cross_link_list.dataset_list_id
+1 1 foo 1 2 THR foo 1 3 CYS DSS 97
+2 2 foo 1 2 THR bar 2 3 PHE DSS 97
+"""
+        xl_rsr = """
+loop_
+_ihm_cross_link_restraint.id
+_ihm_cross_link_restraint.group_id
+_ihm_cross_link_restraint.entity_id_1
+_ihm_cross_link_restraint.asym_id_1
+_ihm_cross_link_restraint.seq_id_1
+_ihm_cross_link_restraint.comp_id_1
+_ihm_cross_link_restraint.entity_id_2
+_ihm_cross_link_restraint.asym_id_2
+_ihm_cross_link_restraint.seq_id_2
+_ihm_cross_link_restraint.comp_id_2
+_ihm_cross_link_restraint.atom_id_1
+_ihm_cross_link_restraint.atom_id_2
+_ihm_cross_link_restraint.restraint_type
+_ihm_cross_link_restraint.conditional_crosslink_flag
+_ihm_cross_link_restraint.model_granularity
+_ihm_cross_link_restraint.distance_threshold
+_ihm_cross_link_restraint.psi
+_ihm_cross_link_restraint.sigma_1
+_ihm_cross_link_restraint.sigma_2
+1 1 1 A 2 THR 1 B 3 CYS . . 'upper bound' ALL by-residue 25.000 0.500 1.000
+2.000
+2 2 1 A 2 THR 2 B 2 GLU C N 'lower bound' ANY by-atom 34.000 . . .
+"""
+        # Order of categories shouldn't matter
+        for text in (xl_list+xl_rsr, xl_rsr+xl_list):
+            fh = StringIO(text)
+            s, = ihm.reader.read(fh)
+            r, = s.restraints
+            xl1, xl2 = r.cross_links
+            self.assertTrue(isinstance(xl1, ihm.restraint.ResidueCrossLink))
+            self.assertEqual(xl1.experimental_cross_link.residue1.seq_id, 2)
+            self.assertEqual(xl1.experimental_cross_link.residue2.seq_id, 3)
+            self.assertEqual(xl1.fits, {})
+            self.assertEqual(xl1.asym1._id, 'A')
+            self.assertEqual(xl1.asym2._id, 'B')
+            self.assertTrue(isinstance(xl1.distance,
+                                 ihm.restraint.UpperBoundDistanceRestraint))
+            self.assertAlmostEqual(xl1.distance.distance, 25.000, places=1)
+            self.assertAlmostEqual(xl1.psi, 0.500, places=1)
+            self.assertAlmostEqual(xl1.sigma1, 1.000, places=1)
+            self.assertAlmostEqual(xl1.sigma2, 2.000, places=1)
+
+            self.assertTrue(isinstance(xl2, ihm.restraint.AtomCrossLink))
+            self.assertEqual(xl2.fits, {})
+            self.assertTrue(isinstance(xl2.distance,
+                                 ihm.restraint.LowerBoundDistanceRestraint))
+            self.assertTrue(xl2.atom1, 'C')
+            self.assertTrue(xl2.atom2, 'N')
+            self.assertAlmostEqual(xl2.distance.distance, 34.000, places=1)
+            self.assertEqual(xl2.psi, None)
+            self.assertEqual(xl2.sigma1, None)
+            self.assertEqual(xl2.sigma2, None)
+
 
 if __name__ == '__main__':
     unittest.main()
