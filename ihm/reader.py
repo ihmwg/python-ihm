@@ -1324,6 +1324,18 @@ class _CrossLinkRestraintHandler(_Handler):
             r.cross_links.append(xl)
 
 
+class _CrossLinkResultHandler(_Handler):
+    category = '_ihm_cross_link_result_parameters'
+
+    def __call__(self, d):
+        xl = self.sysr.cross_links.get_by_id(d['restraint_id'])
+        model = self.sysr.models.get_by_id(d['model_id'])
+        xl.fits[model] = ihm.restraint.CrossLinkFit(
+                                psi=_get_float(d, 'psi'),
+                                sigma1=_get_float(d, 'sigma_1'),
+                                sigma2=_get_float(d, 'sigma_2'))
+
+
 def read(fh, model_class=ihm.model.Model):
     """Read data from the mmCIF file handle `fh`.
     
@@ -1373,7 +1385,8 @@ def read(fh, model_class=ihm.model.Model):
                     _TorusHandler(s), _HalfTorusHandler(s),
                     _AxisHandler(s), _PlaneHandler(s),
                     _GeometricRestraintHandler(s), _PolySeqSchemeHandler(s),
-                    _CrossLinkListHandler(s), _CrossLinkRestraintHandler(s)]
+                    _CrossLinkListHandler(s), _CrossLinkRestraintHandler(s),
+                    _CrossLinkResultHandler(s)]
         r = ihm.format.CifReader(fh, dict((h.category, h) for h in handlers))
         more_data = r.read_file()
         for h in handlers:

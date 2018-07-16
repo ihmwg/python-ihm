@@ -1637,6 +1637,78 @@ _ihm_cross_link_restraint.sigma_2
             self.assertEqual(xl2.sigma1, None)
             self.assertEqual(xl2.sigma2, None)
 
+    def test_cross_link_result_handler(self):
+        """Test CrossLinkResultHandler"""
+        xl_list = """
+loop_
+_ihm_cross_link_list.id
+_ihm_cross_link_list.group_id
+_ihm_cross_link_list.entity_description_1
+_ihm_cross_link_list.entity_id_1
+_ihm_cross_link_list.seq_id_1
+_ihm_cross_link_list.comp_id_1
+_ihm_cross_link_list.entity_description_2
+_ihm_cross_link_list.entity_id_2
+_ihm_cross_link_list.seq_id_2
+_ihm_cross_link_list.comp_id_2
+_ihm_cross_link_list.linker_type
+_ihm_cross_link_list.dataset_list_id
+1 1 foo 1 2 THR foo 1 3 CYS DSS 97
+"""
+        xl_rsr = """
+loop_
+_ihm_cross_link_restraint.id
+_ihm_cross_link_restraint.group_id
+_ihm_cross_link_restraint.entity_id_1
+_ihm_cross_link_restraint.asym_id_1
+_ihm_cross_link_restraint.seq_id_1
+_ihm_cross_link_restraint.comp_id_1
+_ihm_cross_link_restraint.entity_id_2
+_ihm_cross_link_restraint.asym_id_2
+_ihm_cross_link_restraint.seq_id_2
+_ihm_cross_link_restraint.comp_id_2
+_ihm_cross_link_restraint.atom_id_1
+_ihm_cross_link_restraint.atom_id_2
+_ihm_cross_link_restraint.restraint_type
+_ihm_cross_link_restraint.conditional_crosslink_flag
+_ihm_cross_link_restraint.model_granularity
+_ihm_cross_link_restraint.distance_threshold
+_ihm_cross_link_restraint.psi
+_ihm_cross_link_restraint.sigma_1
+_ihm_cross_link_restraint.sigma_2
+1 1 1 A 2 THR 1 B 3 CYS . . 'upper bound' ALL by-residue 25.000 0.500 1.000
+2.000
+"""
+        xl_fit = """
+loop_
+_ihm_cross_link_result_parameters.ordinal_id
+_ihm_cross_link_result_parameters.restraint_id
+_ihm_cross_link_result_parameters.model_id
+_ihm_cross_link_result_parameters.psi
+_ihm_cross_link_result_parameters.sigma_1
+_ihm_cross_link_result_parameters.sigma_2
+1 1 201 0.100 4.200 2.100
+2 1 301 . . .
+"""
+        # Order of categories shouldn't matter
+        for text in (xl_list+xl_rsr+xl_fit, xl_fit+xl_rsr+xl_list):
+            fh = StringIO(text)
+            s, = ihm.reader.read(fh)
+            r, = s.restraints
+            xl, = r.cross_links
+            # Sort fits by model ID
+            fits = sorted(xl.fits.items(), key=lambda x:x[0]._id)
+            self.assertEqual(len(fits), 2)
+            self.assertEqual(fits[0][0]._id, '201')
+            self.assertAlmostEqual(fits[0][1].psi, 0.100, places=1)
+            self.assertAlmostEqual(fits[0][1].sigma1, 4.200, places=1)
+            self.assertAlmostEqual(fits[0][1].sigma2, 2.100, places=1)
+
+            self.assertEqual(fits[1][0]._id, '301')
+            self.assertEqual(fits[1][1].psi, None)
+            self.assertEqual(fits[1][1].sigma1, None)
+            self.assertEqual(fits[1][1].sigma2, None)
+
 
 if __name__ == '__main__':
     unittest.main()
