@@ -154,6 +154,22 @@ class _EntityDumper(_Dumper):
 			details=entity.details)
 
 
+def _prettyprint_seq(seq, width):
+    """Join the sequence of strings together and generate a set of
+       lines that don't exceed the provided width."""
+    current_width = 0
+    line = []
+    for s in seq:
+        if line and current_width + len(s) > width:
+            yield ''.join(line)
+            line = []
+            current_width = 0
+        line.append(s)
+        current_width += len(s)
+    if line:
+        yield ''.join(line)
+
+
 class _EntityPolyDumper(_Dumper):
     def __init__(self):
         super(_EntityPolyDumper, self).__init__()
@@ -171,19 +187,16 @@ class _EntityPolyDumper(_Dumper):
 
     def _get_sequence(self, entity):
         """Get the sequence for an entity as a string"""
-        seq = ''.join(comp.code if len(comp.code) == 1 else '(%s)' % comp.code
-                      for comp in entity.sequence)
         # Split into lines to get tidier CIF output
-        # todo: probably should avoid inserting \n in the middle of a
-        # multi-character code
-        seq = "\n".join(seq[i:i+70] for i in range(0, len(seq), 70))
-        return seq
+        return "\n".join(_prettyprint_seq((comp.code if len(comp.code) == 1
+                                           else '(%s)' % comp.code
+                                           for comp in entity.sequence), 70))
 
     def _get_canon(self, entity):
         """Get the canonical sequence for an entity as a string"""
-        seq = ''.join(comp.code_canonical for comp in entity.sequence)
         # Split into lines to get tidier CIF output
-        seq = "\n".join(seq[i:i+70] for i in range(0, len(seq), 70))
+        seq = "\n".join(_prettyprint_seq(
+                         (comp.code_canonical for comp in entity.sequence), 70))
         return seq
 
     def _get_seq_type(self, entity):
