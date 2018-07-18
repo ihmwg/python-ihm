@@ -725,10 +725,11 @@ class _StartingComparativeModelsHandler(_Handler):
                         int(d['starting_model_seq_id_end']))
         template_seq_id_range = (int(d['template_seq_id_begin']),
                                  int(d['template_seq_id_end']))
-        identity = _get_float(d, 'template_sequence_identity')
-        denom = _get_int(d, 'template_sequence_identity_denominator')
+        identity = ihm.startmodel.SequenceIdentity(
+                      _get_float(d, 'template_sequence_identity'),
+                      _get_int(d, 'template_sequence_identity_denominator'))
         t = ihm.startmodel.Template(dataset, asym_id, seq_id_range,
-                        template_seq_id_range, identity, denom, aln)
+                        template_seq_id_range, identity, aln)
         m.templates.append(t)
 
 
