@@ -57,6 +57,8 @@ class Tests(unittest.TestCase):
         # Items longer than width will exceed line length
         self.assertEqual(list(ihm.dumper._prettyprint_seq(seq, 25)),
                          ['x' * 30, 'y' * 20, 'z' * 10])
+        # Empty sequence
+        self.assertEqual(list(ihm.dumper._prettyprint_seq([], 25)), [])
 
     def test_entry_dumper(self):
         """Test EntryDumper"""
