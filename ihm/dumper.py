@@ -1287,6 +1287,7 @@ class _CrossLinkDumper(_Dumper):
                         psi=xl.psi, sigma_1=xl.sigma1, sigma_2=xl.sigma2)
 
     def dump_results(self, system, writer):
+        seen_fits = set()
         with writer.loop("_ihm_cross_link_result_parameters",
                          ["ordinal_id", "restraint_id", "model_id",
                           "psi", "sigma_1", "sigma_2"]) as l:
@@ -1296,6 +1297,11 @@ class _CrossLinkDumper(_Dumper):
                     # all fits ordered by model ID
                     for model, fit in sorted(xl.fits.items(),
                                              key=lambda i: i[0]._id):
+                        # Filter duplicate fits
+                        fit_id = (xl._id, model._id)
+                        if fit_id in seen_fits:
+                            continue
+                        seen_fits.add(fit_id)
                         l.write(ordinal_id=ordinal, restraint_id=xl._id,
                                 model_id=model._id, psi=fit.psi,
                                 sigma_1=fit.sigma1, sigma_2=fit.sigma2)
