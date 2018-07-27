@@ -188,8 +188,11 @@ x
 
     def test_loop_mixed_categories(self):
         """Test bad mmCIF loop with a mix of categories"""
-        self._check_bad_cif('loop_\n_atom_site.id\n_foo.bar\n')
-        self._check_bad_cif('loop_\n_foo.bar\n_atom_site.id\n')
+        h = GenericHandler()
+        self._check_bad_cif('loop_\n_atom_site.id\n_foo.bar\n',
+                            {'_atom_site':h})
+        self._check_bad_cif('loop_\n_foo.bar\n_atom_site.id\n',
+                            {'_foo':h})
 
     def _read_cif(self, cif, category_handlers):
         r = ihm.format.CifReader(StringIO(cif), category_handlers)
