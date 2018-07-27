@@ -91,9 +91,11 @@ static void handle_category_data(struct ihm_reader *reader, gpointer data,
 {
   int i;
   struct category_handler_data *hd = data;
+  struct ihm_keyword **keys;
   /* todo: make a dict of the data */
-  for (i = 0; i < hd->num_keywords; ++i) {
-    /*printf("got data for key %s\n", hd->keywords[i]->name); */
+  for (i = 0, keys = hd->keywords; i < hd->num_keywords; ++i, ++keys) {
+    /*printf("got data for key %s %d %d %d %s\n", (*keys)->name,
+(*keys)->in_file, (*keys)->omitted, (*keys)->missing, (*keys)->data);*/
   }
   /* todo: pass the data to Python */
 }
