@@ -233,10 +233,12 @@ x
         # multiline in loop
         h = GenericHandler()
         self._read_cif("loop_ _struct_keywords.pdbx_keywords\n"
-                       ";COMPLEX \n(HYDROLASE/PEPTIDE)\n;",
+                       "_struct_keywords.foo\n"
+                       ";COMPLEX \n(HYDROLASE/PEPTIDE)\n;\nbar\n",
                        {'_struct_keywords':h})
         self.assertEqual(h.data,
-                [{'pdbx_keywords':'COMPLEX \n(HYDROLASE/PEPTIDE)'}])
+                [{'pdbx_keywords':'COMPLEX \n(HYDROLASE/PEPTIDE)',
+                  'foo':'bar'}])
 
     def test_ignored_loop(self):
         """Check that loops are ignored if they don't have a handler"""
