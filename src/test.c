@@ -7,7 +7,7 @@ struct entity_poly_seq {
 };
 
 static void handle_entity_poly_seq(struct mmcif_reader *reader, gpointer data,
-                                   int *ierr)
+                                   GError **err)
 {
   struct entity_poly_seq *d = data;
 }
@@ -27,7 +27,7 @@ struct pdbx_poly_seq_scheme {
 };
 
 static void handle_pdbx_poly_seq_scheme(struct mmcif_reader *reader, gpointer data,
-                                   int *ierr)
+                                   GError **err)
 {
   struct pdbx_poly_seq_scheme *d = data;
 }
@@ -48,7 +48,7 @@ struct sphere_obj_site {
 };
 
 static void handle_sphere_obj_site(struct mmcif_reader *reader, gpointer data,
-                                   int *ierr)
+                                   GError **err)
 {
   struct sphere_obj_site *d = data;
 /*  printf("sphere at %s, %s, %s, radius %s\n", d->x->data, d->y->data, d->z->data, d->radius->data); */
@@ -78,13 +78,24 @@ int main(int argc, char **argv)
   struct mmcif_reader *reader;
 
   fh = g_io_channel_new_file("npc-8spoke.cif", "r", &err);
+  if (!fh) {
+    fprintf(stderr, "Unable to open file: %s\n", err->message);
+    g_error_free(err);
+    return 1;
+  }
 
   reader = mmcif_reader_new(fh);
   add_sphere_obj_site_handler(reader);
   add_entity_poly_seq_handler(reader);
   add_pdbx_poly_seq_scheme_handler(reader);
 
-  mmcif_read_file(reader, &ierr);
+  if (!mmcif_read_file(reader, &err)) {
+    mmcif_reader_free(reader);
+    fprintf(stderr, "Unable to read file: %s\n", err->message);
+    g_error_free(err);
+    return 1;
+  }
+
   mmcif_reader_free(reader);
   return 0;
 }
