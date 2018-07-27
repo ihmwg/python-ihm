@@ -5,6 +5,7 @@
 
 /* IHM error types */
 typedef enum {
+  IHM_ERROR_VALUE, /* Bad value */
   IHM_ERROR_FILE_FORMAT, /* File format error */
 } IHMError;
 
