@@ -2,6 +2,9 @@ import utils
 import os
 import unittest
 import sys
+import tempfile
+import shutil
+import contextlib
 if sys.version_info[0] >= 3:
     from io import StringIO
 else:
@@ -11,9 +14,16 @@ TOPDIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 utils.set_search_paths(TOPDIR)
 import ihm.format
 
+@contextlib.contextmanager
+def temporary_directory(dir=None):
+    """Simple context manager to make a temporary directory."""
+    tmpdir = tempfile.mkdtemp(dir=dir)
+    yield tmpdir
+    shutil.rmtree(tmpdir, ignore_errors=True)
+
 class GenericHandler(object):
     """Capture mmCIF data as a simple list of dicts"""
-    keys = ('method', 'foo', 'bar', 'pdbx_keywords')
+    keys = ('method', 'foo', 'bar', 'pdbx_keywords', 'var1', 'var2', 'var3')
 
     def __init__(self):
         self.data = []
@@ -142,145 +152,191 @@ x
             self.assertEqual(w._repr('%s_foo' % word), '%s_foo' % word)
             self.assertEqual(w._repr('%s_' % word), "'%s_'" % word)
 
-    def _check_bad_cif(self, cif, category_handlers={}):
+    def _check_bad_cif(self, cif, real_file, category_handlers={}):
         """Ensure that the given bad cif results in a parser error"""
-        r = ihm.format.CifReader(StringIO(cif), category_handlers)
-        self.assertRaises(ihm.format.CifParserError, r.read_file)
+        if real_file:
+            with temporary_directory() as tmpdir:
+                fname = os.path.join(tmpdir, 'test')
+                with open(fname, 'w') as fh:
+                    fh.write(cif)
+                with open(fname) as fh:
+                    r = ihm.format.CifReader(fh, category_handlers)
+                    self.assertRaises(ihm.format.CifParserError, r.read_file)
+        else:
+            r = ihm.format.CifReader(StringIO(cif), category_handlers)
+            self.assertRaises(ihm.format.CifParserError, r.read_file)
 
     def test_comments_start_line_skipped(self):
         """Make sure that comments at start of line are skipped"""
-        self._read_cif("# _exptl.method\n# ;foo\n", {})
+        for real_file in (True, False):
+            self._read_cif("# _exptl.method\n# ;foo\n", real_file, {})
 
     def test_comments_mid_line_skipped(self):
         """Make sure that comments part way through line are skipped"""
-        h = GenericHandler()
-        self._read_cif('_exptl.method #bar baz\nfoo', {'_exptl':h})
-        self.assertEqual(h.data, [{'method':'foo'}])
+        for real_file in (True, False):
+            h = GenericHandler()
+            self._read_cif('_exptl.method #bar baz\nfoo', real_file,
+                           {'_exptl':h})
+            self.assertEqual(h.data, [{'method':'foo'}])
 
     def test_missing_semicolon(self):
         """Make sure that missing semicolon is handled in multiline strings"""
-        self._check_bad_cif("_exptl.method\n;foo\n")
+        for real_file in (True, False):
+            self._check_bad_cif("_exptl.method\n;foo\n", real_file)
 
     def test_missing_single_quote(self):
         """Make sure that missing single quote is handled"""
-        self._check_bad_cif("_exptl.method 'foo\n")
-        self._check_bad_cif("_exptl.method\n'foo'bar\n")
-        self._check_bad_cif("loop_\n_exptl.method\n'foo\n")
+        for real_file in (True, False):
+            self._check_bad_cif("_exptl.method 'foo\n", real_file)
+            self._check_bad_cif("_exptl.method\n'foo'bar\n", real_file)
+            self._check_bad_cif("loop_\n_exptl.method\n'foo\n", real_file)
 
     def test_missing_double_quote(self):
         """Make sure that missing double quote is handled"""
-        self._check_bad_cif('_exptl.method "foo\n')
-        self._check_bad_cif('_exptl.method "foo"bar\n')
-        self._check_bad_cif('loop_\n_exptl.method\n"foo\n')
+        for real_file in (True, False):
+            self._check_bad_cif('_exptl.method "foo\n', real_file)
+            self._check_bad_cif('_exptl.method "foo"bar\n', real_file)
+            self._check_bad_cif('loop_\n_exptl.method\n"foo\n', real_file)
 
     def test_nested_loop(self):
         """Loop constructs cannot be nested"""
-        self._check_bad_cif('loop_ loop_\n')
+        for real_file in (True, False):
+            self._check_bad_cif('loop_ loop_\n', real_file)
 
     def test_malformed_key(self):
         """Keys must be of the form _abc.xyz"""
-        self._check_bad_cif('_category\n')
-        self._check_bad_cif('loop_\n_atom_site\n')
+        for real_file in (True, False):
+            self._check_bad_cif('_category\n', real_file)
+            self._check_bad_cif('loop_\n_atom_site\n', real_file)
 
     def test_missing_value(self):
         """Key without a value should be an error"""
-        h = GenericHandler()
-        # Checks aren't done unless we have a handler for the category
-        self._check_bad_cif('_exptl.method\n', {'_exptl':h})
+        for real_file in (True, False):
+            h = GenericHandler()
+            # Checks aren't done unless we have a handler for the category
+            self._check_bad_cif('_exptl.method\n', real_file, {'_exptl':h})
 
     def test_loop_mixed_categories(self):
         """Test bad mmCIF loop with a mix of categories"""
-        h = GenericHandler()
-        self._check_bad_cif('loop_\n_atom_site.id\n_foo.bar\n',
-                            {'_atom_site':h})
-        self._check_bad_cif('loop_\n_foo.bar\n_atom_site.id\n',
-                            {'_foo':h})
+        for real_file in (True, False):
+            h = GenericHandler()
+            self._check_bad_cif('loop_\n_atom_site.id\n_foo.bar\n',
+                                real_file, {'_atom_site':h})
+            self._check_bad_cif('loop_\n_foo.bar\n_atom_site.id\n',
+                                real_file, {'_foo':h})
 
-    def _read_cif(self, cif, category_handlers):
-        r = ihm.format.CifReader(StringIO(cif), category_handlers)
-        r.read_file()
+    def _read_cif(self, cif, real_file, category_handlers):
+        if real_file:
+            with temporary_directory() as tmpdir:
+                fname = os.path.join(tmpdir, 'test')
+                with open(fname, 'w') as fh:
+                    fh.write(cif)
+                with open(fname) as fh:
+                    r = ihm.format.CifReader(fh, category_handlers)
+                    r.read_file()
+        else:
+            r = ihm.format.CifReader(StringIO(cif), category_handlers)
+            r.read_file()
 
     def test_category_case_insensitive(self):
         """Categories and keywords should be case insensitive"""
-        for cat in ('_exptl.method', '_Exptl.METHod'):
-            h = GenericHandler()
-            self._read_cif(cat + ' foo', {'_exptl':h})
-        self.assertEqual(h.data, [{'method':'foo'}])
+        for real_file in (True, False):
+            for cat in ('_exptl.method', '_Exptl.METHod'):
+                h = GenericHandler()
+                self._read_cif(cat + ' foo', real_file, {'_exptl':h})
+            self.assertEqual(h.data, [{'method':'foo'}])
 
     def test_omitted_ignored(self):
         """CIF omitted value ('.') should be ignored"""
-        h = GenericHandler()
-        self._read_cif("_foo.bar 1\n_foo.baz .\n", {'_foo':h})
-        self.assertEqual(h.data, [{'bar':'1'}])
+        for real_file in (True, False):
+            h = GenericHandler()
+            self._read_cif("_foo.bar 1\n_foo.baz .\n", real_file, {'_foo':h})
+            self.assertEqual(h.data, [{'bar':'1'}])
 
-        h = GenericHandler()
-        self._read_cif("loop_\n_foo.bar\n_foo.baz\n1 .\n", {'_foo':h})
-        self.assertEqual(h.data, [{'bar':'1'}])
+            h = GenericHandler()
+            self._read_cif("loop_\n_foo.bar\n_foo.baz\n1 .\n", real_file,
+                           {'_foo':h})
+            self.assertEqual(h.data, [{'bar':'1'}])
 
     def test_multiline(self):
         """Check that multiline strings are handled correctly"""
-        self._check_bad_cif("_struct_keywords.pdbx_keywords\n"
-                            ";COMPLEX \n(HYDROLASE/PEPTIDE)\n")
+        for real_file in (True, False):
+            self._check_bad_cif("_struct_keywords.pdbx_keywords\n"
+                                ";COMPLEX \n(HYDROLASE/PEPTIDE)\n", real_file)
 
-        # multiline in category
-        h = GenericHandler()
-        self._read_cif("_struct_keywords.pdbx_keywords\n"
-                       ";COMPLEX \n(HYDROLASE/PEPTIDE)\n;",
-                       {'_struct_keywords':h})
-        self.assertEqual(h.data,
-                [{'pdbx_keywords':'COMPLEX \n(HYDROLASE/PEPTIDE)'}])
+            # multiline in category
+            h = GenericHandler()
+            self._read_cif("_struct_keywords.pdbx_keywords\n"
+                           ";COMPLEX \n(HYDROLASE/PEPTIDE)\n;",
+                           real_file, {'_struct_keywords':h})
+            self.assertEqual(h.data,
+                    [{'pdbx_keywords':'COMPLEX \n(HYDROLASE/PEPTIDE)'}])
 
-        # multiline in loop
-        h = GenericHandler()
-        self._read_cif("loop_ _struct_keywords.pdbx_keywords\n"
-                       "_struct_keywords.foo\n"
-                       ";COMPLEX \n(HYDROLASE/PEPTIDE)\n;\nbar\n",
-                       {'_struct_keywords':h})
-        self.assertEqual(h.data,
-                [{'pdbx_keywords':'COMPLEX \n(HYDROLASE/PEPTIDE)',
-                  'foo':'bar'}])
+            # multiline in loop
+            h = GenericHandler()
+            self._read_cif("loop_ _struct_keywords.pdbx_keywords\n"
+                           "_struct_keywords.foo\n"
+                           ";COMPLEX \n(HYDROLASE/PEPTIDE)\n;\nbar\n",
+                           real_file, {'_struct_keywords':h})
+            self.assertEqual(h.data,
+                    [{'pdbx_keywords':'COMPLEX \n(HYDROLASE/PEPTIDE)',
+                      'foo':'bar'}])
 
     def test_ignored_loop(self):
         """Check that loops are ignored if they don't have a handler"""
-        h = GenericHandler()
-        self._read_cif("loop_\n_struct_keywords.pdbx_keywords\nfoo",
-                       {'_atom_site':h})
-        self.assertEqual(h.data, [])
+        for real_file in (True, False):
+            h = GenericHandler()
+            self._read_cif("loop_\n_struct_keywords.pdbx_keywords\nfoo",
+                           real_file, {'_atom_site':h})
+            self.assertEqual(h.data, [])
 
     def test_quotes_in_strings(self):
         """Check that quotes in strings are handled"""
-        h = GenericHandler()
-        self._read_cif("_struct_keywords.pdbx_keywords 'foo'bar'",
-                       {'_struct_keywords':h})
-        self.assertEqual(h.data, [{'pdbx_keywords':"foo'bar"}])
+        for real_file in (True, False):
+            h = GenericHandler()
+            self._read_cif("_struct_keywords.pdbx_keywords 'foo'bar'",
+                           real_file, {'_struct_keywords':h})
+            self.assertEqual(h.data, [{'pdbx_keywords':"foo'bar"}])
 
-        h = GenericHandler()
-        self._read_cif('_struct_keywords.pdbx_keywords "foo"bar"  ',
-                       {'_struct_keywords':h})
-        self.assertEqual(h.data, [{'pdbx_keywords':'foo"bar'}])
+            h = GenericHandler()
+            self._read_cif('_struct_keywords.pdbx_keywords "foo"bar"  ',
+                           real_file, {'_struct_keywords':h})
+            self.assertEqual(h.data, [{'pdbx_keywords':'foo"bar'}])
 
     def test_wrong_loop_data_num(self):
         """Check wrong number of loop data elements"""
-        h = GenericHandler()
-        self._check_bad_cif("""
+        for real_file in (True, False):
+            h = GenericHandler()
+            self._check_bad_cif("""
 loop_
 _atom_site.x
 _atom_site.y
 oneval
-""", {'_atom_site':h})
+""", real_file, {'_atom_site':h})
 
     def test_first_data_block(self):
         """Only information from the first data block should be read"""
-        h = GenericHandler()
-        cif = StringIO("""
+        cif = """
 _foo.var1 test1
 data_model
 _foo.var2 test2
 data_model2
 _foo.var3 test3
-""")
+"""
+        h = GenericHandler()
+        r = ihm.format.CifReader(StringIO(cif), {'_foo':h})
+        self._check_first_data(r, h)
 
-        r = ihm.format.CifReader(cif, {'_foo':h})
+        with temporary_directory() as tmpdir:
+            fname = os.path.join(tmpdir, 'test')
+            with open(fname, 'w') as fh:
+                fh.write(cif)
+            with open(fname) as fh:
+                h = GenericHandler()
+                r = ihm.format.CifReader(fh, {'_foo':h})
+                self._check_first_data(r, h)
+
+    def _check_first_data(self, r, h):
         # Read to end of first data block
         self.assertTrue(r.read_file())
         self.assertEqual(h.data, [{'var1':'test1', 'var2':'test2'}])
@@ -297,14 +353,15 @@ _foo.var3 test3
 
     def test_eof_after_loop_data(self):
         """Make sure EOF after loop data is handled"""
-        h = GenericHandler()
-        self._read_cif("""
+        for real_file in (True, False):
+            h = GenericHandler()
+            self._read_cif("""
 loop_
 _foo.bar
 _foo.baz
 x y
 #
-""", {'_foo':h})
+""", real_file, {'_foo':h})
 
 if __name__ == '__main__':
     unittest.main()
