@@ -465,7 +465,6 @@ class CifReader(object):
 
     def _read_file_c(self):
         """Read the file using the C parser"""
-        print("using C reader")
         _reader.ihm_reader_remove_all_categories(self._c_reader)
         for category, handler in self.category_handler.items():
             _reader.add_category_handler(self._c_reader, category,
