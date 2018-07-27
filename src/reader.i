@@ -95,16 +95,46 @@ static void handle_category_data(struct ihm_reader *reader, gpointer data,
   int i;
   struct category_handler_data *hd = data;
   struct ihm_keyword **keys;
-  PyObject *ret;
+  PyObject *ret, *dict, *tuple;
 
-  /* todo: make a dict of the data */
-  for (i = 0, keys = hd->keywords; i < hd->num_keywords; ++i, ++keys) {
-    /*printf("got data for key %s %d %d %d %s\n", (*keys)->name,
-(*keys)->in_file, (*keys)->omitted, (*keys)->missing, (*keys)->data);*/
+  /* make a dict of the data */
+  dict = PyDict_New();
+  if (!dict) {
+    g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE, "dict creation failed");
+    return;
   }
 
-  /* todo: pass the data to Python */
-  ret = PyObject_CallObject(hd->callable, NULL);
+  for (i = 0, keys = hd->keywords; i < hd->num_keywords; ++i, ++keys) {
+    /* Add item to dict if it's in the file and not . or ? */
+    if ((*keys)->in_file && !(*keys)->omitted && !(*keys)->missing) {
+      PyObject *val = PyString_FromString((*keys)->data);
+      if (!val) {
+        g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE, "string creation failed");
+        Py_DECREF(dict);
+        return;
+      }
+      if (PyDict_SetItemString(dict, (*keys)->name, val) != 0) {
+        g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE,
+                    "dict item creation failed");
+        Py_DECREF(val);
+        Py_DECREF(dict);
+        return;
+      }
+    }
+  }
+
+  tuple = PyTuple_New(1);
+  if (!tuple) {
+    g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE, "tuple creation failed");
+    Py_DECREF(dict);
+    return;
+  }
+  /* Steals ref to dict */
+  PyTuple_SET_ITEM(tuple, 0, dict);
+
+  /* pass the data to Python */
+  ret = PyObject_CallObject(hd->callable, tuple);
+  Py_DECREF(tuple);
   if (ret) {
     Py_DECREF(ret); /* discard return value */
   } else {
