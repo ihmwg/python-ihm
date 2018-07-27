@@ -1387,6 +1387,7 @@ def read(fh, model_class=ihm.model.Model):
     """
     systems = []
 
+    r = ihm.format.CifReader(fh, {})
     while True:
         s = _SystemReader(model_class)
         handlers = [_StructHandler(s), _SoftwareHandler(s), _CitationHandler(s),
@@ -1417,7 +1418,7 @@ def read(fh, model_class=ihm.model.Model):
                     _CrossLinkListHandler(s), _CrossLinkRestraintHandler(s),
                     _CrossLinkResultHandler(s),
                     _OrderedEnsembleHandler(s)]
-        r = ihm.format.CifReader(fh, dict((h.category, h) for h in handlers))
+        r.category_handler = dict((h.category, h) for h in handlers)
         more_data = r.read_file()
         for h in handlers:
             h.finalize()

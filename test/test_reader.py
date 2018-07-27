@@ -122,10 +122,13 @@ data_id1
 _struct.entry_id id1
 data_id2
 _struct.entry_id id2
+data_id3
+_struct.entry_id id3
 """)
-        s1, s2 = ihm.reader.read(fh)
+        s1, s2, s3 = ihm.reader.read(fh)
         self.assertEqual(s1.id, 'id1')
         self.assertEqual(s2.id, 'id2')
+        self.assertEqual(s3.id, 'id3')
 
     def test_software_handler(self):
         """Test SoftwareHandler"""
