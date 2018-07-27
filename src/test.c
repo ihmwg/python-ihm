@@ -16,7 +16,7 @@ void add_entity_poly_seq_handler(struct ihm_reader *reader)
 {
   struct entity_poly_seq *s = g_malloc(sizeof(struct entity_poly_seq));
   struct ihm_category *c = ihm_category_new(reader, "_entity_poly_seq",
-		  handle_entity_poly_seq, s, g_free);
+		  handle_entity_poly_seq, NULL, s, g_free);
   s->num = ihm_keyword_new(c, "num");
   s->entity_id = ihm_keyword_new(c, "entity_id");
   s->mon_id = ihm_keyword_new(c, "mon_id");
@@ -36,7 +36,7 @@ void add_pdbx_poly_seq_scheme_handler(struct ihm_reader *reader)
 {
   struct pdbx_poly_seq_scheme *s = g_malloc(sizeof(struct pdbx_poly_seq_scheme));
   struct ihm_category *c = ihm_category_new(reader, "_pdbx_poly_seq_scheme",
-		  handle_pdbx_poly_seq_scheme, s, g_free);
+		  handle_pdbx_poly_seq_scheme, NULL, s, g_free);
   s->asym_id = ihm_keyword_new(c, "asym_id");
   s->seq_id = ihm_keyword_new(c, "seq_id");
   s->auth_seq_num = ihm_keyword_new(c, "auth_seq_num");
@@ -58,7 +58,7 @@ void add_sphere_obj_site_handler(struct ihm_reader *reader)
 {
   struct sphere_obj_site *s = g_malloc(sizeof(struct sphere_obj_site));
   struct ihm_category *c = ihm_category_new(reader, "_ihm_sphere_obj_site",
-		  handle_sphere_obj_site, s, g_free);
+		  handle_sphere_obj_site, NULL, s, g_free);
   s->model_id = ihm_keyword_new(c, "model_id");
   s->asym_id = ihm_keyword_new(c, "asym_id");
   s->x = ihm_keyword_new(c, "cartn_x");

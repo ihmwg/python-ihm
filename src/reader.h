@@ -37,7 +37,8 @@ typedef void (*ihm_category_callback)(struct ihm_reader *reader,
 
 /* Make a new struct ihm_category and add it to the reader. */
 struct ihm_category *ihm_category_new(struct ihm_reader *reader, char *name,
-                                      ihm_category_callback callback,
+                                      ihm_category_callback data_callback,
+                                      ihm_category_callback finalize_callback,
                                       gpointer data, GFreeFunc free_func);
 
 /* Remove all categories from the reader. */

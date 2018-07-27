@@ -73,8 +73,10 @@ struct ihm_category {
   /* All keywords that we want to extract in this category */
   GHashTable *keyword_map;
   /* Function called when we have all data for this category */
-  ihm_category_callback callback;
-  /* Data passed to callback */
+  ihm_category_callback data_callback;
+  /* Function called at the very end of the data block */
+  ihm_category_callback finalize_callback;
+  /* Data passed to callbacks */
   gpointer data;
   /* Function to release data */
   GFreeFunc free_func;
@@ -125,12 +127,14 @@ static void ihm_category_free(gpointer value)
 
 /* Make a new struct ihm_category */
 struct ihm_category *ihm_category_new(struct ihm_reader *reader, char *name,
-                                      ihm_category_callback callback,
+                                      ihm_category_callback data_callback,
+                                      ihm_category_callback finalize_callback,
                                       gpointer data, GFreeFunc free_func)
 {
   struct ihm_category *category = g_malloc(sizeof(struct ihm_category));
   category->name = name;
-  category->callback = callback;
+  category->data_callback = data_callback;
+  category->finalize_callback = finalize_callback;
   category->data = data;
   category->free_func = free_func;
   category->keyword_map = g_hash_table_new_full(g_str_case_hash,
@@ -490,20 +494,20 @@ static void clear_keywords(gpointer k, gpointer value, gpointer user_data)
   set_keyword_to_default(key);
 }
 
-/* Call the category's callback function.
+/* Call the category's data callback function.
    If force is FALSE, only call it if data has actually been read in. */
 static void call_category(struct ihm_reader *reader,
                           struct ihm_category *category, gboolean force,
                           GError **err)
 {
-  if (category->callback) {
+  if (category->data_callback) {
     if (!force) {
       /* Check to see if at least one keyword was given a value */
       g_hash_table_foreach(category->keyword_map, check_keywords_in_file,
                            &force);
     }
     if (force) {
-      (*category->callback) (reader, category->data, err);
+      (*category->data_callback) (reader, category->data, err);
     }
   }
   /* Clear out keyword values, ready for the next set of data */
@@ -614,13 +618,17 @@ static void call_category_foreach(gpointer key, gpointer value,
                                   gpointer user_data)
 {
   struct category_foreach_data *d = user_data;
+  struct ihm_category *category = value;
   if (!*(d->err)) {
-    call_category(d->reader, value, FALSE, d->err);
+    call_category(d->reader, category, FALSE, d->err);
+  }
+  if (!*(d->err) && category->finalize_callback) {
+    (*category->finalize_callback)(d->reader, category->data, d->err);
   }
 }
 
-/* Process any data stored in all categories */
-static void call_categories(struct ihm_reader *reader, GError **err)
+/* Process any data stored in all categories, and finalize */
+static void call_all_categories(struct ihm_reader *reader, GError **err)
 {
   struct category_foreach_data d;
   d.err = err;
@@ -651,7 +659,7 @@ gboolean ihm_read_file(struct ihm_reader *reader, gboolean *more_data,
     }
   }
   if (!tmp_err) {
-    call_categories(reader, &tmp_err);
+    call_all_categories(reader, &tmp_err);
   }
   if (tmp_err) {
     g_propagate_error(err, tmp_err);
