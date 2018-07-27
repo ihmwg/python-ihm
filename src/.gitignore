@@ -1,2 +1,3 @@
 *.o
 test
+reader_wrap.c
