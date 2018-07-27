@@ -74,6 +74,7 @@ int main(int argc, char **argv)
 {
   int ierr;
   GIOChannel *fh;
+  gboolean more_data;
   GError *err = NULL;
   struct mmcif_reader *reader;
 
@@ -88,15 +89,20 @@ int main(int argc, char **argv)
   g_io_channel_set_encoding(fh, NULL, NULL);
 
   reader = mmcif_reader_new(fh);
-  add_sphere_obj_site_handler(reader);
-  add_entity_poly_seq_handler(reader);
-  add_pdbx_poly_seq_scheme_handler(reader);
 
-  if (!mmcif_read_file(reader, &err)) {
-    mmcif_reader_free(reader);
-    fprintf(stderr, "Unable to read file: %s\n", err->message);
-    g_error_free(err);
-    return 1;
+  more_data = TRUE;
+  while(more_data) {
+    mmcif_reader_remove_all_categories(reader);
+    add_sphere_obj_site_handler(reader);
+    add_entity_poly_seq_handler(reader);
+    add_pdbx_poly_seq_scheme_handler(reader);
+
+    if (!mmcif_read_file(reader, &more_data, &err)) {
+      mmcif_reader_free(reader);
+      fprintf(stderr, "Unable to read file: %s\n", err->message);
+      g_error_free(err);
+      return 1;
+    }
   }
 
   mmcif_reader_free(reader);

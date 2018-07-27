@@ -35,11 +35,14 @@ struct mmcif_category;
 typedef void (*mmcif_category_callback)(struct mmcif_reader *reader,
                                         gpointer data, GError **err);
 
-/* Make a new struct mmcif_category */
+/* Make a new struct mmcif_category and add it to the reader. */
 struct mmcif_category *mmcif_category_new(struct mmcif_reader *reader,
                                           char *name,
                                           mmcif_category_callback callback,
 					  gpointer data, GFreeFunc free_func);
+
+/* Remove all categories from the reader. */
+void mmcif_reader_remove_all_categories(struct mmcif_reader *reader);
 
 /* Add a new struct mmcif_keyword to a category. */
 struct mmcif_keyword *mmcif_keyword_new(struct mmcif_category *category,
@@ -51,5 +54,8 @@ struct mmcif_reader *mmcif_reader_new(GIOChannel *fh);
 /* Free memory used by a struct mmcif_reader */
 void mmcif_reader_free(struct mmcif_reader *reader);
 
-/* Read an entire mmCIF file. Return FALSE and set err on error */
-gboolean mmcif_read_file(struct mmcif_reader *reader, GError **err);
+/* Read a data block from an mmCIF file.
+   *more_data is set TRUE iff more data blocks are available after this one.
+   Return FALSE and set err on error. */
+gboolean mmcif_read_file(struct mmcif_reader *reader, gboolean *more_data,
+                         GError **err);

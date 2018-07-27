@@ -217,6 +217,12 @@ void mmcif_reader_free(struct mmcif_reader *reader)
   g_free(reader);
 }
 
+/* Remove all categories from the reader. */
+void mmcif_reader_remove_all_categories(struct mmcif_reader *reader)
+{
+  g_hash_table_remove_all(reader->category_map);
+}
+
 /* Given the start of a quoted string, find the end and add a token for it */
 static size_t handle_quoted_token(struct mmcif_reader *reader,
                                   char *line, size_t len,
@@ -626,7 +632,8 @@ static void call_categories(struct mmcif_reader *reader, GError **err)
 }
 
 /* Read an entire mmCIF file. */
-gboolean mmcif_read_file(struct mmcif_reader *reader, GError **err)
+gboolean mmcif_read_file(struct mmcif_reader *reader, gboolean *more_data,
+                         GError **err)
 {
   int ndata = 0;
   struct mmcif_token *token;
@@ -638,6 +645,8 @@ gboolean mmcif_read_file(struct mmcif_reader *reader, GError **err)
       ndata++;
       /* Only read the first data block */
       if (ndata > 1) {
+        /* Allow reading the next data block */
+        mmcif_unget_token(reader);
         break;
       }
     } else if (token->type == MMCIF_TOKEN_LOOP) {
@@ -651,6 +660,7 @@ gboolean mmcif_read_file(struct mmcif_reader *reader, GError **err)
     g_propagate_error(err, tmp_err);
     return FALSE;
   } else {
+    *more_data = (ndata > 1);
     return TRUE;
   }
 }
