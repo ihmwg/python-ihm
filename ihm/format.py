@@ -10,6 +10,10 @@ from __future__ import print_function
 import sys
 import textwrap
 import operator
+try:
+    from . import _reader
+except ImportError:
+    _reader = None
 
 # Python 3 has no 'long' type, so use 'int' instead
 if sys.version_info[0] >= 3:
@@ -228,12 +232,21 @@ class CifReader(object):
               lowercase regardless of the file contents.)
     """
     def __init__(self, fh, category_handler):
+        if _reader is not None:
+            try:
+                self._c_reader = _reader.ihm_reader_new(fh)
+            except ValueError:
+                pass
         self.category_handler = category_handler
         self._category_data = {}
         self.fh = fh
         self._tokens = []
         self._token_index = 0
         self._linenum = 0
+
+    def __del__(self):
+        if hasattr(self, '_c_reader'):
+            _reader.ihm_reader_free(self._c_reader)
 
     def _read_multiline_token(self, first_line, ignore_multiline):
         """Read a semicolon-delimited (multiline) token"""
@@ -415,10 +428,16 @@ class CifReader(object):
            for categories (e.g. ``_entry.id model``), this will be once
            at the very end of the file.
 
+           If the C-accelerated _reader module is available, and the file is
+           a real file (not a Python filelike object), then the C code is used
+           instead of the (much slower) Python tokenizer.
+
            :exc:`CifParserError` will be raised if the file cannot be parsed.
 
            :return: True iff more data blocks are available to be read.
         """
+        if hasattr(self, '_c_reader'):
+            return self._read_file_c()
         ndata = 0
         while True:
             token = self._get_token(ignore_multiline=True)
@@ -443,3 +462,17 @@ class CifReader(object):
         # Clear category data for next call to read_file()
         self._category_data = {}
         return ndata > 1
+
+    def _read_file_c(self):
+        """Read the file using the C parser"""
+        print("using C reader")
+        _reader.ihm_reader_remove_all_categories(self._c_reader)
+        for category, handler in self.category_handler.items():
+            _reader.add_category_handler(self._c_reader, category,
+                                         handler.keys, handler)
+        try:
+            eof, more_data = _reader.ihm_read_file(self._c_reader)
+        except _reader.FileFormatError as exc:
+            # Convert to the same exception used by the Python code
+            raise CifParserError(str(exc))
+        return more_data != 0
