@@ -13,7 +13,7 @@ GQuark ihm_error_quark(void);
 
 /* A keyword in an mmCIF file. Holds a description of its format and any
    value read from the file. */
-struct mmcif_keyword {
+struct ihm_keyword {
   const char *name;
   /* Last value read from the file */
   char *data;
@@ -28,34 +28,32 @@ struct mmcif_keyword {
 };
 
 /* Opaque types */
-struct mmcif_reader;
-struct mmcif_category;
+struct ihm_reader;
+struct ihm_category;
 
 /* Callback for mmCIF category data. Should set err on failure */
-typedef void (*mmcif_category_callback)(struct mmcif_reader *reader,
-                                        gpointer data, GError **err);
+typedef void (*ihm_category_callback)(struct ihm_reader *reader,
+                                      gpointer data, GError **err);
 
-/* Make a new struct mmcif_category and add it to the reader. */
-struct mmcif_category *mmcif_category_new(struct mmcif_reader *reader,
-                                          char *name,
-                                          mmcif_category_callback callback,
-					  gpointer data, GFreeFunc free_func);
+/* Make a new struct ihm_category and add it to the reader. */
+struct ihm_category *ihm_category_new(struct ihm_reader *reader, char *name,
+                                      ihm_category_callback callback,
+                                      gpointer data, GFreeFunc free_func);
 
 /* Remove all categories from the reader. */
-void mmcif_reader_remove_all_categories(struct mmcif_reader *reader);
+void ihm_reader_remove_all_categories(struct ihm_reader *reader);
 
-/* Add a new struct mmcif_keyword to a category. */
-struct mmcif_keyword *mmcif_keyword_new(struct mmcif_category *category,
-                                        char *name);
+/* Add a new struct ihm_keyword to a category. */
+struct ihm_keyword *ihm_keyword_new(struct ihm_category *category, char *name);
 
-/* Make a new struct mmcif_reader */
-struct mmcif_reader *mmcif_reader_new(GIOChannel *fh);
+/* Make a new struct ihm_reader */
+struct ihm_reader *ihm_reader_new(GIOChannel *fh);
 
-/* Free memory used by a struct mmcif_reader */
-void mmcif_reader_free(struct mmcif_reader *reader);
+/* Free memory used by a struct ihm_reader */
+void ihm_reader_free(struct ihm_reader *reader);
 
 /* Read a data block from an mmCIF file.
    *more_data is set TRUE iff more data blocks are available after this one.
    Return FALSE and set err on error. */
-gboolean mmcif_read_file(struct mmcif_reader *reader, gboolean *more_data,
-                         GError **err);
+gboolean ihm_read_file(struct ihm_reader *reader, gboolean *more_data,
+                       GError **err);

@@ -57,10 +57,10 @@ static guint g_str_case_hash(gconstpointer v)
   return h;
 }
 
-/* Free the memory used by a struct mmcif_keyword */
-static void mmcif_keyword_free(gpointer value)
+/* Free the memory used by a struct ihm_keyword */
+static void ihm_keyword_free(gpointer value)
 {
-  struct mmcif_keyword *key = value;
+  struct ihm_keyword *key = value;
   if (key->own_data && key->in_file) {
     g_free(key->data);
   }
@@ -68,12 +68,12 @@ static void mmcif_keyword_free(gpointer value)
 }
 
 /* A category in an mmCIF file. */
-struct mmcif_category {
+struct ihm_category {
   const char *name;
   /* All keywords that we want to extract in this category */
   GHashTable *keyword_map;
   /* Function called when we have all data for this category */
-  mmcif_category_callback callback;
+  ihm_category_callback callback;
   /* Data passed to callback */
   gpointer data;
   /* Function to release data */
@@ -81,7 +81,7 @@ struct mmcif_category {
 };
 
 /* Keep track of data used while reading an mmCIF file. */
-struct mmcif_reader {
+struct ihm_reader {
   /* The file handle to read from */
   GIOChannel *fh;
   /* The current line number in the file */
@@ -103,19 +103,19 @@ typedef enum {
   MMCIF_TOKEN_LOOP,
   MMCIF_TOKEN_DATA,
   MMCIF_TOKEN_VARIABLE
-} mmcif_token_type;
+} ihm_token_type;
 
 /* Part of a string that corresponds to an mmCIF token. The memory pointed
    to by str is valid only until the next line is read from the file. */
-struct mmcif_token {
-  mmcif_token_type type;
+struct ihm_token {
+  ihm_token_type type;
   char *str;
 };
 
-/* Free memory used by a struct mmcif_category */
-static void mmcif_category_free(gpointer value)
+/* Free memory used by a struct ihm_category */
+static void ihm_category_free(gpointer value)
 {
-  struct mmcif_category *cat = value;
+  struct ihm_category *cat = value;
   g_hash_table_destroy(cat->keyword_map);
   if (cat->free_func) {
     (*cat->free_func) (cat->data);
@@ -123,29 +123,28 @@ static void mmcif_category_free(gpointer value)
   g_free(cat);
 }
 
-/* Make a new struct mmcif_category */
-struct mmcif_category *mmcif_category_new(struct mmcif_reader *reader,
-                                          char *name,
-                                          mmcif_category_callback callback,
-                                          gpointer data, GFreeFunc free_func)
+/* Make a new struct ihm_category */
+struct ihm_category *ihm_category_new(struct ihm_reader *reader, char *name,
+                                      ihm_category_callback callback,
+                                      gpointer data, GFreeFunc free_func)
 {
-  struct mmcif_category *category = g_malloc(sizeof(struct mmcif_category));
+  struct ihm_category *category = g_malloc(sizeof(struct ihm_category));
   category->name = name;
   category->callback = callback;
   category->data = data;
   category->free_func = free_func;
   category->keyword_map = g_hash_table_new_full(g_str_case_hash,
                                                 g_str_case_equal, NULL,
-                                                mmcif_keyword_free);
+                                                ihm_keyword_free);
   g_hash_table_insert(reader->category_map, name, category);
   return category;
 }
 
-/* Add a new struct mmcif_keyword to a category. */
-struct mmcif_keyword *mmcif_keyword_new(struct mmcif_category *category,
-                                        char *name)
+/* Add a new struct ihm_keyword to a category. */
+struct ihm_keyword *ihm_keyword_new(struct ihm_category *category,
+                                    char *name)
 {
-  struct mmcif_keyword *key = g_malloc(sizeof(struct mmcif_keyword));
+  struct ihm_keyword *key = g_malloc(sizeof(struct ihm_keyword));
   key->name = name;
   key->own_data = FALSE;
   key->in_file = FALSE;
@@ -155,16 +154,16 @@ struct mmcif_keyword *mmcif_keyword_new(struct mmcif_category *category,
   return key;
 }
 
-static void set_keyword_to_default(struct mmcif_keyword *key)
+static void set_keyword_to_default(struct ihm_keyword *key)
 {
   key->data = NULL;
   key->own_data = FALSE;
 }
 
 /* Set the value of a given keyword from the given string */
-static void set_value(struct mmcif_reader *reader,
-                      struct mmcif_category *category,
-                      struct mmcif_keyword *key, char *str,
+static void set_value(struct ihm_reader *reader,
+                      struct ihm_category *category,
+                      struct ihm_keyword *key, char *str,
                       gboolean own_data, GError **err)
 {
   if (key->in_file) {
@@ -191,24 +190,24 @@ static void set_value(struct mmcif_reader *reader,
   key->in_file = TRUE;
 }
 
-/* Make a new struct mmcif_reader */
-struct mmcif_reader *mmcif_reader_new(GIOChannel *fh)
+/* Make a new struct ihm_reader */
+struct ihm_reader *ihm_reader_new(GIOChannel *fh)
 {
-  struct mmcif_reader *reader = g_malloc(sizeof(struct mmcif_reader));
+  struct ihm_reader *reader = g_malloc(sizeof(struct ihm_reader));
   reader->fh = fh;
   reader->linenum = 0;
   reader->line = g_string_new(NULL);
   reader->nextline = g_string_new(NULL);
-  reader->tokens = g_array_new(FALSE, FALSE, sizeof(struct mmcif_token));
+  reader->tokens = g_array_new(FALSE, FALSE, sizeof(struct ihm_token));
   reader->token_index = 0;
   reader->category_map = g_hash_table_new_full(g_str_case_hash,
                                                g_str_case_equal, NULL,
-                                               mmcif_category_free);
+                                               ihm_category_free);
   return reader;
 }
 
-/* Free memory used by a struct mmcif_reader */
-void mmcif_reader_free(struct mmcif_reader *reader)
+/* Free memory used by a struct ihm_reader */
+void ihm_reader_free(struct ihm_reader *reader)
 {
   g_string_free(reader->line, TRUE);
   g_string_free(reader->nextline, TRUE);
@@ -218,13 +217,13 @@ void mmcif_reader_free(struct mmcif_reader *reader)
 }
 
 /* Remove all categories from the reader. */
-void mmcif_reader_remove_all_categories(struct mmcif_reader *reader)
+void ihm_reader_remove_all_categories(struct ihm_reader *reader)
 {
   g_hash_table_remove_all(reader->category_map);
 }
 
 /* Given the start of a quoted string, find the end and add a token for it */
-static size_t handle_quoted_token(struct mmcif_reader *reader,
+static size_t handle_quoted_token(struct ihm_reader *reader,
                                   char *line, size_t len,
                                   size_t start_pos, const char *quote_type,
                                   GError **err)
@@ -238,7 +237,7 @@ static size_t handle_quoted_token(struct mmcif_reader *reader,
     end = strchr(end + 1, pt[0]);
   } while (end && *end && end[1] && !strchr(" \t", end[1]));
   if (end && *end) {
-    struct mmcif_token t;
+    struct ihm_token t;
     int tok_end = end - pt + start_pos;
     t.type = MMCIF_TOKEN_VALUE;
     t.str = line + start_pos + 1;
@@ -254,7 +253,7 @@ static size_t handle_quoted_token(struct mmcif_reader *reader,
 }
 
 /* Get the next token from the line. */
-static size_t get_next_token(struct mmcif_reader *reader, char *line,
+static size_t get_next_token(struct ihm_reader *reader, char *line,
                              size_t len, size_t start_pos, GError **err)
 {
   /* Skip initial whitespace */
@@ -271,7 +270,7 @@ static size_t get_next_token(struct mmcif_reader *reader, char *line,
     /* Comment - discard the rest of the line */
     return len;
   } else {
-    struct mmcif_token t;
+    struct ihm_token t;
     int tok_end = start_pos + strcspn(pt, " \t");
     t.str = line + start_pos;
     line[tok_end] = '\0';
@@ -293,8 +292,7 @@ static size_t get_next_token(struct mmcif_reader *reader, char *line,
 }
 
 /* Break up a line into tokens, populating reader->tokens. */
-static void mmcif_tokenize(struct mmcif_reader *reader, char *line,
-                           GError **err)
+static void tokenize(struct ihm_reader *reader, char *line, GError **err)
 {
   size_t start_pos, len = strlen(line);
   g_array_set_size(reader->tokens, 0);
@@ -311,7 +309,7 @@ static void mmcif_tokenize(struct mmcif_reader *reader, char *line,
 }
 
 /* Read a semicolon-delimited (multiline) token */
-static void read_multiline_token(struct mmcif_reader *reader,
+static void read_multiline_token(struct ihm_reader *reader,
                                  gboolean ignore_multiline, GError **err)
 {
   int eof = 0;
@@ -321,7 +319,7 @@ static void read_multiline_token(struct mmcif_reader *reader,
     if (!file_read_line(reader->fh, reader->nextline, &eof, err)) {
       return;
     } else if (reader->nextline->len > 0 && reader->nextline->str[0] == ';') {
-      struct mmcif_token t;
+      struct ihm_token t;
       t.type = MMCIF_TOKEN_VALUE;
       t.str = reader->line->str + 1;    /* Skip initial semicolon */
       g_array_set_size(reader->tokens, 0);
@@ -339,27 +337,26 @@ static void read_multiline_token(struct mmcif_reader *reader,
 }
 
 /* Return the number of tokens still available in the current line. */
-static int mmcif_get_num_line_tokens(struct mmcif_reader *reader)
+static int get_num_line_tokens(struct ihm_reader *reader)
 {
   return reader->tokens->len - reader->token_index;
 }
 
-/* Push back the last token returned by mmcif_get_token() so it can
+/* Push back the last token returned by get_token() so it can
    be read again. */
-static void mmcif_unget_token(struct mmcif_reader *reader)
+static void unget_token(struct ihm_reader *reader)
 {
   reader->token_index--;
 }
 
 /* Get the next token from an mmCIF file, or NULL on end of file.
    The memory used by the token is valid for N calls to this function, where
-   N is the result of mmcif_get_num_line_tokens(). 
+   N is the result of get_num_line_tokens(). 
    If ignore_multiline is TRUE, the string contents of any multiline
    value tokens (those that are semicolon-delimited) are not stored
    in memory. */
-static struct mmcif_token *mmcif_get_token(struct mmcif_reader *reader,
-                                           gboolean ignore_multiline,
-                                           GError **err)
+static struct ihm_token *get_token(struct ihm_reader *reader,
+                                   gboolean ignore_multiline, GError **err)
 {
   int eof = 0;
   if (reader->tokens->len <= reader->token_index) {
@@ -374,7 +371,7 @@ static struct mmcif_token *mmcif_get_token(struct mmcif_reader *reader,
           return NULL;
         }
       } else {
-        mmcif_tokenize(reader, reader->line->str, err);
+        tokenize(reader, reader->line->str, err);
         if (*err) {
           return NULL;
         } else {
@@ -386,13 +383,13 @@ static struct mmcif_token *mmcif_get_token(struct mmcif_reader *reader,
   if (reader->tokens->len == 0) {
     return NULL;
   } else {
-    return &g_array_index(reader->tokens, struct mmcif_token,
+    return &g_array_index(reader->tokens, struct ihm_token,
                           reader->token_index++);
   }
 }
 
 /* Break up a variable token into category and keyword */
-static void parse_category_keyword(struct mmcif_reader *reader,
+static void parse_category_keyword(struct ihm_reader *reader,
                                    char *str, char **category,
                                    char **keyword, GError **err)
 {
@@ -413,10 +410,10 @@ static void parse_category_keyword(struct mmcif_reader *reader,
 }
 
 /* Read a line that sets a single value, e.g. _entry.id   1YTI */
-static void mmcif_read_value(struct mmcif_reader *reader,
-                             struct mmcif_token *key_token, GError **err)
+static void read_value(struct ihm_reader *reader,
+                       struct ihm_token *key_token, GError **err)
 {
-  struct mmcif_category *category;
+  struct ihm_category *category;
   char *category_name, *keyword_name;
   parse_category_keyword(reader, key_token->str, &category_name,
                          &keyword_name, err);
@@ -425,10 +422,10 @@ static void mmcif_read_value(struct mmcif_reader *reader,
 
   category = g_hash_table_lookup(reader->category_map, category_name);
   if (category) {
-    struct mmcif_keyword *key;
+    struct ihm_keyword *key;
     key = g_hash_table_lookup(category->keyword_map, keyword_name);
     if (key) {
-      struct mmcif_token *val_token = mmcif_get_token(reader, FALSE, err);
+      struct ihm_token *val_token = get_token(reader, FALSE, err);
       if (val_token && val_token->type == MMCIF_TOKEN_VALUE) {
         set_value(reader, category, key, val_token->str, TRUE, err);
       } else if (!*err) {
@@ -441,15 +438,15 @@ static void mmcif_read_value(struct mmcif_reader *reader,
 }
 
 /* Handle a single token listing category and keyword from a loop_ construct.
-   The relevant mmcif_keyword is returned, or NULL if we are not interested
+   The relevant ihm_keyword is returned, or NULL if we are not interested
    in this keyword. */
-static struct mmcif_keyword *handle_loop_index(struct mmcif_reader *reader,
-                                               struct mmcif_category **catpt,
-                                               struct mmcif_token *token,
-                                               gboolean first_loop,
-                                               GError **err)
+static struct ihm_keyword *handle_loop_index(struct ihm_reader *reader,
+                                             struct ihm_category **catpt,
+                                             struct ihm_token *token,
+                                             gboolean first_loop,
+                                             GError **err)
 {
-  struct mmcif_category *category;
+  struct ihm_category *category;
   char *category_name, *keyword_name;
   parse_category_keyword(reader, token->str, &category_name,
                          &keyword_name, err);
@@ -466,7 +463,7 @@ static struct mmcif_keyword *handle_loop_index(struct mmcif_reader *reader,
     return NULL;
   }
   if (category) {
-    struct mmcif_keyword *key;
+    struct ihm_keyword *key;
     key = g_hash_table_lookup(category->keyword_map, keyword_name);
     if (key) {
       return key;
@@ -478,14 +475,14 @@ static struct mmcif_keyword *handle_loop_index(struct mmcif_reader *reader,
 static void check_keywords_in_file(gpointer k, gpointer value,
                                    gpointer user_data)
 {
-  struct mmcif_keyword *key = value;
+  struct ihm_keyword *key = value;
   gboolean *in_file = user_data;
   *in_file |= key->in_file;
 }
 
 static void clear_keywords(gpointer k, gpointer value, gpointer user_data)
 {
-  struct mmcif_keyword *key = value;
+  struct ihm_keyword *key = value;
   if (key->own_data) {
     g_free(key->data);
   }
@@ -495,8 +492,8 @@ static void clear_keywords(gpointer k, gpointer value, gpointer user_data)
 
 /* Call the category's callback function.
    If force is FALSE, only call it if data has actually been read in. */
-static void call_category(struct mmcif_reader *reader,
-                          struct mmcif_category *category, gboolean force,
+static void call_category(struct ihm_reader *reader,
+                          struct ihm_category *category, gboolean force,
                           GError **err)
 {
   if (category->callback) {
@@ -514,32 +511,32 @@ static void call_category(struct mmcif_reader *reader,
 }
 
 struct loop_keyword_check_data {
-  struct mmcif_reader *reader;
-  struct mmcif_category *category;
+  struct ihm_reader *reader;
+  struct ihm_category *category;
   GHashTable *found_keywords;
   GError **err;
 };
 
 /* Read the list of keywords from a loop_ construct. */
-static GPtrArray *mmcif_read_loop_keywords(struct mmcif_reader *reader,
-                                           struct mmcif_category **category,
-                                           GError **err)
+static GPtrArray *read_loop_keywords(struct ihm_reader *reader,
+                                     struct ihm_category **category,
+                                     GError **err)
 {
   gboolean first_loop = TRUE;
-  struct mmcif_token *token;
-  /* An array of mmcif_keyword*, in the order the values should be given.
+  struct ihm_token *token;
+  /* An array of ihm_keyword*, in the order the values should be given.
      Any NULL pointers correspond to keywords we're not interested in. */
   GPtrArray *keywords = g_ptr_array_new();
   *category = NULL;
 
-  while (!*err && (token = mmcif_get_token(reader, FALSE, err))) {
+  while (!*err && (token = get_token(reader, FALSE, err))) {
     if (token->type == MMCIF_TOKEN_VARIABLE) {
       g_ptr_array_add(keywords, handle_loop_index(reader, category,
                                                   token, first_loop, err));
       first_loop = FALSE;
     } else if (token->type == MMCIF_TOKEN_VALUE) {
       /* OK, end of keywords; proceed on to values */
-      mmcif_unget_token(reader);
+      unget_token(reader);
       break;
     } else {
       g_set_error(err, IHM_ERROR, IHM_ERROR_FILE_FORMAT,
@@ -556,16 +553,16 @@ static GPtrArray *mmcif_read_loop_keywords(struct mmcif_reader *reader,
 }
 
 /* Read data for a loop_ construct */
-static void mmcif_read_loop_data(struct mmcif_reader *reader,
-                                 struct mmcif_category *category, guint len,
-                                 struct mmcif_keyword **keywords, GError **err)
+static void read_loop_data(struct ihm_reader *reader,
+                           struct ihm_category *category, guint len,
+                           struct ihm_keyword **keywords, GError **err)
 {
   while (!*err) {
     /* Does the current line contain an entire row in the loop? */
-    gboolean oneline = mmcif_get_num_line_tokens(reader) >= len;
+    gboolean oneline = get_num_line_tokens(reader) >= len;
     int i;
     for (i = 0; !*err && i < len; ++i) {
-      struct mmcif_token *token = mmcif_get_token(reader, FALSE, err);
+      struct ihm_token *token = get_token(reader, FALSE, err);
       if (*err) {
         break;
       } else if (token && token->type == MMCIF_TOKEN_VALUE) {
@@ -575,7 +572,7 @@ static void mmcif_read_loop_data(struct mmcif_reader *reader,
       } else if (i == 0) {
         /* OK, end of the loop */
         if (token) {
-          mmcif_unget_token(reader);
+          unget_token(reader);
         }
         return;
       } else {
@@ -592,25 +589,25 @@ static void mmcif_read_loop_data(struct mmcif_reader *reader,
 }
 
 /* Read a loop_ construct from the file. */
-static void mmcif_read_loop(struct mmcif_reader *reader, GError **err)
+static void read_loop(struct ihm_reader *reader, GError **err)
 {
   GPtrArray *keywords;
-  struct mmcif_category *category;
+  struct ihm_category *category;
 
-  keywords = mmcif_read_loop_keywords(reader, &category, err);
+  keywords = read_loop_keywords(reader, &category, err);
   if (*err) {
     return;
   }
   if (category) {
-    mmcif_read_loop_data(reader, category, keywords->len,
-                         (struct mmcif_keyword **)keywords->pdata, err);
+    read_loop_data(reader, category, keywords->len,
+                   (struct ihm_keyword **)keywords->pdata, err);
   }
   g_ptr_array_free(keywords, TRUE);
 }
 
 struct category_foreach_data {
   GError **err;
-  struct mmcif_reader *reader;
+  struct ihm_reader *reader;
 };
 
 static void call_category_foreach(gpointer key, gpointer value,
@@ -623,7 +620,7 @@ static void call_category_foreach(gpointer key, gpointer value,
 }
 
 /* Process any data stored in all categories */
-static void call_categories(struct mmcif_reader *reader, GError **err)
+static void call_categories(struct ihm_reader *reader, GError **err)
 {
   struct category_foreach_data d;
   d.err = err;
@@ -632,25 +629,25 @@ static void call_categories(struct mmcif_reader *reader, GError **err)
 }
 
 /* Read an entire mmCIF file. */
-gboolean mmcif_read_file(struct mmcif_reader *reader, gboolean *more_data,
-                         GError **err)
+gboolean ihm_read_file(struct ihm_reader *reader, gboolean *more_data,
+                       GError **err)
 {
   int ndata = 0;
-  struct mmcif_token *token;
+  struct ihm_token *token;
   GError *tmp_err = NULL; /* passed err could be NULL */
-  while (!tmp_err && (token = mmcif_get_token(reader, TRUE, &tmp_err))) {
+  while (!tmp_err && (token = get_token(reader, TRUE, &tmp_err))) {
     if (token->type == MMCIF_TOKEN_VARIABLE) {
-      mmcif_read_value(reader, token, &tmp_err);
+      read_value(reader, token, &tmp_err);
     } else if (token->type == MMCIF_TOKEN_DATA) {
       ndata++;
       /* Only read the first data block */
       if (ndata > 1) {
         /* Allow reading the next data block */
-        mmcif_unget_token(reader);
+        unget_token(reader);
         break;
       }
     } else if (token->type == MMCIF_TOKEN_LOOP) {
-      mmcif_read_loop(reader, &tmp_err);
+      read_loop(reader, &tmp_err);
     }
   }
   if (!tmp_err) {
