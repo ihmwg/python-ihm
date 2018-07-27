@@ -32,7 +32,7 @@ static gboolean file_read_line(GIOChannel *fh, GString *line, gboolean *eof,
     return TRUE;
   } else {
     *eof = 0;
-    line->str[terminator] = '\0'; /* remove line ending if any */
+    g_string_truncate(line, terminator); /* remove line ending if any */
     return TRUE;
   }
 }
