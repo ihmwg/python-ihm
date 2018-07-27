@@ -83,6 +83,9 @@ int main(int argc, char **argv)
     g_error_free(err);
     return 1;
   }
+  /* Treat file as binary not UTF-8 (all mmCIF files are ASCII).
+     This yields a roughly 20% performance improvement */
+  g_io_channel_set_encoding(fh, NULL, NULL);
 
   reader = mmcif_reader_new(fh);
   add_sphere_obj_site_handler(reader);
