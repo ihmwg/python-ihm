@@ -70,6 +70,8 @@ static void handle_error(GError *err)
 
 %{
 struct category_handler_data {
+  /* The Python callable object that is given the data */
+  PyObject *callable;
   /* The number of keywords in the category that we extract from the file */
   int num_keywords;
   /* Array of the keywords */
@@ -79,6 +81,7 @@ struct category_handler_data {
 static void category_handler_data_free(gpointer data)
 {
   struct category_handler_data *hd = data;
+  Py_DECREF(hd->callable);
   /* Don't need to free each hd->keywords[i] as the ihm_reader owns
      these pointers */
   g_free(hd->keywords);
@@ -92,12 +95,22 @@ static void handle_category_data(struct ihm_reader *reader, gpointer data,
   int i;
   struct category_handler_data *hd = data;
   struct ihm_keyword **keys;
+  PyObject *ret;
+
   /* todo: make a dict of the data */
   for (i = 0, keys = hd->keywords; i < hd->num_keywords; ++i, ++keys) {
     /*printf("got data for key %s %d %d %d %s\n", (*keys)->name,
 (*keys)->in_file, (*keys)->omitted, (*keys)->missing, (*keys)->data);*/
   }
+
   /* todo: pass the data to Python */
+  ret = PyObject_CallObject(hd->callable, NULL);
+  if (ret) {
+    Py_DECREF(ret); /* discard return value */
+  } else {
+    /* Pass Python exception back to the original caller */
+    g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE, "Python error");
+  }
 }
 %}
 
@@ -105,7 +118,7 @@ static void handle_category_data(struct ihm_reader *reader, gpointer data,
 /* Add a generic category handler which collects all specified keywords for
    the given category and passes them to a Python callable as a dict */
 void add_category_handler(struct ihm_reader *reader, char *name,
-                          PyObject *keywords, GError **err)
+                          PyObject *keywords, PyObject *callable, GError **err)
 {
   Py_ssize_t seqlen, i;
   struct ihm_category *category;
@@ -116,8 +129,15 @@ void add_category_handler(struct ihm_reader *reader, char *name,
                 "'keywords' should be a sequence");
     return;
   }
+  if (!PyCallable_Check(callable)) {
+    g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE,
+                "'callable' should be a callable object");
+    return;
+  }
   seqlen = PySequence_Length(keywords);
   hd = g_malloc(sizeof(struct category_handler_data));
+  Py_INCREF(callable);
+  hd->callable = callable;
   hd->num_keywords = seqlen;
   hd->keywords = g_malloc(sizeof(struct ihm_keyword *) * seqlen);
   category = ihm_category_new(reader, name, handle_category_data, NULL, hd,
