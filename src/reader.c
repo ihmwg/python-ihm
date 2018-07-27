@@ -27,8 +27,11 @@ static gboolean file_read_line(GIOChannel *fh, GString *line, gboolean *eof,
   if (stat == G_IO_STATUS_ERROR || stat == G_IO_STATUS_AGAIN) {
     /* todo: handle AGAIN sensibly */
     return FALSE;
+  } else if (stat == G_IO_STATUS_EOF) {
+    *eof = 1;
+    return TRUE;
   } else {
-    *eof = (stat == G_IO_STATUS_EOF);
+    *eof = 0;
     line->str[terminator] = '\0'; /* remove line ending if any */
     return TRUE;
   }
