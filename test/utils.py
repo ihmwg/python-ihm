@@ -2,13 +2,14 @@ import os
 import sys
 import tempfile
 import contextlib
-import sysconfig
 import shutil
+import distutils.util
 
 def set_search_paths(topdir):
     """Set search paths so that we can import Python modules"""
+    platform = distutils.util.get_platform()
     distutils_dir = os.path.join(topdir, 'build',
-                                 "lib.%s-%d.%d" % (sysconfig.get_platform(),
+                                 "lib.%s-%d.%d" % (platform,
                                                    sys.version_info[0],
                                                    sys.version_info[1]))
     if not os.path.exists(distutils_dir):
