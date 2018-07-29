@@ -22,7 +22,7 @@ GQuark ihm_error_quark(void)
 static gboolean file_read_line(GIOChannel *fh, GString *line, gboolean *eof,
                                GError **err)
 {
-  gsize terminator;	 
+  gsize terminator;
   GIOStatus stat = g_io_channel_read_line_string(fh, line, &terminator, err);
   if (stat == G_IO_STATUS_ERROR || stat == G_IO_STATUS_AGAIN) {
     /* todo: handle AGAIN sensibly */
@@ -361,7 +361,7 @@ static void unget_token(struct ihm_reader *reader)
 
 /* Get the next token from an mmCIF file, or NULL on end of file.
    The memory used by the token is valid for N calls to this function, where
-   N is the result of get_num_line_tokens(). 
+   N is the result of get_num_line_tokens().
    If ignore_multiline is TRUE, the string contents of any multiline
    value tokens (those that are semicolon-delimited) are not stored
    in memory. */
