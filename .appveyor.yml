@@ -11,7 +11,7 @@ install:
 build: off
 
 test_script:
-  - "python.exe setup.py --without-ext"
+  - "python.exe setup.py build --without-ext"
   - "nosetests --with-coverage --cover-branches"
 
 on_success:
