@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 from distutils.core import setup, Extension
-import subprocess
 import sys
 
 copy_args = sys.argv[1:]
@@ -12,8 +11,15 @@ if '--without-ext' in copy_args:
     build_ext = False
     copy_args.remove('--without-ext')
 
-def getoutput(args):
-    return subprocess.check_output(args, universal_newlines=True)
+try:
+    import commands
+    def getoutput(args):
+        return commands.getoutput(' ' .join(args))
+
+except ImportError:
+    import subprocess
+    def getoutput(args):
+        return subprocess.check_output(args, universal_newlines=True)
 
 def pkgconfig(*packages, **kw):
     """Utility function to parse pkg-config output"""
