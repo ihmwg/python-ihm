@@ -64,6 +64,7 @@ static guint g_str_case_hash(gconstpointer v)
 static void ihm_keyword_free(gpointer value)
 {
   struct ihm_keyword *key = value;
+  g_free(key->name);
   if (key->own_data && key->in_file) {
     g_free(key->data);
   }
@@ -72,7 +73,7 @@ static void ihm_keyword_free(gpointer value)
 
 /* A category in an mmCIF file. */
 struct ihm_category {
-  const char *name;
+  char *name;
   /* All keywords that we want to extract in this category */
   GHashTable *keyword_map;
   /* Function called when we have all data for this category */
@@ -122,6 +123,7 @@ static void ihm_category_free(gpointer value)
 {
   struct ihm_category *cat = value;
   g_hash_table_destroy(cat->keyword_map);
+  g_free(cat->name);
   if (cat->free_func) {
     (*cat->free_func) (cat->data);
   }
@@ -129,13 +131,14 @@ static void ihm_category_free(gpointer value)
 }
 
 /* Make a new struct ihm_category */
-struct ihm_category *ihm_category_new(struct ihm_reader *reader, char *name,
+struct ihm_category *ihm_category_new(struct ihm_reader *reader,
+                                      const char *name,
                                       ihm_category_callback data_callback,
                                       ihm_category_callback finalize_callback,
                                       gpointer data, GFreeFunc free_func)
 {
   struct ihm_category *category = g_malloc(sizeof(struct ihm_category));
-  category->name = name;
+  category->name = g_strdup(name);
   category->data_callback = data_callback;
   category->finalize_callback = finalize_callback;
   category->data = data;
@@ -143,19 +146,19 @@ struct ihm_category *ihm_category_new(struct ihm_reader *reader, char *name,
   category->keyword_map = g_hash_table_new_full(g_str_case_hash,
                                                 g_str_case_equal, NULL,
                                                 ihm_keyword_free);
-  g_hash_table_insert(reader->category_map, name, category);
+  g_hash_table_insert(reader->category_map, category->name, category);
   return category;
 }
 
 /* Add a new struct ihm_keyword to a category. */
 struct ihm_keyword *ihm_keyword_new(struct ihm_category *category,
-                                    char *name)
+                                    const char *name)
 {
   struct ihm_keyword *key = g_malloc(sizeof(struct ihm_keyword));
-  key->name = name;
+  key->name = g_strdup(name);
   key->own_data = FALSE;
   key->in_file = FALSE;
-  g_hash_table_insert(category->keyword_map, name, key);
+  g_hash_table_insert(category->keyword_map, key->name, key);
   key->data = NULL;
   key->own_data = FALSE;
   return key;

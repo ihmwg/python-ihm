@@ -15,7 +15,7 @@ GQuark ihm_error_quark(void);
 /* A keyword in an mmCIF file. Holds a description of its format and any
    value read from the file. */
 struct ihm_keyword {
-  const char *name;
+  char *name;
   /* Last value read from the file */
   char *data;
   /* If TRUE, we own the memory for data */
@@ -37,7 +37,8 @@ typedef void (*ihm_category_callback)(struct ihm_reader *reader,
                                       gpointer data, GError **err);
 
 /* Make a new struct ihm_category and add it to the reader. */
-struct ihm_category *ihm_category_new(struct ihm_reader *reader, char *name,
+struct ihm_category *ihm_category_new(struct ihm_reader *reader,
+                                      const char *name,
                                       ihm_category_callback data_callback,
                                       ihm_category_callback finalize_callback,
                                       gpointer data, GFreeFunc free_func);
@@ -46,7 +47,8 @@ struct ihm_category *ihm_category_new(struct ihm_reader *reader, char *name,
 void ihm_reader_remove_all_categories(struct ihm_reader *reader);
 
 /* Add a new struct ihm_keyword to a category. */
-struct ihm_keyword *ihm_keyword_new(struct ihm_category *category, char *name);
+struct ihm_keyword *ihm_keyword_new(struct ihm_category *category,
+                                    const char *name);
 
 /* Make a new struct ihm_reader */
 struct ihm_reader *ihm_reader_new(GIOChannel *fh);
