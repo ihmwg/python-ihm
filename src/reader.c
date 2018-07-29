@@ -99,7 +99,7 @@ struct ihm_reader {
   /* All tokens parsed from the last line */
   GArray *tokens;
   /* The next token to be returned */
-  int token_index;
+  guint token_index;
   /* All categories that we want to extract from the file */
   GHashTable *category_map;
 };
@@ -347,7 +347,7 @@ static void read_multiline_token(struct ihm_reader *reader,
 }
 
 /* Return the number of tokens still available in the current line. */
-static int get_num_line_tokens(struct ihm_reader *reader)
+static guint get_num_line_tokens(struct ihm_reader *reader)
 {
   return reader->tokens->len - reader->token_index;
 }
@@ -570,7 +570,7 @@ static void read_loop_data(struct ihm_reader *reader,
   while (!*err) {
     /* Does the current line contain an entire row in the loop? */
     gboolean oneline = get_num_line_tokens(reader) >= len;
-    int i;
+    guint i;
     for (i = 0; !*err && i < len; ++i) {
       struct ihm_token *token = get_token(reader, FALSE, err);
       if (*err) {

@@ -199,7 +199,7 @@ void add_category_handler(struct ihm_reader *reader, char *name,
     } else {
       Py_XDECREF(o);
       g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE,
-                  "keywords[%d] should be a string", i);
+                  "keywords[%ld] should be a string", i);
       return;
     }
   }
