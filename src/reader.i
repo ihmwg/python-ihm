@@ -13,6 +13,15 @@ typedef int gboolean;
 
 /* Convert a Python file object to a GIOChannel */
 %typemap(in) (GIOChannel *fh) {
+%#if PY_VERSION_HEX >= 0x03000000
+  int fd = PyObject_AsFileDescriptor($input);
+  if (fd == -1) {
+    SWIG_fail;
+  } else {
+    $1 = g_io_channel_unix_new(fd);
+    g_io_channel_set_encoding($1, NULL, NULL);
+  }
+%#else
   if (PyFile_Check($input)) {
     int fd = fileno(PyFile_AsFile($input));
     $1 = g_io_channel_unix_new(fd);
@@ -22,6 +31,7 @@ typedef int gboolean;
                  "$1_name");
     SWIG_fail;
   }
+%#endif
 }
 
 /* Convert GError to a Python exception */
@@ -107,7 +117,11 @@ static void handle_category_data(struct ihm_reader *reader, gpointer data,
   for (i = 0, keys = hd->keywords; i < hd->num_keywords; ++i, ++keys) {
     /* Add item to dict if it's in the file and not . or ? */
     if ((*keys)->in_file && !(*keys)->omitted && !(*keys)->missing) {
+#if PY_VERSION_HEX < 0x03000000
       PyObject *val = PyString_FromString((*keys)->data);
+#else
+      PyObject *val = PyUnicode_FromString((*keys)->data);
+#endif
       if (!val) {
         g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE, "string creation failed");
         Py_DECREF(dict);
@@ -174,8 +188,13 @@ void add_category_handler(struct ihm_reader *reader, char *name,
                               category_handler_data_free);
   for (i = 0; i < seqlen; ++i) {
     PyObject *o = PySequence_GetItem(keywords, i);
+#if PY_VERSION_HEX < 0x03000000
     if (PyString_Check(o)) {
       hd->keywords[i] = ihm_keyword_new(category, PyString_AsString(o));
+#else
+    if (PyUnicode_Check(o)) {
+      hd->keywords[i] = ihm_keyword_new(category, PyUnicode_AsUTF8(o));
+#endif
       Py_DECREF(o);
     } else {
       Py_XDECREF(o);
