@@ -14,7 +14,8 @@ import ihm.format
 
 class GenericHandler(object):
     """Capture mmCIF data as a simple list of dicts"""
-    keys = ('method', 'foo', 'bar', 'pdbx_keywords', 'var1', 'var2', 'var3')
+    keys = ('method', 'foo', 'bar', 'baz', 'pdbx_keywords', 'var1',
+            'var2', 'var3')
 
     def __init__(self):
         self.data = []
