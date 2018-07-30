@@ -12,6 +12,8 @@
 
 #include <glib.h>
 
+G_BEGIN_DECLS
+
 /* Domain for IHM errors */
 #define IHM_ERROR ihm_error_quark()
 
@@ -73,5 +75,7 @@ void ihm_reader_free(struct ihm_reader *reader);
    Return FALSE and set err on error. */
 gboolean ihm_read_file(struct ihm_reader *reader, gboolean *more_data,
                        GError **err);
+
+G_END_DECLS
 
 #endif /* IHM_FORMAT_H */
