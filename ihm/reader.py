@@ -1481,6 +1481,13 @@ def read(fh, model_class=ihm.model.Model):
        Please `open an issue <https://github.com/ihmwg/python-ihm/issues>`_
        if you encounter such a problem.
 
+       The reader works by breaking the file into tokens, and using this stream
+       of tokens to populate Python data structures. Two tokenizers are
+       available: a pure Python implementation and a C-accelerated version.
+       The C-accelerated version (if built) is much faster but is only used
+       if `fh` is a real file (not a Python filelike object, i.e. its `fileno`
+       method returns an integer file descriptor).
+
        :param file fh: The file handle to read from.
        :param model_class: The class to use to store model coordinates.
               For use with other software, it is recommended to subclass
