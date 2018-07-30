@@ -250,6 +250,18 @@ x
                            {'_foo':h})
             self.assertEqual(h.data, [{'bar':'1'}])
 
+    def test_unknown(self):
+        """CIF unknown value ('?') should be reported as-is"""
+        for real_file in (True, False):
+            h = GenericHandler()
+            self._read_cif("_foo.bar 1\n_foo.baz ?\n", real_file, {'_foo':h})
+            self.assertEqual(h.data, [{'bar':'1', 'baz':ihm.unknown}])
+
+            h = GenericHandler()
+            self._read_cif("loop_\n_foo.bar\n_foo.baz\n1 ?\n", real_file,
+                           {'_foo':h})
+            self.assertEqual(h.data, [{'bar':'1', 'baz':ihm.unknown}])
+
     def test_multiline(self):
         """Check that multiline strings are handled correctly"""
         for real_file in (True, False):

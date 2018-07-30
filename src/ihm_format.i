@@ -124,12 +124,14 @@ static void handle_category_data(struct ihm_reader *reader, gpointer data,
   }
 
   for (i = 0, keys = hd->keywords; i < hd->num_keywords; ++i, ++keys) {
-    /* Add item to dict if it's in the file and not . or ? */
-    if ((*keys)->in_file && !(*keys)->omitted && !(*keys)->missing) {
+    /* Add item to dict if it's in the file and not . */
+    if ((*keys)->in_file && !(*keys)->omitted) {
 #if PY_VERSION_HEX < 0x03000000
-      PyObject *val = PyString_FromString((*keys)->data);
+      PyObject *val = PyString_FromString((*keys)->missing ? "?"
+                                                           : (*keys)->data);
 #else
-      PyObject *val = PyUnicode_FromString((*keys)->data);
+      PyObject *val = PyUnicode_FromString((*keys)->missing ? "?"
+                                                            : (*keys)->data);
 #endif
       if (!val) {
         g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE, "string creation failed");
