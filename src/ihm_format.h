@@ -7,6 +7,9 @@
  *  called multiple times, one for each entry in the loop.
  */
 
+#ifndef IHM_FORMAT_H
+#define IHM_FORMAT_H
+
 #include <glib.h>
 
 /* Domain for IHM errors */
@@ -70,3 +73,5 @@ void ihm_reader_free(struct ihm_reader *reader);
    Return FALSE and set err on error. */
 gboolean ihm_read_file(struct ihm_reader *reader, gboolean *more_data,
                        GError **err);
+
+#endif /* IHM_FORMAT_H */
