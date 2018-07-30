@@ -1,4 +1,4 @@
-/** \file reader.c      Routines for handling mmCIF files.
+/** \file ihm_format.c      Routines for handling mmCIF format files.
  *
  *  The file is read sequentially. All values for desired keywords in
  *  desired categories are collected (other parts of the file are ignored)
@@ -7,7 +7,7 @@
  *  called multiple times, one for each entry in the loop.
  */
 
-#include "reader.h"
+#include "ihm_format.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

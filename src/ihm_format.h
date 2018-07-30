@@ -1,3 +1,12 @@
+/** \file ihm_format.h      Routines for handling mmCIF format files.
+ *
+ *  The file is read sequentially. All values for desired keywords in
+ *  desired categories are collected (other parts of the file are ignored)
+ *  At the end of the file a callback function for each category is called
+ *  to process the data. In the case of mmCIF loops, this callback will be
+ *  called multiple times, one for each entry in the loop.
+ */
+
 #include <glib.h>
 
 /* Domain for IHM errors */

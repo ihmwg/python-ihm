@@ -33,8 +33,8 @@ if build_ext:
     # Get paths for glib 2.0:
     glib = pkgconfig("glib-2.0")
 
-    mod = [Extension("ihm._reader",
-                     sources=["src/reader.c", "src/reader.i"],
+    mod = [Extension("ihm._format",
+                     sources=["src/ihm_format.c", "src/ihm_format.i"],
                      include_dirs=glib['include_dirs'],
                      library_dirs=glib.get('library_dirs', []),
                      libraries=glib['libraries'],

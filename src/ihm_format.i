@@ -1,7 +1,7 @@
-%module _reader
+%module _format
 
 %{
-#include "reader.h"
+#include "ihm_format.h"
 %}
 
 typedef int gboolean;
@@ -37,7 +37,7 @@ typedef int gboolean;
 /* Convert GError to a Python exception */
 
 %init {
-  file_format_error = PyErr_NewException("_reader.FileFormatError", NULL, NULL);
+  file_format_error = PyErr_NewException("_format.FileFormatError", NULL, NULL);
   Py_INCREF(file_format_error);
   PyModule_AddObject(m, "FileFormatError", file_format_error);
 }
@@ -207,4 +207,4 @@ void add_category_handler(struct ihm_reader *reader, char *name,
 
 %}
 
-%include "reader.h"
+%include "ihm_format.h"
