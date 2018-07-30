@@ -14,7 +14,7 @@ cache:
 install:
   - pip install coverage
 script:
-  - python setup.py build
+  - python setup.py build_ext --inplace
   - nosetests --with-coverage --cover-branches
 after_success:
   - bash <(curl -s https://codecov.io/bash)

@@ -3,27 +3,12 @@ import sys
 import tempfile
 import contextlib
 import shutil
-import distutils.util
 
 def set_search_paths(topdir):
     """Set search paths so that we can import Python modules"""
-    platform = distutils.util.get_platform()
-    distutils_dirs = (os.path.join(topdir, 'build',
-                                   "lib.%s-%d.%d" % (platform,
-                                                     sys.version_info[0],
-                                                     sys.version_info[1])),
-                      os.path.join(topdir, 'build', 'lib'))
-
-    for d in distutils_dirs:
-        if os.path.exists(d):
-            os.environ['PYTHONPATH'] = d + os.pathsep \
-                                       + os.environ.get('PYTHONPATH', '')
-            sys.path.insert(0, d)
-            return
-
-    raise ValueError("Could not find distutils build directories %s. "
-                     "Run 'setup.py build' in the toplevel directory "
-                     "first." % ", ".join(distutils_dirs))
+    os.environ['PYTHONPATH'] = topdir + os.pathsep \
+                               + os.environ.get('PYTHONPATH', '')
+    sys.path.append(topdir)
 
 def get_input_file_name(topdir, fname):
     """Return full path to a test input file"""
