@@ -626,7 +626,8 @@ class _DatasetExtRefHandler(_Handler):
 
 class _DatasetDBRefHandler(_Handler):
     category = '_ihm_dataset_related_db_reference'
-    keys = ('dataset_list_id', 'db_name', 'id', 'version', 'accession_code')
+    keys = ('dataset_list_id', 'db_name', 'id', 'version', 'details',
+            'accession_code')
 
     def __init__(self, *args):
         super(_DatasetDBRefHandler, self).__init__(*args)
