@@ -183,8 +183,8 @@ static void set_value(struct ihm_reader *reader,
     return;
   }
 
-  key->omitted = str[0] == '.';
-  key->unknown = str[0] == '?';
+  key->omitted = str[0] == '.' && str[1] == '\0';
+  key->unknown = str[0] == '?' && str[1] == '\0';
 
   if (key->omitted || key->unknown) {
     set_keyword_to_default(key);
