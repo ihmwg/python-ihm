@@ -2,9 +2,7 @@ import utils
 import os
 import unittest
 import sys
-import tempfile
-import shutil
-import contextlib
+
 if sys.version_info[0] >= 3:
     from io import StringIO
 else:
@@ -13,13 +11,6 @@ else:
 TOPDIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 utils.set_search_paths(TOPDIR)
 import ihm.format
-
-@contextlib.contextmanager
-def temporary_directory(dir=None):
-    """Simple context manager to make a temporary directory."""
-    tmpdir = tempfile.mkdtemp(dir=dir)
-    yield tmpdir
-    shutil.rmtree(tmpdir, ignore_errors=True)
 
 class GenericHandler(object):
     """Capture mmCIF data as a simple list of dicts"""
@@ -155,7 +146,7 @@ x
     def _check_bad_cif(self, cif, real_file, category_handlers={}):
         """Ensure that the given bad cif results in a parser error"""
         if real_file:
-            with temporary_directory() as tmpdir:
+            with utils.temporary_directory() as tmpdir:
                 fname = os.path.join(tmpdir, 'test')
                 with open(fname, 'w') as fh:
                     fh.write(cif)
@@ -227,7 +218,7 @@ x
 
     def _read_cif(self, cif, real_file, category_handlers):
         if real_file:
-            with temporary_directory() as tmpdir:
+            with utils.temporary_directory() as tmpdir:
                 fname = os.path.join(tmpdir, 'test')
                 with open(fname, 'w') as fh:
                     fh.write(cif)
@@ -327,7 +318,7 @@ _foo.var3 test3
         r = ihm.format.CifReader(StringIO(cif), {'_foo':h})
         self._check_first_data(r, h)
 
-        with temporary_directory() as tmpdir:
+        with utils.temporary_directory() as tmpdir:
             fname = os.path.join(tmpdir, 'test')
             with open(fname, 'w') as fh:
                 fh.write(cif)
