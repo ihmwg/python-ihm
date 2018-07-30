@@ -226,10 +226,11 @@ class CifReader(object):
        :param file fh: Open handle to the mmCIF file
        :param dict category_handler: A dict to handle data
               extracted from the file. Keys are category names
-              (e.g. "_entry") and values are callable objects - they will
-              be called with a dict of keywords and values. (mmCIF keywords
-              are case insensitive, so this class always treats them as
-              lowercase regardless of the file contents.)
+              (e.g. "_entry") and values are objects that should be callable
+              and have a 'keys' attribute that is a list of the acceptable keys.
+              The object will be called with a dict of keywords and values.
+              (mmCIF keywords are case insensitive, so this class always treats
+              them as lowercase regardless of the file contents.)
     """
     def __init__(self, fh, category_handler):
         if _format is not None:
@@ -356,8 +357,9 @@ class CifReader(object):
 
     def _read_value(self, vartoken):
         """Read a line that sets a single value, e.g. "_entry.id   1YTI"""
-        # Only read the value if we're interested in this category
-        if vartoken.category in self.category_handler:
+        # Only read the value if we're interested in this category and key
+        if vartoken.category in self.category_handler \
+          and vartoken.keyword in self.category_handler[vartoken.category].keys:
             valtoken = self._get_token()
             if isinstance(valtoken, _ValueToken):
                 if vartoken.category not in self._category_data:
@@ -411,7 +413,7 @@ class CifReader(object):
                               "of keys) at line %d" % self._linenum)
             # Treat omitted values as if they don't exist
             d = dict((key, val) for (key, val) in zip(keywords, values)
-                     if val is not '.')
+                     if key and val is not '.')
             handler(d)
 
     def _read_loop(self):
@@ -419,7 +421,10 @@ class CifReader(object):
         category, keywords = self._read_loop_keywords()
         # Skip data if we don't have a handler for it
         if category in self.category_handler:
-            self._read_loop_data(self.category_handler[category], keywords)
+            ch = self.category_handler[category]
+            wanted_keys = frozenset(ch.keys)
+            keywords = [k if k in wanted_keys else None for k in keywords]
+            self._read_loop_data(ch, keywords)
 
     def read_file(self):
         """Read the file and extract data.
