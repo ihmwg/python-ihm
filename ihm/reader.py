@@ -887,7 +887,7 @@ class _ModelListHandler(_Handler):
 class _MultiStateHandler(_Handler):
     category = '_ihm_multi_state_modeling'
     keys = ('state_group_id', 'state_id', 'model_group_id',
-            'population_fraction', 'experiment_type', 'state_name',
+            'population_fraction', 'experiment_type', 'details', 'state_name',
             'state_type')
 
     def __call__(self, d):
@@ -1058,7 +1058,7 @@ class _AtomSiteHandler(_Handler):
     category = '_atom_site'
     keys = ('pdbx_pdb_model_num', 'label_asym_id', 'b_iso_or_equiv',
             'label_seq_id', 'label_atom_id', 'type_symbol', 'cartn_x',
-            'cartn_y', 'cartn_z', 'group_pdb')
+            'cartn_y', 'cartn_z', 'group_pdb', 'auth_seq_id')
 
     def __call__(self, d):
         # todo: handle fields other than those output by us
@@ -1139,7 +1139,8 @@ _handle_distance = {'harmonic': _make_harmonic,
 class _DerivedDistanceRestraintHandler(_Handler):
     category = '_ihm_derived_distance_restraint'
     keys = ('id', 'dataset_list_id', 'feature_id_1', 'feature_id_2',
-            'restraint_type', 'group_conditionality', 'probability')
+            'restraint_type', 'group_conditionality', 'probability',
+            'distance_lower_limit', 'distance_upper_limit')
     _cond_map = {'ALL': True, 'ANY': False, None: None}
 
     def __call__(self, d):
@@ -1277,7 +1278,8 @@ class _GeometricRestraintHandler(_Handler):
     category = '_ihm_geometric_object_distance_restraint'
     keys = ('object_characteristic', 'id', 'dataset_list_id', 'object_id',
             'feature_id', 'restraint_type', 'harmonic_force_constant',
-            'group_conditionality')
+            'group_conditionality',
+            'distance_lower_limit', 'distance_upper_limit')
 
     _cond_map = {'ALL': True, 'ANY': False, None: None}
 
