@@ -127,10 +127,10 @@ static void handle_category_data(struct ihm_reader *reader, gpointer data,
     /* Add item to dict if it's in the file and not . */
     if ((*keys)->in_file && !(*keys)->omitted) {
 #if PY_VERSION_HEX < 0x03000000
-      PyObject *val = PyString_FromString((*keys)->missing ? "?"
+      PyObject *val = PyString_FromString((*keys)->unknown ? "?"
                                                            : (*keys)->data);
 #else
-      PyObject *val = PyUnicode_FromString((*keys)->missing ? "?"
+      PyObject *val = PyUnicode_FromString((*keys)->unknown ? "?"
                                                             : (*keys)->data);
 #endif
       if (!val) {

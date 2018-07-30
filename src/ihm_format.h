@@ -38,8 +38,8 @@ struct ihm_keyword {
   gboolean in_file;
   /* TRUE iff the keyword is in the file but the value is omitted ('.') */
   gboolean omitted;
-  /* TRUE iff the keyword is in the file but the value is missing ('?') */
-  gboolean missing;
+  /* TRUE iff the keyword is in the file but the value is unknown ('?') */
+  gboolean unknown;
 };
 
 /* Opaque types */
