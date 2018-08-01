@@ -15,15 +15,16 @@ import ihm.format
 
 class GenericHandler(object):
     """Capture mmCIF data as a simple list of dicts"""
-    keys = ('method', 'foo', 'bar', 'baz', 'pdbx_keywords',
-            'var1', 'var2', 'var3')
+
+    _keys = ('method', 'foo', 'bar', 'baz', 'pdbx_keywords', 'var1',
+             'var2', 'var3')
 
     def __init__(self):
         self.data = []
 
     def __call__(self, *args):
         d = {}
-        for k, v in zip(self.keys, args):
+        for k, v in zip(self._keys, args):
             if v is not None:
                 d[k] = v
         self.data.append(d)

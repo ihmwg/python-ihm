@@ -10,6 +10,8 @@ from __future__ import print_function
 import sys
 import textwrap
 import operator
+import inspect
+import re
 try:
     from . import _format
 except ImportError:
@@ -365,7 +367,7 @@ class CifReader(object):
         # Only read the value if we're interested in this category and key
         if vartoken.category in self.category_handler \
           and vartoken.keyword \
-          in self.category_handler[vartoken.category].keys:
+          in self.category_handler[vartoken.category]._keys:
             valtoken = self._get_token()
             if isinstance(valtoken, _ValueToken):
                 if vartoken.category not in self._category_data:
@@ -428,10 +430,10 @@ class CifReader(object):
         if category in self.category_handler:
             ch = self.category_handler[category]
             wanted_key_index = {}
-            for i, k in enumerate(ch.keys):
+            for i, k in enumerate(ch._keys):
                 wanted_key_index[k] = i
             indices = [wanted_key_index.get(k, -1) for k in keywords]
-            self._read_loop_data(ch, len(ch.keys), indices)
+            self._read_loop_data(ch, len(ch._keys), indices)
 
     def read_file(self):
         """Read the file and extract data.
@@ -448,6 +450,7 @@ class CifReader(object):
 
            :return: True iff more data blocks are available to be read.
         """
+        self._add_category_keys()
         if hasattr(self, '_c_format'):
             return self._read_file_c()
         ndata = 0
@@ -471,17 +474,29 @@ class CifReader(object):
                     break
         for cat, data in self._category_data.items():
             ch = self.category_handler[cat]
-            ch(*[data.get(k, None) for k in ch.keys])
+            ch(*[data.get(k, None) for k in ch._keys])
         # Clear category data for next call to read_file()
         self._category_data = {}
         return ndata > 1
+
+    def _add_category_keys(self):
+        """Populate _keys for each category by inspecting its __call__ method"""
+        def python_to_cif(field):
+            if field.startswith('tr_vector') or field.startswith('rot_matrix'):
+                return re.sub('(\d)', r'[\1]', field)
+            else:
+                return field
+        for h in self.category_handler.values():
+            if not hasattr(h, '_keys'):
+                h._keys = [python_to_cif(x)
+                           for x in inspect.getargspec(h.__call__)[0][1:]]
 
     def _read_file_c(self):
         """Read the file using the C parser"""
         _format.ihm_reader_remove_all_categories(self._c_format)
         for category, handler in self.category_handler.items():
             _format.add_category_handler(self._c_format, category,
-                                         handler.keys, handler)
+                                         handler._keys, handler)
         try:
             eof, more_data = _format.ihm_read_file(self._c_format)
         except _format.FileFormatError as exc:
