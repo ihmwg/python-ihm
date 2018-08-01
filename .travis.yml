@@ -14,7 +14,8 @@ cache:
 install:
   - pip install coverage
 script:
-  - python setup.py build_ext --inplace
+  - CFLAGS="-coverage" python setup.py build_ext --inplace -t build
   - nosetests --with-coverage --cover-branches
+  - gcov -o build/src/ src/ihm_format.c
 after_success:
   - bash <(curl -s https://codecov.io/bash)
