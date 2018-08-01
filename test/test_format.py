@@ -244,6 +244,14 @@ x
                 self._read_cif(cat + ' foo', real_file, {'_exptl':h})
             self.assertEqual(h.data, [{'method':'foo'}])
 
+    def test_duplicated_key(self):
+        """If a key is duplicated, we take the final value"""
+        cif = "_exptl.method foo\n_exptl.method bar\n"
+        for real_file in (True, False):
+            h = GenericHandler()
+            self._read_cif(cif, real_file, {'_exptl':h})
+            self.assertEqual(h.data, [{'method':'bar'}])
+
     def test_omitted_ignored(self):
         """CIF omitted value ('.') should be ignored"""
         for real_file in (True, False):

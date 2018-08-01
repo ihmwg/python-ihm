@@ -176,11 +176,9 @@ static void set_value(struct ihm_reader *reader,
                       struct ihm_keyword *key, char *str,
                       gboolean own_data, GError **err)
 {
-  if (key->in_file) {
-    g_set_error(err, IHM_ERROR, IHM_ERROR_FILE_FORMAT,
-                "Key %s.%s is duplicated in file line %d",
-                category->name, key->name, reader->linenum);
-    return;
+  /* If a key is duplicated, overwrite it with the new value */
+  if (key->in_file && key->own_data) {
+    g_free(key->data);
   }
 
   key->omitted = str[0] == '.' && str[1] == '\0';
