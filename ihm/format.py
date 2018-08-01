@@ -419,7 +419,7 @@ class CifReader(object):
                     raise CifParserError("Wrong number of data values in loop "
                               "(should be an exact multiple of the number "
                               "of keys) at line %d" % self._linenum)
-            handler(data)
+            handler(*data)
 
     def _read_loop(self):
         """Handle a loop_ construct"""
@@ -471,7 +471,7 @@ class CifReader(object):
                     break
         for cat, data in self._category_data.items():
             ch = self.category_handler[cat]
-            ch(data.get(k, None) for k in ch.keys)
+            ch(*[data.get(k, None) for k in ch.keys])
         # Clear category data for next call to read_file()
         self._category_data = {}
         return ndata > 1

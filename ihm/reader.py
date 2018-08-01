@@ -386,8 +386,7 @@ class _StructHandler(_Handler):
     category = '_struct'
     keys = ('title', 'entry_id')
 
-    def __call__(self, d):
-        title, entry_id = d
+    def __call__(self, title, entry_id):
         self._copy_if_present(self.system, locals(), keys=('title',),
                               mapkeys={'entry_id': 'id'})
 
@@ -397,8 +396,8 @@ class _SoftwareHandler(_Handler):
     keys = ('pdbx_ordinal', 'name', 'classification', 'description', 'version',
             'type', 'location')
 
-    def __call__(self, d):
-        pdbx_ordinal, name, classification, description, version, type, location = d
+    def __call__(self, pdbx_ordinal, name, classification, description,
+                 version, type, location):
         s = self.sysr.software.get_by_id(pdbx_ordinal)
         self._copy_if_present(s, locals(),
                 keys=('name', 'classification', 'description', 'version',
@@ -411,8 +410,9 @@ class _CitationHandler(_Handler):
             'id', 'title', 'year', 'pdbx_database_id_pubmed', 'journal_abbrev',
             'journal_volume', 'pdbx_database_id_doi', 'page_first', 'page_last')
 
-    def __call__(self, d):
-        id, title, year, pdbx_database_id_pubmed, journal_abbrev, journal_volume, pdbx_database_id_doi, page_first, page_last = d
+    def __call__(self, id, title, year, pdbx_database_id_pubmed,
+                 journal_abbrev, journal_volume, pdbx_database_id_doi,
+                 page_first, page_last):
         s = self.sysr.citations.get_by_id(id)
         self._copy_if_present(s, locals(),
                 keys=('title', 'year'),
@@ -431,8 +431,7 @@ class _CitationAuthorHandler(_Handler):
     category = '_citation_author'
     keys = ('citation_id', 'name')
 
-    def __call__(self, d):
-        citation_id, name = d
+    def __call__(self, citation_id, name):
         s = self.sysr.citations.get_by_id(citation_id)
         if name is not None:
             s.authors.append(name)
@@ -449,8 +448,7 @@ class _ChemCompHandler(_Handler):
                              for x in inspect.getmembers(ihm, inspect.isclass)
                              if issubclass(x[1], ihm.ChemComp))
 
-    def __call__(self, d):
-        type, id = d
+    def __call__(self, type, id):
         typ = 'other' if type is None else type.lower()
         s = self.sysr.chem_comps.get_by_id(id,
                                            self.type_map.get(typ, ihm.ChemComp))
@@ -462,8 +460,8 @@ class _EntityHandler(_Handler):
             'id', 'details', 'type', 'src_method', 'formula_weight',
             'pdbx_description', 'pdbx_number_of_molecules')
 
-    def __call__(self, d):
-        id, details, type, src_method, formula_weight, pdbx_description, pdbx_number_of_molecules = d
+    def __call__(self, id, details, type, src_method, formula_weight,
+                 pdbx_description, pdbx_number_of_molecules):
         s = self.sysr.entities.get_by_id(id)
         self._copy_if_present(s, locals(),
                 keys=('details', 'type', 'src_method', 'formula_weight'),
@@ -475,8 +473,7 @@ class _EntityPolySeqHandler(_Handler):
     category = '_entity_poly_seq'
     keys = ('entity_id', 'num', 'mon_id')
 
-    def __call__(self, d):
-        entity_id, num, mon_id = d
+    def __call__(self, entity_id, num, mon_id):
         s = self.sysr.entities.get_by_id(entity_id)
         seq_id = int(num)
         if seq_id > len(s.sequence):
@@ -488,8 +485,7 @@ class _StructAsymHandler(_Handler):
     category = '_struct_asym'
     keys = ('id', 'entity_id', 'details')
 
-    def __call__(self, d):
-        id, entity_id, details = d
+    def __call__(self, id, entity_id, details):
         s = self.sysr.asym_units.get_by_id(id)
         s.entity = self.sysr.entities.get_by_id(entity_id)
         self._copy_if_present(s, locals(), keys=('details',))
@@ -499,8 +495,7 @@ class _AssemblyDetailsHandler(_Handler):
     category = '_ihm_struct_assembly_details'
     keys = ('assembly_id', 'assembly_name', 'assembly_description')
 
-    def __call__(self, d):
-        assembly_id, assembly_name, assembly_description = d
+    def __call__(self, assembly_id, assembly_name, assembly_description):
         s = self.sysr.assemblies.get_by_id(assembly_id)
         self._copy_if_present(s, locals(),
                 mapkeys={'assembly_name':'name',
@@ -514,8 +509,8 @@ class _AssemblyHandler(_Handler):
             'assembly_id', 'parent_assembly_id', 'seq_id_begin', 'seq_id_end',
             'asym_id', 'entity_id')
 
-    def __call__(self, d):
-        assembly_id, parent_assembly_id, seq_id_begin, seq_id_end, asym_id, entity_id = d
+    def __call__(self, assembly_id, parent_assembly_id, seq_id_begin,
+                 seq_id_end, asym_id, entity_id):
         a_id = assembly_id
         a = self.sysr.assemblies.get_by_id(a_id)
         parent_id = parent_assembly_id
@@ -550,8 +545,7 @@ class _ExtRefHandler(_Handler):
         self.type_map = {'doi':ihm.location.Repository,
                          'supplementary files':_LocalFiles}
 
-    def __call__(self, d):
-        reference_id, reference_type, reference, associated_url = d
+    def __call__(self, reference_id, reference_type, reference, associated_url):
         ref_id = reference_id
         typ = 'doi' if reference_type is None else reference_type.lower()
         repo = self.sysr.repos.get_by_id(ref_id,
@@ -582,8 +576,7 @@ class _ExtFileHandler(_Handler):
                 if issubclass(x[1], ihm.location.FileLocation)
                 and x[1] is not ihm.location.FileLocation)
 
-    def __call__(self, d):
-        content_type, id, reference_id, details, file_path = d
+    def __call__(self, content_type, id, reference_id, details, file_path):
         typ = None if content_type is None else content_type.lower()
         f = self.sysr.external_files.get_by_id(id,
                              self.type_map.get(typ, ihm.location.FileLocation))
@@ -609,8 +602,7 @@ class _DatasetListHandler(_Handler):
                 for x in inspect.getmembers(ihm.dataset, inspect.isclass)
                 if issubclass(x[1], ihm.dataset.Dataset))
 
-    def __call__(self, d):
-        data_type, id = d
+    def __call__(self, data_type, id):
         typ = None if data_type is None else data_type.lower()
         f = self.sysr.datasets.get_by_id(id,
                              self.type_map.get(typ, ihm.dataset.Dataset))
@@ -620,8 +612,7 @@ class _DatasetGroupHandler(_Handler):
     category = '_ihm_dataset_group'
     keys = ('group_id', 'dataset_list_id')
 
-    def __call__(self, d):
-        group_id, dataset_list_id = d
+    def __call__(self, group_id, dataset_list_id):
         g = self.sysr.dataset_groups.get_by_id(group_id)
         ds = self.sysr.datasets.get_by_id(dataset_list_id)
         g.append(ds)
@@ -631,8 +622,7 @@ class _DatasetExtRefHandler(_Handler):
     category = '_ihm_dataset_external_reference'
     keys = ('file_id', 'dataset_list_id')
 
-    def __call__(self, d):
-        file_id, dataset_list_id = d
+    def __call__(self, file_id, dataset_list_id):
         ds = self.sysr.datasets.get_by_id(dataset_list_id)
         f = self.sysr.external_files.get_by_id(file_id)
         ds.location = f
@@ -654,8 +644,8 @@ class _DatasetDBRefHandler(_Handler):
                 if issubclass(x[1], ihm.location.DatabaseLocation)
                 and x[1] is not ihm.location.DatabaseLocation)
 
-    def __call__(self, d):
-        dataset_list_id, db_name, id, version, details, accession_code = d
+    def __call__(self, dataset_list_id, db_name, id, version, details,
+                 accession_code):
         ds = self.sysr.datasets.get_by_id(dataset_list_id)
         typ = None if db_name is None else db_name.lower()
         dbloc = self.sysr.db_locations.get_by_id(id,
@@ -670,8 +660,7 @@ class _RelatedDatasetsHandler(_Handler):
     category = '_ihm_related_datasets'
     keys = ('dataset_list_id_derived', 'dataset_list_id_primary')
 
-    def __call__(self, d):
-        dataset_list_id_derived, dataset_list_id_primary = d
+    def __call__(self, dataset_list_id_derived, dataset_list_id_primary):
         derived = self.sysr.datasets.get_by_id(dataset_list_id_derived)
         primary = self.sysr.datasets.get_by_id(dataset_list_id_primary)
         derived.parents.append(primary)
@@ -709,9 +698,9 @@ class _ModelRepresentationHandler(_Handler):
                         'multi-residue': _make_multi_residue_segment,
                         'by-feature': _make_feature_segment}
 
-    def __call__(self, d):
-        entity_asym_id, seq_id_begin, seq_id_end, representation_id, starting_model_id, model_object_primitive, model_granularity, model_object_count, model_mode = d
-
+    def __call__(self, entity_asym_id, seq_id_begin, seq_id_end,
+                 representation_id, starting_model_id, model_object_primitive,
+                 model_granularity, model_object_count, model_mode):
         asym = self.sysr.asym_units.get_by_id(entity_asym_id)
         if seq_id_begin is not None and seq_id_end is not None:
             asym = asym(int(seq_id_begin), int(seq_id_end))
@@ -736,8 +725,9 @@ class _StartingModelDetailsHandler(_Handler):
             'dataset_list_id', 'starting_model_auth_asym_id',
             'starting_model_sequence_offset')
 
-    def __call__(self, d):
-        starting_model_id, asym_id, seq_id_begin, seq_id_end, dataset_list_id, starting_model_auth_asym_id, starting_model_sequence_offset = d
+    def __call__(self, starting_model_id, asym_id, seq_id_begin, seq_id_end,
+                 dataset_list_id, starting_model_auth_asym_id,
+                 starting_model_sequence_offset):
         m = self.sysr.starting_models.get_by_id(starting_model_id)
         asym = self.sysr.asym_units.get_by_id(asym_id)
         if seq_id_begin is not None and seq_id_end is not None:
@@ -754,8 +744,7 @@ class _StartingComputationalModelsHandler(_Handler):
     category = '_ihm_starting_computational_models'
     keys = ('starting_model_id', 'script_file_id', 'software_id')
 
-    def __call__(self, d):
-        starting_model_id, script_file_id, software_id = d
+    def __call__(self, starting_model_id, script_file_id, software_id):
         m = self.sysr.starting_models.get_by_id(starting_model_id)
         if script_file_id is not None:
             m.script_file = self.sysr.external_files.get_by_id(
@@ -773,8 +762,12 @@ class _StartingComparativeModelsHandler(_Handler):
             'template_sequence_identity',
             'template_sequence_identity_denominator')
 
-    def __call__(self, d):
-        starting_model_id, template_dataset_list_id, alignment_file_id, template_auth_asym_id, starting_model_seq_id_begin, starting_model_seq_id_end, template_seq_id_begin, template_seq_id_end, template_sequence_identity, template_sequence_identity_denominator = d
+    def __call__(self, starting_model_id, template_dataset_list_id,
+                 alignment_file_id, template_auth_asym_id,
+                 starting_model_seq_id_begin, starting_model_seq_id_end,
+                 template_seq_id_begin, template_seq_id_end,
+                 template_sequence_identity,
+                 template_sequence_identity_denominator):
         m = self.sysr.starting_models.get_by_id(starting_model_id)
         dataset = self.sysr.datasets.get_by_id(template_dataset_list_id)
         aln = self.sysr.external_files.get_by_id_or_none(alignment_file_id)
@@ -798,8 +791,10 @@ class _ProtocolHandler(_Handler):
             'ordered_flag', 'struct_assembly_id', 'dataset_group_id',
             'software_id', 'script_file_id', 'step_name', 'step_method')
 
-    def __call__(self, d):
-        protocol_id, protocol_name, num_models_begin, num_models_end, multi_scale_flag, multi_state_flag, ordered_flag, struct_assembly_id, dataset_group_id, software_id, script_file_id, step_name, step_method = d
+    def __call__(self, protocol_id, protocol_name, num_models_begin,
+                 num_models_end, multi_scale_flag, multi_state_flag,
+                 ordered_flag, struct_assembly_id, dataset_group_id,
+                 software_id, script_file_id, step_name, step_method):
         p = self.sysr.protocols.get_by_id(protocol_id)
         self._copy_if_present(p, locals(),  mapkeys={'protocol_name':'name'})
         nbegin = _get_int(num_models_begin)
@@ -839,8 +834,9 @@ class _PostProcessHandler(_Handler):
                              if issubclass(x[1], ihm.analysis.Step)
                              and x[1] is not ihm.analysis.Step)
 
-    def __call__(self, d):
-        protocol_id, analysis_id, type, id, num_models_begin, num_models_end, struct_assembly_id, dataset_group_id, software_id, script_file_id, feature = d
+    def __call__(self, protocol_id, analysis_id, type, id, num_models_begin,
+                 num_models_end, struct_assembly_id, dataset_group_id,
+                 software_id, script_file_id, feature):
         protocol = self.sysr.protocols.get_by_id(protocol_id)
         analysis = self.sysr.analyses.get_by_id(analysis_id)
         if analysis._id not in [a._id for a in protocol.analyses]:
@@ -875,8 +871,8 @@ class _ModelListHandler(_Handler):
             'model_group_id', 'model_group_name', 'model_id', 'model_name',
             'assembly_id', 'representation_id', 'protocol_id')
 
-    def __call__(self, d):
-        model_group_id, model_group_name, model_id, model_name, assembly_id, representation_id, protocol_id = d
+    def __call__(self, model_group_id, model_group_name, model_id, model_name,
+                 assembly_id, representation_id, protocol_id):
         model_group = self.sysr.model_groups.get_by_id(model_group_id)
         self._copy_if_present(model_group, locals(),
                               mapkeys={'model_group_name':'name'})
@@ -915,8 +911,9 @@ class _MultiStateHandler(_Handler):
             'population_fraction', 'experiment_type', 'details', 'state_name',
             'state_type')
 
-    def __call__(self, d):
-        state_group_id, state_id, model_group_id, population_fraction, experiment_type, details, state_name, state_type = d
+    def __call__(self, state_group_id, state_id, model_group_id,
+                 population_fraction, experiment_type, details, state_name,
+                 state_type):
         state_group = self.sysr.state_groups.get_by_id(state_group_id)
         state = self.sysr.states.get_by_id(state_id)
 
@@ -939,8 +936,10 @@ class _EnsembleHandler(_Handler):
             'ensemble_precision_value', 'ensemble_name',
             'ensemble_clustering_method', 'ensemble_clustering_feature')
 
-    def __call__(self, d):
-        ensemble_id, model_group_id, post_process_id, ensemble_file_id, num_ensemble_models, ensemble_precision_value, ensemble_name, ensemble_clustering_method, ensemble_clustering_feature = d
+    def __call__(self, ensemble_id, model_group_id, post_process_id,
+                 ensemble_file_id, num_ensemble_models,
+                 ensemble_precision_value, ensemble_name,
+                 ensemble_clustering_method, ensemble_clustering_feature):
         ensemble = self.sysr.ensembles.get_by_id(ensemble_id)
         mg = self.sysr.model_groups.get_by_id(model_group_id)
         pp = self.sysr.analysis_steps.get_by_id_or_none(post_process_id)
@@ -964,8 +963,8 @@ class _DensityHandler(_Handler):
     keys = ('id', 'ensemble_id', 'file_id', 'asym_id', 'seq_id_begin',
             'seq_id_end')
 
-    def __call__(self, d):
-        id, ensemble_id, file_id, asym_id, seq_id_begin, seq_id_end = d
+    def __call__(self, id, ensemble_id, file_id, asym_id, seq_id_begin,
+                 seq_id_end):
         density = self.sysr.densities.get_by_id(id)
         ensemble = self.sysr.ensembles.get_by_id(ensemble_id)
         f = self.sysr.external_files.get_by_id(file_id)
@@ -986,8 +985,9 @@ class _EM3DRestraintHandler(_Handler):
             'number_of_gaussians', 'model_id',
             'cross_correlation_coefficient')
 
-    def __call__(self, d):
-        dataset_list_id, struct_assembly_id, fitting_method_citation_id, fitting_method, number_of_gaussians, model_id, cross_correlation_coefficient = d
+    def __call__(self, dataset_list_id, struct_assembly_id,
+                 fitting_method_citation_id, fitting_method,
+                 number_of_gaussians, model_id, cross_correlation_coefficient):
         # EM3D restraints don't have their own IDs - they use the dataset id
         r = self.sysr.em3d_restraints.get_by_dataset(dataset_list_id)
         r.assembly = self.sysr.assemblies.get_by_id_or_none(
@@ -1009,8 +1009,10 @@ class _EM2DRestraintHandler(_Handler):
             'image_segment_flag', 'number_of_projections',
             'struct_assembly_id', 'details')
 
-    def __call__(self, d):
-        id, dataset_list_id, number_raw_micrographs, pixel_size_width, pixel_size_height, image_resolution, image_segment_flag, number_of_projections, struct_assembly_id, details = d
+    def __call__(self, id, dataset_list_id, number_raw_micrographs,
+                 pixel_size_width, pixel_size_height, image_resolution,
+                 image_segment_flag, number_of_projections,
+                 struct_assembly_id, details):
         r = self.sysr.em2d_restraints.get_by_id(id)
         r.dataset = self.sysr.datasets.get_by_id(dataset_list_id)
         r.number_raw_micrographs = _get_int(number_raw_micrographs)
@@ -1033,8 +1035,10 @@ class _EM2DFittingHandler(_Handler):
             'rot_matrix[1][2]', 'rot_matrix[2][2]', 'rot_matrix[3][2]',
             'rot_matrix[1][3]', 'rot_matrix[2][3]', 'rot_matrix[3][3]')
 
-    def __call__(self, d):
-        restraint_id, model_id, cross_correlation_coefficient, tr_vector1, tr_vector2, tr_vector3, rot_matrix11, rot_matrix21, rot_matrix31, rot_matrix12, rot_matrix22, rot_matrix32, rot_matrix13, rot_matrix23, rot_matrix33 = d
+    def __call__(self, restraint_id, model_id, cross_correlation_coefficient,
+                 tr_vector1, tr_vector2, tr_vector3, rot_matrix11,
+                 rot_matrix21, rot_matrix31, rot_matrix12, rot_matrix22,
+                 rot_matrix32, rot_matrix13, rot_matrix23, rot_matrix33):
         r = self.sysr.em2d_restraints.get_by_id(restraint_id)
         model = self.sysr.models.get_by_id(model_id)
         ccc = _get_float(cross_correlation_coefficient)
@@ -1053,8 +1057,10 @@ class _SASRestraintHandler(_Handler):
             'fitting_state', 'radius_of_gyration', 'number_of_gaussians',
             'model_id', 'chi_value')
 
-    def __call__(self, d):
-        dataset_list_id, struct_assembly_id, profile_segment_flag, fitting_atom_type, fitting_method, details, fitting_state, radius_of_gyration, number_of_gaussians, model_id, chi_value = d
+    def __call__(self, dataset_list_id, struct_assembly_id,
+                 profile_segment_flag, fitting_atom_type, fitting_method,
+                 details, fitting_state, radius_of_gyration,
+                 number_of_gaussians, model_id, chi_value):
         # SAS restraints don't have their own IDs - they use the dataset id
         r = self.sysr.sas_restraints.get_by_dataset(dataset_list_id)
         r.assembly = self.sysr.assemblies.get_by_id_or_none(
@@ -1078,8 +1084,8 @@ class _SphereObjSiteHandler(_Handler):
             'model_id', 'asym_id', 'rmsf', 'seq_id_begin', 'seq_id_end',
             'cartn_x', 'cartn_y', 'cartn_z', 'object_radius')
 
-    def __call__(self, d):
-        model_id, asym_id, rmsf, seq_id_begin, seq_id_end, cartn_x, cartn_y, cartn_z, object_radius = d
+    def __call__(self, model_id, asym_id, rmsf, seq_id_begin, seq_id_end,
+                 cartn_x, cartn_y, cartn_z, object_radius):
         model = self.sysr.models.get_by_id(model_id)
         asym = self.sysr.asym_units.get_by_id(asym_id)
         rmsf = _get_float(rmsf)
@@ -1097,10 +1103,11 @@ class _AtomSiteHandler(_Handler):
             'label_seq_id', 'label_atom_id', 'type_symbol', 'cartn_x',
             'cartn_y', 'cartn_z', 'group_pdb', 'auth_seq_id')
 
-    def __call__(self, d):
+    def __call__(self, pdbx_pdb_model_num, label_asym_id, b_iso_or_equiv,
+                 label_seq_id, label_atom_id, type_symbol, cartn_x, cartn_y,
+                 cartn_z, group_pdb, auth_seq_id):
         # todo: handle fields other than those output by us
         # todo: handle insertion codes
-        pdbx_pdb_model_num, label_asym_id, b_iso_or_equiv, label_seq_id, label_atom_id, type_symbol, cartn_x, cartn_y, cartn_z, group_pdb, auth_seq_id = d
         model = self.sysr.models.get_by_id(pdbx_pdb_model_num)
         asym = self.sysr.asym_units.get_by_id(label_asym_id)
         biso = _get_float(b_iso_or_equiv)
@@ -1128,8 +1135,7 @@ class _PolyResidueFeatureHandler(_Handler):
     category = '_ihm_poly_residue_feature'
     keys = ('feature_id', 'asym_id', 'seq_id_begin', 'seq_id_end')
 
-    def __call__(self, d):
-        feature_id, asym_id, seq_id_begin, seq_id_end = d
+    def __call__(self, feature_id, asym_id, seq_id_begin, seq_id_end):
         f = self.sysr.features.get_by_id(
                            feature_id, ihm.restraint.PolyResidueFeature)
         asym = self.sysr.asym_units.get_by_id(asym_id)
@@ -1142,8 +1148,7 @@ class _PolyAtomFeatureHandler(_Handler):
     category = '_ihm_poly_atom_feature'
     keys = ('feature_id', 'asym_id', 'seq_id', 'atom_id')
 
-    def __call__(self, d):
-        feature_id, asym_id, seq_id, atom_id = d
+    def __call__(self, feature_id, asym_id, seq_id, atom_id):
         f = self.sysr.features.get_by_id(
                            feature_id, ihm.restraint.PolyAtomFeature)
         asym = self.sysr.asym_units.get_by_id(asym_id)
@@ -1184,8 +1189,9 @@ class _DerivedDistanceRestraintHandler(_Handler):
             'distance_lower_limit', 'distance_upper_limit')
     _cond_map = {'ALL': True, 'ANY': False, None: None}
 
-    def __call__(self, d):
-        id, dataset_list_id, feature_id_1, feature_id_2, restraint_type, group_conditionality, probability, distance_lower_limit, distance_upper_limit = d
+    def __call__(self, id, dataset_list_id, feature_id_1, feature_id_2,
+                 restraint_type, group_conditionality, probability,
+                 distance_lower_limit, distance_upper_limit):
         r = self.sysr.dist_restraints.get_by_id(id)
         r.dataset = self.sysr.datasets.get_by_id_or_none(dataset_list_id)
         r.feature1 = self.sysr.features.get_by_id(feature_id_1)
@@ -1200,8 +1206,7 @@ class _CenterHandler(_Handler):
     category = '_ihm_geometric_object_center'
     keys = ('id', 'xcoord', 'ycoord', 'zcoord')
 
-    def __call__(self, d):
-        id, xcoord, ycoord, zcoord = d
+    def __call__(self, id, xcoord, ycoord, zcoord):
         c = self.sysr.centers.get_by_id(id)
         c.x = _get_float(xcoord)
         c.y = _get_float(ycoord)
@@ -1216,8 +1221,9 @@ class _TransformationHandler(_Handler):
             'rot_matrix[1][2]', 'rot_matrix[2][2]', 'rot_matrix[3][2]',
             'rot_matrix[1][3]', 'rot_matrix[2][3]', 'rot_matrix[3][3]')
 
-    def __call__(self, d):
-        id, tr_vector1, tr_vector2, tr_vector3, rot_matrix11, rot_matrix21, rot_matrix31, rot_matrix12, rot_matrix22, rot_matrix32, rot_matrix13, rot_matrix23, rot_matrix33 = d
+    def __call__(self, id, tr_vector1, tr_vector2, tr_vector3, rot_matrix11,
+                 rot_matrix21, rot_matrix31, rot_matrix12, rot_matrix22,
+                 rot_matrix32, rot_matrix13, rot_matrix23, rot_matrix33):
         t = self.sysr.transformations.get_by_id(id)
         t.rot_matrix = _get_matrix33(locals(), 'rot_matrix')
         t.tr_vector = _get_vector3(locals(), 'tr_vector')
@@ -1236,8 +1242,8 @@ class _GeometricObjectHandler(_Handler):
                      if issubclass(x[1], ihm.geometry.GeometricObject)
                         and ihm.geometry.GeometricObject in x[1].__bases__)
 
-    def __call__(self, d):
-        object_type, object_id, object_name, object_description, other_details = d
+    def __call__(self, object_type, object_id, object_name, object_description,
+                 other_details):
         typ = object_type.lower() if object_type is not None else 'other'
         g = self.sysr.geometries.get_by_id(object_id,
                           self._type_map.get(typ, ihm.geometry.GeometricObject))
@@ -1251,8 +1257,7 @@ class _SphereHandler(_Handler):
     category = '_ihm_geometric_object_sphere'
     keys = ('object_id', 'center_id', 'transformation_id', 'radius_r')
 
-    def __call__(self, d):
-        object_id, center_id, transformation_id, radius_r = d
+    def __call__(self, object_id, center_id, transformation_id, radius_r):
         s = self.sysr.geometries.get_by_id(object_id, ihm.geometry.Sphere)
         s.center = self.sysr.centers.get_by_id_or_none(center_id)
         s.transformation = self.sysr.transformations.get_by_id_or_none(
@@ -1266,8 +1271,8 @@ class _TorusHandler(_Handler):
             'object_id', 'center_id', 'transformation_id', 'major_radius_r',
             'minor_radius_r')
 
-    def __call__(self, d):
-        object_id, center_id, transformation_id, major_radius_r, minor_radius_r = d
+    def __call__(self, object_id, center_id, transformation_id,
+                 major_radius_r, minor_radius_r):
         t = self.sysr.geometries.get_by_id(object_id, ihm.geometry.Torus)
         t.center = self.sysr.centers.get_by_id_or_none(center_id)
         t.transformation = self.sysr.transformations.get_by_id_or_none(
@@ -1282,8 +1287,7 @@ class _HalfTorusHandler(_Handler):
 
     _inner_map = {'inner half': True, 'outer half': False}
 
-    def __call__(self, d):
-        object_id, thickness_th, section = d
+    def __call__(self, object_id, thickness_th, section):
         t = self.sysr.geometries.get_by_id(object_id,
                                            ihm.geometry.HalfTorus)
         t.thickness = _get_float(thickness_th)
@@ -1301,8 +1305,7 @@ class _AxisHandler(_Handler):
                      if issubclass(x[1], ihm.geometry.Axis)
                         and x[1] is not ihm.geometry.Axis)
 
-    def __call__(self, d):
-        axis_type, object_id, transformation_id = d
+    def __call__(self, axis_type, object_id, transformation_id):
         typ = axis_type.lower() if axis_type is not None else 'other'
         a = self.sysr.geometries.get_by_id(object_id,
                           self._type_map.get(typ, ihm.geometry.Axis))
@@ -1319,8 +1322,7 @@ class _PlaneHandler(_Handler):
                      if issubclass(x[1], ihm.geometry.Plane)
                         and x[1] is not ihm.geometry.Plane)
 
-    def __call__(self, d):
-        plane_type, object_id, transformation_id = d
+    def __call__(self, plane_type, object_id, transformation_id):
         typ = plane_type.lower() if plane_type is not None else 'other'
         a = self.sysr.geometries.get_by_id(object_id,
                           self._type_map.get(typ, ihm.geometry.Plane))
@@ -1343,8 +1345,10 @@ class _GeometricRestraintHandler(_Handler):
                      for x in inspect.getmembers(ihm.restraint, inspect.isclass)
                      if issubclass(x[1], ihm.restraint.GeometricRestraint))
 
-    def __call__(self, d):
-        object_characteristic, id, dataset_list_id, object_id, feature_id, restraint_type, harmonic_force_constant, group_conditionality, distance_lower_limit, distance_upper_limit = d
+    def __call__(self, object_characteristic, id, dataset_list_id, object_id,
+                 feature_id, restraint_type, harmonic_force_constant,
+                 group_conditionality, distance_lower_limit,
+                 distance_upper_limit):
         typ = (object_characteristic or 'other').lower()
         r = self.sysr.geom_restraints.get_by_id(id,
                       self._type_map.get(typ, ihm.restraint.GeometricRestraint))
@@ -1361,8 +1365,7 @@ class _PolySeqSchemeHandler(_Handler):
     category = '_pdbx_poly_seq_scheme'
     keys = ('asym_id', 'seq_id', 'auth_seq_num')
 
-    def __call__(self, d):
-        asym_id, seq_id, auth_seq_num = d
+    def __call__(self, asym_id, seq_id, auth_seq_num):
         asym = self.sysr.asym_units.get_by_id(asym_id)
         seq_id = _get_int(seq_id)
         auth_seq_num = _get_int_or_string(auth_seq_num)
@@ -1417,8 +1420,8 @@ class _CrossLinkListHandler(_Handler):
         super(_CrossLinkListHandler, self).__init__(*args)
         self._seen_group_ids = set()
 
-    def __call__(self, d):
-        dataset_list_id, linker_type, group_id, id, entity_id_1, entity_id_2, seq_id_1, seq_id_2 = d
+    def __call__(self, dataset_list_id, linker_type, group_id, id,
+                 entity_id_1, entity_id_2, seq_id_1, seq_id_2):
         dataset = self.sysr.datasets.get_by_id_or_none(dataset_list_id)
         linker_type = linker_type.upper()
         # Group all crosslinks with same dataset and linker type in one
@@ -1459,8 +1462,9 @@ class _CrossLinkRestraintHandler(_Handler):
                      if issubclass(x[1], ihm.restraint.CrossLink)
                      and x[1] is not ihm.restraint.CrossLink)
 
-    def __call__(self, d):
-        model_granularity, id, group_id, asym_id_1, asym_id_2, restraint_type, distance_threshold, conditional_crosslink_flag, atom_id_1, atom_id_2, psi, sigma_1, sigma_2 = d
+    def __call__(self, model_granularity, id, group_id, asym_id_1, asym_id_2,
+                 restraint_type, distance_threshold, conditional_crosslink_flag,
+                 atom_id_1, atom_id_2, psi, sigma_1, sigma_2):
         typ = (model_granularity or 'other').lower()
         xl = self.sysr.cross_links.get_by_id(id,
                       self._type_map.get(typ, ihm.restraint.ResidueCrossLink))
@@ -1496,8 +1500,7 @@ class _CrossLinkResultHandler(_Handler):
     category = '_ihm_cross_link_result_parameters'
     keys = ('restraint_id', 'model_id', 'psi', 'sigma_1', 'sigma_2')
 
-    def __call__(self, d):
-        restraint_id, model_id, psi, sigma_1, sigma_2 = d
+    def __call__(self, restraint_id, model_id, psi, sigma_1, sigma_2):
         xl = self.sysr.cross_links.get_by_id(restraint_id)
         model = self.sysr.models.get_by_id(model_id)
         xl.fits[model] = ihm.restraint.CrossLinkFit(
@@ -1512,8 +1515,9 @@ class _OrderedEnsembleHandler(_Handler):
             'model_group_id_end', 'edge_description', 'ordered_by',
             'process_description', 'step_description')
 
-    def __call__(self, d):
-        process_id, step_id, model_group_id_begin, model_group_id_end, edge_description, ordered_by, process_description, step_description = d
+    def __call__(self, process_id, step_id, model_group_id_begin,
+                 model_group_id_end, edge_description, ordered_by,
+                 process_description, step_description):
         proc = self.sysr.ordered_procs.get_by_id(process_id)
         # todo: will this work with multiple processes?
         step = self.sysr.ordered_steps.get_by_id(step_id)

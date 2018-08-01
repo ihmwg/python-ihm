@@ -21,9 +21,9 @@ class GenericHandler(object):
     def __init__(self):
         self.data = []
 
-    def __call__(self, data):
+    def __call__(self, *args):
         d = {}
-        for k, v in zip(self.keys, data):
+        for k, v in zip(self.keys, args):
             if v is not None:
                 d[k] = v
         self.data.append(d)
