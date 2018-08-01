@@ -281,6 +281,15 @@ x
                            {'_foo':h})
             self.assertEqual(h.data, [{'bar':'1', 'baz':'2'}])
 
+    def test_keyword_free(self):
+        """Make sure keyword data is cleaned up"""
+        for real_file in (True, False):
+            h = GenericHandler()
+            # The unterminated single quote will cause an exception so
+            # the _exptl category is never handled, so the C parser relies
+            # on ihm_keyword_free to free the memory
+            self._check_bad_cif("_exptl.method foo\n'", real_file, {'_exptl':h})
+
     def test_unknown(self):
         """CIF unknown value ('?') should be reported as-is"""
         for real_file in (True, False):
