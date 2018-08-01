@@ -167,7 +167,7 @@ static void handle_category_data(struct ihm_reader *reader, gpointer data,
 
 %inline %{
 /* Add a generic category handler which collects all specified keywords for
-   the given category and passes them to a Python callable as a dict */
+   the given category and passes them to a Python callable */
 void add_category_handler(struct ihm_reader *reader, char *name,
                           PyObject *keywords, PyObject *callable, GError **err)
 {
