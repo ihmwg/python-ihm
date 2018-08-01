@@ -264,6 +264,14 @@ x
                            {'_foo':h})
             self.assertEqual(h.data, [{'bar':'.1'}])
 
+    def test_loop_linebreak(self):
+        """Make sure that linebreaks are ignored in loop data"""
+        for real_file in (True, False):
+            h = GenericHandler()
+            self._read_cif("loop_\n_foo.bar\n_foo.baz\n1\n2\n", real_file,
+                           {'_foo':h})
+            self.assertEqual(h.data, [{'bar':'1', 'baz':'2'}])
+
     def test_unknown(self):
         """CIF unknown value ('?') should be reported as-is"""
         for real_file in (True, False):
