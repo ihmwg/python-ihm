@@ -113,8 +113,7 @@ class Tests(unittest.TestCase):
         Keys = namedtuple('Keys', 'foo bar t test x')
         o = MockObject()
         h = ihm.reader._Handler(None)
-        h._copy_if_present(o, Keys(foo='bar', bar='baz', t='u',
-                                   test=None, x=None),
+        h._copy_if_present(o, {'foo':'bar', 'bar':'baz', 't':'u'},
                            keys=['test', 'foo'],
                            mapkeys={'bar':'baro', 'x':'y'})
         self.assertEqual(o.foo, 'bar')
@@ -916,8 +915,8 @@ _ihm_3dem_restraint.cross_correlation_coefficient
 
     def test_get_vector3(self):
         """Test _get_vector3 function"""
-        Keys = namedtuple('Keys', 'tr_vectorL1R tr_vectorL2R tr_vectorL3R')
-        d = Keys(tr_vectorL1R=4.0, tr_vectorL2R=6.0, tr_vectorL3R=9.0)
+        d = {'tr_vector1':4.0, 'tr_vector2':6.0, 'tr_vector3':9.0,
+             'not_there1':None}
         r = ihm.reader._get_vector3(d, 'tr_vector')
         # Coerce to int so we can compare exactly
         self.assertEqual([int(x) for x in r], [4,6,9])
@@ -926,12 +925,9 @@ _ihm_3dem_restraint.cross_correlation_coefficient
 
     def test_get_matrix33(self):
         """Test _get_matrix33 function"""
-        Keys = namedtuple('Keys', ('mL1RL1R', 'mL1RL2R', 'mL1RL3R',
-                                   'mL2RL1R', 'mL2RL2R', 'mL2RL3R',
-                                   'mL3RL1R', 'mL3RL2R', 'mL3RL3R'))
-        d = Keys(mL1RL1R=4.0, mL1RL2R=6.0, mL1RL3R=9.0,
-                 mL2RL1R=1.0, mL2RL2R=2.0, mL2RL3R=3.0,
-                 mL3RL1R=8.0, mL3RL2R=1.0, mL3RL3R=7.0)
+        d = {'m11':4.0, 'm12':6.0, 'm13':9.0,
+             'm21':1.0, 'm22':2.0, 'm23':3.0,
+             'm31':8.0, 'm32':1.0, 'm33':7.0, 'not_there11':None}
         r = ihm.reader._get_matrix33(d, 'm')
         # Coerce to int so we can compare exactly
         self.assertEqual([[int(x) for x in row] for row in r],

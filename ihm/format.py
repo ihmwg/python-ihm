@@ -365,7 +365,7 @@ class CifReader(object):
         # Only read the value if we're interested in this category and key
         if vartoken.category in self.category_handler \
           and vartoken.keyword \
-          in _get_fields(self.category_handler[vartoken.category].Keys):
+          in self.category_handler[vartoken.category].keys:
             valtoken = self._get_token()
             if isinstance(valtoken, _ValueToken):
                 if vartoken.category not in self._category_data:
@@ -419,7 +419,7 @@ class CifReader(object):
                     raise CifParserError("Wrong number of data values in loop "
                               "(should be an exact multiple of the number "
                               "of keys) at line %d" % self._linenum)
-            handler(handler.Keys._make(data))
+            handler(data)
 
     def _read_loop(self):
         """Handle a loop_ construct"""
@@ -428,10 +428,10 @@ class CifReader(object):
         if category in self.category_handler:
             ch = self.category_handler[category]
             wanted_key_index = {}
-            for i, k in enumerate(_get_fields(ch.Keys)):
+            for i, k in enumerate(ch.keys):
                 wanted_key_index[k] = i
             indices = [wanted_key_index.get(k, -1) for k in keywords]
-            self._read_loop_data(ch, len(ch.Keys._fields), indices)
+            self._read_loop_data(ch, len(ch.keys), indices)
 
     def read_file(self):
         """Read the file and extract data.
@@ -471,7 +471,7 @@ class CifReader(object):
                     break
         for cat, data in self._category_data.items():
             ch = self.category_handler[cat]
-            ch(ch.Keys._make(data.get(k, None) for k in _get_fields(ch.Keys)))
+            ch(data.get(k, None) for k in ch.keys)
         # Clear category data for next call to read_file()
         self._category_data = {}
         return ndata > 1
