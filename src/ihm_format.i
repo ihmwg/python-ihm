@@ -168,7 +168,8 @@ static void handle_category_data(struct ihm_reader *reader, gpointer data,
 static struct category_handler_data *do_add_handler(
                         struct ihm_reader *reader, char *name,
                         PyObject *keywords, PyObject *callable,
-                        ihm_category_callback data_callback, GError **err)
+                        ihm_category_callback data_callback,
+                        ihm_category_callback finalize_callback, GError **err)
 {
   Py_ssize_t seqlen, i;
   struct ihm_category *category;
@@ -190,8 +191,8 @@ static struct category_handler_data *do_add_handler(
   hd->callable = callable;
   hd->num_keywords = seqlen;
   hd->keywords = g_malloc(sizeof(struct ihm_keyword *) * seqlen);
-  category = ihm_category_new(reader, name, data_callback, NULL, hd,
-                              category_handler_data_free);
+  category = ihm_category_new(reader, name, data_callback, finalize_callback,
+                              hd, category_handler_data_free);
   for (i = 0; i < seqlen; ++i) {
     PyObject *o = PySequence_GetItem(keywords, i);
 #if PY_VERSION_HEX < 0x03000000
@@ -220,7 +221,8 @@ static struct category_handler_data *do_add_handler(
 void add_category_handler(struct ihm_reader *reader, char *name,
                           PyObject *keywords, PyObject *callable, GError **err)
 {
-  do_add_handler(reader, name, keywords, callable, handle_category_data, err);
+  do_add_handler(reader, name, keywords, callable, handle_category_data, NULL,
+                 err);
 }
 %}
 
@@ -264,7 +266,7 @@ void add_poly_seq_scheme_handler(struct ihm_reader *reader, char *name,
 {
   struct category_handler_data *hd;
   hd = do_add_handler(reader, name, keywords, callable,
-                      handle_poly_seq_scheme_data, err);
+                      handle_poly_seq_scheme_data, NULL, err);
   if (hd) {
     /* Make sure the Python handler and the C handler agree on the order
        of the keywords */
@@ -272,6 +274,15 @@ void add_poly_seq_scheme_handler(struct ihm_reader *reader, char *name,
     assert(strcmp(hd->keywords[1]->name, "seq_id") == 0);
     assert(strcmp(hd->keywords[2]->name, "auth_seq_num") == 0);
   }
+}
+
+/* Test function so we can make sure finalize callbacks work */
+void _test_finalize_callback(struct ihm_reader *reader, char *name,
+                             PyObject *keywords, PyObject *callable,
+                             GError **err)
+{
+  do_add_handler(reader, name, keywords, callable,
+                 handle_category_data, handle_category_data, err);
 }
 
 %}

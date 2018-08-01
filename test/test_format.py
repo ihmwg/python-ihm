@@ -3,6 +3,10 @@ import os
 import unittest
 import sys
 from collections import namedtuple
+try:
+    from ihm import _format
+except ImportError:
+    _format = None
 
 if sys.version_info[0] >= 3:
     from io import StringIO
@@ -28,6 +32,11 @@ class GenericHandler(object):
             if v is not None:
                 d[k] = v
         self.data.append(d)
+
+
+class TestFinalizeHandler(GenericHandler):
+    if _format is not None:
+        _add_c_handler = _format._test_finalize_callback
 
 
 class StringWriter(object):
@@ -388,6 +397,12 @@ _foo.baz
 x y
 #
 """, real_file, {'_foo':h})
+
+    def test_finalize_handler(self):
+        """Make sure that C parser finalize callback works"""
+        for real_file in (True, False):
+            h = TestFinalizeHandler()
+            self._read_cif("# _exptl.method foo\n", real_file, {'_exptl':h})
 
 if __name__ == '__main__':
     unittest.main()
