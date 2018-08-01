@@ -23,10 +23,6 @@ if sys.version_info[0] >= 3:
 else:
     _long_type = long
 
-def _get_fields(keys):
-    for f in keys._fields:
-        yield f.replace('L', '[').replace('R', ']')
-
 class _LineWriter(object):
     def __init__(self, writer, line_len=80):
         self.writer = writer
