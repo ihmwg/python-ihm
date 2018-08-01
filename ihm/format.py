@@ -496,8 +496,9 @@ class CifReader(object):
         """Read the file using the C parser"""
         _format.ihm_reader_remove_all_categories(self._c_format)
         for category, handler in self.category_handler.items():
-            _format.add_category_handler(self._c_format, category,
-                                         handler._keys, handler)
+            func = getattr(handler, '_add_c_handler', None) \
+                        or _format.add_category_handler
+            func(self._c_format, category, handler._keys, handler)
         try:
             eof, more_data = _format.ihm_read_file(self._c_format)
         except _format.FileFormatError as exc:

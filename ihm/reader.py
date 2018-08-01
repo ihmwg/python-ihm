@@ -11,6 +11,10 @@ import ihm.model
 import ihm.restraint
 import ihm.geometry
 import inspect
+try:
+    from . import _format
+except ImportError:
+    _format = None
 
 def _make_new_entity():
     """Make a new Entity object"""
@@ -1249,6 +1253,9 @@ class _GeometricRestraintHandler(_Handler):
 
 class _PolySeqSchemeHandler(_Handler):
     category = '_pdbx_poly_seq_scheme'
+
+    if _format is not None:
+        _add_c_handler = _format.add_poly_seq_scheme_handler
 
     def __call__(self, asym_id, seq_id, auth_seq_num):
         asym = self.sysr.asym_units.get_by_id(asym_id)
