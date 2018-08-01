@@ -114,48 +114,36 @@ static void handle_category_data(struct ihm_reader *reader, gpointer data,
   int i;
   struct category_handler_data *hd = data;
   struct ihm_keyword **keys;
-  PyObject *ret, *dict, *tuple;
+  PyObject *ret, *tuple;
 
-  /* make a dict of the data */
-  dict = PyDict_New();
-  if (!dict) {
-    g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE, "dict creation failed");
+  /* make a tuple of the data */
+  tuple = PyTuple_New(hd->num_keywords);
+  if (!tuple) {
+    g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE, "tuple creation failed");
     return;
   }
 
   for (i = 0, keys = hd->keywords; i < hd->num_keywords; ++i, ++keys) {
-    /* Add item to dict if it's in the file and not . */
+    PyObject *val;
+    /* Add item to tuple if it's in the file and not ., otherwise add None */
     if ((*keys)->in_file && !(*keys)->omitted) {
 #if PY_VERSION_HEX < 0x03000000
-      PyObject *val = PyString_FromString((*keys)->unknown ? "?"
-                                                           : (*keys)->data);
+      val = PyString_FromString((*keys)->unknown ? "?" : (*keys)->data);
 #else
-      PyObject *val = PyUnicode_FromString((*keys)->unknown ? "?"
-                                                            : (*keys)->data);
+      val = PyUnicode_FromString((*keys)->unknown ? "?" : (*keys)->data);
 #endif
       if (!val) {
         g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE, "string creation failed");
-        Py_DECREF(dict);
+        Py_DECREF(tuple);
         return;
       }
-      if (PyDict_SetItemString(dict, (*keys)->name, val) != 0) {
-        g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE,
-                    "dict item creation failed");
-        Py_DECREF(val);
-        Py_DECREF(dict);
-        return;
-      }
+    } else {
+      val = Py_None;
+      Py_INCREF(val);
     }
+    /* Steals ref to val */
+    PyTuple_SET_ITEM(tuple, i, val);
   }
-
-  tuple = PyTuple_New(1);
-  if (!tuple) {
-    g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE, "tuple creation failed");
-    Py_DECREF(dict);
-    return;
-  }
-  /* Steals ref to dict */
-  PyTuple_SET_ITEM(tuple, 0, dict);
 
   /* pass the data to Python */
   ret = PyObject_CallObject(hd->callable, tuple);
