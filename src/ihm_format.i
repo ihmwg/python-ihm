@@ -27,13 +27,21 @@ typedef int gboolean;
   if (fd == -1) {
     SWIG_fail;
   } else {
+%#ifdef _WIN32
+    $1 = g_io_channel_win32_new_fd(fd);
+%#else
     $1 = g_io_channel_unix_new(fd);
+%#endif
     g_io_channel_set_encoding($1, NULL, NULL);
   }
 %#else
   if (PyFile_Check($input)) {
     int fd = fileno(PyFile_AsFile($input));
+%#ifdef _WIN32
+    $1 = g_io_channel_win32_new_fd(fd);
+%#else
     $1 = g_io_channel_unix_new(fd);
+%#endif
     g_io_channel_set_encoding($1, NULL, NULL);
   } else {
     PyErr_Format(PyExc_ValueError, "Expected a Python file object for %s",
