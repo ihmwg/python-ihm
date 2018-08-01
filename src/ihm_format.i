@@ -164,13 +164,11 @@ static void handle_category_data(struct ihm_reader *reader, gpointer data,
     g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE, "Python error");
   }
 }
-%}
 
-%inline %{
-/* Add a generic category handler which collects all specified keywords for
-   the given category and passes them to a Python callable */
-void add_category_handler(struct ihm_reader *reader, char *name,
-                          PyObject *keywords, PyObject *callable, GError **err)
+static struct category_handler_data *do_add_handler(
+                        struct ihm_reader *reader, char *name,
+                        PyObject *keywords, PyObject *callable,
+                        ihm_category_callback data_callback, GError **err)
 {
   Py_ssize_t seqlen, i;
   struct ihm_category *category;
@@ -179,12 +177,12 @@ void add_category_handler(struct ihm_reader *reader, char *name,
   if (!PySequence_Check(keywords)) {
     g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE,
                 "'keywords' should be a sequence");
-    return;
+    return NULL;
   }
   if (!PyCallable_Check(callable)) {
     g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE,
                 "'callable' should be a callable object");
-    return;
+    return NULL;
   }
   seqlen = PySequence_Length(keywords);
   hd = g_malloc(sizeof(struct category_handler_data));
@@ -192,7 +190,7 @@ void add_category_handler(struct ihm_reader *reader, char *name,
   hd->callable = callable;
   hd->num_keywords = seqlen;
   hd->keywords = g_malloc(sizeof(struct ihm_keyword *) * seqlen);
-  category = ihm_category_new(reader, name, handle_category_data, NULL, hd,
+  category = ihm_category_new(reader, name, data_callback, NULL, hd,
                               category_handler_data_free);
   for (i = 0; i < seqlen; ++i) {
     PyObject *o = PySequence_GetItem(keywords, i);
@@ -208,153 +206,72 @@ void add_category_handler(struct ihm_reader *reader, char *name,
       Py_XDECREF(o);
       g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE,
                   "keywords[%ld] should be a string", i);
-      return;
+      return NULL;
     }
   }
+  return hd;
 }
 
 %}
 
+%inline %{
+/* Add a generic category handler which collects all specified keywords for
+   the given category and passes them to a Python callable */
+void add_category_handler(struct ihm_reader *reader, char *name,
+                          PyObject *keywords, PyObject *callable, GError **err)
+{
+  do_add_handler(reader, name, keywords, callable, handle_category_data, err);
+}
+%}
+
 %{
-/* Mapping from seq_id to auth_seq_num for a single asym */
-struct seq_id_mapping {
-  /* Mapping from int seq_id to int auth_seq_num */
-  GHashTable *numeric_map;
-
-  /* Mapping from int seq_id to str auth_seq_num */
-  GHashTable *non_numeric_map;
-};
-
-static struct seq_id_mapping* seq_id_mapping_new(void)
-{
-  struct seq_id_mapping *m;
-  m = g_malloc(sizeof(struct seq_id_mapping));
-  m->numeric_map = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL,
-                                         NULL);
-  m->non_numeric_map = g_hash_table_new_full(g_direct_hash, g_direct_equal,
-                                             NULL, g_free);
-  return m;
-}
-
-static void seq_id_mapping_free(gpointer d)
-{
-  struct seq_id_mapping *m = d;
-  g_hash_table_destroy(m->numeric_map);
-  g_hash_table_destroy(m->non_numeric_map);
-  g_free(m);
-}
-
-struct poly_seq_scheme_data {
-  /* The Python callable object that is given the data */
-  PyObject *callable;
-  struct ihm_keyword *asym_id, *seq_id, *auth_seq_num;
-
-  /* Per-asym seq_id/auth_seq_num mapping; keys are strings (asym_ids)
-     and values are struct seq_id_mapping* */
-  GHashTable *asym_map;
-};
-
-static void poly_seq_scheme_data_free(gpointer data)
-{
-  struct poly_seq_scheme_data *hd = data;
-  Py_DECREF(hd->callable);
-  g_hash_table_destroy(hd->asym_map);
-  g_free(hd);
-}
-
-/* Get the seq_id/auth_seq_num mapping for given asym_id, making a
-   new one if it doesn't exist */
-static struct seq_id_mapping *get_seq_id_mapping(GHashTable *asym_map,
-                                                 const char *asym_id)
-{
-  struct seq_id_mapping *m;
-
-  m = g_hash_table_lookup(asym_map, asym_id);
-  if (m) {
-    return m;
-  } else {
-    m = seq_id_mapping_new();
-    g_hash_table_insert(asym_map, g_strdup(asym_id), m);
-    return m;
-  }
-}
-
 /* Called for each _pdbx_poly_seq_scheme line */
 static void handle_poly_seq_scheme_data(struct ihm_reader *reader,
                                         gpointer data, GError **err)
 {
-  struct poly_seq_scheme_data *hd = data;
-  char *endptr;
-  int seq_id, auth_seq_num;
+  int i, seq_id, auth_seq_num;
+  char *seq_id_endptr, *auth_seq_num_endptr;
+  struct category_handler_data *hd = data;
+  struct ihm_keyword **keys;
 
-  /* Do nothing unless all fields are present */
-  if (!hd->asym_id->in_file || !hd->seq_id->in_file
-      || !hd->auth_seq_num->in_file || hd->asym_id->omitted
-      || hd->seq_id->omitted || hd->auth_seq_num->omitted
-      || hd->asym_id->unknown || hd->seq_id->unknown
-      || hd->auth_seq_num->unknown) {
-    return;
-  }
-
-  seq_id = strtol(hd->seq_id->data, &endptr, 10);
-  if (*endptr) {
-    /* Ignore invalid (non-numeric) seq_id */
-    return;
-  }
-
-  auth_seq_num = strtol(hd->auth_seq_num->data, &endptr, 10);
-  if (*endptr) {
-    /* non-numeric auth_seq_num - will never match seq_id */
-    struct seq_id_mapping *m = get_seq_id_mapping(hd->asym_map,
-                                                  hd->asym_id->data);
-    g_hash_table_insert(m->non_numeric_map, GINT_TO_POINTER(seq_id),
-                        g_strdup(hd->auth_seq_num->data));
-    printf("non-numeric asym %s seq_id %d auth_seq_num %s\n",
-           hd->asym_id->data, seq_id, hd->auth_seq_num->data);
-  } else {
-    if (seq_id == auth_seq_num) {
+  for (i = 0, keys = hd->keywords; i < hd->num_keywords; ++i, ++keys) {
+    /* Do nothing if any key is missing */
+    if (!(*keys)->in_file || (*keys)->omitted || (*keys)->unknown) {
       return;
-    } else {
-      /* numeric auth_seq_num */
-      struct seq_id_mapping *m = get_seq_id_mapping(hd->asym_map,
-                                                    hd->asym_id->data);
-      g_hash_table_insert(m->numeric_map, GINT_TO_POINTER(seq_id),
-                          GINT_TO_POINTER(auth_seq_num));
-      printf("numeric asym %s seq_id %d auth_seq_num %d\n",
-             hd->asym_id->data, seq_id, auth_seq_num);
     }
+  }
+
+  /* If seq_id (2nd keyword) and auth_seq_num (3rd keyword) are identical
+     integers, nothing needs to be done */
+  seq_id = strtol(hd->keywords[1]->data, &seq_id_endptr, 10);
+  auth_seq_num = strtol(hd->keywords[2]->data, &auth_seq_num_endptr, 10);
+  if (!*seq_id_endptr && !*auth_seq_num_endptr && seq_id == auth_seq_num) {
+    return;
+  } else {
+    /* Otherwise, call the normal handler */
+    handle_category_data(reader, data, err);
   }
 }
 %}
 
 %inline %{
-/* Add a handler specifically for the _pdbx_poly_seq_scheme table */
+/* Add a handler specifically for the _pdbx_poly_seq_scheme table.
+   This speeds up processing by skipping the callback to Python in
+   the common case where seq_id==auth_seq_num */
 void add_poly_seq_scheme_handler(struct ihm_reader *reader, char *name,
                                  PyObject *keywords, PyObject *callable,
                                  GError **err)
 {
-  struct ihm_category *category;
-  struct poly_seq_scheme_data *hd;
-
-  if (!PyCallable_Check(callable)) {
-    g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE,
-                "'callable' should be a callable object");
-    return;
+  struct category_handler_data *hd;
+  hd = do_add_handler(reader, name, keywords, callable,
+                      handle_poly_seq_scheme_data, err);
+  if (hd) {
+    /* Make sure the Python handler and the C handler agree on the order
+       of the keywords */
+    assert(hd->num_keywords >= 3);
+    assert(strcmp(hd->keywords[1]->name, "seq_id") == 0);
+    assert(strcmp(hd->keywords[2]->name, "auth_seq_num") == 0);
   }
-
-  hd = g_malloc(sizeof(struct poly_seq_scheme_data));
-  Py_INCREF(callable);
-  hd->callable = callable;
-  hd->asym_map = g_hash_table_new_full(g_str_hash, g_str_equal, g_free,
-                                       seq_id_mapping_free);
-
-  category = ihm_category_new(reader, name, handle_poly_seq_scheme_data,
-                              NULL, hd, poly_seq_scheme_data_free);
-  /* Ignore Python-provided keywords; provide our own in compile-time-known
-     locations */
-  hd->asym_id = ihm_keyword_new(category, "asym_id");
-  hd->seq_id = ihm_keyword_new(category, "seq_id");
-  hd->auth_seq_num = ihm_keyword_new(category, "auth_seq_num");
 }
 
 %}

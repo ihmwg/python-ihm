@@ -1257,6 +1257,8 @@ class _PolySeqSchemeHandler(_Handler):
     if _format is not None:
         _add_c_handler = _format.add_poly_seq_scheme_handler
 
+    # Note: do not change the ordering of the first 4 parameters to this
+    # function; the C parser expects them in this order
     def __call__(self, asym_id, seq_id, auth_seq_num):
         asym = self.sysr.asym_units.get_by_id(asym_id)
         seq_id = _get_int(seq_id)
