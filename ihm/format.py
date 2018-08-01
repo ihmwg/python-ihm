@@ -10,7 +10,12 @@ from __future__ import print_function
 import sys
 import textwrap
 import operator
-import inspect
+# getargspec is deprecated in Python 3, but getfullargspec has a very
+# similar interface
+try:
+    from inspect import getfullargspec as getargspec
+except ImportError:
+    from inspect import getargspec
 import re
 try:
     from . import _format
@@ -490,7 +495,7 @@ class CifReader(object):
         for h in self.category_handler.values():
             if not hasattr(h, '_keys'):
                 h._keys = [python_to_cif(x)
-                           for x in inspect.getargspec(h.__call__)[0][1:]]
+                           for x in getargspec(h.__call__)[0][1:]]
 
     def _read_file_c(self):
         """Read the file using the C parser"""
