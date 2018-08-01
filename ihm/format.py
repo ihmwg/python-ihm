@@ -21,6 +21,10 @@ if sys.version_info[0] >= 3:
 else:
     _long_type = long
 
+def _get_fields(keys):
+    for f in keys._fields:
+        yield f.replace('L', '[').replace('R', ']')
+
 class _LineWriter(object):
     def __init__(self, writer, line_len=80):
         self.writer = writer
@@ -227,8 +231,9 @@ class CifReader(object):
        :param dict category_handler: A dict to handle data
               extracted from the file. Keys are category names
               (e.g. "_entry") and values are objects that should be callable
-              and have a 'keys' attribute that is a list of the acceptable keys.
-              The object will be called with a dict of keywords and values.
+              and have a 'Keys' attribute that is a namedtuple class with a list
+              of the acceptable keys. The object will be called with a
+              Keys instance.
               (mmCIF keywords are case insensitive, so this class always treats
               them as lowercase regardless of the file contents.)
     """
@@ -359,7 +364,8 @@ class CifReader(object):
         """Read a line that sets a single value, e.g. "_entry.id   1YTI"""
         # Only read the value if we're interested in this category and key
         if vartoken.category in self.category_handler \
-          and vartoken.keyword in self.category_handler[vartoken.category].keys:
+          and vartoken.keyword \
+          in _get_fields(self.category_handler[vartoken.category].Keys):
             valtoken = self._get_token()
             if isinstance(valtoken, _ValueToken):
                 if vartoken.category not in self._category_data:
@@ -395,14 +401,16 @@ class CifReader(object):
                 raise CifParserError("Was expecting a keyword or value for "
                                      "loop at line %d" % self._linenum)
 
-    def _read_loop_data(self, handler, keywords):
+    def _read_loop_data(self, handler, num_wanted_keys, keyword_indices):
         """Read the data for a loop_ construct"""
+        data = [None] * num_wanted_keys
         while True:
-            values = []
-            for i in range(len(keywords)):
+            for i, index in enumerate(keyword_indices):
                 token = self._get_token()
                 if isinstance(token, _ValueToken):
-                    values.append(token.txt)
+                    if index >= 0:
+                        # Treat omitted values as if they don't exist
+                        data[index] = None if token.txt == '.' else token.txt
                 elif i == 0:
                     # OK, end of the loop
                     self._unget_token()
@@ -411,10 +419,7 @@ class CifReader(object):
                     raise CifParserError("Wrong number of data values in loop "
                               "(should be an exact multiple of the number "
                               "of keys) at line %d" % self._linenum)
-            # Treat omitted values as if they don't exist
-            d = dict((key, val) for (key, val) in zip(keywords, values)
-                     if key and val is not '.')
-            handler(d)
+            handler(handler.Keys._make(data))
 
     def _read_loop(self):
         """Handle a loop_ construct"""
@@ -422,9 +427,11 @@ class CifReader(object):
         # Skip data if we don't have a handler for it
         if category in self.category_handler:
             ch = self.category_handler[category]
-            wanted_keys = frozenset(ch.keys)
-            keywords = [k if k in wanted_keys else None for k in keywords]
-            self._read_loop_data(ch, keywords)
+            wanted_key_index = {}
+            for i, k in enumerate(_get_fields(ch.Keys)):
+                wanted_key_index[k] = i
+            indices = [wanted_key_index.get(k, -1) for k in keywords]
+            self._read_loop_data(ch, len(ch.Keys._fields), indices)
 
     def read_file(self):
         """Read the file and extract data.
@@ -463,7 +470,8 @@ class CifReader(object):
                 if self._token_index < 0:
                     break
         for cat, data in self._category_data.items():
-            self.category_handler[cat](data)
+            ch = self.category_handler[cat]
+            ch(ch.Keys._make(data.get(k, None) for k in _get_fields(ch.Keys)))
         # Clear category data for next call to read_file()
         self._category_data = {}
         return ndata > 1

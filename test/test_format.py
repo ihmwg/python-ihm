@@ -2,6 +2,7 @@ import utils
 import os
 import unittest
 import sys
+from collections import namedtuple
 
 if sys.version_info[0] >= 3:
     from io import StringIO
@@ -14,14 +15,19 @@ import ihm.format
 
 class GenericHandler(object):
     """Capture mmCIF data as a simple list of dicts"""
-    keys = ('method', 'foo', 'bar', 'baz', 'pdbx_keywords', 'var1',
-            'var2', 'var3')
+    Keys = namedtuple('Keys',
+                      ('method', 'foo', 'bar', 'baz', 'pdbx_keywords',
+                       'var1', 'var2', 'var3'))
 
     def __init__(self):
         self.data = []
 
     def __call__(self, data):
-        self.data.append(data)
+        d = {}
+        for k, v in data._asdict().items():
+            if v is not None:
+                d[k] = v
+        self.data.append(d)
 
 
 class StringWriter(object):
