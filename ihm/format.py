@@ -228,10 +228,14 @@ class CifReader(object):
        :param file fh: Open handle to the mmCIF file
        :param dict category_handler: A dict to handle data
               extracted from the file. Keys are category names
-              (e.g. "_entry") and values are objects that should be callable
-              and have a 'Keys' attribute that is a namedtuple class with a list
-              of the acceptable keys. The object will be called with a
-              Keys instance.
+              (e.g. "_entry") and values are objects that have a `__call__`
+              method. The names of the arguments to this `__call__` method
+              are mmCIF keywords that are extracted from the file (for the
+              keywords tr_vector[N] and rot_matrix[N][M] simply omit the [
+              and ] characters, since these are not valid for Python
+              identifiers). The object will be called with the data from
+              the file as a set of strings, or None for any keyword that is
+              not present in the file or is the mmCIF omitted value (.).
               (mmCIF keywords are case insensitive, so this class always treats
               them as lowercase regardless of the file contents.)
     """
@@ -478,6 +482,7 @@ class CifReader(object):
     def _add_category_keys(self):
         """Populate _keys for each category by inspecting its __call__ method"""
         def python_to_cif(field):
+            # Map valid Python identifiers to mmCIF keywords
             if field.startswith('tr_vector') or field.startswith('rot_matrix'):
                 return re.sub('(\d)', r'[\1]', field)
             else:
