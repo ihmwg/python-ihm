@@ -3,10 +3,6 @@ import os
 import unittest
 import sys
 from collections import namedtuple
-try:
-    from ihm import _format
-except ImportError:
-    _format = None
 
 if sys.version_info[0] >= 3:
     from io import StringIO
@@ -16,6 +12,11 @@ else:
 TOPDIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 utils.set_search_paths(TOPDIR)
 import ihm.format
+
+try:
+    from ihm import _format
+except ImportError:
+    _format = None
 
 class GenericHandler(object):
     """Capture mmCIF data as a simple list of dicts"""
@@ -412,6 +413,54 @@ x y
         for real_file in (True, False):
             h = TestFinalizeHandler()
             self._read_cif("# _exptl.method foo\n", real_file, {'_exptl':h})
+
+    def test_file_new_python_no_read_method(self):
+        """Test ihm_file_new_from_python with object with no read method"""
+        if _format is None:
+            self.skipTest("No C tokenizer")
+        self.assertRaises(AttributeError, _format.ihm_file_new_from_python,
+                          None)
+
+    def test_python_read_exception(self):
+        """Test exception in read callback is handled"""
+        if _format is None:
+            self.skipTest("No C tokenizer")
+        class MyError(Exception):
+            pass
+        class MyFileLike(object):
+            def read(self, numbytes):
+                raise MyError("some error")
+        fh = MyFileLike()
+        f = _format.ihm_file_new_from_python(fh)
+        reader = _format.ihm_reader_new(f)
+        self.assertRaises(MyError, _format.ihm_read_file, reader)
+        _format.ihm_reader_free(reader)
+
+    def test_python_read_not_string(self):
+        """Test that read() returning an invalid type is handled"""
+        if _format is None:
+            self.skipTest("No C tokenizer")
+        class MyFileLike(object):
+            def read(self, numbytes):
+                return 42
+        fh = MyFileLike()
+        f = _format.ihm_file_new_from_python(fh)
+        reader = _format.ihm_reader_new(f)
+        self.assertRaises(ValueError, _format.ihm_read_file, reader)
+        _format.ihm_reader_free(reader)
+
+    def test_python_read_too_long(self):
+        """Test that read() returning too many bytes is handled"""
+        if _format is None:
+            self.skipTest("No C tokenizer")
+        class MyFileLike(object):
+            def read(self, numbytes):
+                return " " * (numbytes + 10)
+        fh = MyFileLike()
+        f = _format.ihm_file_new_from_python(fh)
+        reader = _format.ihm_reader_new(f)
+        self.assertRaises(ValueError, _format.ihm_read_file, reader)
+        _format.ihm_reader_free(reader)
 
 if __name__ == '__main__':
     unittest.main()
