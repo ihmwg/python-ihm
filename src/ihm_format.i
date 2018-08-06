@@ -107,7 +107,8 @@ static ssize_t pyfile_read_callback(char *buffer, size_t buffer_len,
     }
 #else
   if (PyUnicode_Check(result)) {
-    if (!(read_str = PyUnicode_AsUTF8AndSize(result, &read_len))) {
+    /* This returns const char * on Python 3.7 or later */
+    if (!(read_str = (char *)PyUnicode_AsUTF8AndSize(result, &read_len))) {
       g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE, "string creation failed");
       Py_DECREF(result);
       return -1;
