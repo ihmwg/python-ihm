@@ -462,6 +462,42 @@ x y
         self.assertRaises(ValueError, _format.ihm_read_file, reader)
         _format.ihm_reader_free(reader)
 
+    def test_python_read_bytes(self):
+        """Test read() returning bytes (binary file)"""
+        if _format is None:
+            self.skipTest("No C tokenizer")
+        class MyFileLike(object):
+            def __init__(self):
+                self.calls = 0
+            def read(self, numbytes):
+                self.calls += 1
+                if self.calls == 1:
+                    return b"_exptl.method foo"
+                else:
+                    return b""
+        h = GenericHandler()
+        r = ihm.format.CifReader(MyFileLike(), {'_exptl':h})
+        r.read_file()
+        self.assertEqual(h.data, [{'method':'foo'}])
+
+    def test_python_read_unicode(self):
+        """Test read() returning Unicode (text file)"""
+        if _format is None:
+            self.skipTest("No C tokenizer")
+        class MyFileLike(object):
+            def __init__(self):
+                self.calls = 0
+            def read(self, numbytes):
+                self.calls += 1
+                if self.calls == 1:
+                    return u"_exptl.method foo"
+                else:
+                    return u""
+        h = GenericHandler()
+        r = ihm.format.CifReader(MyFileLike(), {'_exptl':h})
+        r.read_file()
+        self.assertEqual(h.data, [{'method':'foo'}])
+
     def test_line_endings(self):
         """Check that C tokenizer works with different line endings"""
         # todo: the Python tokenizer should handle the same endings

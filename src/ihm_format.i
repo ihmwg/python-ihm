@@ -77,6 +77,9 @@ static ssize_t pyfile_read_callback(char *buffer, size_t buffer_len,
   Py_ssize_t read_len;
   char *read_str;
   static char fmt[] = "(n)";
+#if PY_VERSION_HEX < 0x03000000
+  PyObject *bytes = NULL;
+#endif
   PyObject *read_method = data;
   PyObject *result = PyObject_CallFunction(read_method, fmt, buffer_len);
   if (!result) {
@@ -91,9 +94,26 @@ static ssize_t pyfile_read_callback(char *buffer, size_t buffer_len,
       Py_DECREF(result);
       return -1;
     }
+  } else if (PyUnicode_Check(result)) {
+    if (!(bytes = PyUnicode_AsUTF8String(result))) {
+      g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE, "string to bytes failed");
+      Py_DECREF(result);
+      return -1;
+    }
+    if (PyBytes_AsStringAndSize(bytes, &read_str, &read_len) < 0) {
+      g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE, "string creation failed");
+      Py_DECREF(result);
+      return -1;
+    }
 #else
   if (PyUnicode_Check(result)) {
     if (!(read_str = PyUnicode_AsUTF8AndSize(result, &read_len))) {
+      g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE, "string creation failed");
+      Py_DECREF(result);
+      return -1;
+    }
+  } else if (PyBytes_Check(result)) {
+    if (PyBytes_AsStringAndSize(result, &read_str, &read_len) < 0) {
       g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE, "string creation failed");
       Py_DECREF(result);
       return -1;
@@ -109,11 +129,17 @@ static ssize_t pyfile_read_callback(char *buffer, size_t buffer_len,
   if (read_len > buffer_len) {
     g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE,
                 "Python read method returned too many bytes");
+#if PY_VERSION_HEX < 0x03000000
+    Py_XDECREF(bytes);
+#endif
     Py_DECREF(result);
     return -1;
   }
 
   memcpy(buffer, read_str, read_len);
+#if PY_VERSION_HEX < 0x03000000
+  Py_XDECREF(bytes);
+#endif
   Py_DECREF(result);
   return read_len;
 }
