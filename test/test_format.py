@@ -462,5 +462,19 @@ x y
         self.assertRaises(ValueError, _format.ihm_read_file, reader)
         _format.ihm_reader_free(reader)
 
+    def test_line_endings(self):
+        """Check that C tokenizer works with different line endings"""
+        # todo: the Python tokenizer should handle the same endings
+        if _format is None:
+            self.skipTest("No C tokenizer")
+
+        for end in ('\n', '\r', '\r\n', '\0'):
+            h = GenericHandler()
+            self._read_cif("_struct_keywords.pdbx_keywords\n"
+                           ";COMPLEX %s(HYDROLASE/PEPTIDE)%s;" % (end, end),
+                           False, {'_struct_keywords':h})
+            self.assertEqual(h.data,
+                    [{'pdbx_keywords':'COMPLEX \n(HYDROLASE/PEPTIDE)'}])
+
 if __name__ == '__main__':
     unittest.main()
