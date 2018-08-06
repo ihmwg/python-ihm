@@ -1,6 +1,7 @@
 import utils
 import os
 import unittest
+import sys
 try:
     from unittest import skipIf
 except ImportError:
@@ -466,6 +467,15 @@ x y
         reader = _format.ihm_reader_new(f)
         self.assertRaises(ValueError, _format.ihm_read_file, reader)
         _format.ihm_reader_free(reader)
+
+    @skipIf(_format is None or sys.platform == 'win32',
+            "No C tokenizer, or Windows")
+    def test_fd_read_failure(self):
+        """Test handling of C read() failure"""
+        f = open('/dev/null')
+        os.close(f.fileno()) # Force read from file descriptor to fail
+        r = ihm.format.CifReader(f, {})
+        self.assertRaises(IOError, r.read_file)
 
     @skipIf(_format is None, "No C tokenizer")
     def test_python_read_bytes(self):
