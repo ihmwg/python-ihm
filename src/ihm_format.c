@@ -12,29 +12,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <glib.h>
+#include <unistd.h>
+#include <errno.h>
 
 /* Domain for IHM errors */
 GQuark ihm_error_quark(void)
 {
   return g_quark_from_static_string("ihm-error-quark");
-}
-
-static gboolean file_read_line(GIOChannel *fh, GString *line, gboolean *eof,
-                               GError **err)
-{
-  gsize terminator;
-  GIOStatus stat = g_io_channel_read_line_string(fh, line, &terminator, err);
-  if (stat == G_IO_STATUS_ERROR || stat == G_IO_STATUS_AGAIN) {
-    /* todo: handle AGAIN sensibly */
-    return FALSE;
-  } else if (stat == G_IO_STATUS_EOF) {
-    *eof = 1;
-    return TRUE;
-  } else {
-    *eof = 0;
-    g_string_truncate(line, terminator); /* remove line ending if any */
-    return TRUE;
-  }
 }
 
 /* Compare two ASCII strings for equality, ignoring case. To be used for hash
@@ -89,13 +73,11 @@ struct ihm_category {
 /* Keep track of data used while reading an mmCIF file. */
 struct ihm_reader {
   /* The file handle to read from */
-  GIOChannel *fh;
+  struct ihm_file *fh;
   /* The current line number in the file */
   int linenum;
-  /* The last line read from the file */
-  GString *line;
-  /* The next line read from the file (used for multiline tokens) */
-  GString *nextline;
+  /* For multiline tokens, the entire contents of the lines */
+  GString *multiline;
   /* All tokens parsed from the last line */
   GArray *tokens;
   /* The next token to be returned */
@@ -198,14 +180,129 @@ static void set_value(struct ihm_reader *reader,
   key->in_file = TRUE;
 }
 
+/* Make a new ihm_file */
+struct ihm_file *ihm_file_new(ihm_file_read_callback read_callback,
+                              gpointer data, GFreeFunc free_func)
+{
+  struct ihm_file *file = g_malloc(sizeof(struct ihm_file));
+  file->buffer = g_string_new("");
+  file->line_start = file->next_line_start = 0;
+  file->read_callback = read_callback;
+  file->data = data;
+  file->free_func = free_func;
+  return file;
+}
+
+/* Free memory used by ihm_file */
+static void ihm_file_free(struct ihm_file *file)
+{
+  g_string_free(file->buffer, TRUE);
+  if (file->free_func) {
+    (*file->free_func) (file->data);
+  }
+  g_free(file);
+}
+
+/* Read data from a file descriptor */
+static ssize_t fd_read_callback(char *buffer, size_t buffer_len, gpointer data,
+		                GError **err)
+{
+  int fd = GPOINTER_TO_INT(data);
+  ssize_t readlen;
+
+  while(1) {
+    readlen = read(fd, buffer, buffer_len);
+    if (readlen != -1 || errno != EAGAIN) break;
+    /* If EAGAIN encountered, wait for more data to become available */
+    usleep(100);
+  }
+  if (readlen == -1) {
+    g_set_error(err, IHM_ERROR, IHM_ERROR_IO, "%s", strerror(errno));
+  }
+  return readlen;
+}
+
+/* Read data from file to expand the in-memory buffer.
+   Returns the number of bytes read (0 on EOF), or -1 (and sets err) on error
+ */
+static ssize_t expand_buffer(struct ihm_file *fh, GError **err)
+{
+  static const size_t READ_SIZE = 1048576; /* Read 1MiB of data at a time */
+  size_t current_size;
+  ssize_t readlen;
+
+  /* Move any existing data to the start of the buffer (otherwise the buffer
+     will grow to the full size of the file) */
+  if (fh->line_start) {
+    g_string_erase(fh->buffer, 0, fh->line_start);
+    fh->next_line_start -= fh->line_start;
+    fh->line_start = 0;
+  }
+
+  current_size = fh->buffer->len;
+  g_string_set_size(fh->buffer, current_size + READ_SIZE);
+  readlen = (*fh->read_callback)(fh->buffer->str + current_size, READ_SIZE,
+                                 fh->data, err);
+  g_string_set_size(fh->buffer, current_size + (readlen == -1 ? 0 : readlen));
+  return readlen;
+}
+
+/* Read the next line from the file. Lines are terminated by \n, \r, \r\n,
+   or \0. On success, TRUE is returned. fh->line_start points to the start of
+   the null-terminated line. *eof is set TRUE iff the end of the line is
+   the end of the file.
+   On error, FALSE is returned and err is set.
+ */
+static gboolean ihm_file_read_line(struct ihm_file *fh, gboolean *eof,
+                                   GError **err)
+{
+  size_t line_end;
+  *eof = FALSE;
+  fh->line_start = fh->next_line_start;
+  if (fh->line_start > fh->buffer->len) {
+    /* EOF occurred earlier - return it (plus an empty string) again */
+    *eof = TRUE;
+    fh->line_start = 0;
+    fh->buffer->str[0] = '\0';
+    return TRUE;
+  }
+
+  /* Line is only definitely terminated if there are characters after it
+     (embedded NULL, or \r followed by a possible \n) */
+  while((line_end = fh->line_start
+           + strcspn(fh->buffer->str + fh->line_start, "\r\n"))
+         == fh->buffer->len) {
+    ssize_t num_added = expand_buffer(fh, err);
+    if (num_added < 0) {
+      return FALSE; /* error occurred */
+    } else if (num_added == 0) {
+      *eof = TRUE; /* end of file */
+      break;
+    }
+  }
+  fh->next_line_start = line_end + 1;
+  /* Handle \r\n terminator */
+  if (fh->buffer->str[line_end] == '\r'
+      && fh->buffer->str[line_end + 1] == '\n') {
+    fh->next_line_start++;
+  }
+  fh->buffer->str[line_end] = '\0';
+  return TRUE;
+}
+
+/* Make a new ihm_file that will read data from the given file descriptor */
+struct ihm_file *ihm_file_new_from_fd(int fd)
+{
+  return ihm_file_new(fd_read_callback, GINT_TO_POINTER(fd), NULL);
+}
+
 /* Make a new struct ihm_reader */
-struct ihm_reader *ihm_reader_new(GIOChannel *fh)
+struct ihm_reader *ihm_reader_new(struct ihm_file *fh)
 {
   struct ihm_reader *reader = g_malloc(sizeof(struct ihm_reader));
   reader->fh = fh;
   reader->linenum = 0;
-  reader->line = g_string_new(NULL);
-  reader->nextline = g_string_new(NULL);
+  reader->multiline = g_string_new(NULL);
   reader->tokens = g_array_new(FALSE, FALSE, sizeof(struct ihm_token));
   reader->token_index = 0;
   reader->category_map = g_hash_table_new_full(g_str_case_hash,
@@ -217,10 +314,10 @@ struct ihm_reader *ihm_reader_new(GIOChannel *fh)
 /* Free memory used by a struct ihm_reader */
 void ihm_reader_free(struct ihm_reader *reader)
 {
-  g_string_free(reader->line, TRUE);
-  g_string_free(reader->nextline, TRUE);
+  g_string_free(reader->multiline, TRUE);
   g_array_free(reader->tokens, TRUE);
   g_hash_table_destroy(reader->category_map);
+  ihm_file_free(reader->fh);
   g_free(reader);
 }
 
@@ -316,6 +413,12 @@ static void tokenize(struct ihm_reader *reader, char *line, GError **err)
   }
 }
 
+/* Return a pointer to the current line */
+static char *line_pt(struct ihm_reader *reader)
+{
+  return reader->fh->buffer->str + reader->fh->line_start;
+}
+
 /* Read a semicolon-delimited (multiline) token */
 static void read_multiline_token(struct ihm_reader *reader,
                                  gboolean ignore_multiline, GError **err)
@@ -324,19 +427,19 @@ static void read_multiline_token(struct ihm_reader *reader,
   int start_linenum = reader->linenum;
   while (!eof) {
     reader->linenum++;
-    if (!file_read_line(reader->fh, reader->nextline, &eof, err)) {
+    if (!ihm_file_read_line(reader->fh, &eof, err)) {
       return;
-    } else if (reader->nextline->len > 0 && reader->nextline->str[0] == ';') {
+    } else if (line_pt(reader)[0] == ';') {
       struct ihm_token t;
       t.type = MMCIF_TOKEN_VALUE;
-      t.str = reader->line->str + 1;    /* Skip initial semicolon */
+      t.str = reader->multiline->str;
       g_array_set_size(reader->tokens, 0);
       g_array_append_val(reader->tokens, t);
       reader->token_index = 0;
       return;
     } else if (!ignore_multiline) {
-      g_string_append_c(reader->line, '\n');
-      g_string_append(reader->line, reader->nextline->str);
+      g_string_append_c(reader->multiline, '\n');
+      g_string_append(reader->multiline, line_pt(reader));
     }
   }
   g_set_error(err, IHM_ERROR, IHM_ERROR_FILE_FORMAT,
@@ -371,15 +474,19 @@ static struct ihm_token *get_token(struct ihm_reader *reader,
     do {
       /* No tokens left - read the next non-blank line in */
       reader->linenum++;
-      if (!file_read_line(reader->fh, reader->line, &eof, err)) {
+      if (!ihm_file_read_line(reader->fh, &eof, err)) {
         return NULL;
-      } else if (reader->line->len > 0 && reader->line->str[0] == ';') {
+      } else if (line_pt(reader)[0] == ';') {
+        if (!ignore_multiline) {
+          /* Skip initial semicolon */
+          g_string_assign(reader->multiline, line_pt(reader) + 1);
+        }
         read_multiline_token(reader, ignore_multiline, err);
         if (*err) {
           return NULL;
         }
       } else {
-        tokenize(reader, reader->line->str, err);
+        tokenize(reader, line_pt(reader), err);
         if (*err) {
           return NULL;
         } else {

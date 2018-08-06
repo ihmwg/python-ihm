@@ -247,7 +247,8 @@ class CifReader(object):
     def __init__(self, fh, category_handler):
         if _format is not None:
             try:
-                self._c_format = _format.ihm_reader_new(fh)
+                c_file = _format.ihm_file_new_from_python(fh)
+                self._c_format = _format.ihm_reader_new(c_file)
             except ValueError:
                 pass
         self.category_handler = category_handler

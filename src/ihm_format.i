@@ -21,37 +21,6 @@ typedef int gboolean;
 
 %ignore ihm_keyword;
 
-/* Convert a Python file object to a GIOChannel */
-%typemap(in) (GIOChannel *fh) {
-%#if PY_VERSION_HEX >= 0x03000000
-  int fd = PyObject_AsFileDescriptor($input);
-  if (fd == -1) {
-    SWIG_fail;
-  } else {
-%#ifdef _WIN32
-    $1 = g_io_channel_win32_new_fd(fd);
-%#else
-    $1 = g_io_channel_unix_new(fd);
-%#endif
-    g_io_channel_set_encoding($1, NULL, NULL);
-  }
-%#else
-  if (PyFile_Check($input)) {
-    int fd = fileno(PyFile_AsFile($input));
-%#ifdef _WIN32
-    $1 = g_io_channel_win32_new_fd(fd);
-%#else
-    $1 = g_io_channel_unix_new(fd);
-%#endif
-    g_io_channel_set_encoding($1, NULL, NULL);
-  } else {
-    PyErr_Format(PyExc_ValueError, "Expected a Python file object for %s",
-                 "$1_name");
-    SWIG_fail;
-  }
-%#endif
-}
-
 /* Convert GError to a Python exception */
 
 %init {
@@ -74,6 +43,9 @@ static void handle_error(GError *err)
     case IHM_ERROR_VALUE:
       py_err_type = PyExc_ValueError;
       break;
+    case IHM_ERROR_IO:
+      py_err_type = PyExc_IOError;
+      break;
     }
   }
   /* Don't overwrite a Python exception already raised (e.g. by a callback) */
@@ -95,6 +67,97 @@ static void handle_error(GError *err)
     SWIG_fail;
   }
 }
+
+%{
+
+/* Read data from a Python filelike object */
+static ssize_t pyfile_read_callback(char *buffer, size_t buffer_len,
+                                    gpointer data, GError **err)
+{
+  Py_ssize_t read_len;
+  char *read_str;
+  static char fmt[] = "(n)";
+  PyObject *read_method = data;
+  PyObject *result = PyObject_CallFunction(read_method, fmt, buffer_len);
+  if (!result) {
+    g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE, "read failed");
+    return -1;
+  }
+
+#if PY_VERSION_HEX < 0x03000000
+  if (PyString_Check(result)) {
+    if (PyString_AsStringAndSize(result, &read_str, &read_len) < 0) {
+      g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE, "string creation failed");
+      Py_DECREF(result);
+      return -1;
+    }
+#else
+  if (PyUnicode_Check(result)) {
+    if (!(read_str = PyUnicode_AsUTF8AndSize(result, &read_len))) {
+      g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE, "string creation failed");
+      Py_DECREF(result);
+      return -1;
+    }
+#endif
+  } else {
+    g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE,
+                "read method should return a string");
+    Py_DECREF(result);
+    return -1;
+  }
+
+  if (read_len > buffer_len) {
+    g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE,
+                "Python read method returned too many bytes");
+    Py_DECREF(result);
+    return -1;
+  }
+
+  memcpy(buffer, read_str, read_len);
+  Py_DECREF(result);
+  return read_len;
+}
+
+static void pyfile_free(gpointer data)
+{
+  PyObject *read_method = data;
+  Py_DECREF(read_method);
+}
+
+%}
+
+
+%inline %{
+/* Wrap a Python file object as an ihm_file */
+struct ihm_file *ihm_file_new_from_python(PyObject *pyfile, GError **err)
+{
+  PyObject *read_method;
+
+  /* Use the file descriptor directly if the Python file is a real file */
+#if PY_VERSION_HEX >= 0x03000000
+  int fd = PyObject_AsFileDescriptor(pyfile);
+  if (fd == -1) {
+    PyErr_Clear();
+  } else {
+    return ihm_file_new_from_fd(fd);
+  }
+#else
+  if (PyFile_Check(pyfile)) {
+    int fd = fileno(PyFile_AsFile(pyfile));
+    return ihm_file_new_from_fd(fd);
+  }
+#endif
+
+  /* Otherwise, look for a read() method and use that */
+  if (!(read_method = PyObject_GetAttrString(pyfile, "read"))) {
+    g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE, "no read method");
+    return NULL;
+  }
+
+  return ihm_file_new(pyfile_read_callback, read_method, pyfile_free);
+}
+
+%}
 
 %{
 struct category_handler_data {
