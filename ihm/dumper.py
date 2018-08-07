@@ -785,6 +785,21 @@ class _PostProcessDumper(_Dumper):
                                                if s.script_file else None)
 
 
+class _RangeChecker(object):
+    """Check Atom or Sphere objects to make sure they match the
+       Representation"""
+    def __init__(self, model):
+        r = model.representation if model.representation else []
+        self.asym_ids = frozenset(s.asym_unit._id for s in r)
+
+    def __call__(self, obj, asym):
+        if asym._id not in self.asym_ids:
+            raise ValueError("%s refers to an asym ID (%s) that is not in this "
+                 "model's representation (which includes the following asym "
+                 "IDs: %s)"
+                 % (obj, asym._id, ", ".join(sorted(a for a in self.asym_ids))))
+
+
 class _ModelDumper(object):
 
     def finalize(self, system):
@@ -808,6 +823,21 @@ class _ModelDumper(object):
         self.dump_spheres(system, writer)
         self.dump_atom_type(seen_types, system, writer)
 
+    def _check_representation(self, model):
+        """Check the Representation of the given Model for sanity."""
+        # Representation should only reference asyms that are in Assembly
+        a = model.assembly if model.assembly else []
+        # Get IDs of all asym units and ranges (not entities)
+        asym_ids = frozenset(x._id for x in a if hasattr(x, 'entity'))
+        r = model.representation if model.representation else []
+        for segment in r:
+            if segment.asym_unit._id not in asym_ids:
+                raise ValueError("%s refers to an asym ID (%s) that is not in "
+                         "this model's assembly (which includes the following "
+                         "asym IDs: %s)"
+                         % (segment, segment.asym_unit._id,
+                            ", ".join(sorted(a for a in asym_ids))))
+
     def dump_model_list(self, system, writer):
         ordinal = 1
         with writer.loop("_ihm_model_list",
@@ -815,6 +845,7 @@ class _ModelDumper(object):
                           "model_name", "model_group_name", "assembly_id",
                           "protocol_id", "representation_id"]) as l:
             for group, model in system._all_models():
+                self._check_representation(model)
                 l.write(ordinal_id=ordinal, model_id=model._id,
                         model_group_id=group._id,
                         model_name=model.name,
@@ -848,7 +879,9 @@ class _ModelDumper(object):
                           "B_iso_or_equiv", "pdbx_PDB_model_num",
                           "ihm_model_id"]) as l:
             for group, model in system._all_models():
+                rngcheck = _RangeChecker(model)
                 for atom in model.get_atoms():
+                    rngcheck(atom, atom.asym_unit)
                     comp = atom.asym_unit.entity.sequence[atom.seq_id-1]
                     seen_types[atom.type_symbol] = None
                     l.write(id=ordinal,
@@ -875,7 +908,9 @@ class _ModelDumper(object):
                           "Cartn_y", "Cartn_z", "object_radius", "rmsf",
                           "model_id"]) as l:
             for group, model in system._all_models():
+                rngcheck = _RangeChecker(model)
                 for sphere in model.get_spheres():
+                    rngcheck(sphere, sphere.asym_unit)
                     l.write(ordinal_id=ordinal,
                             entity_id=sphere.asym_unit.entity._id,
                             seq_id_begin=sphere.seq_id_range[0],
