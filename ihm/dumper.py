@@ -804,18 +804,26 @@ class _ModelDumper(object):
 
     def finalize(self, system):
         # Remove any existing ID
-        for g in system._all_model_groups():
+        for g in system._all_model_groups(only_in_states=False):
+            if hasattr(g, '_id'):
+                del g._id
             for m in g:
                 if hasattr(m, '_id'):
                     del m._id
         model_id = 1
-        # Assign IDs to models and groups
+        # Assign IDs to models and groups in states
         for ng, g in enumerate(system._all_model_groups()):
             g._id = ng + 1
             for m in g:
                 if not hasattr(m, '_id'):
                     m._id = model_id
                     model_id += 1
+        # Check for any groups not referenced by states
+        for g in system._all_model_groups(only_in_states=False):
+            if not hasattr(g, '_id'):
+                raise ValueError("%s is referenced only by an Ensemble or "
+                                 "OrderedProcess. ModelGroups should be "
+                                 "stored in State objects." % g)
 
     def dump(self, system, writer):
         self.dump_model_list(system, writer)

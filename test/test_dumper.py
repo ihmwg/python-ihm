@@ -1417,6 +1417,23 @@ _ihm_multi_state_modeling.details
 #
 """)
 
+    def test_orphan_model_groups(self):
+        """Test detection of ModelGroups not in States"""
+        system = ihm.System()
+        m1 = ihm.model.Model(assembly='a1', protocol='p1', representation='r1')
+        group = ihm.model.ModelGroup([m1])
+        group._id = 42
+
+        e1 = ihm.model.Ensemble(model_group=group, num_models=10,
+                                post_process=None, name='cluster1',
+                                clustering_method='Hierarchical',
+                                clustering_feature='RMSD',
+                                precision=4.2)
+        system.ensembles.append(e1)
+
+        dumper = ihm.dumper._ModelDumper()
+        self.assertRaises(ValueError, dumper.finalize, system)
+
     def test_ordered(self):
         """Test OrderedDumper"""
         system = ihm.System()
