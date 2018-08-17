@@ -625,13 +625,6 @@ static void call_category(struct ihm_reader *reader,
   g_hash_table_foreach(category->keyword_map, clear_keywords, NULL);
 }
 
-struct loop_keyword_check_data {
-  struct ihm_reader *reader;
-  struct ihm_category *category;
-  GHashTable *found_keywords;
-  GError **err;
-};
-
 /* Read the list of keywords from a loop_ construct. */
 static GPtrArray *read_loop_keywords(struct ihm_reader *reader,
                                      struct ihm_category **category,
