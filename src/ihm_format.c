@@ -21,147 +21,110 @@ GQuark ihm_error_quark(void)
   return g_quark_from_static_string("ihm-error-quark");
 }
 
-/* Compare two ASCII strings for equality, ignoring case. To be used for hash
-   tables. */
-static gboolean g_str_case_equal(gconstpointer v1, gconstpointer v2)
-{
-  const gchar *string1 = v1;
-  const gchar *string2 = v2;
-  return g_ascii_strcasecmp(string1, string2) == 0;
-}
-
-/* Converts an ASCII string to a hash value, ignoring case. To be used for hash
-   tables. */
-static guint g_str_case_hash(gconstpointer v)
-{
-  const signed char *p = v;
-  guint32 h = (signed char)g_ascii_tolower(*p);
-
-  if (h)
-    for (p += 1; *p != '\0'; p++)
-      h = (h << 5) - h + (signed char)g_ascii_tolower(*p);
-
-  return h;
-}
-
-/* Prime */
-#define NUM_HASH_BUCKETS 29
-
-struct ihm_hash_bucket {
-  gpointer key;
+struct ihm_key_value {
+  char *key;
   gpointer value;
-  struct ihm_hash_bucket *next;
 };
 
-/* Simple key:value mapping */
-struct ihm_hash_table {
-  struct ihm_hash_bucket bucket[NUM_HASH_BUCKETS];
-  GHashFunc key_hash_func;
-  GEqualFunc key_equal_func;
-  GDestroyNotify key_destroy_func;
+/* Simple case-insensitive string to struct* mapping using a binary search */
+struct ihm_mapping {
+  /* Array of struct ihm_key_value */
+  GArray *keyvalues;
+  /* Function to free mapping values */
   GDestroyNotify value_destroy_func;
 };
 
-static struct ihm_hash_table *ihm_hash_table_new(GHashFunc key_hash_func,
-                       GEqualFunc key_equal_func,
-                       GDestroyNotify key_destroy_func,
-                       GDestroyNotify value_destroy_func)
+/* Make a new mapping from case-insensitive strings to arbitary pointers.
+   The mapping uses a simple binary search (more memory efficient than
+   a hash table and generally faster too since the number of keys is quite
+   small). */
+struct ihm_mapping *ihm_mapping_new(GDestroyNotify value_destroy_func)
+{
+  struct ihm_mapping *m = g_malloc(sizeof(struct ihm_mapping));
+  m->keyvalues = g_array_new(FALSE, FALSE, sizeof(struct ihm_key_value));
+  m->value_destroy_func = value_destroy_func;
+  return m;
+}
+
+/* Clear all key:value pairs from the mapping */
+static void ihm_mapping_remove_all(struct ihm_mapping *m)
 {
   unsigned i;
-  struct ihm_hash_table *h = g_malloc(sizeof(struct ihm_hash_table));
-  for (i = 0; i < NUM_HASH_BUCKETS; ++i) {
-    h->bucket[i].next = NULL;
-    h->bucket[i].key = NULL;
-    h->bucket[i].value = NULL;
+  for (i = 0; i < m->keyvalues->len; ++i) {
+    (*m->value_destroy_func)(g_array_index(m->keyvalues,
+                                           struct ihm_key_value, i).value);
   }
-  h->key_hash_func = key_hash_func;
-  h->key_equal_func = key_equal_func;
-  h->key_destroy_func = key_destroy_func;
-  h->value_destroy_func = value_destroy_func;
-  return h;
+  g_array_set_size(m->keyvalues, 0);
 }
 
-static void release_key_value(struct ihm_hash_table *h, gpointer key,
-                              gpointer value)
+/* Free memory used by a mapping */
+static void ihm_mapping_free(struct ihm_mapping *m)
 {
-  if (h->key_destroy_func) {
-    (*h->key_destroy_func)(key);
-  }
-  if (h->value_destroy_func) {
-    (*h->value_destroy_func)(value);
-  }
+  ihm_mapping_remove_all(m);
+  g_array_free(m->keyvalues, TRUE);
+  g_free(m);
 }
 
-static void ihm_hash_table_remove_all(struct ihm_hash_table *h)
+/* Add a new key:value pair to the mapping. key is assumed to point to memory
+   that is managed elsewhere (and must be valid as long as the mapping exists)
+   while value is freed using value_destroy_func when the mapping is freed.
+   Neither keys or nor values should ever be NULL. */
+static void ihm_mapping_insert(struct ihm_mapping *m, char *key,
+                               gpointer value)
+{
+  struct ihm_key_value kv;
+  kv.key = key;
+  kv.value = value;
+  g_array_append_val(m->keyvalues, kv);
+}
+
+static gint mapping_compare(gconstpointer a, gconstpointer b)
+{
+  const struct ihm_key_value *kv1, *kv2;
+  kv1 = a;
+  kv2 = b;
+  return strcasecmp(kv1->key, kv2->key);
+}
+
+/* Put a mapping's key:value pairs in sorted order. This must be done
+   before ihm_mapping_lookup is used. */
+static void ihm_mapping_sort(struct ihm_mapping *m)
+{
+  g_array_sort(m->keyvalues, mapping_compare);
+}
+
+/* Look up key in the mapping and return the corresponding value, or NULL
+   if not present. This uses a simple binary search so requires that
+   ihm_mapping_sort() has been called first. */
+static gpointer ihm_mapping_lookup(struct ihm_mapping *m, char *key)
+{
+  int left = 0, right = m->keyvalues->len - 1;
+
+  while (left <= right) {
+    int mid = (left + right) / 2;
+    int cmp = strcasecmp(g_array_index(m->keyvalues, struct ihm_key_value,
+                                       mid).key, key);
+    if (cmp < 0) {
+      left = mid + 1;
+    } else if (cmp > 0) {
+      right = mid - 1;
+    } else {
+      return g_array_index(m->keyvalues, struct ihm_key_value, mid).value;
+    }
+  }
+  return NULL;
+}
+
+/* Call the given function, passing it key, value, and data, for each
+   key:value pair in the mapping. */
+static void ihm_mapping_foreach(struct ihm_mapping *m,
+                                GHFunc func, gpointer data)
 {
   unsigned i;
-  for (i = 0; i < NUM_HASH_BUCKETS; ++i) {
-    while(h->bucket[i].next) {
-      struct ihm_hash_bucket *next = h->bucket[i].next;
-      release_key_value(h, next->key, next->value);
-      h->bucket[i].next = next->next;
-      g_free(next);
-    }
-    if (h->bucket[i].key) {
-      release_key_value(h, h->bucket[i].key, h->bucket[i].value);
-    }
-    h->bucket[i].key = NULL;
-    h->bucket[i].value = NULL;
-    h->bucket[i].next = NULL;
-  }
-}
-
-static void ihm_hash_table_free(struct ihm_hash_table *h)
-{
-  ihm_hash_table_remove_all(h);
-  g_free(h);
-}
-
-static void ihm_hash_table_insert(struct ihm_hash_table *h, gpointer key,
-                                  gpointer value)
-{
-  guint nbucket = (*h->key_hash_func)(key) % NUM_HASH_BUCKETS;
-  struct ihm_hash_bucket *bucket = &h->bucket[nbucket];
-  while(bucket->key && !(*h->key_equal_func)(key, bucket->key)) {
-    if (!bucket->next) {
-      struct ihm_hash_bucket *b = g_malloc(sizeof(struct ihm_hash_bucket));
-      b->key = b->value = b->next = NULL;
-      bucket->next = b;
-    }
-    bucket = bucket->next;
-  }
-  if (bucket->key) {
-    /* Free existing key */
-    release_key_value(h, bucket->key, bucket->value);
-  }
-  bucket->key = key;
-  bucket->value = value;
-}
-
-static gpointer ihm_hash_table_lookup(struct ihm_hash_table *h, gpointer key)
-{
-  guint nbucket = (*h->key_hash_func)(key) % NUM_HASH_BUCKETS;
-  struct ihm_hash_bucket *bucket = &h->bucket[nbucket];
-  while(bucket && bucket->key && !(*h->key_equal_func)(key, bucket->key)) {
-    bucket = bucket->next;
-  }
-  if (bucket && bucket->key) {
-    return bucket->value;
-  } else {
-    return NULL;
-  }
-}
-
-static void ihm_hash_table_foreach(struct ihm_hash_table *h,
-                                   GHFunc func, gpointer data)
-{
-  unsigned i;
-  for (i = 0; i < NUM_HASH_BUCKETS; ++i) {
-    struct ihm_hash_bucket *bucket = &h->bucket[i];
-    while(bucket && bucket->key) {
-      (*func)(bucket->key, bucket->value, data);
-      bucket = bucket->next;
-    }
+  for (i = 0; i < m->keyvalues->len; ++i) {
+    struct ihm_key_value *kv = &g_array_index(m->keyvalues,
+                                              struct ihm_key_value, i);
+    (*func)(kv->key, kv->value, data);
   }
 }
 
@@ -180,7 +143,7 @@ static void ihm_keyword_free(gpointer value)
 struct ihm_category {
   char *name;
   /* All keywords that we want to extract in this category */
-  struct ihm_hash_table *keyword_map;
+  struct ihm_mapping *keyword_map;
   /* Function called when we have all data for this category */
   ihm_category_callback data_callback;
   /* Function called at the very end of the data block */
@@ -204,7 +167,7 @@ struct ihm_reader {
   /* The next token to be returned */
   guint token_index;
   /* All categories that we want to extract from the file */
-  struct ihm_hash_table *category_map;
+  struct ihm_mapping *category_map;
 };
 
 typedef enum {
@@ -225,7 +188,7 @@ struct ihm_token {
 static void ihm_category_free(gpointer value)
 {
   struct ihm_category *cat = value;
-  ihm_hash_table_free(cat->keyword_map);
+  ihm_mapping_free(cat->keyword_map);
   g_free(cat->name);
   if (cat->free_func) {
     (*cat->free_func) (cat->data);
@@ -246,10 +209,8 @@ struct ihm_category *ihm_category_new(struct ihm_reader *reader,
   category->finalize_callback = finalize_callback;
   category->data = data;
   category->free_func = free_func;
-  category->keyword_map = ihm_hash_table_new(g_str_case_hash,
-                                             g_str_case_equal, NULL,
-                                             ihm_keyword_free);
-  ihm_hash_table_insert(reader->category_map, category->name, category);
+  category->keyword_map = ihm_mapping_new(ihm_keyword_free);
+  ihm_mapping_insert(reader->category_map, category->name, category);
   return category;
 }
 
@@ -261,7 +222,7 @@ struct ihm_keyword *ihm_keyword_new(struct ihm_category *category,
   key->name = g_strdup(name);
   key->own_data = FALSE;
   key->in_file = FALSE;
-  ihm_hash_table_insert(category->keyword_map, key->name, key);
+  ihm_mapping_insert(category->keyword_map, key->name, key);
   key->data = NULL;
   key->own_data = FALSE;
   return key;
@@ -426,9 +387,7 @@ struct ihm_reader *ihm_reader_new(struct ihm_file *fh)
   reader->multiline = g_string_new(NULL);
   reader->tokens = g_array_new(FALSE, FALSE, sizeof(struct ihm_token));
   reader->token_index = 0;
-  reader->category_map = ihm_hash_table_new(g_str_case_hash,
-                                            g_str_case_equal, NULL,
-                                            ihm_category_free);
+  reader->category_map = ihm_mapping_new(ihm_category_free);
   return reader;
 }
 
@@ -437,7 +396,7 @@ void ihm_reader_free(struct ihm_reader *reader)
 {
   g_string_free(reader->multiline, TRUE);
   g_array_free(reader->tokens, TRUE);
-  ihm_hash_table_free(reader->category_map);
+  ihm_mapping_free(reader->category_map);
   ihm_file_free(reader->fh);
   g_free(reader);
 }
@@ -445,7 +404,7 @@ void ihm_reader_free(struct ihm_reader *reader)
 /* Remove all categories from the reader. */
 void ihm_reader_remove_all_categories(struct ihm_reader *reader)
 {
-  ihm_hash_table_remove_all(reader->category_map);
+  ihm_mapping_remove_all(reader->category_map);
 }
 
 /* Given the start of a quoted string, find the end and add a token for it */
@@ -656,10 +615,10 @@ static void read_value(struct ihm_reader *reader,
   if (*err)
     return;
 
-  category = ihm_hash_table_lookup(reader->category_map, category_name);
+  category = ihm_mapping_lookup(reader->category_map, category_name);
   if (category) {
     struct ihm_keyword *key;
-    key = ihm_hash_table_lookup(category->keyword_map, keyword_name);
+    key = ihm_mapping_lookup(category->keyword_map, keyword_name);
     if (key) {
       struct ihm_token *val_token = get_token(reader, FALSE, err);
       if (val_token && val_token->type == MMCIF_TOKEN_VALUE) {
@@ -689,7 +648,7 @@ static struct ihm_keyword *handle_loop_index(struct ihm_reader *reader,
   if (*err)
     return NULL;
 
-  category = ihm_hash_table_lookup(reader->category_map, category_name);
+  category = ihm_mapping_lookup(reader->category_map, category_name);
   if (first_loop) {
     *catpt = category;
   } else if (*catpt != category) {
@@ -700,7 +659,7 @@ static struct ihm_keyword *handle_loop_index(struct ihm_reader *reader,
   }
   if (category) {
     struct ihm_keyword *key;
-    key = ihm_hash_table_lookup(category->keyword_map, keyword_name);
+    key = ihm_mapping_lookup(category->keyword_map, keyword_name);
     if (key) {
       return key;
     }
@@ -735,15 +694,15 @@ static void call_category(struct ihm_reader *reader,
   if (category->data_callback) {
     if (!force) {
       /* Check to see if at least one keyword was given a value */
-      ihm_hash_table_foreach(category->keyword_map, check_keywords_in_file,
-                           &force);
+      ihm_mapping_foreach(category->keyword_map, check_keywords_in_file,
+                          &force);
     }
     if (force) {
       (*category->data_callback) (reader, category->data, err);
     }
   }
   /* Clear out keyword values, ready for the next set of data */
-  ihm_hash_table_foreach(category->keyword_map, clear_keywords, NULL);
+  ihm_mapping_foreach(category->keyword_map, clear_keywords, NULL);
 }
 
 /* Read the list of keywords from a loop_ construct. */
@@ -858,7 +817,21 @@ static void call_all_categories(struct ihm_reader *reader, GError **err)
   struct category_foreach_data d;
   d.err = err;
   d.reader = reader;
-  ihm_hash_table_foreach(reader->category_map, call_category_foreach, &d);
+  ihm_mapping_foreach(reader->category_map, call_category_foreach, &d);
+}
+
+static void sort_category_foreach(gpointer key, gpointer value,
+                                  gpointer user_data)
+{
+  struct ihm_category *category = value;
+  ihm_mapping_sort(category->keyword_map);
+}
+
+/* Make sure that all mappings are sorted before we try to use them */
+static void sort_mappings(struct ihm_reader *reader)
+{
+  ihm_mapping_sort(reader->category_map);
+  ihm_mapping_foreach(reader->category_map, sort_category_foreach, NULL);
 }
 
 /* Read an entire mmCIF file. */
@@ -868,6 +841,7 @@ gboolean ihm_read_file(struct ihm_reader *reader, gboolean *more_data,
   int ndata = 0;
   struct ihm_token *token;
   GError *tmp_err = NULL; /* passed err could be NULL */
+  sort_mappings(reader);
   while (!tmp_err && (token = get_token(reader, TRUE, &tmp_err))) {
     if (token->type == MMCIF_TOKEN_VARIABLE) {
       read_value(reader, token, &tmp_err);
