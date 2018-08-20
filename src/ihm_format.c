@@ -21,6 +21,19 @@ GQuark ihm_error_quark(void)
   return g_quark_from_static_string("ihm-error-quark");
 }
 
+/* Allocate memory; unlike malloc() this never returns NULL (a failure will
+   terminate the program) */
+static void *ihm_malloc(size_t size)
+{
+  void *ret = malloc(size);
+  if (ret) {
+    return ret;
+  } else {
+    fprintf(stderr, "Memory allocation failed\n");
+    exit(1);
+  }
+}
+
 struct ihm_key_value {
   char *key;
   gpointer value;
@@ -40,7 +53,7 @@ struct ihm_mapping {
    small). */
 struct ihm_mapping *ihm_mapping_new(GDestroyNotify value_destroy_func)
 {
-  struct ihm_mapping *m = g_malloc(sizeof(struct ihm_mapping));
+  struct ihm_mapping *m = ihm_malloc(sizeof(struct ihm_mapping));
   m->keyvalues = g_array_new(FALSE, FALSE, sizeof(struct ihm_key_value));
   m->value_destroy_func = value_destroy_func;
   return m;
@@ -62,7 +75,7 @@ static void ihm_mapping_free(struct ihm_mapping *m)
 {
   ihm_mapping_remove_all(m);
   g_array_free(m->keyvalues, TRUE);
-  g_free(m);
+  free(m);
 }
 
 /* Add a new key:value pair to the mapping. key is assumed to point to memory
@@ -132,11 +145,11 @@ static void ihm_mapping_foreach(struct ihm_mapping *m,
 static void ihm_keyword_free(gpointer value)
 {
   struct ihm_keyword *key = value;
-  g_free(key->name);
+  free(key->name);
   if (key->own_data && key->in_file) {
-    g_free(key->data);
+    free(key->data);
   }
-  g_free(key);
+  free(key);
 }
 
 /* A category in an mmCIF file. */
@@ -189,11 +202,11 @@ static void ihm_category_free(gpointer value)
 {
   struct ihm_category *cat = value;
   ihm_mapping_free(cat->keyword_map);
-  g_free(cat->name);
+  free(cat->name);
   if (cat->free_func) {
     (*cat->free_func) (cat->data);
   }
-  g_free(cat);
+  free(cat);
 }
 
 /* Make a new struct ihm_category */
@@ -203,8 +216,8 @@ struct ihm_category *ihm_category_new(struct ihm_reader *reader,
                                       ihm_category_callback finalize_callback,
                                       gpointer data, GFreeFunc free_func)
 {
-  struct ihm_category *category = g_malloc(sizeof(struct ihm_category));
-  category->name = g_strdup(name);
+  struct ihm_category *category = ihm_malloc(sizeof(struct ihm_category));
+  category->name = strdup(name);
   category->data_callback = data_callback;
   category->finalize_callback = finalize_callback;
   category->data = data;
@@ -218,8 +231,8 @@ struct ihm_category *ihm_category_new(struct ihm_reader *reader,
 struct ihm_keyword *ihm_keyword_new(struct ihm_category *category,
                                     const char *name)
 {
-  struct ihm_keyword *key = g_malloc(sizeof(struct ihm_keyword));
-  key->name = g_strdup(name);
+  struct ihm_keyword *key = ihm_malloc(sizeof(struct ihm_keyword));
+  key->name = strdup(name);
   key->own_data = FALSE;
   key->in_file = FALSE;
   ihm_mapping_insert(category->keyword_map, key->name, key);
@@ -242,7 +255,7 @@ static void set_value(struct ihm_reader *reader,
 {
   /* If a key is duplicated, overwrite it with the new value */
   if (key->in_file && key->own_data) {
-    g_free(key->data);
+    free(key->data);
   }
 
   key->omitted = str[0] == '.' && str[1] == '\0';
@@ -253,7 +266,7 @@ static void set_value(struct ihm_reader *reader,
   } else {
     key->own_data = own_data;
     if (own_data) {
-      key->data = g_strdup(str);
+      key->data = strdup(str);
     } else {
       key->data = str;
     }
@@ -266,7 +279,7 @@ static void set_value(struct ihm_reader *reader,
 struct ihm_file *ihm_file_new(ihm_file_read_callback read_callback,
                               gpointer data, GFreeFunc free_func)
 {
-  struct ihm_file *file = g_malloc(sizeof(struct ihm_file));
+  struct ihm_file *file = ihm_malloc(sizeof(struct ihm_file));
   file->buffer = g_string_new("");
   file->line_start = file->next_line_start = 0;
   file->read_callback = read_callback;
@@ -282,7 +295,7 @@ static void ihm_file_free(struct ihm_file *file)
   if (file->free_func) {
     (*file->free_func) (file->data);
   }
-  g_free(file);
+  free(file);
 }
 
 /* Read data from a file descriptor */
@@ -381,7 +394,7 @@ struct ihm_file *ihm_file_new_from_fd(int fd)
 /* Make a new struct ihm_reader */
 struct ihm_reader *ihm_reader_new(struct ihm_file *fh)
 {
-  struct ihm_reader *reader = g_malloc(sizeof(struct ihm_reader));
+  struct ihm_reader *reader = ihm_malloc(sizeof(struct ihm_reader));
   reader->fh = fh;
   reader->linenum = 0;
   reader->multiline = g_string_new(NULL);
@@ -398,7 +411,7 @@ void ihm_reader_free(struct ihm_reader *reader)
   g_array_free(reader->tokens, TRUE);
   ihm_mapping_free(reader->category_map);
   ihm_file_free(reader->fh);
-  g_free(reader);
+  free(reader);
 }
 
 /* Remove all categories from the reader. */
@@ -679,7 +692,7 @@ static void clear_keywords(gpointer k, gpointer value, gpointer user_data)
 {
   struct ihm_keyword *key = value;
   if (key->own_data) {
-    g_free(key->data);
+    free(key->data);
   }
   key->in_file = FALSE;
   set_keyword_to_default(key);
