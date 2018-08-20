@@ -855,21 +855,22 @@ static void call_category(struct ihm_reader *reader,
 }
 
 /* Read the list of keywords from a loop_ construct. */
-static GPtrArray *read_loop_keywords(struct ihm_reader *reader,
-                                     struct ihm_category **category,
-                                     GError **err)
+static struct ihm_array *read_loop_keywords(struct ihm_reader *reader,
+                                            struct ihm_category **category,
+                                            GError **err)
 {
   gboolean first_loop = TRUE;
   struct ihm_token *token;
   /* An array of ihm_keyword*, in the order the values should be given.
      Any NULL pointers correspond to keywords we're not interested in. */
-  GPtrArray *keywords = g_ptr_array_new();
+  struct ihm_array *keywords = ihm_array_new(sizeof(struct ihm_keyword*));
   *category = NULL;
 
   while (!*err && (token = get_token(reader, FALSE, err))) {
     if (token->type == MMCIF_TOKEN_VARIABLE) {
-      g_ptr_array_add(keywords, handle_loop_index(reader, category,
-                                                  token, first_loop, err));
+      struct ihm_keyword *k = handle_loop_index(reader, category,
+                                                token, first_loop, err);
+      ihm_array_append(keywords, &k);
       first_loop = FALSE;
     } else if (token->type == MMCIF_TOKEN_VALUE) {
       /* OK, end of keywords; proceed on to values */
@@ -882,7 +883,7 @@ static GPtrArray *read_loop_keywords(struct ihm_reader *reader,
     }
   }
   if (*err) {
-    g_ptr_array_free(keywords, TRUE);
+    ihm_array_free(keywords);
     return NULL;
   } else {
     return keywords;
@@ -928,7 +929,7 @@ static void read_loop_data(struct ihm_reader *reader,
 /* Read a loop_ construct from the file. */
 static void read_loop(struct ihm_reader *reader, GError **err)
 {
-  GPtrArray *keywords;
+  struct ihm_array *keywords;
   struct ihm_category *category;
 
   keywords = read_loop_keywords(reader, &category, err);
@@ -937,9 +938,9 @@ static void read_loop(struct ihm_reader *reader, GError **err)
   }
   if (category) {
     read_loop_data(reader, category, keywords->len,
-                   (struct ihm_keyword **)keywords->pdata, err);
+                   (struct ihm_keyword **)keywords->data, err);
   }
-  g_ptr_array_free(keywords, TRUE);
+  ihm_array_free(keywords);
 }
 
 struct category_foreach_data {
