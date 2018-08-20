@@ -97,6 +97,78 @@ static void ihm_array_append(struct ihm_array *a, void *element)
   memcpy(a->data + (a->len - 1) * a->element_size, element, a->element_size);
 }
 
+/* A variable-length string buffer */
+struct ihm_string {
+  /* The string buffer itself */
+  char *str;
+  /* The length of the string (may be different from strlen(str) if str contains
+     embedded nulls); str[len] is always a null byte */
+  size_t len;
+  /* The allocated size of str; never less than len+1 (to allow for null
+     terminator) */
+  size_t capacity;
+};
+
+/* Make a new ihm_string of zero length */
+static struct ihm_string *ihm_string_new(void)
+{
+  struct ihm_string *s = ihm_malloc(sizeof(struct ihm_string));
+  s->len = 0;
+  s->capacity = 64;
+  s->str = ihm_malloc(s->capacity);
+  /* Ensure string is null terminated */
+  s->str[0] = '\0';
+  return s;
+}
+
+/* Free the memory used by an ihm_string */
+static void ihm_string_free(struct ihm_string *s)
+{
+  free(s->str);
+  free(s);
+}
+
+/* Erase len characters starting at pos from an ihm_string */
+static void ihm_string_erase(struct ihm_string *s, size_t pos, size_t len)
+{
+  memmove(s->str + pos, s->str + pos + len, s->len + 1 - pos - len);
+  s->len -= len;
+}
+
+/* Set the size of the string to len. If shorter than the current length,
+   the string is truncated. If longer, memory (with undefined contents)
+   is added to the end of the string */
+static void ihm_string_set_size(struct ihm_string *s, size_t len)
+{
+  if (len >= s->capacity) {
+    s->capacity *= 2;
+    if (len >= s->capacity) {
+      s->capacity = len + 1;
+    }
+    s->str = ihm_realloc(s->str, s->capacity);
+  }
+
+  s->len = len;
+  s->str[s->len] = '\0';
+}
+
+/* Set the ihm_string contents to be equal to str */
+static void ihm_string_assign(struct ihm_string *s, char *str)
+{
+  size_t len = strlen(str);
+  ihm_string_set_size(s, len);
+  memcpy(s->str, str, len);
+}
+
+/* Append str to the end of the ihm_string */
+static void ihm_string_append(struct ihm_string *s, char *str)
+{
+  size_t len = strlen(str);
+  size_t oldlen = s->len;
+  ihm_string_set_size(s, s->len + len);
+  memcpy(s->str + oldlen, str, len);
+}
+
 struct ihm_key_value {
   char *key;
   gpointer value;
@@ -238,7 +310,7 @@ struct ihm_reader {
   /* The current line number in the file */
   int linenum;
   /* For multiline tokens, the entire contents of the lines */
-  GString *multiline;
+  struct ihm_string *multiline;
   /* All tokens parsed from the last line */
   struct ihm_array *tokens;
   /* The next token to be returned */
@@ -344,7 +416,7 @@ struct ihm_file *ihm_file_new(ihm_file_read_callback read_callback,
                               gpointer data, GFreeFunc free_func)
 {
   struct ihm_file *file = ihm_malloc(sizeof(struct ihm_file));
-  file->buffer = g_string_new("");
+  file->buffer = ihm_string_new();
   file->line_start = file->next_line_start = 0;
   file->read_callback = read_callback;
   file->data = data;
@@ -355,7 +427,7 @@ struct ihm_file *ihm_file_new(ihm_file_read_callback read_callback,
 /* Free memory used by ihm_file */
 static void ihm_file_free(struct ihm_file *file)
 {
-  g_string_free(file->buffer, TRUE);
+  ihm_string_free(file->buffer);
   if (file->free_func) {
     (*file->free_func) (file->data);
   }
@@ -393,16 +465,16 @@ static ssize_t expand_buffer(struct ihm_file *fh, GError **err)
   /* Move any existing data to the start of the buffer (otherwise the buffer
      will grow to the full size of the file) */
   if (fh->line_start) {
-    g_string_erase(fh->buffer, 0, fh->line_start);
+    ihm_string_erase(fh->buffer, 0, fh->line_start);
     fh->next_line_start -= fh->line_start;
     fh->line_start = 0;
   }
 
   current_size = fh->buffer->len;
-  g_string_set_size(fh->buffer, current_size + READ_SIZE);
+  ihm_string_set_size(fh->buffer, current_size + READ_SIZE);
   readlen = (*fh->read_callback)(fh->buffer->str + current_size, READ_SIZE,
                                  fh->data, err);
-  g_string_set_size(fh->buffer, current_size + (readlen == -1 ? 0 : readlen));
+  ihm_string_set_size(fh->buffer, current_size + (readlen == -1 ? 0 : readlen));
   return readlen;
 }
 
@@ -461,7 +533,7 @@ struct ihm_reader *ihm_reader_new(struct ihm_file *fh)
   struct ihm_reader *reader = ihm_malloc(sizeof(struct ihm_reader));
   reader->fh = fh;
   reader->linenum = 0;
-  reader->multiline = g_string_new(NULL);
+  reader->multiline = ihm_string_new();
   reader->tokens = ihm_array_new(sizeof(struct ihm_token));
   reader->token_index = 0;
   reader->category_map = ihm_mapping_new(ihm_category_free);
@@ -471,7 +543,7 @@ struct ihm_reader *ihm_reader_new(struct ihm_file *fh)
 /* Free memory used by a struct ihm_reader */
 void ihm_reader_free(struct ihm_reader *reader)
 {
-  g_string_free(reader->multiline, TRUE);
+  ihm_string_free(reader->multiline);
   ihm_array_free(reader->tokens);
   ihm_mapping_free(reader->category_map);
   ihm_file_free(reader->fh);
@@ -595,8 +667,8 @@ static void read_multiline_token(struct ihm_reader *reader,
       reader->token_index = 0;
       return;
     } else if (!ignore_multiline) {
-      g_string_append_c(reader->multiline, '\n');
-      g_string_append(reader->multiline, line_pt(reader));
+      ihm_string_append(reader->multiline, "\n");
+      ihm_string_append(reader->multiline, line_pt(reader));
     }
   }
   g_set_error(err, IHM_ERROR, IHM_ERROR_FILE_FORMAT,
@@ -636,7 +708,7 @@ static struct ihm_token *get_token(struct ihm_reader *reader,
       } else if (line_pt(reader)[0] == ';') {
         if (!ignore_multiline) {
           /* Skip initial semicolon */
-          g_string_assign(reader->multiline, line_pt(reader) + 1);
+          ihm_string_assign(reader->multiline, line_pt(reader) + 1);
         }
         read_multiline_token(reader, ignore_multiline, err);
         if (*err) {

@@ -66,6 +66,7 @@ struct ihm_keyword *ihm_keyword_new(struct ihm_category *category,
                                     const char *name);
 
 struct ihm_file;
+struct ihm_string;
 
 /* Read data into the ihm_file buffer.
    Return the number of bytes read (0 on EOF), or -1 (and sets err) on failure.
@@ -76,7 +77,7 @@ typedef ssize_t (*ihm_file_read_callback)(char *buffer, size_t buffer_len,
 /* Track a file (or filelike object) that the data is read from */
 struct ihm_file {
   /* Raw data read from the file */
-  GString *buffer;
+  struct ihm_string *buffer;
   /* Offset into buffer of the start of the current line */
   size_t line_start;
   /* Offset into buffer of the start of the next line, or line_start if the
