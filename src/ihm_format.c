@@ -34,6 +34,69 @@ static void *ihm_malloc(size_t size)
   }
 }
 
+/* Allocate memory; unlike realloc() this never returns NULL (a failure will
+   terminate the program) */
+static void *ihm_realloc(void *ptr, size_t size)
+{
+  void *ret = realloc(ptr, size);
+  if (ret) {
+    return ret;
+  } else {
+    fprintf(stderr, "Memory allocation failed\n");
+    exit(1);
+  }
+}
+
+/* A variable-sized array of elements */
+struct ihm_array {
+  /* The array data itself */
+  void *data;
+  /* The number of elements in the array */
+  size_t len;
+  /* The size in bytes of each element */
+  size_t element_size;
+  /* The currently-allocated number of elements in the array (>= len) */
+  size_t capacity;
+};
+
+/* Make a new empty ihm_array */
+static struct ihm_array *ihm_array_new(size_t element_size)
+{
+  struct ihm_array *a = ihm_malloc(sizeof(struct ihm_array));
+  a->len = 0;
+  a->element_size = element_size;
+  a->capacity = 8;
+  a->data = ihm_malloc(a->capacity * a->element_size);
+  return a;
+}
+
+/* Release the memory used by an ihm_array */
+static void ihm_array_free(struct ihm_array *a)
+{
+  free(a->data);
+  free(a);
+}
+
+/* Set the number of elements in the array to zero */
+static void ihm_array_clear(struct ihm_array *a)
+{
+  a->len = 0;
+}
+
+/* Return a reference to the ith element in the array, cast to the given type */
+#define ihm_array_index(a, t, i) (((t*)(a)->data)[(i)])
+
+/* Add a new element to the end of the array */
+static void ihm_array_append(struct ihm_array *a, void *element)
+{
+  a->len++;
+  if (a->len > a->capacity) {
+    a->capacity *= 2;
+    a->data = ihm_realloc(a->data, a->capacity * a->element_size);
+  }
+  memcpy(a->data + (a->len - 1) * a->element_size, element, a->element_size);
+}
+
 struct ihm_key_value {
   char *key;
   gpointer value;
@@ -42,7 +105,7 @@ struct ihm_key_value {
 /* Simple case-insensitive string to struct* mapping using a binary search */
 struct ihm_mapping {
   /* Array of struct ihm_key_value */
-  GArray *keyvalues;
+  struct ihm_array *keyvalues;
   /* Function to free mapping values */
   GDestroyNotify value_destroy_func;
 };
@@ -54,7 +117,7 @@ struct ihm_mapping {
 struct ihm_mapping *ihm_mapping_new(GDestroyNotify value_destroy_func)
 {
   struct ihm_mapping *m = ihm_malloc(sizeof(struct ihm_mapping));
-  m->keyvalues = g_array_new(FALSE, FALSE, sizeof(struct ihm_key_value));
+  m->keyvalues = ihm_array_new(sizeof(struct ihm_key_value));
   m->value_destroy_func = value_destroy_func;
   return m;
 }
@@ -64,17 +127,17 @@ static void ihm_mapping_remove_all(struct ihm_mapping *m)
 {
   unsigned i;
   for (i = 0; i < m->keyvalues->len; ++i) {
-    (*m->value_destroy_func)(g_array_index(m->keyvalues,
-                                           struct ihm_key_value, i).value);
+    (*m->value_destroy_func)(ihm_array_index(m->keyvalues,
+                                             struct ihm_key_value, i).value);
   }
-  g_array_set_size(m->keyvalues, 0);
+  ihm_array_clear(m->keyvalues);
 }
 
 /* Free memory used by a mapping */
 static void ihm_mapping_free(struct ihm_mapping *m)
 {
   ihm_mapping_remove_all(m);
-  g_array_free(m->keyvalues, TRUE);
+  ihm_array_free(m->keyvalues);
   free(m);
 }
 
@@ -88,10 +151,10 @@ static void ihm_mapping_insert(struct ihm_mapping *m, char *key,
   struct ihm_key_value kv;
   kv.key = key;
   kv.value = value;
-  g_array_append_val(m->keyvalues, kv);
+  ihm_array_append(m->keyvalues, &kv);
 }
 
-static gint mapping_compare(gconstpointer a, gconstpointer b)
+static int mapping_compare(const void *a, const void *b)
 {
   const struct ihm_key_value *kv1, *kv2;
   kv1 = a;
@@ -103,7 +166,8 @@ static gint mapping_compare(gconstpointer a, gconstpointer b)
    before ihm_mapping_lookup is used. */
 static void ihm_mapping_sort(struct ihm_mapping *m)
 {
-  g_array_sort(m->keyvalues, mapping_compare);
+  qsort(m->keyvalues->data, m->keyvalues->len, m->keyvalues->element_size,
+	mapping_compare);
 }
 
 /* Look up key in the mapping and return the corresponding value, or NULL
@@ -115,14 +179,14 @@ static gpointer ihm_mapping_lookup(struct ihm_mapping *m, char *key)
 
   while (left <= right) {
     int mid = (left + right) / 2;
-    int cmp = strcasecmp(g_array_index(m->keyvalues, struct ihm_key_value,
-                                       mid).key, key);
+    int cmp = strcasecmp(ihm_array_index(m->keyvalues, struct ihm_key_value,
+                                         mid).key, key);
     if (cmp < 0) {
       left = mid + 1;
     } else if (cmp > 0) {
       right = mid - 1;
     } else {
-      return g_array_index(m->keyvalues, struct ihm_key_value, mid).value;
+      return ihm_array_index(m->keyvalues, struct ihm_key_value, mid).value;
     }
   }
   return NULL;
@@ -135,8 +199,8 @@ static void ihm_mapping_foreach(struct ihm_mapping *m,
 {
   unsigned i;
   for (i = 0; i < m->keyvalues->len; ++i) {
-    struct ihm_key_value *kv = &g_array_index(m->keyvalues,
-                                              struct ihm_key_value, i);
+    struct ihm_key_value *kv = &ihm_array_index(m->keyvalues,
+                                                struct ihm_key_value, i);
     (*func)(kv->key, kv->value, data);
   }
 }
@@ -176,7 +240,7 @@ struct ihm_reader {
   /* For multiline tokens, the entire contents of the lines */
   GString *multiline;
   /* All tokens parsed from the last line */
-  GArray *tokens;
+  struct ihm_array *tokens;
   /* The next token to be returned */
   guint token_index;
   /* All categories that we want to extract from the file */
@@ -398,7 +462,7 @@ struct ihm_reader *ihm_reader_new(struct ihm_file *fh)
   reader->fh = fh;
   reader->linenum = 0;
   reader->multiline = g_string_new(NULL);
-  reader->tokens = g_array_new(FALSE, FALSE, sizeof(struct ihm_token));
+  reader->tokens = ihm_array_new(sizeof(struct ihm_token));
   reader->token_index = 0;
   reader->category_map = ihm_mapping_new(ihm_category_free);
   return reader;
@@ -408,7 +472,7 @@ struct ihm_reader *ihm_reader_new(struct ihm_file *fh)
 void ihm_reader_free(struct ihm_reader *reader)
 {
   g_string_free(reader->multiline, TRUE);
-  g_array_free(reader->tokens, TRUE);
+  ihm_array_free(reader->tokens);
   ihm_mapping_free(reader->category_map);
   ihm_file_free(reader->fh);
   free(reader);
@@ -440,7 +504,7 @@ static size_t handle_quoted_token(struct ihm_reader *reader,
     t.type = MMCIF_TOKEN_VALUE;
     t.str = line + start_pos + 1;
     line[tok_end] = '\0';
-    g_array_append_val(reader->tokens, t);
+    ihm_array_append(reader->tokens, &t);
     return tok_end + 1;         /* step past the closing quote */
   } else {
     g_set_error(err, IHM_ERROR, IHM_ERROR_FILE_FORMAT,
@@ -484,7 +548,7 @@ static size_t get_next_token(struct ihm_reader *reader, char *line,
          where we expect a value is pretty small. */
       t.type = MMCIF_TOKEN_VALUE;
     }
-    g_array_append_val(reader->tokens, t);
+    ihm_array_append(reader->tokens, &t);
     return tok_end + 1;
   }
 }
@@ -493,7 +557,7 @@ static size_t get_next_token(struct ihm_reader *reader, char *line,
 static void tokenize(struct ihm_reader *reader, char *line, GError **err)
 {
   size_t start_pos, len = strlen(line);
-  g_array_set_size(reader->tokens, 0);
+  ihm_array_clear(reader->tokens);
   if (len > 0 && line[0] == '#') {
     /* Skip comment lines */
     return;
@@ -502,7 +566,7 @@ static void tokenize(struct ihm_reader *reader, char *line, GError **err)
        start_pos = get_next_token(reader, line, len, start_pos, err)) {
   }
   if (*err) {
-    g_array_set_size(reader->tokens, 0);
+    ihm_array_clear(reader->tokens);
   }
 }
 
@@ -526,8 +590,8 @@ static void read_multiline_token(struct ihm_reader *reader,
       struct ihm_token t;
       t.type = MMCIF_TOKEN_VALUE;
       t.str = reader->multiline->str;
-      g_array_set_size(reader->tokens, 0);
-      g_array_append_val(reader->tokens, t);
+      ihm_array_clear(reader->tokens);
+      ihm_array_append(reader->tokens, &t);
       reader->token_index = 0;
       return;
     } else if (!ignore_multiline) {
@@ -591,8 +655,8 @@ static struct ihm_token *get_token(struct ihm_reader *reader,
   if (reader->tokens->len == 0) {
     return NULL;
   } else {
-    return &g_array_index(reader->tokens, struct ihm_token,
-                          reader->token_index++);
+    return &ihm_array_index(reader->tokens, struct ihm_token,
+                            reader->token_index++);
   }
 }
 
