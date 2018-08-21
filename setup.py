@@ -13,8 +13,8 @@ if '--without-ext' in copy_args:
 
 if sys.platform == 'win32':
     # Our use of strdup, strerror should be safe - no need for the Windows
-    # compiler to warn about it
-    cargs = ['-D_CRT_SECURE_NO_WARNINGS']
+    # compiler to warn about it; we want to use the POSIX name for strdup too
+    cargs = ['-D_CRT_SECURE_NO_WARNINGS', '-D_CRT_NONSTDC_NO_WARNINGS']
 else:
     cargs = []
 
