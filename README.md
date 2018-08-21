@@ -25,10 +25,6 @@ and [SWIG](http://www.swig.org/). If either of these components are missing, you
 can choose to build without the extension by adding `--without-ext` to both
 `setup.py` command lines above.
 
-(Note that the C extension module has only been tested on Mac and Linux. It
-might work on Windows, but would require that the extension is compiled against
-the same Windows C runtime that Python uses.)
-
 # Testing
 
 There are a number of testcases in the `test` directory. Each one can be run
