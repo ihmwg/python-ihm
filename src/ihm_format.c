@@ -10,16 +10,12 @@
 #include "ihm_format.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
 #include <glib.h>
 #include <unistd.h>
 #include <errno.h>
-
-/* Domain for IHM errors */
-GQuark ihm_error_quark(void)
-{
-  return g_quark_from_static_string("ihm-error-quark");
-}
+#include <assert.h>
 
 /* Allocate memory; unlike malloc() this never returns NULL (a failure will
    terminate the program) */
@@ -45,6 +41,36 @@ static void *ihm_realloc(void *ptr, size_t size)
     fprintf(stderr, "Memory allocation failed\n");
     exit(1);
   }
+}
+
+/* Free the memory used by an ihm_error */
+void ihm_error_free(struct ihm_error *err)
+{
+  free(err->msg);
+  free(err);
+}
+
+/* Set the error indicator */
+void ihm_error_set(struct ihm_error **err, IHMErrorCode code, char *format, ...)
+{
+  va_list ap;
+  int len;
+  char *msg = NULL;
+  assert(err && !*err);
+
+  /* First, determine length needed for complete string */
+  va_start(ap, format);
+  len = vsnprintf(msg, 0, format, ap);
+  va_end(ap);
+
+  msg = ihm_realloc(msg, len + 1);
+  va_start(ap, format);
+  vsnprintf(msg, len + 1, format, ap);
+  va_end(ap);
+
+  *err = ihm_malloc(sizeof(struct ihm_error));
+  (*err)->code = code;
+  (*err)->msg = msg;
 }
 
 /* A variable-sized array of elements */
@@ -387,7 +413,7 @@ static void set_keyword_to_default(struct ihm_keyword *key)
 static void set_value(struct ihm_reader *reader,
                       struct ihm_category *category,
                       struct ihm_keyword *key, char *str,
-                      gboolean own_data, GError **err)
+                      gboolean own_data, struct ihm_error **err)
 {
   /* If a key is duplicated, overwrite it with the new value */
   if (key->in_file && key->own_data) {
@@ -436,7 +462,7 @@ static void ihm_file_free(struct ihm_file *file)
 
 /* Read data from a file descriptor */
 static ssize_t fd_read_callback(char *buffer, size_t buffer_len, gpointer data,
-		                GError **err)
+		                struct ihm_error **err)
 {
   int fd = GPOINTER_TO_INT(data);
   ssize_t readlen;
@@ -448,7 +474,7 @@ static ssize_t fd_read_callback(char *buffer, size_t buffer_len, gpointer data,
     usleep(100);
   }
   if (readlen == -1) {
-    g_set_error(err, IHM_ERROR, IHM_ERROR_IO, "%s", strerror(errno));
+    ihm_error_set(err, IHM_ERROR_IO, "%s", strerror(errno));
   }
   return readlen;
 }
@@ -456,7 +482,7 @@ static ssize_t fd_read_callback(char *buffer, size_t buffer_len, gpointer data,
 /* Read data from file to expand the in-memory buffer.
    Returns the number of bytes read (0 on EOF), or -1 (and sets err) on error
  */
-static ssize_t expand_buffer(struct ihm_file *fh, GError **err)
+static ssize_t expand_buffer(struct ihm_file *fh, struct ihm_error **err)
 {
   static const size_t READ_SIZE = 1048576; /* Read 1MiB of data at a time */
   size_t current_size;
@@ -485,7 +511,7 @@ static ssize_t expand_buffer(struct ihm_file *fh, GError **err)
    On error, FALSE is returned and err is set.
  */
 static gboolean ihm_file_read_line(struct ihm_file *fh, gboolean *eof,
-                                   GError **err)
+                                   struct ihm_error **err)
 {
   size_t line_end;
   *eof = FALSE;
@@ -560,7 +586,7 @@ void ihm_reader_remove_all_categories(struct ihm_reader *reader)
 static size_t handle_quoted_token(struct ihm_reader *reader,
                                   char *line, size_t len,
                                   size_t start_pos, const char *quote_type,
-                                  GError **err)
+                                  struct ihm_error **err)
 {
   char *pt = line + start_pos;
   char *end = pt;
@@ -579,16 +605,17 @@ static size_t handle_quoted_token(struct ihm_reader *reader,
     ihm_array_append(reader->tokens, &t);
     return tok_end + 1;         /* step past the closing quote */
   } else {
-    g_set_error(err, IHM_ERROR, IHM_ERROR_FILE_FORMAT,
-                "%s-quoted string not terminated in file, line %d",
-                quote_type, reader->linenum);
+    ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
+                  "%s-quoted string not terminated in file, line %d",
+                  quote_type, reader->linenum);
     return len;
   }
 }
 
 /* Get the next token from the line. */
 static size_t get_next_token(struct ihm_reader *reader, char *line,
-                             size_t len, size_t start_pos, GError **err)
+                             size_t len, size_t start_pos,
+                             struct ihm_error **err)
 {
   /* Skip initial whitespace */
   char *pt = line + start_pos;
@@ -626,7 +653,8 @@ static size_t get_next_token(struct ihm_reader *reader, char *line,
 }
 
 /* Break up a line into tokens, populating reader->tokens. */
-static void tokenize(struct ihm_reader *reader, char *line, GError **err)
+static void tokenize(struct ihm_reader *reader, char *line,
+                     struct ihm_error **err)
 {
   size_t start_pos, len = strlen(line);
   ihm_array_clear(reader->tokens);
@@ -650,7 +678,8 @@ static char *line_pt(struct ihm_reader *reader)
 
 /* Read a semicolon-delimited (multiline) token */
 static void read_multiline_token(struct ihm_reader *reader,
-                                 gboolean ignore_multiline, GError **err)
+                                 gboolean ignore_multiline,
+                                 struct ihm_error **err)
 {
   int eof = 0;
   int start_linenum = reader->linenum;
@@ -671,9 +700,9 @@ static void read_multiline_token(struct ihm_reader *reader,
       ihm_string_append(reader->multiline, line_pt(reader));
     }
   }
-  g_set_error(err, IHM_ERROR, IHM_ERROR_FILE_FORMAT,
-              "End of file while reading multiline string "
-              "which started on line %d", start_linenum);
+  ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
+                "End of file while reading multiline string "
+                "which started on line %d", start_linenum);
 }
 
 /* Return the number of tokens still available in the current line. */
@@ -696,7 +725,8 @@ static void unget_token(struct ihm_reader *reader)
    value tokens (those that are semicolon-delimited) are not stored
    in memory. */
 static struct ihm_token *get_token(struct ihm_reader *reader,
-                                   gboolean ignore_multiline, GError **err)
+                                   gboolean ignore_multiline,
+                                   struct ihm_error **err)
 {
   int eof = 0;
   if (reader->tokens->len <= reader->token_index) {
@@ -735,15 +765,15 @@ static struct ihm_token *get_token(struct ihm_reader *reader,
 /* Break up a variable token into category and keyword */
 static void parse_category_keyword(struct ihm_reader *reader,
                                    char *str, char **category,
-                                   char **keyword, GError **err)
+                                   char **keyword, struct ihm_error **err)
 {
   char *dot;
   size_t wordlen;
   dot = strchr(str, '.');
   if (!dot) {
-    g_set_error(err, IHM_ERROR, IHM_ERROR_FILE_FORMAT,
-                "No period found in mmCIF variable name (%s) at line %d",
-                str, reader->linenum);
+    ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
+                  "No period found in mmCIF variable name (%s) at line %d",
+                  str, reader->linenum);
     return;
   }
   wordlen = strcspn(str, " \t");
@@ -755,7 +785,7 @@ static void parse_category_keyword(struct ihm_reader *reader,
 
 /* Read a line that sets a single value, e.g. _entry.id   1YTI */
 static void read_value(struct ihm_reader *reader,
-                       struct ihm_token *key_token, GError **err)
+                       struct ihm_token *key_token, struct ihm_error **err)
 {
   struct ihm_category *category;
   char *category_name, *keyword_name;
@@ -773,9 +803,9 @@ static void read_value(struct ihm_reader *reader,
       if (val_token && val_token->type == MMCIF_TOKEN_VALUE) {
         set_value(reader, category, key, val_token->str, TRUE, err);
       } else if (!*err) {
-        g_set_error(err, IHM_ERROR, IHM_ERROR_FILE_FORMAT,
-                    "No valid value found for %s.%s in file, line %d",
-                    category->name, key->name, reader->linenum);
+        ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
+                      "No valid value found for %s.%s in file, line %d",
+                      category->name, key->name, reader->linenum);
       }
     }
   }
@@ -788,7 +818,7 @@ static struct ihm_keyword *handle_loop_index(struct ihm_reader *reader,
                                              struct ihm_category **catpt,
                                              struct ihm_token *token,
                                              gboolean first_loop,
-                                             GError **err)
+                                             struct ihm_error **err)
 {
   struct ihm_category *category;
   char *category_name, *keyword_name;
@@ -801,9 +831,9 @@ static struct ihm_keyword *handle_loop_index(struct ihm_reader *reader,
   if (first_loop) {
     *catpt = category;
   } else if (*catpt != category) {
-    g_set_error(err, IHM_ERROR, IHM_ERROR_FILE_FORMAT,
-                "mmCIF files cannot contain multiple categories "
-                "within a single loop at line %d", reader->linenum);
+    ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
+                  "mmCIF files cannot contain multiple categories "
+                  "within a single loop at line %d", reader->linenum);
     return NULL;
   }
   if (category) {
@@ -838,7 +868,7 @@ static void clear_keywords(gpointer k, gpointer value, gpointer user_data)
    If force is FALSE, only call it if data has actually been read in. */
 static void call_category(struct ihm_reader *reader,
                           struct ihm_category *category, gboolean force,
-                          GError **err)
+                          struct ihm_error **err)
 {
   if (category->data_callback) {
     if (!force) {
@@ -857,7 +887,7 @@ static void call_category(struct ihm_reader *reader,
 /* Read the list of keywords from a loop_ construct. */
 static struct ihm_array *read_loop_keywords(struct ihm_reader *reader,
                                             struct ihm_category **category,
-                                            GError **err)
+                                            struct ihm_error **err)
 {
   gboolean first_loop = TRUE;
   struct ihm_token *token;
@@ -877,9 +907,9 @@ static struct ihm_array *read_loop_keywords(struct ihm_reader *reader,
       unget_token(reader);
       break;
     } else {
-      g_set_error(err, IHM_ERROR, IHM_ERROR_FILE_FORMAT,
-                  "Was expecting a keyword or value for loop at line %d",
-                  reader->linenum);
+      ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
+                    "Was expecting a keyword or value for loop at line %d",
+                    reader->linenum);
     }
   }
   if (*err) {
@@ -893,7 +923,8 @@ static struct ihm_array *read_loop_keywords(struct ihm_reader *reader,
 /* Read data for a loop_ construct */
 static void read_loop_data(struct ihm_reader *reader,
                            struct ihm_category *category, guint len,
-                           struct ihm_keyword **keywords, GError **err)
+                           struct ihm_keyword **keywords,
+                           struct ihm_error **err)
 {
   while (!*err) {
     /* Does the current line contain an entire row in the loop? */
@@ -914,10 +945,10 @@ static void read_loop_data(struct ihm_reader *reader,
         }
         return;
       } else {
-        g_set_error(err, IHM_ERROR, IHM_ERROR_FILE_FORMAT,
-                     "Wrong number of data values in loop (should be an "
-                     "exact multiple of the number of keys) at line %d",
-                     reader->linenum);
+        ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
+                      "Wrong number of data values in loop (should be an "
+                      "exact multiple of the number of keys) at line %d",
+                      reader->linenum);
       }
     }
     if (!*err) {
@@ -927,7 +958,7 @@ static void read_loop_data(struct ihm_reader *reader,
 }
 
 /* Read a loop_ construct from the file. */
-static void read_loop(struct ihm_reader *reader, GError **err)
+static void read_loop(struct ihm_reader *reader, struct ihm_error **err)
 {
   struct ihm_array *keywords;
   struct ihm_category *category;
@@ -944,7 +975,7 @@ static void read_loop(struct ihm_reader *reader, GError **err)
 }
 
 struct category_foreach_data {
-  GError **err;
+  struct ihm_error **err;
   struct ihm_reader *reader;
 };
 
@@ -962,7 +993,8 @@ static void call_category_foreach(gpointer key, gpointer value,
 }
 
 /* Process any data stored in all categories, and finalize */
-static void call_all_categories(struct ihm_reader *reader, GError **err)
+static void call_all_categories(struct ihm_reader *reader,
+                                struct ihm_error **err)
 {
   struct category_foreach_data d;
   d.err = err;
@@ -986,15 +1018,14 @@ static void sort_mappings(struct ihm_reader *reader)
 
 /* Read an entire mmCIF file. */
 gboolean ihm_read_file(struct ihm_reader *reader, gboolean *more_data,
-                       GError **err)
+                       struct ihm_error **err)
 {
   int ndata = 0;
   struct ihm_token *token;
-  GError *tmp_err = NULL; /* passed err could be NULL */
   sort_mappings(reader);
-  while (!tmp_err && (token = get_token(reader, TRUE, &tmp_err))) {
+  while (!*err && (token = get_token(reader, TRUE, err))) {
     if (token->type == MMCIF_TOKEN_VARIABLE) {
-      read_value(reader, token, &tmp_err);
+      read_value(reader, token, err);
     } else if (token->type == MMCIF_TOKEN_DATA) {
       ndata++;
       /* Only read the first data block */
@@ -1004,14 +1035,13 @@ gboolean ihm_read_file(struct ihm_reader *reader, gboolean *more_data,
         break;
       }
     } else if (token->type == MMCIF_TOKEN_LOOP) {
-      read_loop(reader, &tmp_err);
+      read_loop(reader, err);
     }
   }
-  if (!tmp_err) {
-    call_all_categories(reader, &tmp_err);
+  if (!*err) {
+    call_all_categories(reader, err);
   }
-  if (tmp_err) {
-    g_propagate_error(err, tmp_err);
+  if (*err) {
     return FALSE;
   } else {
     *more_data = (ndata > 1);

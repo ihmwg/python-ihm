@@ -14,18 +14,28 @@
 
 G_BEGIN_DECLS
 
-/* Domain for IHM errors */
-#define IHM_ERROR ihm_error_quark()
-
 /* IHM error types */
 typedef enum {
   IHM_ERROR_VALUE, /* Bad value */
   IHM_ERROR_IO, /* Input/output error */
   IHM_ERROR_FILE_FORMAT, /* File format error */
-} IHMError;
+} IHMErrorCode;
 
-/* Domain for IHM errors */
-GQuark ihm_error_quark(void);
+/* Error reported by IHM functions. The caller is responsible for freeing
+   the memory used by this struct by calling ihm_error_free(). */
+struct ihm_error {
+  /* The type of error */
+  IHMErrorCode code;
+  /* Human-readable error message */
+  char *msg;
+};
+
+/* Free the memory used by an ihm_error */
+void ihm_error_free(struct ihm_error *err);
+
+/* Set the error indicator */
+void ihm_error_set(struct ihm_error **err, IHMErrorCode code,
+                   char *format, ...);
 
 /* A keyword in an mmCIF file. Holds a description of its format and any
    value read from the file. */
@@ -49,7 +59,7 @@ struct ihm_category;
 
 /* Callback for mmCIF category data. Should set err on failure */
 typedef void (*ihm_category_callback)(struct ihm_reader *reader,
-                                      gpointer data, GError **err);
+                                      gpointer data, struct ihm_error **err);
 
 /* Make a new struct ihm_category and add it to the reader. */
 struct ihm_category *ihm_category_new(struct ihm_reader *reader,
@@ -72,7 +82,8 @@ struct ihm_string;
    Return the number of bytes read (0 on EOF), or -1 (and sets err) on failure.
  */
 typedef ssize_t (*ihm_file_read_callback)(char *buffer, size_t buffer_len,
-                                          gpointer data, GError **err);
+                                          gpointer data,
+                                          struct ihm_error **err);
 
 /* Track a file (or filelike object) that the data is read from */
 struct ihm_file {
@@ -114,7 +125,7 @@ void ihm_reader_free(struct ihm_reader *reader);
    *more_data is set TRUE iff more data blocks are available after this one.
    Return FALSE and set err on error. */
 gboolean ihm_read_file(struct ihm_reader *reader, gboolean *more_data,
-                       GError **err);
+                       struct ihm_error **err);
 
 G_END_DECLS
 

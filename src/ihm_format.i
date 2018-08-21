@@ -20,8 +20,9 @@ typedef int gboolean;
 %apply int *OUTPUT { int * };
 
 %ignore ihm_keyword;
+%ignore ihm_error_set;
 
-/* Convert GError to a Python exception */
+/* Convert ihm_error to a Python exception */
 
 %init {
   file_format_error = PyErr_NewException("_format.FileFormatError", NULL, NULL);
@@ -32,35 +33,33 @@ typedef int gboolean;
 %{
 static PyObject *file_format_error;
 
-static void handle_error(GError *err)
+static void handle_error(struct ihm_error *err)
 {
   PyObject *py_err_type = PyExc_IOError;
-  if (err->domain == IHM_ERROR) {
-    switch(err->code) {
-    case IHM_ERROR_FILE_FORMAT:
-      py_err_type = file_format_error;
-      break;
-    case IHM_ERROR_VALUE:
-      py_err_type = PyExc_ValueError;
-      break;
-    case IHM_ERROR_IO:
-      py_err_type = PyExc_IOError;
-      break;
-    }
+  switch(err->code) {
+  case IHM_ERROR_FILE_FORMAT:
+    py_err_type = file_format_error;
+    break;
+  case IHM_ERROR_VALUE:
+    py_err_type = PyExc_ValueError;
+    break;
+  case IHM_ERROR_IO:
+    py_err_type = PyExc_IOError;
+    break;
   }
   /* Don't overwrite a Python exception already raised (e.g. by a callback) */
   if (!PyErr_Occurred()) {
-    PyErr_SetString(py_err_type, err->message);
+    PyErr_SetString(py_err_type, err->msg);
   }
-  g_error_free(err);
+  ihm_error_free(err);
 }
 %}
 
-%typemap(in, numinputs=0) GError **err (GError *temp) {
+%typemap(in, numinputs=0) struct ihm_error **err (struct ihm_error *temp) {
   temp = NULL;
   $1 = &temp;
 }
-%typemap(argout) GError **err {
+%typemap(argout) struct ihm_error **err {
   if (*$1) {
     handle_error(*$1);
     Py_DECREF(resultobj);
@@ -72,7 +71,7 @@ static void handle_error(GError *err)
 
 /* Read data from a Python filelike object */
 static ssize_t pyfile_read_callback(char *buffer, size_t buffer_len,
-                                    gpointer data, GError **err)
+                                    gpointer data, struct ihm_error **err)
 {
   Py_ssize_t read_len;
   char *read_str;
@@ -83,25 +82,25 @@ static ssize_t pyfile_read_callback(char *buffer, size_t buffer_len,
   PyObject *read_method = data;
   PyObject *result = PyObject_CallFunction(read_method, fmt, buffer_len);
   if (!result) {
-    g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE, "read failed");
+    ihm_error_set(err, IHM_ERROR_VALUE, "read failed");
     return -1;
   }
 
 #if PY_VERSION_HEX < 0x03000000
   if (PyString_Check(result)) {
     if (PyString_AsStringAndSize(result, &read_str, &read_len) < 0) {
-      g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE, "string creation failed");
+      ihm_error_set(err, IHM_ERROR_VALUE, "string creation failed");
       Py_DECREF(result);
       return -1;
     }
   } else if (PyUnicode_Check(result)) {
     if (!(bytes = PyUnicode_AsUTF8String(result))) {
-      g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE, "string to bytes failed");
+      ihm_error_set(err, IHM_ERROR_VALUE, "string to bytes failed");
       Py_DECREF(result);
       return -1;
     }
     if (PyBytes_AsStringAndSize(bytes, &read_str, &read_len) < 0) {
-      g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE, "string creation failed");
+      ihm_error_set(err, IHM_ERROR_VALUE, "string creation failed");
       Py_DECREF(result);
       return -1;
     }
@@ -109,27 +108,26 @@ static ssize_t pyfile_read_callback(char *buffer, size_t buffer_len,
   if (PyUnicode_Check(result)) {
     /* This returns const char * on Python 3.7 or later */
     if (!(read_str = (char *)PyUnicode_AsUTF8AndSize(result, &read_len))) {
-      g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE, "string creation failed");
+      ihm_error_set(err, IHM_ERROR_VALUE, "string creation failed");
       Py_DECREF(result);
       return -1;
     }
   } else if (PyBytes_Check(result)) {
     if (PyBytes_AsStringAndSize(result, &read_str, &read_len) < 0) {
-      g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE, "string creation failed");
+      ihm_error_set(err, IHM_ERROR_VALUE, "string creation failed");
       Py_DECREF(result);
       return -1;
     }
 #endif
   } else {
-    g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE,
-                "read method should return a string");
+    ihm_error_set(err, IHM_ERROR_VALUE, "read method should return a string");
     Py_DECREF(result);
     return -1;
   }
 
   if (read_len > buffer_len) {
-    g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE,
-                "Python read method returned too many bytes");
+    ihm_error_set(err, IHM_ERROR_VALUE,
+                  "Python read method returned too many bytes");
 #if PY_VERSION_HEX < 0x03000000
     Py_XDECREF(bytes);
 #endif
@@ -156,7 +154,8 @@ static void pyfile_free(gpointer data)
 
 %inline %{
 /* Wrap a Python file object as an ihm_file */
-struct ihm_file *ihm_file_new_from_python(PyObject *pyfile, GError **err)
+struct ihm_file *ihm_file_new_from_python(PyObject *pyfile,
+                                          struct ihm_error **err)
 {
   PyObject *read_method;
 
@@ -177,7 +176,7 @@ struct ihm_file *ihm_file_new_from_python(PyObject *pyfile, GError **err)
 
   /* Otherwise, look for a read() method and use that */
   if (!(read_method = PyObject_GetAttrString(pyfile, "read"))) {
-    g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE, "no read method");
+    ihm_error_set(err, IHM_ERROR_VALUE, "no read method");
     return NULL;
   }
 
@@ -208,7 +207,7 @@ static void category_handler_data_free(gpointer data)
 
 /* Called for each category (or loop construct data line) with data */
 static void handle_category_data(struct ihm_reader *reader, gpointer data,
-                                 GError **err)
+                                 struct ihm_error **err)
 {
   int i;
   struct category_handler_data *hd = data;
@@ -218,7 +217,7 @@ static void handle_category_data(struct ihm_reader *reader, gpointer data,
   /* make a tuple of the data */
   tuple = PyTuple_New(hd->num_keywords);
   if (!tuple) {
-    g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE, "tuple creation failed");
+    ihm_error_set(err, IHM_ERROR_VALUE, "tuple creation failed");
     return;
   }
 
@@ -232,7 +231,7 @@ static void handle_category_data(struct ihm_reader *reader, gpointer data,
       val = PyUnicode_FromString((*keys)->unknown ? "?" : (*keys)->data);
 #endif
       if (!val) {
-        g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE, "string creation failed");
+        ihm_error_set(err, IHM_ERROR_VALUE, "string creation failed");
         Py_DECREF(tuple);
         return;
       }
@@ -251,7 +250,7 @@ static void handle_category_data(struct ihm_reader *reader, gpointer data,
     Py_DECREF(ret); /* discard return value */
   } else {
     /* Pass Python exception back to the original caller */
-    g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE, "Python error");
+    ihm_error_set(err, IHM_ERROR_VALUE, "Python error");
   }
 }
 
@@ -259,20 +258,20 @@ static struct category_handler_data *do_add_handler(
                         struct ihm_reader *reader, char *name,
                         PyObject *keywords, PyObject *callable,
                         ihm_category_callback data_callback,
-                        ihm_category_callback finalize_callback, GError **err)
+                        ihm_category_callback finalize_callback,
+                        struct ihm_error **err)
 {
   Py_ssize_t seqlen, i;
   struct ihm_category *category;
   struct category_handler_data *hd;
 
   if (!PySequence_Check(keywords)) {
-    g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE,
-                "'keywords' should be a sequence");
+    ihm_error_set(err, IHM_ERROR_VALUE, "'keywords' should be a sequence");
     return NULL;
   }
   if (!PyCallable_Check(callable)) {
-    g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE,
-                "'callable' should be a callable object");
+    ihm_error_set(err, IHM_ERROR_VALUE,
+                  "'callable' should be a callable object");
     return NULL;
   }
   seqlen = PySequence_Length(keywords);
@@ -295,8 +294,8 @@ static struct category_handler_data *do_add_handler(
       Py_DECREF(o);
     } else {
       Py_XDECREF(o);
-      g_set_error(err, IHM_ERROR, IHM_ERROR_VALUE,
-                  "keywords[%ld] should be a string", i);
+      ihm_error_set(err, IHM_ERROR_VALUE,
+                    "keywords[%ld] should be a string", i);
       return NULL;
     }
   }
@@ -309,7 +308,8 @@ static struct category_handler_data *do_add_handler(
 /* Add a generic category handler which collects all specified keywords for
    the given category and passes them to a Python callable */
 void add_category_handler(struct ihm_reader *reader, char *name,
-                          PyObject *keywords, PyObject *callable, GError **err)
+                          PyObject *keywords, PyObject *callable,
+                          struct ihm_error **err)
 {
   do_add_handler(reader, name, keywords, callable, handle_category_data, NULL,
                  err);
@@ -319,7 +319,7 @@ void add_category_handler(struct ihm_reader *reader, char *name,
 %{
 /* Called for each _pdbx_poly_seq_scheme line */
 static void handle_poly_seq_scheme_data(struct ihm_reader *reader,
-                                        gpointer data, GError **err)
+                                        gpointer data, struct ihm_error **err)
 {
   int i, seq_id, auth_seq_num;
   char *seq_id_endptr, *auth_seq_num_endptr;
@@ -352,7 +352,7 @@ static void handle_poly_seq_scheme_data(struct ihm_reader *reader,
    the common case where seq_id==auth_seq_num */
 void add_poly_seq_scheme_handler(struct ihm_reader *reader, char *name,
                                  PyObject *keywords, PyObject *callable,
-                                 GError **err)
+                                 struct ihm_error **err)
 {
   struct category_handler_data *hd;
   hd = do_add_handler(reader, name, keywords, callable,
@@ -369,7 +369,7 @@ void add_poly_seq_scheme_handler(struct ihm_reader *reader, char *name,
 /* Test function so we can make sure finalize callbacks work */
 void _test_finalize_callback(struct ihm_reader *reader, char *name,
                              PyObject *keywords, PyObject *callable,
-                             GError **err)
+                             struct ihm_error **err)
 {
   do_add_handler(reader, name, keywords, callable,
                  handle_category_data, handle_category_data, err);
