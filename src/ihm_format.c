@@ -14,6 +14,7 @@
 #include <string.h>
 #if defined(_WIN32) || defined(_WIN64)
 # include <windows.h>
+# include <io.h>
 #else
 # include <unistd.h>
 #endif
@@ -488,7 +489,11 @@ static ssize_t fd_read_callback(char *buffer, size_t buffer_len, void *data,
   ssize_t readlen;
 
   while(1) {
+#if defined(_WIN32) || defined(_WIN64)
+    readlen = _read(fd, buffer, buffer_len);
+#else
     readlen = read(fd, buffer, buffer_len);
+#endif
     if (readlen != -1 || errno != EAGAIN) break;
     /* If EAGAIN encountered, wait for more data to become available */
     usleep(100);
