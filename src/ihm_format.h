@@ -11,6 +11,10 @@
 #define IHM_FORMAT_H
 
 #include <stdlib.h> /* For size_t */
+#if defined(_MSC_VER)
+#include <BaseTsd.h>
+typedef SSIZE_T ssize_t;
+#endif
 
 #ifdef  __cplusplus
 extern "C" {

@@ -12,7 +12,9 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
-#include <unistd.h>
+#if !defined(_MSC_VER)
+# include <unistd.h>
+#endif
 #include <errno.h>
 #include <assert.h>
 
@@ -124,7 +126,8 @@ static void ihm_array_append(struct ihm_array *a, void *element)
     a->capacity *= 2;
     a->data = ihm_realloc(a->data, a->capacity * a->element_size);
   }
-  memcpy(a->data + (a->len - 1) * a->element_size, element, a->element_size);
+  memcpy((char *)a->data + (a->len - 1) * a->element_size,
+         element, a->element_size);
 }
 
 /* A variable-length string buffer */
