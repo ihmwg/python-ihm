@@ -12,7 +12,9 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
-#if !defined(_MSC_VER)
+#if defined(_WIN32) || defined(_WIN64)
+# include <windows.h>
+#else
 # include <unistd.h>
 #endif
 #include <errno.h>
@@ -22,6 +24,11 @@
 #define POINTER_TO_INT(p) ((int)  (long) (p))
 #define TRUE 1
 #define FALSE 0
+
+#if defined(_WIN32) || defined(_WIN64)
+# define strcasecmp _stricmp
+# define usleep Sleep
+#endif
 
 /* Allocate memory; unlike malloc() this never returns NULL (a failure will
    terminate the program) */
