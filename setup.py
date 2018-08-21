@@ -11,9 +11,17 @@ if '--without-ext' in copy_args:
     build_ext = False
     copy_args.remove('--without-ext')
 
+if sys.platform == 'win32':
+    # Our use of strdup, strerror should be safe - no need for the Windows
+    # compiler to warn about it
+    cargs = ['-D_CRT_SECURE_NO_WARNINGS']
+else:
+    cargs = []
+
 if build_ext:
     mod = [Extension("ihm._format",
                      sources=["src/ihm_format.c", "src/ihm_format.i"],
+                     extra_compile_args=cargs,
                      swig_opts=['-keyword', '-nodefaultctor',
                                 '-nodefaultdtor', '-noproxy'])]
 else:
