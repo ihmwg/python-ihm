@@ -12,10 +12,14 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
-#include <glib.h>
 #include <unistd.h>
 #include <errno.h>
 #include <assert.h>
+
+#define INT_TO_POINTER(i) ((void *) (long) (i))
+#define POINTER_TO_INT(p) ((int)  (long) (p))
+#define TRUE 1
+#define FALSE 0
 
 /* Allocate memory; unlike malloc() this never returns NULL (a failure will
    terminate the program) */
@@ -197,22 +201,25 @@ static void ihm_string_append(struct ihm_string *s, char *str)
 
 struct ihm_key_value {
   char *key;
-  gpointer value;
+  void *value;
 };
+
+/* Function to free mapping values */
+typedef void (*ihm_destroy_callback)(void *data);
 
 /* Simple case-insensitive string to struct* mapping using a binary search */
 struct ihm_mapping {
   /* Array of struct ihm_key_value */
   struct ihm_array *keyvalues;
   /* Function to free mapping values */
-  GDestroyNotify value_destroy_func;
+  ihm_destroy_callback value_destroy_func;
 };
 
 /* Make a new mapping from case-insensitive strings to arbitary pointers.
    The mapping uses a simple binary search (more memory efficient than
    a hash table and generally faster too since the number of keys is quite
    small). */
-struct ihm_mapping *ihm_mapping_new(GDestroyNotify value_destroy_func)
+struct ihm_mapping *ihm_mapping_new(ihm_destroy_callback value_destroy_func)
 {
   struct ihm_mapping *m = ihm_malloc(sizeof(struct ihm_mapping));
   m->keyvalues = ihm_array_new(sizeof(struct ihm_key_value));
@@ -244,7 +251,7 @@ static void ihm_mapping_free(struct ihm_mapping *m)
    while value is freed using value_destroy_func when the mapping is freed.
    Neither keys or nor values should ever be NULL. */
 static void ihm_mapping_insert(struct ihm_mapping *m, char *key,
-                               gpointer value)
+                               void *value)
 {
   struct ihm_key_value kv;
   kv.key = key;
@@ -271,7 +278,7 @@ static void ihm_mapping_sort(struct ihm_mapping *m)
 /* Look up key in the mapping and return the corresponding value, or NULL
    if not present. This uses a simple binary search so requires that
    ihm_mapping_sort() has been called first. */
-static gpointer ihm_mapping_lookup(struct ihm_mapping *m, char *key)
+static void *ihm_mapping_lookup(struct ihm_mapping *m, char *key)
 {
   int left = 0, right = m->keyvalues->len - 1;
 
@@ -290,10 +297,13 @@ static gpointer ihm_mapping_lookup(struct ihm_mapping *m, char *key)
   return NULL;
 }
 
+/* Callback passed to ihm_mapping_foreach */
+typedef void (*ihm_foreach_callback)(void *key, void *value, void *user_data);
+
 /* Call the given function, passing it key, value, and data, for each
    key:value pair in the mapping. */
 static void ihm_mapping_foreach(struct ihm_mapping *m,
-                                GHFunc func, gpointer data)
+                                ihm_foreach_callback func, void *data)
 {
   unsigned i;
   for (i = 0; i < m->keyvalues->len; ++i) {
@@ -304,7 +314,7 @@ static void ihm_mapping_foreach(struct ihm_mapping *m,
 }
 
 /* Free the memory used by a struct ihm_keyword */
-static void ihm_keyword_free(gpointer value)
+static void ihm_keyword_free(void *value)
 {
   struct ihm_keyword *key = value;
   free(key->name);
@@ -324,9 +334,9 @@ struct ihm_category {
   /* Function called at the very end of the data block */
   ihm_category_callback finalize_callback;
   /* Data passed to callbacks */
-  gpointer data;
+  void *data;
   /* Function to release data */
-  GFreeFunc free_func;
+  ihm_free_callback free_func;
 };
 
 /* Keep track of data used while reading an mmCIF file. */
@@ -340,7 +350,7 @@ struct ihm_reader {
   /* All tokens parsed from the last line */
   struct ihm_array *tokens;
   /* The next token to be returned */
-  guint token_index;
+  unsigned token_index;
   /* All categories that we want to extract from the file */
   struct ihm_mapping *category_map;
 };
@@ -360,7 +370,7 @@ struct ihm_token {
 };
 
 /* Free memory used by a struct ihm_category */
-static void ihm_category_free(gpointer value)
+static void ihm_category_free(void *value)
 {
   struct ihm_category *cat = value;
   ihm_mapping_free(cat->keyword_map);
@@ -376,7 +386,7 @@ struct ihm_category *ihm_category_new(struct ihm_reader *reader,
                                       const char *name,
                                       ihm_category_callback data_callback,
                                       ihm_category_callback finalize_callback,
-                                      gpointer data, GFreeFunc free_func)
+                                      void *data, ihm_free_callback free_func)
 {
   struct ihm_category *category = ihm_malloc(sizeof(struct ihm_category));
   category->name = strdup(name);
@@ -413,7 +423,7 @@ static void set_keyword_to_default(struct ihm_keyword *key)
 static void set_value(struct ihm_reader *reader,
                       struct ihm_category *category,
                       struct ihm_keyword *key, char *str,
-                      gboolean own_data, struct ihm_error **err)
+                      int own_data, struct ihm_error **err)
 {
   /* If a key is duplicated, overwrite it with the new value */
   if (key->in_file && key->own_data) {
@@ -439,7 +449,7 @@ static void set_value(struct ihm_reader *reader,
 
 /* Make a new ihm_file */
 struct ihm_file *ihm_file_new(ihm_file_read_callback read_callback,
-                              gpointer data, GFreeFunc free_func)
+                              void *data, ihm_free_callback free_func)
 {
   struct ihm_file *file = ihm_malloc(sizeof(struct ihm_file));
   file->buffer = ihm_string_new();
@@ -461,10 +471,10 @@ static void ihm_file_free(struct ihm_file *file)
 }
 
 /* Read data from a file descriptor */
-static ssize_t fd_read_callback(char *buffer, size_t buffer_len, gpointer data,
+static ssize_t fd_read_callback(char *buffer, size_t buffer_len, void *data,
 		                struct ihm_error **err)
 {
-  int fd = GPOINTER_TO_INT(data);
+  int fd = POINTER_TO_INT(data);
   ssize_t readlen;
 
   while(1) {
@@ -510,8 +520,8 @@ static ssize_t expand_buffer(struct ihm_file *fh, struct ihm_error **err)
    the end of the file.
    On error, FALSE is returned and err is set.
  */
-static gboolean ihm_file_read_line(struct ihm_file *fh, gboolean *eof,
-                                   struct ihm_error **err)
+static int ihm_file_read_line(struct ihm_file *fh, int *eof,
+                              struct ihm_error **err)
 {
   size_t line_end;
   *eof = FALSE;
@@ -550,7 +560,7 @@ static gboolean ihm_file_read_line(struct ihm_file *fh, gboolean *eof,
 /* Make a new ihm_file that will read data from the given file descriptor */
 struct ihm_file *ihm_file_new_from_fd(int fd)
 {
-  return ihm_file_new(fd_read_callback, GINT_TO_POINTER(fd), NULL);
+  return ihm_file_new(fd_read_callback, INT_TO_POINTER(fd), NULL);
 }
 
 /* Make a new struct ihm_reader */
@@ -678,8 +688,7 @@ static char *line_pt(struct ihm_reader *reader)
 
 /* Read a semicolon-delimited (multiline) token */
 static void read_multiline_token(struct ihm_reader *reader,
-                                 gboolean ignore_multiline,
-                                 struct ihm_error **err)
+                                 int ignore_multiline, struct ihm_error **err)
 {
   int eof = 0;
   int start_linenum = reader->linenum;
@@ -706,7 +715,7 @@ static void read_multiline_token(struct ihm_reader *reader,
 }
 
 /* Return the number of tokens still available in the current line. */
-static guint get_num_line_tokens(struct ihm_reader *reader)
+static unsigned get_num_line_tokens(struct ihm_reader *reader)
 {
   return reader->tokens->len - reader->token_index;
 }
@@ -725,7 +734,7 @@ static void unget_token(struct ihm_reader *reader)
    value tokens (those that are semicolon-delimited) are not stored
    in memory. */
 static struct ihm_token *get_token(struct ihm_reader *reader,
-                                   gboolean ignore_multiline,
+                                   int ignore_multiline,
                                    struct ihm_error **err)
 {
   int eof = 0;
@@ -817,7 +826,7 @@ static void read_value(struct ihm_reader *reader,
 static struct ihm_keyword *handle_loop_index(struct ihm_reader *reader,
                                              struct ihm_category **catpt,
                                              struct ihm_token *token,
-                                             gboolean first_loop,
+                                             int first_loop,
                                              struct ihm_error **err)
 {
   struct ihm_category *category;
@@ -846,15 +855,14 @@ static struct ihm_keyword *handle_loop_index(struct ihm_reader *reader,
   return NULL;
 }
 
-static void check_keywords_in_file(gpointer k, gpointer value,
-                                   gpointer user_data)
+static void check_keywords_in_file(void *k, void *value, void *user_data)
 {
   struct ihm_keyword *key = value;
-  gboolean *in_file = user_data;
+  int *in_file = user_data;
   *in_file |= key->in_file;
 }
 
-static void clear_keywords(gpointer k, gpointer value, gpointer user_data)
+static void clear_keywords(void *k, void *value, void *user_data)
 {
   struct ihm_keyword *key = value;
   if (key->own_data) {
@@ -867,7 +875,7 @@ static void clear_keywords(gpointer k, gpointer value, gpointer user_data)
 /* Call the category's data callback function.
    If force is FALSE, only call it if data has actually been read in. */
 static void call_category(struct ihm_reader *reader,
-                          struct ihm_category *category, gboolean force,
+                          struct ihm_category *category, int force,
                           struct ihm_error **err)
 {
   if (category->data_callback) {
@@ -889,7 +897,7 @@ static struct ihm_array *read_loop_keywords(struct ihm_reader *reader,
                                             struct ihm_category **category,
                                             struct ihm_error **err)
 {
-  gboolean first_loop = TRUE;
+  int first_loop = TRUE;
   struct ihm_token *token;
   /* An array of ihm_keyword*, in the order the values should be given.
      Any NULL pointers correspond to keywords we're not interested in. */
@@ -922,14 +930,14 @@ static struct ihm_array *read_loop_keywords(struct ihm_reader *reader,
 
 /* Read data for a loop_ construct */
 static void read_loop_data(struct ihm_reader *reader,
-                           struct ihm_category *category, guint len,
+                           struct ihm_category *category, unsigned len,
                            struct ihm_keyword **keywords,
                            struct ihm_error **err)
 {
   while (!*err) {
     /* Does the current line contain an entire row in the loop? */
-    gboolean oneline = get_num_line_tokens(reader) >= len;
-    guint i;
+    int oneline = get_num_line_tokens(reader) >= len;
+    unsigned i;
     for (i = 0; !*err && i < len; ++i) {
       struct ihm_token *token = get_token(reader, FALSE, err);
       if (*err) {
@@ -979,8 +987,7 @@ struct category_foreach_data {
   struct ihm_reader *reader;
 };
 
-static void call_category_foreach(gpointer key, gpointer value,
-                                  gpointer user_data)
+static void call_category_foreach(void *key, void *value, void *user_data)
 {
   struct category_foreach_data *d = user_data;
   struct ihm_category *category = value;
@@ -1002,8 +1009,7 @@ static void call_all_categories(struct ihm_reader *reader,
   ihm_mapping_foreach(reader->category_map, call_category_foreach, &d);
 }
 
-static void sort_category_foreach(gpointer key, gpointer value,
-                                  gpointer user_data)
+static void sort_category_foreach(void *key, void *value, void *user_data)
 {
   struct ihm_category *category = value;
   ihm_mapping_sort(category->keyword_map);
@@ -1017,8 +1023,8 @@ static void sort_mappings(struct ihm_reader *reader)
 }
 
 /* Read an entire mmCIF file. */
-gboolean ihm_read_file(struct ihm_reader *reader, gboolean *more_data,
-                       struct ihm_error **err)
+int ihm_read_file(struct ihm_reader *reader, int *more_data,
+                  struct ihm_error **err)
 {
   int ndata = 0;
   struct ihm_token *token;

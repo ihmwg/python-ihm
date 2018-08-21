@@ -7,7 +7,6 @@ python:
 addons:
   apt:
     packages:
-    - libglib2.0-dev
     - swig
 cache:
   pip: true

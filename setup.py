@@ -11,33 +11,9 @@ if '--without-ext' in copy_args:
     build_ext = False
     copy_args.remove('--without-ext')
 
-try:
-    import commands
-    def getoutput(args):
-        return commands.getoutput(' ' .join(args))
-
-except ImportError:
-    import subprocess
-    def getoutput(args):
-        return subprocess.check_output(args, universal_newlines=True)
-
-def pkgconfig(*packages, **kw):
-    """Utility function to parse pkg-config output"""
-    flag_map = {'-I': 'include_dirs', '-L': 'library_dirs', '-l': 'libraries'}
-    for token in getoutput(["pkg-config", "--libs",
-                            "--cflags"] + list(packages)).split():
-        kw.setdefault(flag_map.get(token[:2]), []).append(token[2:])
-    return kw
-
 if build_ext:
-    # Get paths for glib 2.0:
-    glib = pkgconfig("glib-2.0")
-
     mod = [Extension("ihm._format",
                      sources=["src/ihm_format.c", "src/ihm_format.i"],
-                     include_dirs=glib['include_dirs'],
-                     library_dirs=glib.get('library_dirs', []),
-                     libraries=glib['libraries'],
                      swig_opts=['-keyword', '-nodefaultctor',
                                 '-nodefaultdtor', '-noproxy'])]
 else:

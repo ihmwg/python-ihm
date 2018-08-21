@@ -10,9 +10,11 @@
 #ifndef IHM_FORMAT_H
 #define IHM_FORMAT_H
 
-#include <glib.h>
+#include <stdlib.h> /* For size_t */
 
-G_BEGIN_DECLS
+#ifdef  __cplusplus
+extern "C" {
+#endif
 
 /* IHM error types */
 typedef enum {
@@ -44,13 +46,13 @@ struct ihm_keyword {
   /* Last value read from the file */
   char *data;
   /* If TRUE, we own the memory for data */
-  gboolean own_data;
+  int own_data;
   /* TRUE iff this keyword is in the file (not necessarily with a value) */
-  gboolean in_file;
+  int in_file;
   /* TRUE iff the keyword is in the file but the value is omitted ('.') */
-  gboolean omitted;
+  int omitted;
   /* TRUE iff the keyword is in the file but the value is unknown ('?') */
-  gboolean unknown;
+  int unknown;
 };
 
 /* Opaque types */
@@ -59,14 +61,17 @@ struct ihm_category;
 
 /* Callback for mmCIF category data. Should set err on failure */
 typedef void (*ihm_category_callback)(struct ihm_reader *reader,
-                                      gpointer data, struct ihm_error **err);
+                                      void *data, struct ihm_error **err);
+
+/* Callback to free arbitrary data */
+typedef void (*ihm_free_callback)(void *data);
 
 /* Make a new struct ihm_category and add it to the reader. */
 struct ihm_category *ihm_category_new(struct ihm_reader *reader,
                                       const char *name,
                                       ihm_category_callback data_callback,
                                       ihm_category_callback finalize_callback,
-                                      gpointer data, GFreeFunc free_func);
+                                      void *data, ihm_free_callback free_func);
 
 /* Remove all categories from the reader. */
 void ihm_reader_remove_all_categories(struct ihm_reader *reader);
@@ -82,8 +87,7 @@ struct ihm_string;
    Return the number of bytes read (0 on EOF), or -1 (and sets err) on failure.
  */
 typedef ssize_t (*ihm_file_read_callback)(char *buffer, size_t buffer_len,
-                                          gpointer data,
-                                          struct ihm_error **err);
+                                          void *data, struct ihm_error **err);
 
 /* Track a file (or filelike object) that the data is read from */
 struct ihm_file {
@@ -97,9 +101,9 @@ struct ihm_file {
   /* Callback function to read more data into buffer */
   ihm_file_read_callback read_callback;
   /* Data to pass to callback function */
-  gpointer data;
+  void *data;
   /* Function to free callback_data (or NULL) */
-  GFreeFunc free_func;
+  ihm_free_callback free_func;
 };
 
 /* Make a new ihm_file, used to handle reading data from a file.
@@ -108,7 +112,7 @@ struct ihm_file {
    `free_func` is used to do any necessary cleanup of `data` when
    the ihm_file structure is freed. */
 struct ihm_file *ihm_file_new(ihm_file_read_callback read_callback,
-                              gpointer data, GFreeFunc free_func);
+                              void *data, ihm_free_callback free_func);
 
 /* Make a new ihm_file that will read data from the given file descriptor */
 struct ihm_file *ihm_file_new_from_fd(int fd);
@@ -124,9 +128,11 @@ void ihm_reader_free(struct ihm_reader *reader);
 /* Read a data block from an mmCIF file.
    *more_data is set TRUE iff more data blocks are available after this one.
    Return FALSE and set err on error. */
-gboolean ihm_read_file(struct ihm_reader *reader, gboolean *more_data,
-                       struct ihm_error **err);
+int ihm_read_file(struct ihm_reader *reader, int *more_data,
+                  struct ihm_error **err);
 
-G_END_DECLS
+#ifdef  __cplusplus
+}
+#endif
 
 #endif /* IHM_FORMAT_H */

@@ -20,10 +20,8 @@ python setup.py install
 ```
 
 Note that a C extension module is built for faster parsing of mmCIF files.
-This requires that your system has a C compiler, the
-[GLib](https://developer.gnome.org/glib/stable/glib.html) library,
-[pkg-config](https://www.freedesktop.org/wiki/Software/pkg-config/),
-and [SWIG](http://www.swig.org/). If any of these components are missing, you
+This requires that your system has a C compiler
+and [SWIG](http://www.swig.org/). If either of these components are missing, you
 can choose to build without the extension by adding `--without-ext` to both
 `setup.py` command lines above.
 

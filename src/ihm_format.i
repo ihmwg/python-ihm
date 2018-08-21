@@ -5,17 +5,6 @@
 #include "ihm_format.h"
 %}
 
-typedef int gboolean;
-
-/* Guard C code in headers, while including them from C++ */
-#ifdef  __cplusplus
-# define G_BEGIN_DECLS  extern "C" {
-# define G_END_DECLS    }
-#else
-# define G_BEGIN_DECLS
-# define G_END_DECLS
-#endif
-
 /* Get simple return values */
 %apply int *OUTPUT { int * };
 
@@ -71,7 +60,7 @@ static void handle_error(struct ihm_error *err)
 
 /* Read data from a Python filelike object */
 static ssize_t pyfile_read_callback(char *buffer, size_t buffer_len,
-                                    gpointer data, struct ihm_error **err)
+                                    void *data, struct ihm_error **err)
 {
   Py_ssize_t read_len;
   char *read_str;
@@ -143,7 +132,7 @@ static ssize_t pyfile_read_callback(char *buffer, size_t buffer_len,
   return read_len;
 }
 
-static void pyfile_free(gpointer data)
+static void pyfile_free(void *data)
 {
   PyObject *read_method = data;
   Py_DECREF(read_method);
@@ -195,18 +184,18 @@ struct category_handler_data {
   struct ihm_keyword **keywords;
 };
 
-static void category_handler_data_free(gpointer data)
+static void category_handler_data_free(void *data)
 {
   struct category_handler_data *hd = data;
   Py_DECREF(hd->callable);
   /* Don't need to free each hd->keywords[i] as the ihm_reader owns
      these pointers */
-  g_free(hd->keywords);
-  g_free(hd);
+  free(hd->keywords);
+  free(hd);
 }
 
 /* Called for each category (or loop construct data line) with data */
-static void handle_category_data(struct ihm_reader *reader, gpointer data,
+static void handle_category_data(struct ihm_reader *reader, void *data,
                                  struct ihm_error **err)
 {
   int i;
@@ -275,11 +264,11 @@ static struct category_handler_data *do_add_handler(
     return NULL;
   }
   seqlen = PySequence_Length(keywords);
-  hd = g_malloc(sizeof(struct category_handler_data));
+  hd = malloc(sizeof(struct category_handler_data));
   Py_INCREF(callable);
   hd->callable = callable;
   hd->num_keywords = seqlen;
-  hd->keywords = g_malloc(sizeof(struct ihm_keyword *) * seqlen);
+  hd->keywords = malloc(sizeof(struct ihm_keyword *) * seqlen);
   category = ihm_category_new(reader, name, data_callback, finalize_callback,
                               hd, category_handler_data_free);
   for (i = 0; i < seqlen; ++i) {
@@ -319,7 +308,7 @@ void add_category_handler(struct ihm_reader *reader, char *name,
 %{
 /* Called for each _pdbx_poly_seq_scheme line */
 static void handle_poly_seq_scheme_data(struct ihm_reader *reader,
-                                        gpointer data, struct ihm_error **err)
+                                        void *data, struct ihm_error **err)
 {
   int i, seq_id, auth_seq_num;
   char *seq_id_endptr, *auth_seq_num_endptr;
