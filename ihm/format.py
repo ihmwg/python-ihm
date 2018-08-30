@@ -487,7 +487,7 @@ class CifReader(object):
         def python_to_cif(field):
             # Map valid Python identifiers to mmCIF keywords
             if field.startswith('tr_vector') or field.startswith('rot_matrix'):
-                return re.sub('(\d)', r'[\1]', field)
+                return re.sub(r'(\d)', r'[\1]', field)
             else:
                 return field
         for h in self.category_handler.values():
