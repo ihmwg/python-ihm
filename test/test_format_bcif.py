@@ -251,6 +251,21 @@ class Tests(unittest.TestCase):
                          [{'var1': 'test1'}, {'var1': '?'}, {'var1': 'test2'},
                           {}, {'var1': 'test3'}])
 
+    def test_extra_categories_ignored(self):
+        """Check that extra categories in the file are ignored"""
+        cat1 = Category('_foo', {'var1':['test1']})
+        cat2 = Category('_bar', {'var2':['test2']})
+        h = GenericHandler()
+        self._read_bcif([Block([cat1, cat2])], {'_foo':h})
+        self.assertEqual(h.data, [{'var1': 'test1'}])
+
+    def test_extra_keywords_ignored(self):
+        """Check that extra keywords in the file are ignored"""
+        cat = Category('_foo', {'var1':['test1'], 'othervar':['test2']})
+        h = GenericHandler()
+        self._read_bcif([Block([cat])], {'_foo':h})
+        self.assertEqual(h.data, [{'var1': 'test1'}])
+
     def test_multiple_data_blocks(self):
         """Test handling of multiple data blocks"""
         block1 = Block([Category('_foo', {'var1':['test1'], 'var2':['test2']})])
