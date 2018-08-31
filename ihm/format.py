@@ -225,7 +225,24 @@ class _LoopToken(_Token):
     pass
 
 
-class CifReader(object):
+class _Reader(object):
+    """Base class for reading a file and extracting some or all of its data."""
+
+    def _add_category_keys(self):
+        """Populate _keys for each category by inspecting its __call__ method"""
+        def python_to_cif(field):
+            # Map valid Python identifiers to mmCIF keywords
+            if field.startswith('tr_vector') or field.startswith('rot_matrix'):
+                return re.sub(r'(\d)', r'[\1]', field)
+            else:
+                return field
+        for h in self.category_handler.values():
+            if not hasattr(h, '_keys'):
+                h._keys = [python_to_cif(x)
+                           for x in getargspec(h.__call__)[0][1:]]
+
+
+class CifReader(_Reader):
     """Class to read an mmCIF file and extract some or all of its data.
 
        Use :meth:`read_file` to actually read the file.
@@ -480,19 +497,6 @@ class CifReader(object):
         # Clear category data for next call to read_file()
         self._category_data = {}
         return ndata > 1
-
-    def _add_category_keys(self):
-        """Populate _keys for each category by inspecting its __call__ method"""
-        def python_to_cif(field):
-            # Map valid Python identifiers to mmCIF keywords
-            if field.startswith('tr_vector') or field.startswith('rot_matrix'):
-                return re.sub(r'(\d)', r'[\1]', field)
-            else:
-                return field
-        for h in self.category_handler.values():
-            if not hasattr(h, '_keys'):
-                h._keys = [python_to_cif(x)
-                           for x in getargspec(h.__call__)[0][1:]]
 
     def _read_file_c(self):
         """Read the file using the C parser"""

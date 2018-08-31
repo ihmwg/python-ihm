@@ -7,7 +7,103 @@ TOPDIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 utils.set_search_paths(TOPDIR)
 import ihm.format_bcif
 
+# Provide a dummy implementation of msgpack.unpack() which just returns the
+# data unchanged. We can use this to test the BinaryCIF parser with Python
+# objects rather than having to install msgpack and generate real binary files
+class MockMsgPack(object):
+    @staticmethod
+    def unpack(fh):
+        return fh
+
+class GenericHandler(object):
+    """Capture BinaryCIF data as a simple list of dicts"""
+
+    _keys = ('method', 'foo', 'bar', 'baz', 'pdbx_keywords', 'var1',
+             'var2', 'var3')
+
+    def __init__(self):
+        self.data = []
+
+    def __call__(self, *args):
+        d = {}
+        for k, v in zip(self._keys, args):
+            if v is not None:
+                d[k] = v
+        self.data.append(d)
+
+
+def _encode(rows):
+    # Assume rows is a list of strings; make simple BinaryCIF encoding
+    mask = [0] * len(rows)
+    need_mask = False
+    for i, row in enumerate(rows):
+        if row is None:
+            need_mask = True
+            mask[i] = 1
+        elif row == '?':
+            need_mask = True
+            mask[i] = 2
+    if need_mask:
+        rows = ['' if r == '?' or r is None else r for r in rows]
+        mask_data = ''.join(chr(i) for i in mask).encode('ascii')
+        mask = {b'data': ''.join(chr(i) for i in mask).encode('ascii'),
+                b'encoding': [{b'kind': b'ByteArray', b'type': 4}]}
+    else:
+        mask = None
+    string_data = "".join(rows)
+
+    offsets = []
+    total_len = 0
+    for row in rows:
+        offsets.append(total_len)
+        total_len += len(row)
+    offsets.append(total_len)
+    offsets = ''.join(chr(i) for i in offsets).encode('ascii')
+    indices = ''.join(chr(i) for i in range(len(rows))).encode('ascii')
+    string_array_encoding = {
+         b'kind': b'StringArray',
+         b'dataEncoding': [{b'kind': b'ByteArray', b'type': 4}],
+         b'stringData': string_data.encode('ascii'),
+         b'offsetEncoding': [{b'kind': b'ByteArray', b'type': 4}],
+         b'offsets': offsets }
+    d = {b'data': indices,
+         b'encoding': [string_array_encoding]}
+    return d, mask
+
+class Category(object):
+    def __init__(self, name, data):
+        self.name = name
+        self.data = data
+
+    def get_bcif(self):
+        nrows = 0
+        cols = []
+        for name, rows in self.data.items():
+            nrows = len(rows)
+            data, mask = _encode(rows)
+            cols.append({b'mask': mask, b'name': name.encode('ascii'),
+                         b'data': data})
+        return {b'name': self.name.encode('ascii'),
+                b'columns': cols, b'rowCount': nrows}
+
+
+class Block(list):
+    pass
+
+
+def _make_bcif_file(blocks):
+    blocks = [{b'header':{'ihm'},
+               b'categories':[c.get_bcif() for c in block]}
+              for block in blocks]
+    return {b'version':'0.1', b'encoder':'python-ihm test suite',
+            b'dataBlocks':blocks}
+
 class Tests(unittest.TestCase):
+    def test_decode_bytes(self):
+        """Test decode_bytes function"""
+        d = ihm.format_bcif._decode_bytes(b'foo')
+        self.assertEqual(d, 'foo')
+
     def test_decoder_base(self):
         """Test Decoder base class"""
         d = ihm.format_bcif._Decoder()
@@ -27,7 +123,7 @@ class Tests(unittest.TestCase):
         data = b'\x00\x01\x00\xFF'
 
         data = d(enc, data)
-        self.assertEqual(list(data), [b'a', b'AB', b'a', None])
+        self.assertEqual(list(data), ['a', 'AB', 'a', None])
 
     def test_byte_array_decoder(self):
         """Test ByteArray decoder"""
@@ -125,12 +221,58 @@ class Tests(unittest.TestCase):
 
     def test_decode(self):
         """Test _decode function"""
-
         data = b'\x01\x03\x02\x01\x03\x02'
         runlen = {b'kind': b'RunLength'}
         bytearr = {b'kind': b'ByteArray', b'type':1}
         data = ihm.format_bcif._decode(data, [runlen, bytearr])
         self.assertEqual(list(data), [1, 1, 1, 2, 3, 3])
+
+    def _read_bcif(self, blocks, category_handlers):
+        fh = _make_bcif_file(blocks)
+        sys.modules['msgpack'] = MockMsgPack
+        r = ihm.format_bcif.BinaryCifReader(fh, category_handlers)
+        r.read_file()
+
+    def test_category_case_insensitive(self):
+        """Categories and keywords should be case insensitive"""
+        cat1 = Category('_exptl', {'method':['foo']})
+        cat2 = Category('_Exptl', {'METHod':['foo']})
+        for cat in cat1, cat2:
+            h = GenericHandler()
+            self._read_bcif([Block([cat])], {'_exptl':h})
+        self.assertEqual(h.data, [{'method':'foo'}])
+
+    def test_omitted_missing(self):
+        """Test handling of omitted/missing data"""
+        cat = Category('_foo', {'var1':['test1', '?', 'test2', None, 'test3']})
+        h = GenericHandler()
+        self._read_bcif([Block([cat])], {'_foo':h})
+        self.assertEqual(h.data,
+                         [{'var1': 'test1'}, {'var1': '?'}, {'var1': 'test2'},
+                          {}, {'var1': 'test3'}])
+
+    def test_multiple_data_blocks(self):
+        """Test handling of multiple data blocks"""
+        block1 = Block([Category('_foo', {'var1':['test1'], 'var2':['test2']})])
+        block2 = Block([Category('_foo', {'var3':['test3']})])
+        fh = _make_bcif_file([block1, block2])
+
+        h = GenericHandler()
+        r = ihm.format_bcif.BinaryCifReader(fh, {'_foo':h})
+        sys.modules['msgpack'] = MockMsgPack
+        # Read first data block
+        self.assertTrue(r.read_file())
+        self.assertEqual(h.data, [{'var1':'test1', 'var2':'test2'}])
+
+        # Read second data block
+        h.data = []
+        self.assertFalse(r.read_file())
+        self.assertEqual(h.data, [{'var3':'test3'}])
+
+        # No more data blocks
+        h.data = []
+        self.assertFalse(r.read_file())
+        self.assertEqual(h.data, [])
 
 
 if __name__ == '__main__':

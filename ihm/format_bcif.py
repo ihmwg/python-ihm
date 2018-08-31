@@ -13,6 +13,16 @@ from __future__ import division
 import struct
 import sys
 import inspect
+import ihm.format
+
+# msgpack data is binary (bytes); need to convert to str in Python 3
+# All mmCIF data is ASCII
+if sys.version_info[0] >= 3:
+    def _decode_bytes(bs):
+        return bs.decode('ascii')
+else:
+    def _decode_bytes(bs):
+        return bs
 
 class _Decoder(object):
     """Base class for all decoders."""
@@ -35,8 +45,9 @@ class _StringArrayDecoder(_Decoder):
         offsets = list(_decode(enc[b'offsets'], enc[b'offsetEncoding']))
         indices = _decode(data, enc[b'dataEncoding'])
         substr = []
+        string_data = _decode_bytes(enc[b'stringData'])
         for i in range(0, len(offsets) - 1):
-            substr.append(enc[b'stringData'][offsets[i]:offsets[i+1]])
+            substr.append(string_data[offsets[i]:offsets[i+1]])
         # todo: return a listlike class instead?
         for i in indices:
             yield None if i < 0 else substr[i]
@@ -151,3 +162,75 @@ def _decode(data, encoding):
     for enc in reversed(encoding):
         data = _decoder_map[enc[b'kind']](enc, data)
     return data
+
+
+class BinaryCifReader(ihm.format._Reader):
+    """Class to read an mmCIF file and extract some or all of its data.
+
+       Use :meth:`read_file` to actually read the file.
+       See :class:`ihm.format.CifReader` for a description of the parameters.
+    """
+    def __init__(self, fh, category_handler):
+        self.category_handler = category_handler
+        self.fh = fh
+        self._file_blocks = None
+
+    def read_file(self):
+        """Read the file and extract data.
+           :return: True iff more data blocks are available to be read.
+        """
+        self._add_category_keys()
+        if self._file_blocks is None:
+            self._file_blocks = self._read_msgpack()
+        if len(self._file_blocks) > 0:
+            for category in self._file_blocks[0][b'categories']:
+                cat_name = _decode_bytes(category[b'name']).lower()
+                handler = self.category_handler.get(cat_name, None)
+                if handler:
+                    self._handle_category(handler, category)
+            del self._file_blocks[0]
+        return len(self._file_blocks) > 0
+
+    def _handle_category(self, handler, category):
+        """Extract data for the given category"""
+        num_cols = len(handler._keys)
+        # Read all data for the category;
+        # category_data[col][row]
+        category_data = [None] * num_cols
+        num_rows = 0
+        # Only read columns that match a handler key (case insensitive)
+        key_index = {}
+        for i, key in enumerate(handler._keys):
+            key_index[key] = i
+        column_indices = []
+        for c in category[b'columns']:
+            ki = key_index.get(_decode_bytes(c[b'name']).lower(), None)
+            if ki is not None:
+                column_indices.append(ki)
+                r = self._read_column(c)
+                num_rows = len(r)
+                category_data[ki] = r
+        row_data = [None] * num_cols
+        for row in range(num_rows):
+            # Only update data for columns that we read (others will
+            # remain None)
+            for i in column_indices:
+                row_data[i] = category_data[i][row]
+            handler(*row_data)
+
+    def _read_column(self, column):
+        """Read a single category column data"""
+        data = _decode(column[b'data'][b'data'], column[b'data'][b'encoding'])
+        # Handle 'unknown' values (mask==2) or 'omitted' (mask==1)
+        if column[b'mask'] is not None:
+            mask = _decode(column[b'mask'][b'data'],
+                           column[b'mask'][b'encoding'])
+            data = ['?' if m == 2 else None if m == 1 else d
+                    for d, m in zip(data, mask)]
+        return list(data)
+
+    def _read_msgpack(self):
+        """Read the msgpack data from the file and return data blocks"""
+        import msgpack
+        d = msgpack.unpack(self.fh)
+        return d[b'dataBlocks']
