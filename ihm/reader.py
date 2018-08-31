@@ -35,7 +35,7 @@ def _get_int_or_string(val):
     """Return val as an int or str as appropriate,
        or None if val is None"""
     if val is not None:
-        return int(val) if val.isdigit() else val
+        return int(val) if isinstance(val, int) or val.isdigit() else val
 
 def _get_float(val):
     """Return float(val) or None if val is None"""
