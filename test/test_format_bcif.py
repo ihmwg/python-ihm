@@ -92,7 +92,7 @@ class Block(list):
 
 
 def _make_bcif_file(blocks):
-    blocks = [{b'header':{'ihm'},
+    blocks = [{b'header':'ihm',
                b'categories':[c.get_bcif() for c in block]}
               for block in blocks]
     return {b'version':'0.1', b'encoder':'python-ihm test suite',
