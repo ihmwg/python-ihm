@@ -445,8 +445,7 @@ class CifReader(object):
            for categories (e.g. ``_entry.id model``), this will be once
            at the very end of the file.
 
-           If the C-accelerated _format module is available, and the file is
-           a real file (not a Python filelike object), then the C code is used
+           If the C-accelerated _format module is available, then it is used
            instead of the (much slower) Python tokenizer.
 
            :exc:`CifParserError` will be raised if the file cannot be parsed.
