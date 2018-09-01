@@ -47,7 +47,8 @@ def _encode(rows):
         rows = ['' if r == '?' or r is None else r for r in rows]
         mask_data = ''.join(chr(i) for i in mask).encode('ascii')
         mask = {b'data': ''.join(chr(i) for i in mask).encode('ascii'),
-                b'encoding': [{b'kind': b'ByteArray', b'type': 4}]}
+                b'encoding': [{b'kind': b'ByteArray',
+                               b'type': ihm.format_bcif._Uint8}]}
     else:
         mask = None
     string_data = "".join(rows)
@@ -62,9 +63,11 @@ def _encode(rows):
     indices = ''.join(chr(i) for i in range(len(rows))).encode('ascii')
     string_array_encoding = {
          b'kind': b'StringArray',
-         b'dataEncoding': [{b'kind': b'ByteArray', b'type': 4}],
+         b'dataEncoding': [{b'kind': b'ByteArray',
+                            b'type': ihm.format_bcif._Uint8}],
          b'stringData': string_data.encode('ascii'),
-         b'offsetEncoding': [{b'kind': b'ByteArray', b'type': 4}],
+         b'offsetEncoding': [{b'kind': b'ByteArray',
+                              b'type': ihm.format_bcif._Uint8}],
          b'offsets': offsets }
     d = {b'data': indices,
          b'encoding': [string_array_encoding]}
@@ -115,10 +118,12 @@ class Tests(unittest.TestCase):
         d = ihm.format_bcif._StringArrayDecoder()
         self.assertEqual(d._kind, b'StringArray')
 
-        # type 1 is signed char (so FF is -1)
+        # Int8 is signed char (so FF is -1)
         enc = {b'stringData': b'aAB',
-               b'dataEncoding': [{b'kind':b'ByteArray', b'type':1}],
-               b'offsetEncoding': [{b'kind':b'ByteArray', b'type':1}],
+               b'dataEncoding': [{b'kind':b'ByteArray',
+                                  b'type':ihm.format_bcif._Int8}],
+               b'offsetEncoding': [{b'kind':b'ByteArray',
+                                    b'type':ihm.format_bcif._Int8}],
                b'offsets':b'\x00\x01\x03'}
         data = b'\x00\x01\x00\xFF'
 
@@ -131,35 +136,36 @@ class Tests(unittest.TestCase):
         self.assertEqual(d._kind, b'ByteArray')
 
         # type 1 (signed char)
-        data = d({b'type':1}, b'\x00\x01\xFF')
+        data = d({b'type':ihm.format_bcif._Int8}, b'\x00\x01\xFF')
         self.assertEqual(list(data), [0, 1, -1])
 
         # type 2 (signed short)
-        data = d({b'type':2}, b'\x00\x01\x01\xAC')
+        data = d({b'type':ihm.format_bcif._Int16}, b'\x00\x01\x01\xAC')
         self.assertEqual(list(data), [256, -21503])
 
         # type 3 (signed int)
-        data = d({b'type':3}, b'\x00\x01\x01\x05')
+        data = d({b'type':ihm.format_bcif._Int32}, b'\x00\x01\x01\x05')
         self.assertEqual(list(data), [83951872])
 
         # type 4 (unsigned char)
-        data = d({b'type':4}, b'\x00\xFF')
+        data = d({b'type':ihm.format_bcif._Uint8}, b'\x00\xFF')
         self.assertEqual(list(data), [0, 255])
 
         # type 5 (unsigned short)
-        data = d({b'type':5}, b'\x00\x01\x01\xAC')
+        data = d({b'type':ihm.format_bcif._Uint16}, b'\x00\x01\x01\xAC')
         self.assertEqual(list(data), [256, 44033])
 
         # type 6 (unsigned int)
-        data = d({b'type':6}, b'\x00\x01\x01\xFF')
+        data = d({b'type':ihm.format_bcif._Uint32}, b'\x00\x01\x01\xFF')
         self.assertEqual(list(data), [4278255872])
 
         # type 32 (32-bit float)
-        data = d({b'type':32}, b'\x00\x00(B')
+        data = d({b'type':ihm.format_bcif._Float32}, b'\x00\x00(B')
         self.assertAlmostEqual(list(data)[0], 42.0, places=1)
 
         # type 33 (64-bit float)
-        data = d({b'type':33}, b'\x00\x00\x00\x00\x00\x00E@')
+        data = d({b'type':ihm.format_bcif._Float64},
+                  b'\x00\x00\x00\x00\x00\x00E@')
         self.assertAlmostEqual(list(data)[0], 42.0, places=1)
 
     def test_integer_packing_decoder_signed(self):
@@ -223,7 +229,7 @@ class Tests(unittest.TestCase):
         """Test _decode function"""
         data = b'\x01\x03\x02\x01\x03\x02'
         runlen = {b'kind': b'RunLength'}
-        bytearr = {b'kind': b'ByteArray', b'type':1}
+        bytearr = {b'kind': b'ByteArray', b'type':ihm.format_bcif._Int8}
         data = ihm.format_bcif._decode(data, [runlen, bytearr])
         self.assertEqual(list(data), [1, 1, 1, 2, 3, 3])
 

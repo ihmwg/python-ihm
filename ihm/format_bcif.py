@@ -15,6 +15,16 @@ import sys
 import inspect
 import ihm.format
 
+# ByteArray types
+_Int8 = 1
+_Int16 = 2
+_Int32 = 3
+_Uint8 = 4
+_Uint16 = 5
+_Uint32 = 6
+_Float32 = 32
+_Float64 = 33
+
 # msgpack data is binary (bytes); need to convert to str in Python 3
 # All mmCIF data is ASCII
 if sys.version_info[0] >= 3:
@@ -60,14 +70,14 @@ class _ByteArrayDecoder(_Decoder):
 
     # Map integer/float type to struct format string
     _struct_map = {
-        1: 'b',  # Int8
-        2: 'h',  # Int16
-        3: 'i',  # Int32
-        4: 'B',  # Uint8
-        5: 'H',  # Uint16
-        6: 'I',  # Uint32
-        32: 'f', # Float32
-        33: 'd', # Float64
+        _Int8: 'b',
+        _Int16: 'h',
+        _Int32: 'i',
+        _Uint8: 'B',
+        _Uint16: 'H',
+        _Uint32: 'I',
+        _Float32: 'f',
+        _Float64: 'd',
     }
 
     def __call__(self, enc, data):
