@@ -353,6 +353,10 @@ class Tests(unittest.TestCase):
         self.assertEqual(encd, {b'kind': b'ByteArray',
                                 b'type': ihm.format_bcif._Float32})
 
+        # Too-large ints should cause an error
+        self.assertRaises(TypeError, d, [2**34])
+        self.assertRaises(TypeError, d, [-2**34])
+
     def test_encode(self):
         """Test _encode function"""
         data = [1, 1, 1, 2, 3, 3]

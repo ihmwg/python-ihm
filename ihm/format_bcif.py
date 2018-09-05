@@ -337,6 +337,7 @@ class _ByteArrayEncoder(_Encoder):
                 low_limit = -up_limit - 1
                 if min_val >= low_limit and max_val <= up_limit:
                     return typ
+        raise TypeError("Cannot represent data as BinaryCIF")
 
 
 def _encode(data, encoders):
