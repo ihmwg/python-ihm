@@ -25,14 +25,18 @@ _Uint32 = 6
 _Float32 = 32
 _Float64 = 33
 
-# msgpack data is binary (bytes); need to convert to str in Python 3
+# msgpack data is binary (bytes); need to convert to/from str in Python 3
 # All mmCIF data is ASCII
 if sys.version_info[0] >= 3:
     def _decode_bytes(bs):
         return bs.decode('ascii')
+    def _encode_str(s):
+        return s.encode('ascii')
 else:
     def _decode_bytes(bs):
         return bs
+    def _encode_str(s):
+        return s
 
 class _Decoder(object):
     """Base class for all decoders."""
@@ -244,3 +248,232 @@ class BinaryCifReader(ihm.format._Reader):
         import msgpack
         d = msgpack.unpack(self.fh)
         return d[b'dataBlocks']
+
+
+class _CategoryWriter(object):
+    def __init__(self, writer, category):
+        self.writer = writer
+        self.category = category
+        self._data = {}
+    def write(self, **kwargs):
+        self._data.update(kwargs)
+    def __enter__(self):
+        return self
+    def __exit__(self, exc_type, exc_value, traceback):
+        for k in self._data:
+            self._data[k] = [self._data[k]]
+        self.writer._add_category(self.category, self._data)
+
+
+class _LoopWriter(object):
+    def __init__(self, writer, category, keys):
+        self.writer = writer
+        self.category = category
+        self.keys = keys
+        # Remove characters that we can't use in Python identifiers
+        self.python_keys = [k.replace('[', '').replace(']', '') for k in keys]
+        self._values = []
+        for i in range(len(keys)):
+            self._values.append([])
+    def write(self, **kwargs):
+        for i, k in enumerate(self.python_keys):
+            val = kwargs.get(k, None)
+            self._values[i].append(val)
+    def __enter__(self):
+        return self
+    def __exit__(self, exc_type, exc_value, traceback):
+        data = {}
+        for key, value in zip(self.keys, self._values):
+            data[key] = value
+        self.writer._add_category(self.category, data)
+
+
+class EncodeError(Exception):
+    """Exception raised if input data cannot be encoded"""
+    pass
+
+
+class _Encoder(object):
+    """Base class for all encoders"""
+    _kind = None # Encoder kind (in BinaryCIF specification)
+
+    def __call__(self, data):
+        """Given raw data `data`, return encoded data and a BinaryCIF
+           encoder information dict."""
+        pass
+
+
+class _ByteArrayEncoder(_Encoder):
+
+    # Map integer/float type to struct format string
+    _struct_map = _ByteArrayDecoder._struct_map
+
+    def __call__(self, data):
+        ba_type = self._get_type(data)
+        encdict = {b'kind': b'ByteArray', b'type': ba_type}
+        fmt = self._struct_map[ba_type]
+        # All data is encoded little-endian in bcif
+        return struct.pack('<' + fmt * len(data), *data), encdict
+
+    def _get_type(self, data):
+        """Determine the ByteArray type of the given data"""
+        # If anything is float, treat everything as single-precision float
+        for d in data:
+            if isinstance(d, float):
+                return _Float32
+        # Otherwise, figure out the most appropriate int type
+        min_val = min(data)
+        max_val = max(data)
+        if min_val >= 0:
+            # Unsigned types
+            for typ, limit in [(_Uint8, 0xFF), (_Uint16, 0xFFFF),
+                               (_Uint32, 0xFFFFFFFF)]:
+                if max_val <= limit:
+                    return typ
+        else:
+            # Signed types
+            for typ, up_limit in [(_Int8, 0x7F), (_Int16, 0x7FFF),
+                                  (_Int32, 0x7FFFFFFF)]:
+                low_limit = -up_limit - 1
+                if min_val >= low_limit and max_val <= up_limit:
+                    return typ
+
+
+def _encode(data, encoders):
+    """Encode data using the given encoder objects. Return the encoded data
+       and a list of BinaryCIF encoding dicts."""
+    encdicts = []
+    for enc in encoders:
+        data, encdict = enc(data)
+        encdicts.append(encdict)
+    return data, encdicts
+
+
+class _MaskedEncoder(object):
+    """Base class for all encoders that handle potentially masked data"""
+
+    def __call__(self, data):
+        """Given raw data `data`, return mask and encoded data, or
+           raise EncodeError."""
+        pass
+
+
+class _StringArrayMaskedEncoder(_MaskedEncoder):
+    _int_encoders = [_ByteArrayEncoder()]
+
+    def __call__(self, data):
+        mask = None
+        seen_substrs = {} # keys are substrings, values indices
+        sorted_substrs = []
+        indices = []
+        for i, s in enumerate(data):
+            # Handle 'unknown' values (mask==2) or 'omitted' (mask==1)
+            if s is None or s == ihm.format._Writer.unknown:
+                if mask is None:
+                    mask = [0] * len(data)
+                mask[i] = 1 if s is None else 2
+                indices.append(-1)
+            elif not isinstance(s, str):
+                raise EncodeError("Need string data")
+            else:
+                if s not in seen_substrs:
+                    seen_substrs[s] = len(seen_substrs)
+                    sorted_substrs.append(s)
+                indices.append(seen_substrs[s])
+        offsets = [0]
+        total_len = 0
+        for s in sorted_substrs:
+            total_len += len(s)
+            offsets.append(total_len)
+
+        data_offsets, enc_offsets = _encode(offsets, self._int_encoders)
+        data_indices, enc_indices = _encode(indices, self._int_encoders)
+
+        enc_dict = {b'kind': b'StringArray',
+                    b'dataEncoding': enc_indices,
+                    b'stringData': _encode_str(''.join(sorted_substrs)),
+                    b'offsetEncoding': enc_offsets,
+                    b'offsets': data_offsets}
+        if mask:
+            data_mask, enc_mask = _encode(mask, self._int_encoders)
+            mask = {b'data': data_mask, b'encoding': enc_mask}
+
+        return mask, data_indices, [enc_dict]
+
+
+class _IntArrayMaskedEncoder(_MaskedEncoder):
+    _encoders = [_ByteArrayEncoder()]
+
+    def __call__(self, data):
+        masked_data = data
+        mask = None
+        for i, val in enumerate(data):
+            if val is None or val == ihm.format._Writer.unknown:
+                if mask is None:
+                    mask = [0] * len(data)
+                    masked_data = data[:]
+                mask[i] = 1 if val is None else 2
+                masked_data[i] = -1
+        encdata, encoders = _encode(masked_data, self._encoders)
+        if mask:
+            data_mask, enc_mask = _encode(mask, self._encoders)
+            mask = {b'data': data_mask, b'encoding': enc_mask}
+        return mask, encdata, encoders
+
+
+class BinaryCifWriter(ihm.format._Writer):
+    """Write information to a BinaryCIF file."""
+
+    def __init__(self, fh):
+        super(BinaryCifWriter, self).__init__(fh)
+        self._blocks = []
+        self._masked_encoders = [_StringArrayMaskedEncoder(),
+                                 _IntArrayMaskedEncoder()]
+
+    def category(self, category):
+        """See :meth:`ihm.format.CifWriter.category`."""
+        return _CategoryWriter(self, category)
+
+    def loop(self, category, keys):
+        """See :meth:`ihm.format.CifWriter.loop`."""
+        return _LoopWriter(self, category, keys)
+
+    def _encode_data(self, data):
+        for enc in self._masked_encoders:
+            try:
+                return enc(data)
+            except EncodeError:
+                pass
+        raise EncodeError("Could not encode %s" % data)
+
+    def _encode_column(self, name, data):
+        mask, encdata, encs = self._encode_data(data)
+        return {b'name': _encode_str(name), b'mask': mask, b'data': encdata,
+                b'encoding': encs}
+
+    def start_block(self, name):
+        block = {b'header':_encode_str(name), b'categories': []}
+        self._categories = block[b'categories']
+        self._blocks.append(block)
+
+    def _add_category(self, category, data):
+        row_count = 0
+        cols = []
+        for k, v in data.items():
+            row_count = len(v)
+            # Do nothing if the category has no data
+            if row_count == 0:
+                return
+            cols.append(self._encode_column(k, v))
+        self._categories.append({b'name': _encode_str(category),
+                                 b'columns': cols, b'rowCount': row_count})
+
+    def flush(self):
+        data = {b'version': b'0.1', b'encoder':b'python-ihm library',
+                b'dataBlocks':self._blocks}
+        self._write_msgpack(data)
+
+    def _write_msgpack(self, data):
+        """Read the msgpack data from the file and return data blocks"""
+        import msgpack
+        msgpack.pack(data, self.fh)

@@ -93,7 +93,19 @@ class _CifLoopWriter(object):
             self.writer.fh.write("#\n")
 
 
-class CifWriter(object):
+class _Writer(object):
+    """Base class for all writers"""
+
+    omitted = '.'
+    unknown = '?'
+
+    _boolmap = {False: 'NO', True: 'YES'}
+
+    def __init__(self, fh):
+        self.fh = fh
+
+
+class CifWriter(_Writer):
     """Write information to a CIF file.
        The constructor takes a single argument - a Python filelike object
        to write to - and provides methods to write Python objects to
@@ -103,13 +115,13 @@ class CifWriter(object):
        if a different amount of precision is desired, convert the float to
        a string first."""
 
-    omitted = '.'
-    unknown = '?'
+    def flush(self):
+        # noop - data is written as it is encountered
+        pass
 
-    _boolmap = {False: 'NO', True: 'YES'}
-
-    def __init__(self, fh):
-        self.fh = fh
+    def start_block(self, name):
+        """Start a new data block in the file with the given name."""
+        self.fh.write('data_%s\n' % name)
 
     def category(self, category):
         """Return a context manager to write a CIF category.

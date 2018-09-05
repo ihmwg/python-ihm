@@ -7,13 +7,20 @@ TOPDIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 utils.set_search_paths(TOPDIR)
 import ihm.format_bcif
 
-# Provide a dummy implementation of msgpack.unpack() which just returns the
-# data unchanged. We can use this to test the BinaryCIF parser with Python
-# objects rather than having to install msgpack and generate real binary files
+# Provide dummy implementations of msgpack.unpack() and msgpack.pack() which
+# just return the data unchanged. We can use these to test the BinaryCIF
+# parser with Python objects rather than having to install msgpack and
+# generate real binary files
 class MockMsgPack(object):
     @staticmethod
     def unpack(fh):
         return fh
+    @staticmethod
+    def pack(data, fh):
+        fh.data = data
+
+class MockFh(object):
+    pass
 
 class GenericHandler(object):
     """Capture BinaryCIF data as a simple list of dicts"""
@@ -294,6 +301,175 @@ class Tests(unittest.TestCase):
         h.data = []
         self.assertFalse(r.read_file())
         self.assertEqual(h.data, [])
+
+    def test_encoder(self):
+        """Test _Encoder base class"""
+        e = ihm.format_bcif._Encoder()
+        e(None) # noop
+
+    def test_byte_array_encoder(self):
+        """Test ByteArray encoder"""
+        d = ihm.format_bcif._ByteArrayEncoder()
+
+        # type 1 (signed char)
+        data, encd = d([0, 1, -1])
+        self.assertEqual(data, b'\x00\x01\xFF')
+        self.assertEqual(encd, {b'kind': b'ByteArray',
+                                b'type': ihm.format_bcif._Int8})
+
+        # type 2 (signed short)
+        data, encd = d([256, -21503])
+        self.assertEqual(data, b'\x00\x01\x01\xAC')
+        self.assertEqual(encd, {b'kind': b'ByteArray',
+                                b'type': ihm.format_bcif._Int16})
+
+        # type 3 (signed int)
+        data, encd = d([-83951872])
+        self.assertEqual(data, b'\x00\xff\xfe\xfa')
+        self.assertEqual(encd, {b'kind': b'ByteArray',
+                                b'type': ihm.format_bcif._Int32})
+
+        # type 4 (unsigned char)
+        data, encd = d([0, 255])
+        self.assertEqual(data, b'\x00\xFF')
+        self.assertEqual(encd, {b'kind': b'ByteArray',
+                                b'type': ihm.format_bcif._Uint8})
+
+        # type 5 (unsigned short)
+        data, encd = d([256, 44033])
+        self.assertEqual(data, b'\x00\x01\x01\xAC')
+        self.assertEqual(encd, {b'kind': b'ByteArray',
+                                b'type': ihm.format_bcif._Uint16})
+
+        # type 6 (unsigned int)
+        data, encd = d([4278255872])
+        self.assertEqual(data, b'\x00\x01\x01\xFF')
+        self.assertEqual(encd, {b'kind': b'ByteArray',
+                                b'type': ihm.format_bcif._Uint32})
+
+        # type 32 (32-bit float)
+        data, encd = d([42.0])
+        self.assertEqual(len(data), 4)
+        self.assertEqual(encd, {b'kind': b'ByteArray',
+                                b'type': ihm.format_bcif._Float32})
+
+    def test_encode(self):
+        """Test _encode function"""
+        data = [1, 1, 1, 2, 3, 3]
+        encoders = [ihm.format_bcif._ByteArrayEncoder()]
+        encdata, encds = ihm.format_bcif._encode(data, encoders)
+        self.assertEqual(encdata, b'\x01\x01\x01\x02\x03\x03')
+        self.assertEqual(encds, [{b'kind': b'ByteArray',
+                                  b'type': ihm.format_bcif._Uint8}])
+
+    def test_masked_encoder(self):
+        """Test MaskedEncoder base class"""
+        e = ihm.format_bcif._MaskedEncoder()
+        e(None) # noop
+
+    def test_string_array_encoder_no_mask(self):
+        """Test StringArray encoder with no mask"""
+        d = ihm.format_bcif._StringArrayMaskedEncoder()
+        mask, indices, encs = d(['a', 'AB', 'a'])
+        self.assertEqual(mask, None)
+        self.assertEqual(indices, b'\x00\x01\x00')
+        enc, = encs
+        self.assertEqual(enc[b'dataEncoding'],
+                             [{b'kind':b'ByteArray',
+                               b'type':ihm.format_bcif._Uint8}])
+        self.assertEqual(enc[b'offsetEncoding'],
+                             [{b'kind':b'ByteArray',
+                               b'type':ihm.format_bcif._Uint8}])
+        self.assertEqual(enc[b'offsets'], b'\x00\x01\x03')
+        self.assertEqual(enc[b'stringData'], b'aAB')
+
+    def test_string_array_encoder_mask(self):
+        """Test StringArray encoder with mask"""
+        d = ihm.format_bcif._StringArrayMaskedEncoder()
+        mask, indices, encs = d(['a', 'AB', '?', None, 'a'])
+        self.assertEqual(mask,
+                         {b'data': b'\x00\x00\x02\x01\x00',
+                          b'encoding': [{b'kind': b'ByteArray',
+                                         b'type': ihm.format_bcif._Uint8}]})
+        # \xff is -1 (masked value) as a signed char (Int8)
+        self.assertEqual(indices, b'\x00\x01\xff\xff\x00')
+        enc, = encs
+        self.assertEqual(enc[b'dataEncoding'],
+                             [{b'kind':b'ByteArray',
+                               b'type':ihm.format_bcif._Int8}])
+        self.assertEqual(enc[b'offsetEncoding'],
+                             [{b'kind':b'ByteArray',
+                               b'type':ihm.format_bcif._Uint8}])
+        self.assertEqual(enc[b'offsets'], b'\x00\x01\x03')
+        self.assertEqual(enc[b'stringData'], b'aAB')
+
+    def test_int_array_encoder_no_mask(self):
+        """Test IntArray encoder with no mask"""
+        d = ihm.format_bcif._IntArrayMaskedEncoder()
+        mask, data, encs = d([5, 7, 8])
+        self.assertEqual(mask, None)
+        self.assertEqual(data, b'\x05\x07\x08')
+        self.assertEqual(encs, [{b'kind': b'ByteArray',
+                                 b'type': ihm.format_bcif._Uint8}])
+
+    def test_int_array_encoder_mask(self):
+        """Test IntArray encoder with mask"""
+        d = ihm.format_bcif._IntArrayMaskedEncoder()
+        mask, data, encs = d([5, 7, '?', 8, None])
+        self.assertEqual(mask,
+                         {b'data': b'\x00\x00\x02\x00\x01',
+                          b'encoding': [{b'kind': b'ByteArray',
+                                         b'type': ihm.format_bcif._Uint8}]})
+        # \xff is -1 (masked value) as a signed char (Int8)
+        self.assertEqual(data, b'\x05\x07\xff\x08\xff')
+        self.assertEqual(encs, [{b'kind': b'ByteArray',
+                                 b'type': ihm.format_bcif._Int8}])
+
+    def test_category(self):
+        """Test CategoryWriter class"""
+        fh = MockFh()
+        sys.modules['msgpack'] = MockMsgPack
+        writer = ihm.format_bcif.BinaryCifWriter(fh)
+        writer.start_block('ihm')
+        with writer.category('foo') as l:
+            l.write(bar='baz')
+        writer.flush()
+        block, = fh.data[b'dataBlocks']
+        category, = block[b'categories']
+        column, = category[b'columns']
+        self.assertEqual(block[b'header'], b'ihm')
+        self.assertEqual(category[b'name'], b'foo')
+        self.assertEqual(category[b'rowCount'], 1)
+        self.assertEqual(column[b'name'], b'bar')
+        self.assertEqual(column[b'encoding'][0][b'stringData'], b'baz')
+
+    def test_empty_loop(self):
+        """Test LoopWriter class with no values"""
+        fh = MockFh()
+        sys.modules['msgpack'] = MockMsgPack
+        writer = ihm.format_bcif.BinaryCifWriter(fh)
+        writer.start_block('ihm')
+        with writer.loop('foo', ["bar", "baz"]) as l:
+            pass
+        writer.flush()
+        self.assertEqual(fh.data[b'dataBlocks'][0][b'categories'], [])
+
+    def test_loop(self):
+        """Test LoopWriter class"""
+        fh = MockFh()
+        sys.modules['msgpack'] = MockMsgPack
+        writer = ihm.format_bcif.BinaryCifWriter(fh)
+        writer.start_block('ihm')
+        with writer.loop('foo', ["bar", "baz"]) as l:
+            l.write(bar='x')
+            l.write(bar=None, baz='z')
+            l.write(baz='y')
+        writer.flush()
+        block, = fh.data[b'dataBlocks']
+        category, = block[b'categories']
+        self.assertEqual(category[b'name'], b'foo')
+        self.assertEqual(category[b'rowCount'], 3)
+        col1, col2 = category[b'columns']
 
 
 if __name__ == '__main__':
