@@ -123,7 +123,7 @@ cases some information relevant to IHM (such as
 the :class:`associated publication <ihm.Citation>`) cannot be determined
 automatically and can be filled in by adding more objects to the hierarchy.
 
-The complete hierarchy can be written out to an mmCIF file using
+The complete hierarchy can be written out to an mmCIF or BinaryCIF file using
 the :func:`ihm.dumper.write` function.
 
 Input

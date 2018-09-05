@@ -3,10 +3,10 @@
    See https://github.com/dsehnal/BinaryCIF for a description of the
    BinaryCIF file format.
 
-   This module provides classes to read in BinaryCIF files. It is
+   This module provides classes to read in and write out BinaryCIF files. It is
    only concerned with handling syntactically correct BinaryCIF -
    it does not know the set of tables or the mapping to ihm objects. For that,
-   see :mod:`ihm.reader`. No write support currently exists.
+   see :mod:`ihm.reader`.
 """
 
 from __future__ import division
@@ -352,30 +352,28 @@ def _encode(data, encoders):
 class _MaskedEncoder(object):
     """Base class for all encoders that handle potentially masked data"""
 
-    def __call__(self, data):
-        """Given raw data `data`, return mask and encoded data, or
-           raise EncodeError."""
+    def __call__(self, data, mask):
+        """Given raw data `data`, and `mask`, return encoded data"""
         pass
 
 
 class _StringArrayMaskedEncoder(_MaskedEncoder):
     _int_encoders = [_ByteArrayEncoder()]
 
-    def __call__(self, data):
-        mask = None
+    def __call__(self, data, mask):
         seen_substrs = {} # keys are substrings, values indices
         sorted_substrs = []
         indices = []
-        for i, s in enumerate(data):
-            # Handle 'unknown' values (mask==2) or 'omitted' (mask==1)
-            if s is None or s == ihm.format._Writer.unknown:
-                if mask is None:
-                    mask = [0] * len(data)
-                mask[i] = 1 if s is None else 2
+        for i, reals in enumerate(data):
+            if mask is not None and mask[i]:
                 indices.append(-1)
-            elif not isinstance(s, str):
-                raise EncodeError("Need string data")
             else:
+                s = reals
+                # Map bool to YES/NO strings
+                if isinstance(s, bool):
+                    s = ihm.format._Writer._boolmap[s]
+                else:
+                    s = str(s) # coerce non-str data to str
                 if s not in seen_substrs:
                     seen_substrs[s] = len(seen_substrs)
                     sorted_substrs.append(s)
@@ -394,41 +392,74 @@ class _StringArrayMaskedEncoder(_MaskedEncoder):
                     b'stringData': _encode_str(''.join(sorted_substrs)),
                     b'offsetEncoding': enc_offsets,
                     b'offsets': data_offsets}
-        if mask:
-            data_mask, enc_mask = _encode(mask, self._int_encoders)
-            mask = {b'data': data_mask, b'encoding': enc_mask}
-
-        return mask, data_indices, [enc_dict]
+        return data_indices, [enc_dict]
 
 
 class _IntArrayMaskedEncoder(_MaskedEncoder):
     _encoders = [_ByteArrayEncoder()]
 
-    def __call__(self, data):
-        masked_data = data
-        mask = None
-        for i, val in enumerate(data):
-            if val is None or val == ihm.format._Writer.unknown:
-                if mask is None:
-                    mask = [0] * len(data)
-                    masked_data = data[:]
-                mask[i] = 1 if val is None else 2
-                masked_data[i] = -1
-        encdata, encoders = _encode(masked_data, self._encoders)
+    def __call__(self, data, mask):
         if mask:
-            data_mask, enc_mask = _encode(mask, self._encoders)
-            mask = {b'data': data_mask, b'encoding': enc_mask}
-        return mask, encdata, encoders
+            masked_data = [-1 if m else d for m, d in zip(mask, data)]
+        else:
+            masked_data = data
+        encdata, encoders = _encode(masked_data, self._encoders)
+        return encdata, encoders
+
+
+class _FloatArrayMaskedEncoder(_MaskedEncoder):
+    _encoders = [_ByteArrayEncoder()]
+
+    def __call__(self, data, mask):
+        if mask:
+            masked_data = [0. if m else d for m, d in zip(mask, data)]
+        else:
+            masked_data = data
+        encdata, encoders = _encode(masked_data, self._encoders)
+        return encdata, encoders
+
+
+def _get_mask_and_type(data):
+    """Detect missing/omitted values in `data` and determine the type of
+       the remaining values (str, int, float)"""
+    mask = None
+    typ = None
+    seen_types = set()
+    for i, val in enumerate(data):
+        if val is None or val == ihm.format._Writer.unknown:
+            if mask is None:
+                mask = [0] * len(data)
+            mask[i] = 1 if val is None else 2
+        else:
+            seen_types.add(type(val))
+    # If a mix of types, coerce to that of the highest precendence
+    # (mixed int/float can be represented as float; mix int/float/str can
+    # be represented as str; bool is represented as str)
+    if not seen_types or bool in seen_types or str in seen_types:
+        return mask, str
+    elif float in seen_types:
+        return mask, float
+    elif int in seen_types:
+        return mask, int
+    for t in seen_types:
+        # Handle numpy float types like Python float
+        # todo: this is a hack
+        if 'numpy.float' in str(t):
+            return mask, float
+    raise ValueError("Cannot determine type of data %s" % data)
 
 
 class BinaryCifWriter(ihm.format._Writer):
     """Write information to a BinaryCIF file."""
 
+    _mask_encoders = [_ByteArrayEncoder()]
+
     def __init__(self, fh):
         super(BinaryCifWriter, self).__init__(fh)
         self._blocks = []
-        self._masked_encoders = [_StringArrayMaskedEncoder(),
-                                 _IntArrayMaskedEncoder()]
+        self._masked_encoder = {str: _StringArrayMaskedEncoder(),
+                                int: _IntArrayMaskedEncoder(),
+                                float: _FloatArrayMaskedEncoder()}
 
     def category(self, category):
         """See :meth:`ihm.format.CifWriter.category`."""
@@ -439,17 +470,18 @@ class BinaryCifWriter(ihm.format._Writer):
         return _LoopWriter(self, category, keys)
 
     def _encode_data(self, data):
-        for enc in self._masked_encoders:
-            try:
-                return enc(data)
-            except EncodeError:
-                pass
-        raise EncodeError("Could not encode %s" % data)
+        mask, typ = _get_mask_and_type(data)
+        enc = self._masked_encoder[typ]
+        encdata, encs = enc(data, mask)
+        if mask:
+            data_mask, enc_mask = _encode(mask, self._mask_encoders)
+            mask = {b'data': data_mask, b'encoding': enc_mask}
+        return mask, encdata, encs
 
     def _encode_column(self, name, data):
         mask, encdata, encs = self._encode_data(data)
-        return {b'name': _encode_str(name), b'mask': mask, b'data': encdata,
-                b'encoding': encs}
+        return {b'name': _encode_str(name), b'mask': mask,
+                b'data': {b'data': encdata, b'encoding': encs}}
 
     def start_block(self, name):
         block = {b'header':_encode_str(name), b'categories': []}

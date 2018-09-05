@@ -362,16 +362,75 @@ class Tests(unittest.TestCase):
         self.assertEqual(encds, [{b'kind': b'ByteArray',
                                   b'type': ihm.format_bcif._Uint8}])
 
+    def test_mask_type_no_mask(self):
+        """Test get_mask_and_type with no mask"""
+        data = [1,2,3,4]
+        mask, typ = ihm.format_bcif._get_mask_and_type(data)
+        self.assertEqual(mask, None)
+        self.assertEqual(typ, int)
+
+    def test_mask_type_masked_int(self):
+        """Test get_mask_and_type with masked int data"""
+        data = [1,2,3,None,'?',4]
+        mask, typ = ihm.format_bcif._get_mask_and_type(data)
+        self.assertEqual(mask, [0,0,0,1,2,0])
+        self.assertEqual(typ, int)
+
+    def test_mask_type_masked_float(self):
+        """Test get_mask_and_type with masked float data"""
+        data = [1.0,2.0,3.0,None,'?',4.0]
+        mask, typ = ihm.format_bcif._get_mask_and_type(data)
+        self.assertEqual(mask, [0,0,0,1,2,0])
+        self.assertEqual(typ, float)
+
+    def test_mask_type_masked_numpy_float(self):
+        """Test get_mask_and_type with masked numpy float data"""
+        try:
+            import numpy
+        except ImportError:
+            self.skipTest("this test requires numpy")
+        data = [numpy.float64(4.2),None,'?']
+        mask, typ = ihm.format_bcif._get_mask_and_type(data)
+        self.assertEqual(mask, [0,1,2])
+        self.assertEqual(typ, float)
+
+    def test_mask_type_masked_str(self):
+        """Test get_mask_and_type with masked str data"""
+        data = ['a','b',None,'?','c']
+        mask, typ = ihm.format_bcif._get_mask_and_type(data)
+        self.assertEqual(mask, [0,0,1,2,0])
+        self.assertEqual(typ, str)
+
+    def test_mask_type_mix_int_float(self):
+        """Test get_mask_and_type with a mix of int and float data"""
+        data = [1,2,3,4.0]
+        mask, typ = ihm.format_bcif._get_mask_and_type(data)
+        self.assertEqual(mask, None)
+        self.assertEqual(typ, float) # int/float is coerced to float
+
+    def test_mask_type_mix_int_float_str(self):
+        """Test get_mask_and_type with a mix of int/float/str data"""
+        data = [1,2,3,4.0,'foo']
+        mask, typ = ihm.format_bcif._get_mask_and_type(data)
+        self.assertEqual(mask, None)
+        self.assertEqual(typ, str) # int/float/str is coerced to str
+
+    def test_mask_type_bad_type(self):
+        """Test get_mask_and_type with unknown type data"""
+        class MockObject(object):
+            pass
+        data = [MockObject()]
+        self.assertRaises(ValueError, ihm.format_bcif._get_mask_and_type, data)
+
     def test_masked_encoder(self):
         """Test MaskedEncoder base class"""
         e = ihm.format_bcif._MaskedEncoder()
-        e(None) # noop
+        e(None, None) # noop
 
     def test_string_array_encoder_no_mask(self):
         """Test StringArray encoder with no mask"""
         d = ihm.format_bcif._StringArrayMaskedEncoder()
-        mask, indices, encs = d(['a', 'AB', 'a'])
-        self.assertEqual(mask, None)
+        indices, encs = d(['a', 'AB', 'a'], None)
         self.assertEqual(indices, b'\x00\x01\x00')
         enc, = encs
         self.assertEqual(enc[b'dataEncoding'],
@@ -386,13 +445,11 @@ class Tests(unittest.TestCase):
     def test_string_array_encoder_mask(self):
         """Test StringArray encoder with mask"""
         d = ihm.format_bcif._StringArrayMaskedEncoder()
-        mask, indices, encs = d(['a', 'AB', '?', None, 'a'])
-        self.assertEqual(mask,
-                         {b'data': b'\x00\x00\x02\x01\x00',
-                          b'encoding': [{b'kind': b'ByteArray',
-                                         b'type': ihm.format_bcif._Uint8}]})
+        # True should be mapped to 'YES'; int 3 to str '3'
+        indices, encs = d(['a', 'AB', True, '?', None, 'a', 3],
+                          [0, 0, 0, 2, 1, 0, 0])
         # \xff is -1 (masked value) as a signed char (Int8)
-        self.assertEqual(indices, b'\x00\x01\xff\xff\x00')
+        self.assertEqual(indices, b'\x00\x01\x02\xff\xff\x00\x03')
         enc, = encs
         self.assertEqual(enc[b'dataEncoding'],
                              [{b'kind':b'ByteArray',
@@ -400,14 +457,13 @@ class Tests(unittest.TestCase):
         self.assertEqual(enc[b'offsetEncoding'],
                              [{b'kind':b'ByteArray',
                                b'type':ihm.format_bcif._Uint8}])
-        self.assertEqual(enc[b'offsets'], b'\x00\x01\x03')
-        self.assertEqual(enc[b'stringData'], b'aAB')
+        self.assertEqual(enc[b'offsets'], b'\x00\x01\x03\x06\x07')
+        self.assertEqual(enc[b'stringData'], b'aABYES3')
 
     def test_int_array_encoder_no_mask(self):
         """Test IntArray encoder with no mask"""
         d = ihm.format_bcif._IntArrayMaskedEncoder()
-        mask, data, encs = d([5, 7, 8])
-        self.assertEqual(mask, None)
+        data, encs = d([5, 7, 8], None)
         self.assertEqual(data, b'\x05\x07\x08')
         self.assertEqual(encs, [{b'kind': b'ByteArray',
                                  b'type': ihm.format_bcif._Uint8}])
@@ -415,15 +471,28 @@ class Tests(unittest.TestCase):
     def test_int_array_encoder_mask(self):
         """Test IntArray encoder with mask"""
         d = ihm.format_bcif._IntArrayMaskedEncoder()
-        mask, data, encs = d([5, 7, '?', 8, None])
-        self.assertEqual(mask,
-                         {b'data': b'\x00\x00\x02\x00\x01',
-                          b'encoding': [{b'kind': b'ByteArray',
-                                         b'type': ihm.format_bcif._Uint8}]})
+        data, encs = d([5, 7, '?', 8, None], [0, 0, 2, 0, 1])
         # \xff is -1 (masked value) as a signed char (Int8)
         self.assertEqual(data, b'\x05\x07\xff\x08\xff')
         self.assertEqual(encs, [{b'kind': b'ByteArray',
                                  b'type': ihm.format_bcif._Int8}])
+
+    def test_float_array_encoder_no_mask(self):
+        """Test FloatArray encoder with no mask"""
+        d = ihm.format_bcif._FloatArrayMaskedEncoder()
+        # int data should be coerced to float
+        data, encs = d([5.0, 7.0, 8.0, 4], None)
+        self.assertEqual(len(data), 4 * 4)
+        self.assertEqual(encs, [{b'kind': b'ByteArray',
+                                 b'type': ihm.format_bcif._Float32}])
+
+    def test_float_array_encoder_mask(self):
+        """Test FloatArray encoder with mask"""
+        d = ihm.format_bcif._FloatArrayMaskedEncoder()
+        data, encs = d([5., 7., '?', 8., None], [0, 0, 2, 0, 1])
+        self.assertEqual(len(data), 5 * 4)
+        self.assertEqual(encs, [{b'kind': b'ByteArray',
+                                 b'type': ihm.format_bcif._Float32}])
 
     def test_category(self):
         """Test CategoryWriter class"""
@@ -441,7 +510,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(category[b'name'], b'foo')
         self.assertEqual(category[b'rowCount'], 1)
         self.assertEqual(column[b'name'], b'bar')
-        self.assertEqual(column[b'encoding'][0][b'stringData'], b'baz')
+        self.assertEqual(column[b'data'][b'encoding'][0][b'stringData'], b'baz')
 
     def test_empty_loop(self):
         """Test LoopWriter class with no values"""
