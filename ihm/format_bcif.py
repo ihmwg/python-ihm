@@ -355,6 +355,34 @@ class _DeltaEncoder(_Encoder):
         return encdata, encdict
 
 
+class _RunLengthEncoder(_Encoder):
+    """Encode an integer array as pairs of (value, number of repeats)"""
+    def __call__(self, data):
+        # Don't try to compress small arrays; the overhead of the compression
+        # probably will exceed the space savings
+        if len(data) <= 40:
+            return data, None
+        data_type = _get_int_float_type(data)
+        encdict = {b'kind': b'RunLength',
+                   b'srcType': data_type, b'srcSize': len(data)}
+        encdata = []
+        val = None
+        for d in data:
+            if d != val:
+                if val is not None:
+                    encdata.extend((val, repeat))
+                val = d
+                repeat = 1
+            else:
+                repeat += 1
+        encdata.extend((val, repeat))
+        # If we didn't save any space, return the original unchanged
+        if len(encdata) > len(data):
+            return data, None
+        else:
+            return encdata, encdict
+
+
 def _encode(data, encoders):
     """Encode data using the given encoder objects. Return the encoded data
        and a list of BinaryCIF encoding dicts."""
@@ -375,7 +403,8 @@ class _MaskedEncoder(object):
 
 
 class _StringArrayMaskedEncoder(_MaskedEncoder):
-    _int_encoders = [_DeltaEncoder(), _ByteArrayEncoder()]
+    _int_encoders = [_DeltaEncoder(), _RunLengthEncoder(),
+                     _ByteArrayEncoder()]
 
     def __call__(self, data, mask):
         seen_substrs = {} # keys are substrings, values indices
@@ -413,7 +442,7 @@ class _StringArrayMaskedEncoder(_MaskedEncoder):
 
 
 class _IntArrayMaskedEncoder(_MaskedEncoder):
-    _encoders = [_DeltaEncoder(), _ByteArrayEncoder()]
+    _encoders = [_DeltaEncoder(), _RunLengthEncoder(), _ByteArrayEncoder()]
 
     def __call__(self, data, mask):
         if mask:
@@ -469,7 +498,8 @@ def _get_mask_and_type(data):
 class BinaryCifWriter(ihm.format._Writer):
     """Write information to a BinaryCIF file."""
 
-    _mask_encoders = [_DeltaEncoder(), _ByteArrayEncoder()]
+    _mask_encoders = [_DeltaEncoder(), _RunLengthEncoder(),
+                      _ByteArrayEncoder()]
 
     def __init__(self, fh):
         super(BinaryCifWriter, self).__init__(fh)

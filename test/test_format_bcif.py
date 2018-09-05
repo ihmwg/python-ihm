@@ -374,6 +374,29 @@ class Tests(unittest.TestCase):
         self.assertEqual(encdict, {b'origin': 0, b'kind': b'Delta',
                                    b'srcType': ihm.format_bcif._Int8})
 
+    def test_run_length_encoder(self):
+        """Test RunLength encoder"""
+        d = ihm.format_bcif._RunLengthEncoder()
+
+        # too-small data is returned unchanged
+        data = [0, 1, -1]
+        encdata, encdict = d(data)
+        self.assertEqual(data, encdata)
+        self.assertEqual(encdict, None)
+
+        # large data that can't be compressed is returned unchanged
+        data = list(range(50))
+        encdata, encdict = d(data)
+        self.assertEqual(data, encdata)
+        self.assertEqual(encdict, None)
+
+        # large data that can be compressed
+        data = [0] * 30 + [1] * 40
+        encdata, encdict = d(data)
+        self.assertEqual(encdata, [0, 30, 1, 40])
+        self.assertEqual(encdict, {b'kind': b'RunLength', b'srcSize': 70,
+                                   b'srcType': ihm.format_bcif._Uint8})
+
     def test_encode(self):
         """Test _encode function"""
         data = [1, 1, 1, 2, 3, 3]
