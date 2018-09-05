@@ -357,10 +357,35 @@ class Tests(unittest.TestCase):
         self.assertRaises(TypeError, d, [2**34])
         self.assertRaises(TypeError, d, [-2**34])
 
+    def test_delta_encoder(self):
+        """Test Delta encoder"""
+        d = ihm.format_bcif._DeltaEncoder()
+
+        # too-small data is returned unchanged
+        data = [0, 1, -1]
+        encdata, encdict = d(data)
+        self.assertEqual(data, encdata)
+        self.assertEqual(encdict, None)
+
+        # large data is encoded
+        data = [0, 1, -1] + [-1] * 40
+        encdata, encdict = d(data)
+        self.assertEqual(encdata, [1, -2] + [0] * 40)
+        self.assertEqual(encdict, {b'origin': 0, b'kind': b'Delta',
+                                   b'srcType': ihm.format_bcif._Int8})
+
     def test_encode(self):
         """Test _encode function"""
         data = [1, 1, 1, 2, 3, 3]
         encoders = [ihm.format_bcif._ByteArrayEncoder()]
+        encdata, encds = ihm.format_bcif._encode(data, encoders)
+        self.assertEqual(encdata, b'\x01\x01\x01\x02\x03\x03')
+        self.assertEqual(encds, [{b'kind': b'ByteArray',
+                                  b'type': ihm.format_bcif._Uint8}])
+
+        # DeltaEncoder will be a noop here since data is small
+        encoders = [ihm.format_bcif._DeltaEncoder(),
+                    ihm.format_bcif._ByteArrayEncoder()]
         encdata, encds = ihm.format_bcif._encode(data, encoders)
         self.assertEqual(encdata, b'\x01\x01\x01\x02\x03\x03')
         self.assertEqual(encds, [{b'kind': b'ByteArray',

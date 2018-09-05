@@ -303,41 +303,56 @@ class _Encoder(object):
         pass
 
 
+def _get_int_float_type(data):
+    """Determine the int/float type of the given data"""
+    # If anything is float, treat everything as single-precision float
+    for d in data:
+        if isinstance(d, float):
+            return _Float32
+    # Otherwise, figure out the most appropriate int type
+    min_val = min(data)
+    max_val = max(data)
+    if min_val >= 0:
+        # Unsigned types
+        for typ, limit in [(_Uint8, 0xFF), (_Uint16, 0xFFFF),
+                           (_Uint32, 0xFFFFFFFF)]:
+            if max_val <= limit:
+                return typ
+    else:
+        # Signed types
+        for typ, up_limit in [(_Int8, 0x7F), (_Int16, 0x7FFF),
+                              (_Int32, 0x7FFFFFFF)]:
+            low_limit = -up_limit - 1
+            if min_val >= low_limit and max_val <= up_limit:
+                return typ
+    raise TypeError("Cannot represent data as BinaryCIF")
+
+
 class _ByteArrayEncoder(_Encoder):
 
     # Map integer/float type to struct format string
     _struct_map = _ByteArrayDecoder._struct_map
 
     def __call__(self, data):
-        ba_type = self._get_type(data)
+        ba_type = _get_int_float_type(data)
         encdict = {b'kind': b'ByteArray', b'type': ba_type}
         fmt = self._struct_map[ba_type]
         # All data is encoded little-endian in bcif
         return struct.pack('<' + fmt * len(data), *data), encdict
 
-    def _get_type(self, data):
-        """Determine the ByteArray type of the given data"""
-        # If anything is float, treat everything as single-precision float
-        for d in data:
-            if isinstance(d, float):
-                return _Float32
-        # Otherwise, figure out the most appropriate int type
-        min_val = min(data)
-        max_val = max(data)
-        if min_val >= 0:
-            # Unsigned types
-            for typ, limit in [(_Uint8, 0xFF), (_Uint16, 0xFFFF),
-                               (_Uint32, 0xFFFFFFFF)]:
-                if max_val <= limit:
-                    return typ
-        else:
-            # Signed types
-            for typ, up_limit in [(_Int8, 0x7F), (_Int16, 0x7FFF),
-                                  (_Int32, 0x7FFFFFFF)]:
-                low_limit = -up_limit - 1
-                if min_val >= low_limit and max_val <= up_limit:
-                    return typ
-        raise TypeError("Cannot represent data as BinaryCIF")
+
+class _DeltaEncoder(_Encoder):
+    """Encode an integer array as an array of consecutive differences."""
+    def __call__(self, data):
+        # Don't try to compress small arrays; the overhead of the compression
+        # probably will exceed the space savings
+        if len(data) <= 40:
+            return data, None
+        data_type = _get_int_float_type(data)
+        encdict = {b'kind': b'Delta', b'origin': data[0],
+                   b'srcType': data_type}
+        encdata = [data[i] - data[i-1] for i in range(1, len(data))]
+        return encdata, encdict
 
 
 def _encode(data, encoders):
@@ -346,7 +361,8 @@ def _encode(data, encoders):
     encdicts = []
     for enc in encoders:
         data, encdict = enc(data)
-        encdicts.append(encdict)
+        if encdict is not None:
+            encdicts.append(encdict)
     return data, encdicts
 
 
@@ -359,7 +375,7 @@ class _MaskedEncoder(object):
 
 
 class _StringArrayMaskedEncoder(_MaskedEncoder):
-    _int_encoders = [_ByteArrayEncoder()]
+    _int_encoders = [_DeltaEncoder(), _ByteArrayEncoder()]
 
     def __call__(self, data, mask):
         seen_substrs = {} # keys are substrings, values indices
@@ -397,7 +413,7 @@ class _StringArrayMaskedEncoder(_MaskedEncoder):
 
 
 class _IntArrayMaskedEncoder(_MaskedEncoder):
-    _encoders = [_ByteArrayEncoder()]
+    _encoders = [_DeltaEncoder(), _ByteArrayEncoder()]
 
     def __call__(self, data, mask):
         if mask:
@@ -453,7 +469,7 @@ def _get_mask_and_type(data):
 class BinaryCifWriter(ihm.format._Writer):
     """Write information to a BinaryCIF file."""
 
-    _mask_encoders = [_ByteArrayEncoder()]
+    _mask_encoders = [_DeltaEncoder(), _ByteArrayEncoder()]
 
     def __init__(self, fh):
         super(BinaryCifWriter, self).__init__(fh)
