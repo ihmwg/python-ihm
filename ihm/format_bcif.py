@@ -351,7 +351,7 @@ class _DeltaEncoder(_Encoder):
         data_type = _get_int_float_type(data)
         encdict = {b'kind': b'Delta', b'origin': data[0],
                    b'srcType': data_type}
-        encdata = [data[i] - data[i-1] for i in range(1, len(data))]
+        encdata = [0] + [data[i] - data[i-1] for i in range(1, len(data))]
         return encdata, encdict
 
 

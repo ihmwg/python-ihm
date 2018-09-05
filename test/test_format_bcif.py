@@ -370,7 +370,7 @@ class Tests(unittest.TestCase):
         # large data is encoded
         data = [0, 1, -1] + [-1] * 40
         encdata, encdict = d(data)
-        self.assertEqual(encdata, [1, -2] + [0] * 40)
+        self.assertEqual(encdata, [0, 1, -2] + [0] * 40)
         self.assertEqual(encdict, {b'origin': 0, b'kind': b'Delta',
                                    b'srcType': ihm.format_bcif._Int8})
 
