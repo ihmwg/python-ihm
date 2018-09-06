@@ -3,9 +3,9 @@
 [![Windows Build Status](https://ci.appveyor.com/api/projects/status/5o28oe477ii8ur4h?svg=true)](https://ci.appveyor.com/project/benmwebb/python-ihm)
 [![codecov](https://codecov.io/gh/ihmwg/python-ihm/branch/master/graph/badge.svg)](https://codecov.io/gh/ihmwg/python-ihm)
 
-This is a Python package to assist in handling mmCIF files compliant
-with the integrative/hybrid modeling (IHM) extension. It works with Python 2.6
-or later (Python 3 is fully supported).
+This is a Python package to assist in handling mmCIF and BinaryCIF files
+compliant with the integrative/hybrid modeling (IHM) extension. It works
+with Python 2.6 or later (Python 3 is fully supported).
 
 Please [see the documentation](https://python-ihm.readthedocs.org/)
 or some [worked examples](examples) for more details.
@@ -25,8 +25,8 @@ and [SWIG](http://www.swig.org/). If either of these components are missing, you
 can choose to build without the extension by adding `--without-ext` to both
 `setup.py` command lines above.
 
-If you want to read [BinaryCIF](https://github.com/dsehnal/BinaryCIF) files,
-you will also need the
+If you want to read or write [BinaryCIF](https://github.com/dsehnal/BinaryCIF)
+files, you will also need the
 Python [msgpack](https://github.com/msgpack/msgpack-python) package.
 
 # Testing
