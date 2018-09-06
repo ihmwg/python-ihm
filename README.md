@@ -13,9 +13,15 @@ or some
 [worked examples](https://github.com/ihmwg/python-ihm/tree/master/examples)
 for more details.
 
-# Installation
+# Installation with pip
 
-To build and install, run
+```
+pip install ihm
+```
+
+# Installation from source code
+
+To build and install from a clone of the GitHub repository, run
 
 ```
 python setup.py build
