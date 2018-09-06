@@ -24,6 +24,7 @@ else:
 if build_ext:
     mod = [Extension("ihm._format",
                      sources=["src/ihm_format.c", "src/ihm_format.i"],
+                     include_dirs=['src'],
                      extra_compile_args=cargs,
                      swig_opts=['-keyword', '-nodefaultctor',
                                 '-nodefaultdtor', '-noproxy'])]
