@@ -45,6 +45,7 @@ setup(name='ihm',
       url='https://github.com/ihmwg/python-ihm',
       ext_modules=mod,
       packages=['ihm'],
+      install_requires=['msgpack'],
       classifiers=[
         "Programming Language :: Python :: 2.6",
         "Programming Language :: Python :: 2.7",
