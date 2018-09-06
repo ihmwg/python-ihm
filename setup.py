@@ -27,11 +27,26 @@ if build_ext:
 else:
     mod = []
 
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
 setup(name='ihm',
+      version='0.1',
       script_args=copy_args,
-      description='Package for handling IHM mmCIF files',
+      description='Package for handling IHM mmCIF and BinaryCIF files',
+      long_description=long_description,
+      long_description_content_type="text/markdown",
       author='Ben Webb',
       author_email='ben@salilab.org',
       url='https://github.com/ihmwg/python-ihm',
       ext_modules=mod,
-      packages=['ihm'])
+      packages=['ihm'],
+      classifiers=[
+        "Programming Language :: Python :: 2.6",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+        "Intended Audience :: Science/Research",
+        "Topic :: Scientific/Engineering",
+      ])
