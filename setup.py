@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 
-from distutils.core import setup, Extension
+try:
+    from setuptools import setup, Extension
+except ImportError:
+    from distutils.core import setup, Extension
 import sys
 
 copy_args = sys.argv[1:]
