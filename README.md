@@ -9,7 +9,9 @@ and [BinaryCIF](https://github.com/dsehnal/BinaryCIF) files compliant with the
 extension. It works with Python 2.6 or later (Python 3 is fully supported).
 
 Please [see the documentation](https://python-ihm.readthedocs.org/)
-or some [worked examples](examples) for more details.
+or some
+[worked examples](https://github.com/ihmwg/python-ihm/tree/master/examples)
+for more details.
 
 # Installation
 
