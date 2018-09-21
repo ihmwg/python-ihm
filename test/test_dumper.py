@@ -116,6 +116,10 @@ _struct.title 'test model'
                           description='y', location='z'))
         dumper = ihm.dumper._SoftwareDumper()
         dumper.finalize(system)
+        self.assertEqual(len(dumper._software_by_id), 2)
+        # Repeated calls to finalize() should yield identical results
+        dumper.finalize(system)
+        self.assertEqual(len(dumper._software_by_id), 2)
         out = _get_dumper_output(dumper, system)
         self.assertEqual(out, """#
 loop_
@@ -572,6 +576,12 @@ _ihm_struct_assembly.seq_id_end
 
             d = ihm.dumper._ExternalReferenceDumper()
             d.finalize(system)
+            self.assertEqual(len(d._ref_by_id), 5)
+            self.assertEqual(len(d._repo_by_id), 4)
+            # Repeated calls to finalize() should yield identical results
+            d.finalize(system)
+            self.assertEqual(len(d._ref_by_id), 5)
+            self.assertEqual(len(d._repo_by_id), 4)
             out = _get_dumper_output(d, system)
             self.assertEqual(out, """#
 loop_
@@ -692,6 +702,11 @@ _ihm_external_files.details
 
         d = ihm.dumper._DatasetDumper()
         d.finalize(system) # Assign IDs
+        self.assertEqual(len(d._dataset_by_id), 1)
+        self.assertEqual(len(d._dataset_group_by_id), 1)
+
+        # Repeated calls to finalize should yield identical results
+        d.finalize(system)
         self.assertEqual(len(d._dataset_by_id), 1)
         self.assertEqual(len(d._dataset_group_by_id), 1)
 
@@ -1794,6 +1809,14 @@ _ihm_cross_link_result_parameters.sigma_2
 
         dumper = ihm.dumper._GeometricObjectDumper()
         dumper.finalize(system) # assign IDs
+        self.assertEqual(len(dumper._objects_by_id), 5)
+        self.assertEqual(len(dumper._centers_by_id), 1)
+        self.assertEqual(len(dumper._transformations_by_id), 1)
+        # Repeated calls to finalize should yield identical results
+        dumper.finalize(system)
+        self.assertEqual(len(dumper._objects_by_id), 5)
+        self.assertEqual(len(dumper._centers_by_id), 1)
+        self.assertEqual(len(dumper._transformations_by_id), 1)
         out = _get_dumper_output(dumper, system)
         self.assertEqual(out, """#
 loop_
@@ -1896,6 +1919,10 @@ _ihm_geometric_object_plane.transformation_id
 
         dumper = ihm.dumper._FeatureDumper()
         dumper.finalize(system) # assign IDs
+        self.assertEqual(len(dumper._features_by_id), 2)
+        # Repeated calls to finalize should yield identical results
+        dumper.finalize(system)
+        self.assertEqual(len(dumper._features_by_id), 2)
         out = _get_dumper_output(dumper, system)
         self.assertEqual(out, """#
 loop_

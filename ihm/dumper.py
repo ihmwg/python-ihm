@@ -47,6 +47,8 @@ class _SoftwareDumper(_Dumper):
         seen_software = {}
         self._software_by_id = []
         for s in system._all_software():
+            util._remove_id(s)
+        for s in system._all_software():
             util._assign_id(s, seen_software, self._software_by_id)
 
     def dump(self, system, writer):
@@ -411,6 +413,10 @@ class _ExternalReferenceDumper(_Dumper):
         # Special dummy repo for repo=None (local files)
         self._local_files = self._LocalFiles(os.getcwd())
         for r in self._refs:
+            util._remove_id(r)
+            if r.repo:
+                util._remove_id(r.repo)
+        for r in self._refs:
             # Assign a unique ID to the reference
             util._assign_id(r, seen_refs, self._ref_by_id)
             # Assign a unique ID to the repository
@@ -458,6 +464,8 @@ class _DatasetDumper(_Dumper):
         seen_datasets = {}
         # Assign IDs to all datasets
         self._dataset_by_id = []
+        for d in system._all_datasets():
+            util._remove_id(d)
         for d in system._all_datasets():
             util._assign_id(d, seen_datasets, self._dataset_by_id)
 
@@ -1054,6 +1062,13 @@ class _GeometricObjectDumper(_Dumper):
         self._objects_by_id = []
 
         for o in system._all_geometric_objects():
+            util._remove_id(o)
+            if hasattr(o, 'center'):
+                util._remove_id(o.center)
+            if hasattr(o, 'transformation') and o.transformation:
+                util._remove_id(o.transformation)
+
+        for o in system._all_geometric_objects():
             util._assign_id(o, seen_objects, self._objects_by_id)
             if hasattr(o, 'center'):
                 util._assign_id(o.center, seen_centers, self._centers_by_id)
@@ -1166,6 +1181,8 @@ class _FeatureDumper(_Dumper):
     def finalize(self, system):
         seen_features = {}
         self._features_by_id = []
+        for f in system._all_features():
+            util._remove_id(f)
         for f in system._all_features():
             util._assign_id(f, seen_features, self._features_by_id)
 
