@@ -140,8 +140,23 @@ class Tests(unittest.TestCase):
 
     def test_poly_residue_feature(self):
         """Test PolyResidueFeature class"""
+        e = ihm.Entity('AHCDAH')
+        a = ihm.AsymUnit(e)
         f = ihm.restraint.PolyResidueFeature(ranges=[])
         self.assertEqual(f.entity, None)
+
+        # No ranges - type is 'residue'
+        self.assertEqual(f.type, 'residue')
+
+        # All ranges are individual residues
+        f.ranges.append(a(1,1))
+        f.ranges.append(a(2,2))
+        self.assertEqual(f.type, 'residue')
+
+        # At least one range is a true range
+        f.ranges.append(a(3,4))
+        self.assertEqual(f.type, 'residue range')
+
 
     def test_geometric_restraint(self):
         """Test GeometricRestraint class"""

@@ -413,7 +413,15 @@ class PolyResidueFeature(Feature):
        :param sequence ranges: A list of :class:`AsymUnitRange` and/or
               :class:`AsymUnit` objects.
     """
-    type = 'residue range'
+
+    # Type is 'residue' if each range selects a single residue, otherwise
+    # it is 'residue range'
+    def __get_type(self):
+        for r in self.ranges:
+            if r.seq_id_range[0] != r.seq_id_range[1]:
+                return 'residue range'
+        return 'residue'
+    type = property(__get_type)
 
     def __init__(self, ranges):
         self.ranges = ranges
