@@ -58,6 +58,16 @@ class Tests(unittest.TestCase):
         cc1 = ihm.DNAChemComp(id='DG', code='DG', code_canonical='G')
         self.assertEqual(cc1.type, 'DNA linking')
 
+    def test_non_polymer_chem_comp(self):
+        """Test NonPolymerChemComp class"""
+        cc1 = ihm.NonPolymerChemComp('HEM')
+        self.assertEqual(cc1.type, 'non-polymer')
+
+    def test_water_chem_comp(self):
+        """Test WaterChemComp class"""
+        cc1 = ihm.WaterChemComp()
+        self.assertEqual(cc1.type, 'non-polymer')
+
     def test_l_peptide_alphabet(self):
         """Test LPeptideAlphabet class"""
         a = ihm.LPeptideAlphabet

@@ -574,6 +574,25 @@ class RNAChemComp(ChemComp):
     type = 'RNA linking'
 
 
+class NonPolymerChemComp(ChemComp):
+    """A non-polymer chemical component, such as a ligand
+       (for crystal waters, use :class:`WaterChemComp`).
+
+       :param str id: A globally unique identifier for this component.
+    """
+    type = "non-polymer"
+
+    def __init__(self, id):
+        super(NonPolymerChemComp, self).__init__(id, id, id)
+
+
+class WaterChemComp(NonPolymerChemComp):
+    """The chemical component for crystal water.
+    """
+    def __init__(self):
+        super(WaterChemComp, self).__init__('HOH')
+
+
 class Alphabet(object):
     """A mapping from codes (usually one-letter, or two-letter for DNA) to
        chemical components.
