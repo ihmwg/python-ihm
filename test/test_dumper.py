@@ -288,7 +288,9 @@ DC 'DNA linking'
         # Mix of L- and D-peptides
         dpep_al = ihm.DPeptideAlphabet()
         e5 = ihm.Entity(('A', dpep_al['DCY'], 'G'))
-        system.entities.extend((e1, e2, e3, e4, e5))
+        # Non-polymeric entity
+        e6 = ihm.Entity([ihm.NonPolymerChemComp('HEM')])
+        system.entities.extend((e1, e2, e3, e4, e5, e6))
         # One protein entity is modeled (with an asym unit) the other not;
         # this should be reflected in pdbx_strand_id
         system.asym_units.append(ihm.AsymUnit(e1, 'foo'))
@@ -319,9 +321,9 @@ _entity_poly.pdbx_seq_one_letter_code_can
 3 polypeptide(D) no no . (DAL)(DCY)G ACG
 4 polypeptide(D) no no . (DAL)(DCY) AC
 5 polypeptide(L) no no . A(DCY)G ACG
-6 polyribonucleotide no no . AC AC
-7 polydeoxyribonucleotide no no . (DA)(DC) AC
-8 'polydeoxyribonucleotide/polyribonucleotide hybrid' no no . AC(DA)(DC) ACAC
+7 polyribonucleotide no no . AC AC
+8 polydeoxyribonucleotide no no . (DA)(DC) AC
+9 'polydeoxyribonucleotide/polyribonucleotide hybrid' no no . AC(DA)(DC) ACAC
 #
 """)
 
@@ -333,6 +335,8 @@ _entity_poly.pdbx_seq_one_letter_code_can
         system.entities.append(ihm.Entity('AC', alphabet=ihm.RNAAlphabet))
         system.entities.append(ihm.Entity(('DA', 'DC'),
                                           alphabet=ihm.DNAAlphabet))
+        # Non-polymeric entity
+        system.entities.append(ihm.Entity([ihm.NonPolymerChemComp('HEM')]))
         ed = ihm.dumper._EntityDumper()
         ed.finalize(system) # Assign IDs
         dumper = ihm.dumper._EntityPolySeqDumper()
@@ -364,11 +368,14 @@ _entity_poly_seq.hetero
         e2 = ihm.Entity('ACC')
         e3 = ihm.Entity('AC', alphabet=ihm.RNAAlphabet)
         e4 = ihm.Entity(('DA', 'DC'), alphabet=ihm.DNAAlphabet)
-        system.entities.extend((e1, e2, e3, e4))
+        # Non-polymeric entity
+        e5 = ihm.Entity([ihm.NonPolymerChemComp('HEM')])
+        system.entities.extend((e1, e2, e3, e4, e5))
         system.asym_units.append(ihm.AsymUnit(e1, 'foo'))
         system.asym_units.append(ihm.AsymUnit(e2, 'bar', auth_seq_id_map=5))
         system.asym_units.append(ihm.AsymUnit(e3, 'baz'))
         system.asym_units.append(ihm.AsymUnit(e4, 'test'))
+        system.asym_units.append(ihm.AsymUnit(e5, 'heme'))
         ihm.dumper._EntityDumper().finalize(system)
         ihm.dumper._StructAsymDumper().finalize(system)
         dumper = ihm.dumper._PolySeqSchemeDumper()

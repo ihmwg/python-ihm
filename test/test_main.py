@@ -122,6 +122,18 @@ class Tests(unittest.TestCase):
         self.assertEqual(e1.seq_id_range, (1,4))
         self.assertEqual(e3.seq_id_range, (1,5))
 
+    def test_entity_type(self):
+        """Test Entity.type"""
+        protein = ihm.Entity('AHCD')
+        heme = ihm.Entity([ihm.NonPolymerChemComp('HEM')])
+        water = ihm.Entity([ihm.WaterChemComp()])
+        self.assertEqual(protein.type, 'polymer')
+        self.assertTrue(protein.is_polymeric())
+        self.assertEqual(heme.type, 'non-polymer')
+        self.assertFalse(heme.is_polymeric())
+        self.assertEqual(water.type, 'water')
+        self.assertFalse(water.is_polymeric())
+
     def test_software(self):
         """Test Software class"""
         s1 = ihm.Software(name='foo', version='1.0',

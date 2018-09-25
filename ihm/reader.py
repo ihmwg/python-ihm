@@ -458,7 +458,7 @@ class _EntityHandler(_Handler):
                  pdbx_description, pdbx_number_of_molecules):
         s = self.sysr.entities.get_by_id(id)
         self._copy_if_present(s, locals(),
-                keys=('details', 'type', 'src_method', 'formula_weight'),
+                keys=('details', 'src_method', 'formula_weight'),
                 mapkeys={'pdbx_description':'description',
                          'pdbx_number_of_molecules':'number_of_molecules'})
 

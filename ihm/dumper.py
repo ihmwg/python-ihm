@@ -223,6 +223,8 @@ class _EntityPolyDumper(_Dumper):
                           "pdbx_seq_one_letter_code",
                           "pdbx_seq_one_letter_code_can"]) as l:
             for entity in system.entities:
+                if not entity.is_polymeric():
+                    continue
                 l.write(entity_id=entity._id, type=self._get_seq_type(entity),
                         nstd_linkage='no', nstd_monomer='no',
                         pdbx_strand_id=strand.get(entity._id, None),
@@ -235,6 +237,8 @@ class _EntityPolySeqDumper(_Dumper):
         with writer.loop("_entity_poly_seq",
                          ["entity_id", "num", "mon_id", "hetero"]) as l:
             for entity in system.entities:
+                if not entity.is_polymeric():
+                    continue
                 for num, comp in enumerate(entity.sequence):
                     l.write(entity_id=entity._id, num=num + 1, mon_id=comp.id)
 
@@ -250,6 +254,8 @@ class _PolySeqSchemeDumper(_Dumper):
                           "auth_mon_id", "pdb_strand_id"]) as l:
             for asym in system.asym_units:
                 entity = asym.entity
+                if not entity.is_polymeric():
+                    continue
                 for num, comp in enumerate(entity.sequence):
                     auth_seq_num = asym._get_auth_seq_id(num+1)
                     l.write(asym_id=asym._id, pdb_strand_id=asym._id,

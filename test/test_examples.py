@@ -39,6 +39,18 @@ class Tests(unittest.TestCase):
         self.assertEqual(len(contents), 63)
         os.unlink(out)
 
+    def test_ligands_water_example(self):
+        """Test ligands_water example"""
+        subprocess.check_call([sys.executable, "ligands_water.py"],
+                              cwd=get_example_dir())
+        out = get_example_path("output.cif")
+
+        # Make sure that a complete output file was produced
+        with open(out) as fh:
+            contents = fh.readlines()
+        self.assertEqual(len(contents), 119)
+        os.unlink(out)
+
 
 if __name__ == '__main__':
     unittest.main()

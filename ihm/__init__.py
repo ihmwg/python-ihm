@@ -760,10 +760,16 @@ class Entity(object):
        see :attr:`System.entities`.
     """
 
-    type = 'polymer'
     src_method = 'man'
     number_of_molecules = 1
     formula_weight = unknown
+
+    def __get_type(self):
+        if self.is_polymeric():
+            return 'polymer'
+        else:
+            return 'water' if self.sequence[0].code == 'HOH' else 'non-polymer'
+    type = property(__get_type)
 
     def __init__(self, sequence, alphabet=LPeptideAlphabet,
                  description=None, details=None):
@@ -774,6 +780,12 @@ class Entity(object):
                 return alphabet._comps[s]
         self.sequence = tuple(get_chem_comp(s) for s in sequence)
         self.description, self.details = description, details
+
+    def is_polymeric(self):
+        """Return True iff this entity represents a polymer, such as an
+           amino acid sequence or DNA/RNA chain (and not a ligand or water)"""
+        return len(self.sequence) != 1 or not isinstance(self.sequence[0],
+                                                         NonPolymerChemComp)
 
     def residue(self, seq_id):
         """Get a :class:`Residue` at the given sequence position"""
