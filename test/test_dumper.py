@@ -405,6 +405,35 @@ D 4 2 DC 2 2 DC DC D
 #
 """)
 
+    def test_nonpoly_scheme_dumper(self):
+        """Test NonPolySchemeDumper"""
+        system = ihm.System()
+        e1 = ihm.Entity('ACGT')
+        e2 = ihm.Entity([ihm.NonPolymerChemComp('HEM')])
+        e3 = ihm.Entity([ihm.NonPolymerChemComp('ZN')])
+        system.entities.extend((e1, e2, e3))
+        system.asym_units.append(ihm.AsymUnit(e1, 'foo'))
+        system.asym_units.append(ihm.AsymUnit(e2, 'baz'))
+        system.asym_units.append(ihm.AsymUnit(e3, 'bar', auth_seq_id_map=5))
+        ihm.dumper._EntityDumper().finalize(system)
+        ihm.dumper._StructAsymDumper().finalize(system)
+        dumper = ihm.dumper._NonPolySchemeDumper()
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_pdbx_nonpoly_scheme.asym_id
+_pdbx_nonpoly_scheme.entity_id
+_pdbx_nonpoly_scheme.mon_id
+_pdbx_nonpoly_scheme.pdb_seq_num
+_pdbx_nonpoly_scheme.auth_seq_num
+_pdbx_nonpoly_scheme.pdb_mon_id
+_pdbx_nonpoly_scheme.auth_mon_id
+_pdbx_nonpoly_scheme.pdb_strand_id
+B 2 HEM 1 1 HEM HEM B
+C 3 ZN 6 6 ZN ZN C
+#
+""")
+
     def test_struct_asym_dumper(self):
         """Test StructAsymDumper"""
         system = ihm.System()

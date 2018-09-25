@@ -1306,6 +1306,17 @@ class _PolySeqSchemeHandler(_Handler):
         return offset
 
 
+class _NonPolySchemeHandler(_Handler):
+    category = '_pdbx_nonpoly_scheme'
+
+    def __call__(self, asym_id, auth_seq_num):
+        asym = self.sysr.asym_units.get_by_id(asym_id)
+        # todo: handle multiple instances (e.g. water)
+        auth_seq_num = _get_int_or_string(auth_seq_num)
+        if auth_seq_num != 1:
+            asym.auth_seq_id_map = {1:auth_seq_num}
+
+
 class _CrossLinkListHandler(_Handler):
     category = '_ihm_cross_link_list'
 
@@ -1485,6 +1496,7 @@ def read(fh, model_class=ihm.model.Model, format='mmCIF'):
                     _TorusHandler(s), _HalfTorusHandler(s),
                     _AxisHandler(s), _PlaneHandler(s),
                     _GeometricRestraintHandler(s), _PolySeqSchemeHandler(s),
+                    _NonPolySchemeHandler(s),
                     _CrossLinkListHandler(s), _CrossLinkRestraintHandler(s),
                     _CrossLinkResultHandler(s),
                     _OrderedEnsembleHandler(s)]

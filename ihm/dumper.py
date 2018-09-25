@@ -266,6 +266,29 @@ class _PolySeqSchemeDumper(_Dumper):
                             auth_mon_id=comp.id)
 
 
+class _NonPolySchemeDumper(_Dumper):
+    """Output the _pdbx_nonpoly_scheme table.
+       For now we assume we're using auth_seq_num==pdb_seq_num."""
+    def dump(self, system, writer):
+        with writer.loop("_pdbx_nonpoly_scheme",
+                         ["asym_id", "entity_id", "mon_id",
+                          "pdb_seq_num", "auth_seq_num", "pdb_mon_id",
+                          "auth_mon_id", "pdb_strand_id"]) as l:
+            for asym in system.asym_units:
+                entity = asym.entity
+                if entity.is_polymeric():
+                    continue
+                # todo: handle multiple waters
+                for num, comp in enumerate(entity.sequence):
+                    auth_seq_num = asym._get_auth_seq_id(num+1)
+                    l.write(asym_id=asym._id, pdb_strand_id=asym._id,
+                            entity_id=entity._id,
+                            pdb_seq_num=auth_seq_num,
+                            auth_seq_num=auth_seq_num,
+                            mon_id=comp.id, pdb_mon_id=comp.id,
+                            auth_mon_id=comp.id)
+
+
 class _AsymIDProvider(object):
     """Provide unique asym IDs"""
     def __init__(self, seen_ids):
@@ -1589,6 +1612,7 @@ def write(fh, systems, format='mmCIF'):
                _EntityPolyDumper(),
                _EntityPolySeqDumper(),
                _PolySeqSchemeDumper(),
+               _NonPolySchemeDumper(),
                _StructAsymDumper(),
                _AssemblyDumper(),
                _ExternalReferenceDumper(),

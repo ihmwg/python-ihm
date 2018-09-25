@@ -1577,6 +1577,21 @@ A 1 4 9A
         self.assertEqual([asym.residue(i).auth_seq_id for i in range(1,5)],
                          [6,7,8,'9A'])
 
+    def test_nonpoly_scheme_handler(self):
+        """Test NonPolySchemeHandler"""
+        fh = StringIO(ASYM_ENTITY + """
+loop_
+_pdbx_nonpoly_scheme.asym_id
+_pdbx_nonpoly_scheme.entity_id
+_pdbx_nonpoly_scheme.auth_seq_num
+A 1 1
+A 1 101
+""")
+        s, = ihm.reader.read(fh)
+        asym, = s.asym_units
+        self.assertEqual(asym.auth_seq_id_map, {1:101})
+        self.assertEqual(asym.residue(1).auth_seq_id, 101)
+
     def test_cross_link_list_handler(self):
         """Test CrossLinkListHandler"""
         fh = StringIO("""
