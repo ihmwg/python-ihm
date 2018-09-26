@@ -1938,16 +1938,19 @@ _ihm_geometric_object_plane.transformation_id
         """Test FeatureDumper"""
         system = ihm.System()
         e1 = ihm.Entity('ACGT')
-        system.entities.append(e1)
+        e2 = ihm.Entity([ihm.NonPolymerChemComp('HEM')])
+        system.entities.extend((e1, e2))
         a1 = ihm.AsymUnit(e1, 'foo')
         a2 = ihm.AsymUnit(e1, 'baz')
-        system.asym_units.extend((a1, a2))
+        a3 = ihm.AsymUnit(e2, 'heme')
+        system.asym_units.extend((a1, a2, a3))
 
-        f = ihm.restraint.PolyResidueFeature([a1, a2(2,3)])
+        f = ihm.restraint.ResidueFeature([a1, a2(2,3)])
         system.orphan_features.append(f)
 
-        f = ihm.restraint.PolyAtomFeature([a1.residue(1).atom('CA'),
-                                           a2.residue(2).atom('N')])
+        f = ihm.restraint.AtomFeature([a1.residue(1).atom('CA'),
+                                       a2.residue(2).atom('N'),
+                                       a3.residue(1).atom('FE')])
         system.orphan_features.append(f)
 
         ihm.dumper._EntityDumper().finalize(system) # assign entity IDs
@@ -1992,6 +1995,16 @@ _ihm_poly_atom_feature.comp_id
 _ihm_poly_atom_feature.atom_id
 1 2 1 A 1 ALA CA
 2 2 1 B 2 CYS N
+#
+#
+loop_
+_ihm_non_poly_atom_feature.ordinal_id
+_ihm_non_poly_atom_feature.feature_id
+_ihm_non_poly_atom_feature.entity_id
+_ihm_non_poly_atom_feature.asym_id
+_ihm_non_poly_atom_feature.comp_id
+_ihm_non_poly_atom_feature.atom_id
+1 2 2 C HEM FE
 #
 """)
 

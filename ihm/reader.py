@@ -167,10 +167,10 @@ class _FeatureIDMapper(_IDMapper):
     def _update_old_object(self, obj, newcls=None):
         super(_FeatureIDMapper, self)._update_old_object(obj, newcls)
         # Add missing members if the base class was originally instantianted
-        if newcls is ihm.restraint.PolyResidueFeature \
+        if newcls is ihm.restraint.ResidueFeature \
            and not hasattr(obj, 'ranges'):
             obj.ranges = []
-        elif newcls is ihm.restraint.PolyAtomFeature \
+        elif newcls is ihm.restraint.AtomFeature \
            and not hasattr(obj, 'atoms'):
             obj.atoms = []
 
@@ -1053,7 +1053,7 @@ class _PolyResidueFeatureHandler(_Handler):
 
     def __call__(self, feature_id, asym_id, seq_id_begin, seq_id_end):
         f = self.sysr.features.get_by_id(
-                           feature_id, ihm.restraint.PolyResidueFeature)
+                           feature_id, ihm.restraint.ResidueFeature)
         asym = self.sysr.asym_units.get_by_id(asym_id)
         r1 = int(seq_id_begin)
         r2 = int(seq_id_end)
@@ -1065,10 +1065,22 @@ class _PolyAtomFeatureHandler(_Handler):
 
     def __call__(self, feature_id, asym_id, seq_id, atom_id):
         f = self.sysr.features.get_by_id(
-                           feature_id, ihm.restraint.PolyAtomFeature)
+                           feature_id, ihm.restraint.AtomFeature)
         asym = self.sysr.asym_units.get_by_id(asym_id)
         seq_id = int(seq_id)
         atom = asym.residue(seq_id).atom(atom_id)
+        f.atoms.append(atom)
+
+
+class _NonPolyAtomFeatureHandler(_Handler):
+    category = '_ihm_non_poly_atom_feature'
+
+    def __call__(self, feature_id, asym_id, atom_id):
+        f = self.sysr.features.get_by_id(
+                           feature_id, ihm.restraint.AtomFeature)
+        asym = self.sysr.asym_units.get_by_id(asym_id)
+        # todo: handle multiple copies, e.g. waters?
+        atom = asym.residue(1).atom(atom_id)
         f.atoms.append(atom)
 
 
@@ -1490,6 +1502,7 @@ def read(fh, model_class=ihm.model.Model, format='mmCIF'):
                     _EM2DFittingHandler(s), _SASRestraintHandler(s),
                     _SphereObjSiteHandler(s), _AtomSiteHandler(s),
                     _PolyResidueFeatureHandler(s), _PolyAtomFeatureHandler(s),
+                    _NonPolyAtomFeatureHandler(s),
                     _DerivedDistanceRestraintHandler(s),
                     _CenterHandler(s), _TransformationHandler(s),
                     _GeometricObjectHandler(s), _SphereHandler(s),

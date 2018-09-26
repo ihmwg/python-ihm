@@ -399,7 +399,7 @@ class CrossLinkFit(object):
 
 class Feature(object):
     """Base class for selecting parts of the system that a restraint acts on.
-       See :class:`PolyResidueFeature` and :class:`PolyAtomFeature`.
+       See :class:`ResidueFeature` and :class:`AtomFeature`.
 
        Features are typically assigned to one or more
        :class:`~ihm.restraint.GeometricRestraint` objects.
@@ -407,7 +407,7 @@ class Feature(object):
     pass
 
 
-class PolyResidueFeature(Feature):
+class ResidueFeature(Feature):
     """Selection of one or more residues from the system.
 
        :param sequence ranges: A list of :class:`AsymUnitRange` and/or
@@ -431,7 +431,7 @@ class PolyResidueFeature(Feature):
                                    if self.ranges else None)
 
 
-class PolyAtomFeature(Feature):
+class AtomFeature(Feature):
     """Selection of one or more atoms from the system.
 
        :param sequence atoms: A list of :class:`ihm.Atom` objects.

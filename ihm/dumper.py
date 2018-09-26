@@ -1219,6 +1219,7 @@ class _FeatureDumper(_Dumper):
         self.dump_list(writer)
         self.dump_poly_residue(writer)
         self.dump_poly_atom(writer)
+        self.dump_non_poly_atom(writer)
 
     def dump_list(self, writer):
         with writer.loop("_ihm_feature_list",
@@ -1234,7 +1235,7 @@ class _FeatureDumper(_Dumper):
                           "seq_id_begin", "comp_id_begin", "seq_id_end",
                           "comp_id_end"]) as l:
             for f in self._features_by_id:
-                if not isinstance(f, restraint.PolyResidueFeature):
+                if not isinstance(f, restraint.ResidueFeature):
                     continue
                 for r in f.ranges:
                     seq = r.entity.sequence
@@ -1252,16 +1253,34 @@ class _FeatureDumper(_Dumper):
                          ["ordinal_id", "feature_id", "entity_id", "asym_id",
                           "seq_id", "comp_id", "atom_id"]) as l:
             for f in self._features_by_id:
-                if not isinstance(f, restraint.PolyAtomFeature):
+                if not isinstance(f, restraint.AtomFeature):
                     continue
                 for a in f.atoms:
                     r = a.residue
-                    seq = r.asym.entity.sequence
-                    l.write(ordinal_id=ordinal, feature_id=f._id,
-                            entity_id=r.asym.entity._id, asym_id=r.asym._id,
-                            seq_id=r.seq_id, comp_id=seq[r.seq_id-1].id,
-                            atom_id=a.id)
-                    ordinal += 1
+                    if r.asym.entity.is_polymeric():
+                        seq = r.asym.entity.sequence
+                        l.write(ordinal_id=ordinal, feature_id=f._id,
+                                entity_id=r.asym.entity._id, asym_id=r.asym._id,
+                                seq_id=r.seq_id, comp_id=seq[r.seq_id-1].id,
+                                atom_id=a.id)
+                        ordinal += 1
+
+    def dump_non_poly_atom(self, writer):
+        ordinal = 1
+        with writer.loop("_ihm_non_poly_atom_feature",
+                         ["ordinal_id", "feature_id", "entity_id", "asym_id",
+                          "comp_id", "atom_id"]) as l:
+            for f in self._features_by_id:
+                if not isinstance(f, restraint.AtomFeature):
+                    continue
+                for a in f.atoms:
+                    r = a.residue
+                    if not r.asym.entity.is_polymeric():
+                        seq = r.asym.entity.sequence
+                        l.write(ordinal_id=ordinal, feature_id=f._id,
+                                entity_id=r.asym.entity._id, asym_id=r.asym._id,
+                                comp_id=seq[r.seq_id-1].id, atom_id=a.id)
+                        ordinal += 1
 
 
 class _CrossLinkDumper(_Dumper):

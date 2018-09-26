@@ -138,11 +138,11 @@ class Tests(unittest.TestCase):
         """Test Feature base class"""
         f = ihm.restraint.Feature() # does nothing
 
-    def test_poly_residue_feature(self):
-        """Test PolyResidueFeature class"""
+    def test_residue_feature(self):
+        """Test ResidueFeature class"""
         e = ihm.Entity('AHCDAH')
         a = ihm.AsymUnit(e)
-        f = ihm.restraint.PolyResidueFeature(ranges=[])
+        f = ihm.restraint.ResidueFeature(ranges=[])
         self.assertEqual(f.entity, None)
 
         # No ranges - type is 'residue'
