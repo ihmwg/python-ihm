@@ -1972,21 +1972,31 @@ _ihm_geometric_object_plane.transformation_id
 
         f = ihm.restraint.ResidueFeature([a1, a2(2,3)])
         system.orphan_features.append(f)
+        # Cannot make a ResidueFeature that includes a non-polymer 'residue'
+        self.assertRaises(ValueError, ihm.restraint.ResidueFeature, [a1, a3])
 
+        # Polymeric atom feature
         f = ihm.restraint.AtomFeature([a1.residue(1).atom('CA'),
+                                       a2.residue(2).atom('N')])
+        system.orphan_features.append(f)
+        # Nonpolymeric atom feature
+        f = ihm.restraint.AtomFeature([a3.residue(1).atom('FE')])
+        system.orphan_features.append(f)
+        # Cannot make one feature that selects both polymer and nonpolymer
+        self.assertRaises(ValueError, ihm.restraint.AtomFeature,
+                                      [a1.residue(1).atom('CA'),
                                        a2.residue(2).atom('N'),
                                        a3.residue(1).atom('FE')])
-        system.orphan_features.append(f)
 
         ihm.dumper._EntityDumper().finalize(system) # assign entity IDs
         ihm.dumper._StructAsymDumper().finalize(system) # assign asym IDs
 
         dumper = ihm.dumper._FeatureDumper()
         dumper.finalize(system) # assign IDs
-        self.assertEqual(len(dumper._features_by_id), 2)
+        self.assertEqual(len(dumper._features_by_id), 3)
         # Repeated calls to finalize should yield identical results
         dumper.finalize(system)
-        self.assertEqual(len(dumper._features_by_id), 2)
+        self.assertEqual(len(dumper._features_by_id), 3)
         out = _get_dumper_output(dumper, system)
         self.assertEqual(out, """#
 loop_
@@ -1995,6 +2005,7 @@ _ihm_feature_list.feature_type
 _ihm_feature_list.entity_type
 1 'residue range' polymer
 2 atom polymer
+3 atom non-polymer
 #
 #
 loop_
@@ -2029,7 +2040,7 @@ _ihm_non_poly_atom_feature.entity_id
 _ihm_non_poly_atom_feature.asym_id
 _ihm_non_poly_atom_feature.comp_id
 _ihm_non_poly_atom_feature.atom_id
-1 2 2 C HEM FE
+1 3 2 C HEM FE
 #
 """)
 

@@ -1237,7 +1237,7 @@ class _FeatureDumper(_Dumper):
                          ["feature_id", "feature_type", "entity_type"]) as l:
             for f in self._features_by_id:
                 l.write(feature_id=f._id, feature_type=f.type,
-                        entity_type=f.entity.type if f.entity else None)
+                        entity_type=f._get_entity_type())
 
     def dump_poly_residue(self, writer):
         ordinal = 1

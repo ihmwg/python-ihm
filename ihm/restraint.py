@@ -425,10 +425,13 @@ class ResidueFeature(Feature):
 
     def __init__(self, ranges):
         self.ranges = ranges
+        _ = self._get_entity_type()
 
-    # todo: handle case where ranges span multiple entities?
-    entity = property(lambda self: self.ranges[0].entity
-                                   if self.ranges else None)
+    def _get_entity_type(self):
+        if any(not r.entity.is_polymeric() for r in self.ranges):
+            raise ValueError("%s cannot select non-polymeric entities" % self)
+        else:
+            return self.ranges[0].entity.type if self.ranges else None
 
 
 class AtomFeature(Feature):
@@ -440,10 +443,15 @@ class AtomFeature(Feature):
 
     def __init__(self, atoms):
         self.atoms = atoms
+        _ = self._get_entity_type()
 
-    # todo: handle case where atoms span multiple entities?
-    entity = property(lambda self: self.atoms[0].residue.asym.entity
-                                   if self.atoms else None)
+    def _get_entity_type(self):
+        types = frozenset(a.residue.asym.entity.type for a in self.atoms)
+        if len(types) > 1:
+            raise ValueError("%s cannot span both polymeric and "
+                             "non-polymeric entities" % self)
+        elif types:
+            return self.atoms[0].residue.asym.entity.type
 
 
 class GeometricRestraint(object):
