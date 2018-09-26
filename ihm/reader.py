@@ -138,7 +138,21 @@ class _ChemCompIDMapper(_IDMapper):
         if objid in self._standard_by_id:
             return self._standard_by_id[objid]
         else:
+            # Assign nonpolymer class based on the ID
+            if newcls is ihm.NonPolymerChemComp or newcls is ihm.WaterChemComp:
+                newcls = ihm.WaterChemComp if objid=='HOH' \
+                                           else ihm.NonPolymerChemComp
             return super(_ChemCompIDMapper, self).get_by_id(objid, newcls)
+
+    def _make_new_object(self, newcls=None):
+        if newcls is None:
+            newcls = self._cls
+        if newcls is ihm.NonPolymerChemComp:
+            return newcls(None)
+        elif newcls is ihm.WaterChemComp:
+            return newcls()
+        else:
+            return newcls(*self._cls_args, **self._cls_keys)
 
 
 class _AnalysisIDMapper(_IDMapper):
@@ -472,6 +486,14 @@ class _EntityPolySeqHandler(_Handler):
         if seq_id > len(s.sequence):
             s.sequence.extend([None]*(seq_id-len(s.sequence)))
         s.sequence[seq_id-1] = self.sysr.chem_comps.get_by_id(mon_id)
+
+
+class _EntityNonPolyHandler(_Handler):
+    category = '_pdbx_entity_nonpoly'
+
+    def __call__(self, entity_id, comp_id):
+        s = self.sysr.entities.get_by_id(entity_id)
+        s.sequence = (self.sysr.chem_comps.get_by_id(comp_id),)
 
 
 class _StructAsymHandler(_Handler):
@@ -1486,6 +1508,7 @@ def read(fh, model_class=ihm.model.Model, format='mmCIF'):
         handlers = [_StructHandler(s), _SoftwareHandler(s), _CitationHandler(s),
                     _CitationAuthorHandler(s), _ChemCompHandler(s),
                     _EntityHandler(s), _EntityPolySeqHandler(s),
+                    _EntityNonPolyHandler(s),
                     _StructAsymHandler(s), _AssemblyDetailsHandler(s),
                     _AssemblyHandler(s), _ExtRefHandler(s), _ExtFileHandler(s),
                     _DatasetListHandler(s), _DatasetGroupHandler(s),

@@ -327,6 +327,30 @@ _entity_poly.pdbx_seq_one_letter_code_can
 #
 """)
 
+    def test_entity_nonpoly_dumper(self):
+        """Test EntityNonPolyDumper"""
+        system = ihm.System()
+        # Polymeric entity
+        e1 = ihm.Entity('ACGT')
+        # Non-polymeric entity
+        e2 = ihm.Entity([ihm.NonPolymerChemComp('HEM')], description='heme')
+        e3 = ihm.Entity([ihm.WaterChemComp()])
+        system.entities.extend((e1, e2, e3))
+
+        ed = ihm.dumper._EntityDumper()
+        ed.finalize(system) # Assign entity IDs
+        dumper = ihm.dumper._EntityNonPolyDumper()
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_pdbx_entity_nonpoly.entity_id
+_pdbx_entity_nonpoly.name
+_pdbx_entity_nonpoly.comp_id
+2 heme HEM
+3 . HOH
+#
+""")
+
     def test_entity_poly_seq_dumper(self):
         """Test EntityPolySeqDumper"""
         system = ihm.System()

@@ -256,6 +256,41 @@ _entity_poly_seq.hetero
                 self.assertEqual(s[4].type, 'L-peptide linking')
                 self.assertEqual(s[4].__class__, ihm.LPeptideChemComp)
 
+    def test_chem_comp_nonpoly_handler(self):
+        """Test ChemCompHandler and EntityNonPolyHandler"""
+        chem_comp_cat = """
+loop_
+_chem_comp.id
+_chem_comp.type
+HEM non-polymer
+HOH non-polymer
+"""
+        entity_nonpoly_cat = """
+loop_
+_pdbx_entity_nonpoly.entity_id
+_pdbx_entity_nonpoly.name
+_pdbx_entity_nonpoly.comp_id
+1 Heme HEM
+2 Water HOH
+"""
+        cif1 = chem_comp_cat + entity_nonpoly_cat
+        cif2 = entity_nonpoly_cat + chem_comp_cat
+        # Order of the two categories shouldn't matter
+        for cif in cif1, cif2:
+            for fh in cif_file_handles(cif):
+                s, = ihm.reader.read(fh)
+                e1, e2 = s.entities
+                s = e1.sequence
+                self.assertEqual(len(s), 1)
+                self.assertEqual(s[0].id, 'HEM')
+                self.assertEqual(s[0].type, 'non-polymer')
+                self.assertEqual(s[0].__class__, ihm.NonPolymerChemComp)
+                s = e2.sequence
+                self.assertEqual(len(s), 1)
+                self.assertEqual(s[0].id, 'HOH')
+                self.assertEqual(s[0].type, 'non-polymer')
+                self.assertEqual(s[0].__class__, ihm.WaterChemComp)
+
     def test_entity_handler(self):
         """Test EntityHandler"""
         cif = """

@@ -232,6 +232,17 @@ class _EntityPolyDumper(_Dumper):
                         pdbx_seq_one_letter_code_can=self._get_canon(entity))
 
 
+class _EntityNonPolyDumper(_Dumper):
+    def dump(self, system, writer):
+        with writer.loop("_pdbx_entity_nonpoly",
+                         ["entity_id", "name", "comp_id"]) as l:
+            for entity in system.entities:
+                if entity.is_polymeric():
+                    continue
+                l.write(entity_id=entity._id, name=entity.description,
+                        comp_id=entity.sequence[0].id)
+
+
 class _EntityPolySeqDumper(_Dumper):
     def dump(self, system, writer):
         with writer.loop("_entity_poly_seq",
@@ -1629,6 +1640,7 @@ def write(fh, systems, format='mmCIF'):
                _ChemCompDumper(),
                _EntityDumper(),
                _EntityPolyDumper(),
+               _EntityNonPolyDumper(),
                _EntityPolySeqDumper(),
                _PolySeqSchemeDumper(),
                _NonPolySchemeDumper(),

@@ -48,7 +48,7 @@ class Tests(unittest.TestCase):
         # Make sure that a complete output file was produced
         with open(out) as fh:
             contents = fh.readlines()
-        self.assertEqual(len(contents), 133)
+        self.assertEqual(len(contents), 141)
         os.unlink(out)
 
 
