@@ -143,7 +143,7 @@ class Tests(unittest.TestCase):
         e = ihm.Entity('AHCDAH')
         a = ihm.AsymUnit(e)
         f = ihm.restraint.ResidueFeature(ranges=[])
-        self.assertEqual(f.entity, None)
+        self.assertEqual(f._get_entity_type(), None)
 
         # No ranges - type is 'residue'
         self.assertEqual(f.type, 'residue')
