@@ -220,9 +220,10 @@ _citation_author.ordinal
 loop_
 _chem_comp.id
 _chem_comp.type
-MET 'L-peptide linking'
-CYS 'D-peptide linking'
-MYTYPE 'D-PEPTIDE LINKING'
+_chem_comp.name
+MET 'L-peptide linking' .
+CYS 'D-peptide linking' CYSTEINE
+MYTYPE 'D-PEPTIDE LINKING' 'MY CUSTOM COMPONENT'
 """
         entity_poly_cat = """
 loop_
@@ -248,9 +249,11 @@ _entity_poly_seq.hetero
                 self.assertEqual(id(s[0]), id(lpeptide['M']))
                 self.assertEqual(id(s[1]), id(lpeptide['M']))
                 self.assertEqual(id(s[4]), id(lpeptide['C']))
+                self.assertEqual(s[0].name, 'METHIONINE')
                 self.assertEqual(s[2], None)
                 self.assertEqual(s[3].id, 'MYTYPE')
                 self.assertEqual(s[3].type, 'D-peptide linking')
+                self.assertEqual(s[3].name, 'MY CUSTOM COMPONENT')
                 self.assertEqual(s[3].__class__, ihm.DPeptideChemComp)
                 # Class of standard type shouldn't be changed
                 self.assertEqual(s[4].type, 'L-peptide linking')

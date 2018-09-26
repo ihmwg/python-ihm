@@ -516,11 +516,13 @@ class ChemComp(object):
        a :class:`Alphabet` and refer to the components with their one-letter
        (amino acids, RNA) or two-letter (DNA) codes.
 
-       :param str id: A globally unique identifier for this component.
+       :param str id: A globally unique identifier for this component (usually
+              three letters).
        :param str code: A shorter identifier (usually one letter) that only
               needs to be unique in the entity.
        :param str code_canonical: Canonical version of `code` (which need not
               be unique).
+       :param str name: A longer human-readable name for the component.
 
        For example, glycine would have
        ``id='GLY', code='G', code_canonical='G'`` while selenomethionine would
@@ -531,9 +533,9 @@ class ChemComp(object):
 
     type = 'other'
 
-    def __init__(self, id, code, code_canonical):
+    def __init__(self, id, code, code_canonical, name=None):
         self.id = id
-        self.code, self.code_canonical = code, code_canonical
+        self.code, self.code_canonical, self.name = code, code_canonical, name
 
     # Equal if all identifiers are the same
     def __eq__(self, other):
@@ -579,18 +581,19 @@ class NonPolymerChemComp(ChemComp):
        (for crystal waters, use :class:`WaterChemComp`).
 
        :param str id: A globally unique identifier for this component.
+       :param str name: A longer human-readable name for the component.
     """
     type = "non-polymer"
 
-    def __init__(self, id):
-        super(NonPolymerChemComp, self).__init__(id, id, id)
+    def __init__(self, id, name=None):
+        super(NonPolymerChemComp, self).__init__(id, id, id, name=name)
 
 
 class WaterChemComp(NonPolymerChemComp):
     """The chemical component for crystal water.
     """
     def __init__(self):
-        super(WaterChemComp, self).__init__('HOH')
+        super(WaterChemComp, self).__init__('HOH', name='WATER')
 
 
 class Alphabet(object):
@@ -625,17 +628,26 @@ class LPeptideAlphabet(Alphabet):
        modified residues are also included (e.g. MSE). For these their full name
        rather than a one-letter code is used.
     """
-    _comps = dict([code, LPeptideChemComp(id, code, code)] for code, id in
-                    [('A', 'ALA'), ('C', 'CYS'), ('D', 'ASP'), ('E', 'GLU'),
-                     ('F', 'PHE'), ('H', 'HIS'), ('I', 'ILE'), ('K', 'LYS'),
-                     ('L', 'LEU'), ('M', 'MET'), ('N', 'ASN'), ('P', 'PRO'),
-                     ('Q', 'GLN'), ('R', 'ARG'), ('S', 'SER'), ('T', 'THR'),
-                     ('V', 'VAL'), ('W', 'TRP'), ('Y', 'TYR')])
-    _comps['G'] = PeptideChemComp('GLY', 'G', 'G')
+    _comps = dict([code, LPeptideChemComp(id, code, code, name)]
+                 for code, id, name in
+                    [('A', 'ALA', 'ALANINE'), ('C', 'CYS', 'CYSTEINE'),
+                     ('D', 'ASP', 'ASPARTIC ACID'),
+                     ('E', 'GLU', 'GLUTAMIC ACID'),
+                     ('F', 'PHE', 'PHENYLALANINE'), ('H', 'HIS', 'HISTIDINE'),
+                     ('I', 'ILE', 'ISOLEUCINE'), ('K', 'LYS', 'LYSINE'),
+                     ('L', 'LEU', 'LEUCINE'), ('M', 'MET', 'METHIONINE'),
+                     ('N', 'ASN', 'ASPARAGINE'), ('P', 'PRO', 'PROLINE'),
+                     ('Q', 'GLN', 'GLUTAMINE'), ('R', 'ARG', 'ARGININE'),
+                     ('S', 'SER', 'SERINE'), ('T', 'THR', 'THREONINE'),
+                     ('V', 'VAL', 'VALINE'), ('W', 'TRP', 'TRYPTOPHAN'),
+                     ('Y', 'TYR', 'TYROSINE')])
+    _comps['G'] = PeptideChemComp('GLY', 'G', 'G', name='GLYCINE')
 
     # common non-standard L-amino acids
-    _comps.update([id, LPeptideChemComp(id, id, canon)] for id, canon in
-                     [('MSE', 'M'), ('UNK', 'X')])
+    _comps.update([id, LPeptideChemComp(id, id, canon, name)]
+                  for id, canon, name in
+                     [('MSE', 'M', 'SELENOMETHIONINE'),
+                      ('UNK', 'X', 'UNKNOWN')])
 
 
 class DPeptideAlphabet(Alphabet):
@@ -644,26 +656,42 @@ class DPeptideAlphabet(Alphabet):
        glycine which maps to :class:`PeptideChemComp`). See
        :class:`LPeptideAlphabet` for more details.
     """
-    _comps = dict([code, DPeptideChemComp(code, code, canon)] for canon, code in
-                    [('A', 'DAL'), ('C', 'DCY'), ('D', 'DAS'), ('E', 'DGL'),
-                     ('F', 'DPN'), ('H', 'DHI'), ('I', 'DIL'), ('K', 'DLY'),
-                     ('L', 'DLE'), ('M', 'MED'), ('N', 'DSG'), ('P', 'DPR'),
-                     ('Q', 'DGN'), ('R', 'DAR'), ('S', 'DSN'), ('T', 'DTH'),
-                     ('V', 'DVA'), ('W', 'DTR'), ('Y', 'DTY')])
-    _comps['G'] = PeptideChemComp('GLY', 'G', 'G')
+    _comps = dict([code, DPeptideChemComp(code, code, canon, name)]
+                  for canon, code, name in
+                    [('A', 'DAL', 'D-ALANINE'), ('C', 'DCY', 'D-CYSTEINE'),
+                     ('D', 'DAS', 'D-ASPARTIC ACID'),
+                     ('E', 'DGL', 'D-GLUTAMIC ACID'),
+                     ('F', 'DPN', 'D-PHENYLALANINE'),
+                     ('H', 'DHI', 'D-HISTIDINE'),
+                     ('I', 'DIL', 'D-ISOLEUCINE'), ('K', 'DLY', 'D-LYSINE'),
+                     ('L', 'DLE', 'D-LEUCINE'), ('M', 'MED', 'D-METHIONINE'),
+                     ('N', 'DSG', 'D-ASPARAGINE'), ('P', 'DPR', 'D-PROLINE'),
+                     ('Q', 'DGN', 'D-GLUTAMINE'), ('R', 'DAR', 'D-ARGININE'),
+                     ('S', 'DSN', 'D-SERINE'), ('T', 'DTH', 'D-THREONINE'),
+                     ('V', 'DVA', 'D-VALINE'), ('W', 'DTR', 'D-TRYPTOPHAN'),
+                     ('Y', 'DTY', 'D-TYROSINE')])
+    _comps['G'] = PeptideChemComp('GLY', 'G', 'G', name='GLYCINE')
 
 
 class RNAAlphabet(Alphabet):
     """A mapping from one-letter nucleic acid codes (e.g. A) to
        RNA (as :class:`RNAChemComp` objects)."""
-    _comps = dict([id, RNAChemComp(id, id, id)] for id in 'ACGU')
+    _comps = dict([id, RNAChemComp(id, id, id, name)] for id, name in
+                    [('A', "ADENOSINE-5'-MONOPHOSPHATE"),
+                     ('C', "CYTIDINE-5'-MONOPHOSPHATE"),
+                     ('G', "GUANOSINE-5'-MONOPHOSPHATE"),
+                     ('U', "URIDINE-5'-MONOPHOSPHATE")])
 
 
 class DNAAlphabet(Alphabet):
     """A mapping from two-letter nucleic acid codes (e.g. DA) to
        DNA (as :class:`DNAChemComp` objects)."""
-    _comps = dict([code, DNAChemComp(code, code, canon)] for code, canon in
-                    [('DA', 'A'), ('DC', 'C'), ('DG', 'G'), ('DT', 'T')])
+    _comps = dict([code, DNAChemComp(code, code, canon, name)]
+                  for code, canon, name in
+                    [('DA', 'A', "2'-DEOXYADENOSINE-5'-MONOPHOSPHATE"),
+                     ('DC', 'C', "2'-DEOXYCYTIDINE-5'-MONOPHOSPHATE"),
+                     ('DG', 'G', "2'-DEOXYGUANOSINE-5'-MONOPHOSPHATE"),
+                     ('DT', 'T', "THYMIDINE-5'-MONOPHOSPHATE")])
 
 
 class EntityRange(object):

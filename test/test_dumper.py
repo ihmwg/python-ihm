@@ -264,15 +264,16 @@ _entity.details
 loop_
 _chem_comp.id
 _chem_comp.type
-ALA 'L-peptide linking'
-CYS 'L-peptide linking'
-GLY 'Peptide linking'
-THR 'L-peptide linking'
-A 'RNA linking'
-C 'RNA linking'
-G 'RNA linking'
-DA 'DNA linking'
-DC 'DNA linking'
+_chem_comp.name
+ALA 'L-peptide linking' ALANINE
+CYS 'L-peptide linking' CYSTEINE
+GLY 'Peptide linking' GLYCINE
+THR 'L-peptide linking' THREONINE
+A 'RNA linking' "ADENOSINE-5'-MONOPHOSPHATE"
+C 'RNA linking' "CYTIDINE-5'-MONOPHOSPHATE"
+G 'RNA linking' "GUANOSINE-5'-MONOPHOSPHATE"
+DA 'DNA linking' "2'-DEOXYADENOSINE-5'-MONOPHOSPHATE"
+DC 'DNA linking' "2'-DEOXYCYTIDINE-5'-MONOPHOSPHATE"
 #
 """)
 
