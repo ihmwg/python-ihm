@@ -703,6 +703,8 @@ class EntityRange(object):
            rng = entity(4,7)
     """
     def __init__(self, entity, seq_id_begin, seq_id_end):
+        if not entity.is_polymeric():
+            raise TypeError("Can only create ranges for polymeric entities")
         self.entity = entity
         # todo: check range for validity (at property read time)
         self.seq_id_range = (seq_id_begin, seq_id_end)
@@ -846,6 +848,8 @@ class AsymUnitRange(object):
            rng = asym(4,7)
     """
     def __init__(self, asym, seq_id_begin, seq_id_end):
+        if asym.entity is not None and not asym.entity.is_polymeric():
+            raise TypeError("Can only create ranges for polymeric entities")
         self.asym = asym
         # todo: check range for validity (at property read time)
         self.seq_id_range = (seq_id_begin, seq_id_end)
