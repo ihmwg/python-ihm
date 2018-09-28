@@ -117,10 +117,13 @@ class Tests(unittest.TestCase):
         # Should compare identical if sequences are the same
         e2 = ihm.Entity('AHCD', description='bar')
         e3 = ihm.Entity('AHCDE', description='foo')
+        heme = ihm.Entity([ihm.NonPolymerChemComp('HEM')])
         self.assertEqual(e1, e2)
         self.assertNotEqual(e1, e3)
         self.assertEqual(e1.seq_id_range, (1,4))
         self.assertEqual(e3.seq_id_range, (1,5))
+        # seq_id does not exist for nonpolymers
+        self.assertEqual(heme.seq_id_range, (None,None))
 
     def test_entity_type(self):
         """Test Entity.type"""
@@ -242,9 +245,13 @@ class Tests(unittest.TestCase):
     def test_asym_range(self):
         """Test AsymUnitRange class"""
         e = ihm.Entity('AHCDAH')
+        heme = ihm.Entity([ihm.NonPolymerChemComp('HEM')])
         a = ihm.AsymUnit(e)
+        aheme = ihm.AsymUnit(heme)
         a._id = 42
         self.assertEqual(a.seq_id_range, (1,6))
+        # seq_id is not defined for nonpolymers
+        self.assertEqual(aheme.seq_id_range, (None,None))
         r = a(3,4)
         self.assertEqual(r.seq_id_range, (3,4))
         self.assertEqual(r._id, 42)

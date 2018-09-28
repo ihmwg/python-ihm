@@ -828,8 +828,13 @@ class Entity(object):
     def __call__(self, seq_id_begin, seq_id_end):
         return EntityRange(self, seq_id_begin, seq_id_end)
 
-    seq_id_range = property(lambda self: (1, len(self.sequence)),
-                            doc="Sequence range")
+    def __get_seq_id_range(self):
+        if self.is_polymeric():
+            return (1, len(self.sequence))
+        else:
+            # Nonpolymers don't have the concept of seq_id
+            return (None, None)
+    seq_id_range = property(__get_seq_id_range, doc="Sequence range")
 
 
 class AsymUnitRange(object):
@@ -906,7 +911,7 @@ class AsymUnit(object):
         """Get a :class:`Residue` at the given sequence position"""
         return Residue(asym=self, seq_id=seq_id)
 
-    seq_id_range = property(lambda self: (1, len(self.entity.sequence)),
+    seq_id_range = property(lambda self: self.entity.seq_id_range,
                             doc="Sequence range")
 
 
