@@ -848,7 +848,7 @@ class _RangeChecker(object):
                  % (obj, asym._id, ", ".join(sorted(a for a in self.asym_ids))))
 
 
-class _ModelDumper(object):
+class _ModelDumper(_Dumper):
 
     def finalize(self, system):
         # Remove any existing ID
@@ -978,7 +978,7 @@ class _ModelDumper(object):
                     ordinal += 1
 
 
-class _EnsembleDumper(object):
+class _EnsembleDumper(_Dumper):
     def finalize(self, system):
         # Assign IDs
         for ne, e in enumerate(system.ensembles):
@@ -1006,7 +1006,7 @@ class _EnsembleDumper(object):
                         ensemble_file_id=e.file._id if e.file else None)
 
 
-class _DensityDumper(object):
+class _DensityDumper(_Dumper):
     def finalize(self, system):
         # Assign globally unique IDs
         did = 1
@@ -1029,7 +1029,7 @@ class _DensityDumper(object):
                             seq_id_end=density.asym_unit.seq_id_range[1])
 
 
-class _MultiStateDumper(object):
+class _MultiStateDumper(_Dumper):
     def finalize(self, system):
         state_id = 1
         # Assign IDs
@@ -1062,7 +1062,7 @@ class _MultiStateDumper(object):
                         ordinal += 1
 
 
-class _OrderedDumper(object):
+class _OrderedDumper(_Dumper):
     def finalize(self, system):
         for nproc, proc in enumerate(system.ordered_processes):
             proc._id = nproc + 1
