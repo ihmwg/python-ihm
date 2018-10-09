@@ -856,7 +856,6 @@ class Entity(object):
 
     src_method = 'man'
     number_of_molecules = 1
-    formula_weight = unknown
 
     def __get_type(self):
         if self.is_polymeric():
@@ -864,6 +863,18 @@ class Entity(object):
         else:
             return 'water' if self.sequence[0].code == 'HOH' else 'non-polymer'
     type = property(__get_type)
+
+    def __get_weight(self):
+        weight = 0.
+        for s in self.sequence:
+            w = s.formula_weight
+            # If any component's weight is unknown, the total is too
+            if w:
+                weight += w
+            else:
+                return None
+        return weight
+    formula_weight = property(__get_weight, doc="Formula weight")
 
     def __init__(self, sequence, alphabet=LPeptideAlphabet,
                  description=None, details=None):

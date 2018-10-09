@@ -238,8 +238,8 @@ _entity.pdbx_description
 _entity.formula_weight
 _entity.pdbx_number_of_molecules
 _entity.details
-1 polymer man foo ? 1 .
-2 polymer man baz ? 1 .
+1 polymer man foo 366.413 1 .
+2 polymer man baz 499.516 1 .
 #
 """)
 

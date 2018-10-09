@@ -167,6 +167,14 @@ class Tests(unittest.TestCase):
         # seq_id does not exist for nonpolymers
         self.assertEqual(heme.seq_id_range, (None,None))
 
+    def test_entity_weight(self):
+        """Test Entity.formula_weight"""
+        e1 = ihm.Entity('AHCD')
+        self.assertAlmostEqual(e1.formula_weight, 499.516, places=1)
+        # Entity containing a component with unknown weight
+        heme = ihm.Entity([ihm.NonPolymerChemComp('HEM')])
+        self.assertEqual(heme.formula_weight, None)
+
     def test_entity_type(self):
         """Test Entity.type"""
         protein = ihm.Entity('AHCD')
