@@ -32,6 +32,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(cc1.code, 'G')
         self.assertEqual(cc1.code_canonical, 'G')
         self.assertEqual(cc1.type, 'other')
+        self.assertEqual(cc1.formula_weight, None)
         cc2 = ihm.ChemComp(id='GLY', code='G', code_canonical='G')
         cc3 = ihm.ChemComp(id='G', code='G', code_canonical='G')
         self.assertEqual(cc1, cc2)
@@ -77,6 +78,8 @@ class Tests(unittest.TestCase):
         self.assertEqual(a._comps['M'].code, 'M')
         self.assertEqual(a._comps['M'].code_canonical, 'M')
         self.assertEqual(a._comps['M'].type, 'L-peptide linking')
+        self.assertEqual(a._comps['M'].name, "METHIONINE")
+        self.assertAlmostEqual(a._comps['M'].formula_weight, 149.211, places=2)
 
         a = ihm.LPeptideAlphabet()
         self.assertTrue('MSE' in a)
@@ -96,6 +99,24 @@ class Tests(unittest.TestCase):
         self.assertEqual(a['UNK'].code, 'UNK')
         self.assertEqual(a['UNK'].code_canonical, 'X')
         self.assertEqual(a['UNK'].type, 'L-peptide linking')
+
+    def test_d_peptide_alphabet(self):
+        """Test DPeptideAlphabet class"""
+        dcode_from_canon =  {'A': 'DAL', 'C': 'DCY', 'D': 'DAS', 'E': 'DGL',
+                             'F': 'DPN', 'H': 'DHI', 'I': 'DIL', 'K': 'DLY',
+                             'L': 'DLE', 'M': 'MED', 'N': 'DSG', 'P': 'DPR',
+                             'Q': 'DGN', 'R': 'DAR', 'S': 'DSN', 'T': 'DTH',
+                             'V': 'DVA', 'W': 'DTR', 'Y': 'DTY', 'G': 'G'}
+        d = ihm.DPeptideAlphabet
+        l = ihm.LPeptideAlphabet
+        # Weights of all standard amino acids should be identical between
+        # L- and D- forms (except for lysine, where the formal charge
+        # differs between the two forms)
+        for canon in 'ACDEFGHILMNPQRSTVWY':
+            lcode = canon
+            dcode = dcode_from_canon[canon]
+            self.assertAlmostEqual(d._comps[dcode].formula_weight,
+                                   l._comps[lcode].formula_weight, places=2)
 
     def test_rna_alphabet(self):
         """Test RNAAlphabet class"""

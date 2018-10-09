@@ -124,12 +124,14 @@ class _ChemCompDumper(_Dumper):
     def dump(self, system, writer):
         seen = {}
 
-        with writer.loop("_chem_comp", ["id", "type", "name"]) as l:
+        with writer.loop("_chem_comp", ["id", "type", "name",
+                                        "formula_weight"]) as l:
             for entity in system.entities:
                 for comp in entity.sequence:
                     if comp not in seen:
                         seen[comp] = None
-                        l.write(id=comp.id, type=comp.type, name=comp.name)
+                        l.write(id=comp.id, type=comp.type, name=comp.name,
+                                formula_weight=comp.formula_weight)
 
 
 class _EntityDumper(_Dumper):

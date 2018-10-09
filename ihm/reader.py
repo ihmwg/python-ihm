@@ -459,11 +459,12 @@ class _ChemCompHandler(_Handler):
                              for x in inspect.getmembers(ihm, inspect.isclass)
                              if issubclass(x[1], ihm.ChemComp))
 
-    def __call__(self, type, id, name):
+    def __call__(self, type, id, name, formula_weight):
         typ = 'other' if type is None else type.lower()
         s = self.sysr.chem_comps.get_by_id(id,
                                            self.type_map.get(typ, ihm.ChemComp))
         self._copy_if_present(s, locals(), keys=('name',))
+        s.formula_weight = _get_float(formula_weight)
 
 
 class _EntityHandler(_Handler):
