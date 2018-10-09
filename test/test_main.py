@@ -40,6 +40,24 @@ class Tests(unittest.TestCase):
         self.assertEqual(hash(cc1), hash(cc2))
         self.assertNotEqual(cc1, cc3)
 
+    def test_chem_comp_weight(self):
+        """Test ChemComp.formula_weight"""
+        # No formula
+        cc = ihm.ChemComp('X', 'X', 'X', formula=None)
+        self.assertEqual(cc.formula_weight, None)
+        # Bad formula
+        cc = ihm.ChemComp('X', 'X', 'X', formula='C90H')
+        self.assertRaises(ValueError, lambda x: x.formula_weight, cc)
+        # Formula with unknown element
+        cc = ihm.ChemComp('X', 'X', 'X', formula='C5 Y')
+        self.assertEqual(cc.formula_weight, None)
+        # Formula with known elements and no charge
+        cc = ihm.ChemComp('X', 'X', 'X', formula='C6 H12 P')
+        self.assertAlmostEqual(cc.formula_weight, 115.136, places=2)
+        # Formula with known elements and formal charge
+        cc = ihm.ChemComp('X', 'X', 'X', formula='C6 H12 P 1')
+        self.assertAlmostEqual(cc.formula_weight, 115.136, places=2)
+
     def test_peptide_chem_comp(self):
         """Test PeptideChemComp class"""
         cc1 = ihm.PeptideChemComp(id='GLY', code='G', code_canonical='G')
