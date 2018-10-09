@@ -265,16 +265,17 @@ loop_
 _chem_comp.id
 _chem_comp.type
 _chem_comp.name
+_chem_comp.formula
 _chem_comp.formula_weight
-ALA 'L-peptide linking' ALANINE 89.093
-CYS 'L-peptide linking' CYSTEINE 121.158
-GLY 'Peptide linking' GLYCINE 75.067
-THR 'L-peptide linking' THREONINE 119.119
-A 'RNA linking' "ADENOSINE-5'-MONOPHOSPHATE" 347.221
-C 'RNA linking' "CYTIDINE-5'-MONOPHOSPHATE" 323.197
-G 'RNA linking' "GUANOSINE-5'-MONOPHOSPHATE" 363.221
-DA 'DNA linking' "2'-DEOXYADENOSINE-5'-MONOPHOSPHATE" 331.222
-DC 'DNA linking' "2'-DEOXYCYTIDINE-5'-MONOPHOSPHATE" 307.197
+ALA 'L-peptide linking' ALANINE 'C3 H7 N O2' 89.093
+CYS 'L-peptide linking' CYSTEINE 'C3 H7 N O2 S' 121.158
+GLY 'Peptide linking' GLYCINE 'C2 H5 N O2' 75.067
+THR 'L-peptide linking' THREONINE 'C4 H9 N O3' 119.119
+A 'RNA linking' "ADENOSINE-5'-MONOPHOSPHATE" 'C10 H14 N5 O7 P' 347.221
+C 'RNA linking' "CYTIDINE-5'-MONOPHOSPHATE" 'C9 H14 N3 O8 P' 323.197
+G 'RNA linking' "GUANOSINE-5'-MONOPHOSPHATE" 'C10 H14 N5 O8 P' 363.221
+DA 'DNA linking' "2'-DEOXYADENOSINE-5'-MONOPHOSPHATE" 'C10 H14 N5 O6 P' 331.222
+DC 'DNA linking' "2'-DEOXYCYTIDINE-5'-MONOPHOSPHATE" 'C9 H14 N3 O7 P' 307.197
 #
 """)
 

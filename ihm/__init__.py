@@ -523,6 +523,14 @@ class ChemComp(object):
        :param str code_canonical: Canonical version of `code` (which need not
               be unique).
        :param str name: A longer human-readable name for the component.
+       :param str formula: The chemical formula. This is a spaced-separated
+              list of the element symbols in the component, each followed
+              by an optional count (if omitted, 1 is assumed). The formula
+              is terminated with the formal charge (if not zero). The element
+              list should be sorted alphabetically, unless carbon is present,
+              in which case C and H precede the rest of the elements. For
+              example, water would be "H2 O" and arginine (with +1 formal
+              charge) "C6 H15 N4 O2 1".
        :param float formula_weight: Mass in daltons.
 
        For example, glycine would have
@@ -535,10 +543,10 @@ class ChemComp(object):
     type = 'other'
 
     def __init__(self, id, code, code_canonical, name=None,
-                 formula_weight=None):
+                 formula=None, formula_weight=None):
         self.id = id
         self.code, self.code_canonical, self.name = code, code_canonical, name
-        self.formula_weight = formula_weight
+        self.formula, self.formula_weight = formula, formula_weight
 
     # Equal if all identifiers are the same
     def __eq__(self, other):
@@ -585,12 +593,15 @@ class NonPolymerChemComp(ChemComp):
 
        :param str id: A globally unique identifier for this component.
        :param str name: A longer human-readable name for the component.
+       :param str formula: The chemical formula. See :class:`ChemComp` for
+              more details.
        :param float formula_weight: Mass in daltons.
     """
     type = "non-polymer"
 
-    def __init__(self, id, name=None, formula_weight=None):
+    def __init__(self, id, name=None, formula=None, formula_weight=None):
         super(NonPolymerChemComp, self).__init__(id, id, id, name=name,
+                                                 formula=formula,
                                                  formula_weight=formula_weight)
 
 
@@ -599,6 +610,7 @@ class WaterChemComp(NonPolymerChemComp):
     """
     def __init__(self):
         super(WaterChemComp, self).__init__('HOH', name='WATER',
+                                            formula="H2 O",
                                             formula_weight=18.015)
 
 
@@ -634,35 +646,38 @@ class LPeptideAlphabet(Alphabet):
        modified residues are also included (e.g. MSE). For these their full name
        rather than a one-letter code is used.
     """
-    _comps = dict([code, LPeptideChemComp(id, code, code, name, weight)]
-                 for code, id, name, weight in
-                    [('A', 'ALA', 'ALANINE', 89.093),
-                     ('C', 'CYS', 'CYSTEINE', 121.158),
-                     ('D', 'ASP', 'ASPARTIC ACID', 133.103),
-                     ('E', 'GLU', 'GLUTAMIC ACID', 147.129),
-                     ('F', 'PHE', 'PHENYLALANINE', 165.189),
-                     ('H', 'HIS', 'HISTIDINE', 156.162),
-                     ('I', 'ILE', 'ISOLEUCINE', 131.173),
-                     ('K', 'LYS', 'LYSINE', 147.195),
-                     ('L', 'LEU', 'LEUCINE', 131.173),
-                     ('M', 'MET', 'METHIONINE', 149.211),
-                     ('N', 'ASN', 'ASPARAGINE', 132.118),
-                     ('P', 'PRO', 'PROLINE', 115.130),
-                     ('Q', 'GLN', 'GLUTAMINE', 146.144),
-                     ('R', 'ARG', 'ARGININE', 175.209),
-                     ('S', 'SER', 'SERINE', 105.093),
-                     ('T', 'THR', 'THREONINE', 119.119),
-                     ('V', 'VAL', 'VALINE', 117.146),
-                     ('W', 'TRP', 'TRYPTOPHAN', 204.225),
-                     ('Y', 'TYR', 'TYROSINE', 181.189)])
+    _comps = dict([code, LPeptideChemComp(id, code, code, name,
+                                          formula, weight)]
+                 for code, id, name, formula, weight in
+                    [('A', 'ALA', 'ALANINE', 'C3 H7 N O2', 89.093),
+                     ('C', 'CYS', 'CYSTEINE', 'C3 H7 N O2 S', 121.158),
+                     ('D', 'ASP', 'ASPARTIC ACID', 'C4 H7 N O4', 133.103),
+                     ('E', 'GLU', 'GLUTAMIC ACID', 'C5 H9 N O4', 147.129),
+                     ('F', 'PHE', 'PHENYLALANINE', 'C9 H11 N O2', 165.189),
+                     ('H', 'HIS', 'HISTIDINE', 'C6 H10 N3 O2 1', 156.162),
+                     ('I', 'ILE', 'ISOLEUCINE', 'C6 H13 N O2', 131.173),
+                     ('K', 'LYS', 'LYSINE', 'C6 H15 N2 O2 1', 147.195),
+                     ('L', 'LEU', 'LEUCINE', 'C6 H13 N O2', 131.173),
+                     ('M', 'MET', 'METHIONINE', 'C5 H11 N O2 S', 149.211),
+                     ('N', 'ASN', 'ASPARAGINE', 'C4 H8 N2 O3', 132.118),
+                     ('P', 'PRO', 'PROLINE', 'C5 H9 N O2', 115.130),
+                     ('Q', 'GLN', 'GLUTAMINE', 'C5 H10 N2 O3', 146.144),
+                     ('R', 'ARG', 'ARGININE', 'C6 H15 N4 O2 1', 175.209),
+                     ('S', 'SER', 'SERINE', 'C3 H7 N O3', 105.093),
+                     ('T', 'THR', 'THREONINE', 'C4 H9 N O3', 119.119),
+                     ('V', 'VAL', 'VALINE', 'C5 H11 N O2', 117.146),
+                     ('W', 'TRP', 'TRYPTOPHAN', 'C11 H12 N2 O2', 204.225),
+                     ('Y', 'TYR', 'TYROSINE', 'C9 H11 N O3', 181.189)])
     _comps['G'] = PeptideChemComp('GLY', 'G', 'G', name='GLYCINE',
+                                  formula="C2 H5 N O2",
                                   formula_weight=75.067)
 
     # common non-standard L-amino acids
-    _comps.update([id, LPeptideChemComp(id, id, canon, name, weight)]
-                  for id, canon, name, weight in
-                     [('MSE', 'M', 'SELENOMETHIONINE', 196.106),
-                      ('UNK', 'X', 'UNKNOWN', 103.120)])
+    _comps.update([id, LPeptideChemComp(id, id, canon, name, formula, weight)]
+                  for id, canon, name, formula, weight in
+                     [('MSE', 'M', 'SELENOMETHIONINE', 'C5 H11 N O2 Se',
+                       196.106),
+                      ('UNK', 'X', 'UNKNOWN', 'C4 H9 N O2', 103.120)])
 
 
 class DPeptideAlphabet(Alphabet):
@@ -671,51 +686,61 @@ class DPeptideAlphabet(Alphabet):
        glycine which maps to :class:`PeptideChemComp`). See
        :class:`LPeptideAlphabet` for more details.
     """
-    _comps = dict([code, DPeptideChemComp(code, code, canon, name, weight)]
-                  for canon, code, name, weight in
-                    [('A', 'DAL', 'D-ALANINE', 89.093),
-                     ('C', 'DCY', 'D-CYSTEINE', 121.158),
-                     ('D', 'DAS', 'D-ASPARTIC ACID', 133.103),
-                     ('E', 'DGL', 'D-GLUTAMIC ACID', 147.129),
-                     ('F', 'DPN', 'D-PHENYLALANINE', 165.189),
-                     ('H', 'DHI', 'D-HISTIDINE', 156.162),
-                     ('I', 'DIL', 'D-ISOLEUCINE', 131.173),
-                     ('K', 'DLY', 'D-LYSINE', 146.188),
-                     ('L', 'DLE', 'D-LEUCINE', 131.173),
-                     ('M', 'MED', 'D-METHIONINE', 149.211),
-                     ('N', 'DSG', 'D-ASPARAGINE', 132.118),
-                     ('P', 'DPR', 'D-PROLINE', 115.130),
-                     ('Q', 'DGN', 'D-GLUTAMINE', 146.144),
-                     ('R', 'DAR', 'D-ARGININE', 175.209),
-                     ('S', 'DSN', 'D-SERINE', 105.093),
-                     ('T', 'DTH', 'D-THREONINE', 119.119),
-                     ('V', 'DVA', 'D-VALINE', 117.146),
-                     ('W', 'DTR', 'D-TRYPTOPHAN', 204.225),
-                     ('Y', 'DTY', 'D-TYROSINE', 181.189)])
+    _comps = dict([code, DPeptideChemComp(code, code, canon, name, formula,
+                                          weight)]
+                  for canon, code, name, formula, weight in
+                    [('A', 'DAL', 'D-ALANINE', 'C3 H7 N O2', 89.093),
+                     ('C', 'DCY', 'D-CYSTEINE', 'C3 H7 N O2 S', 121.158),
+                     ('D', 'DAS', 'D-ASPARTIC ACID', 'C4 H7 N O4', 133.103),
+                     ('E', 'DGL', 'D-GLUTAMIC ACID', 'C5 H9 N O4', 147.129),
+                     ('F', 'DPN', 'D-PHENYLALANINE', 'C9 H11 N O2', 165.189),
+                     ('H', 'DHI', 'D-HISTIDINE', 'C6 H10 N3 O2 1', 156.162),
+                     ('I', 'DIL', 'D-ISOLEUCINE', 'C6 H13 N O2', 131.173),
+                     ('K', 'DLY', 'D-LYSINE', 'C6 H14 N2 O2', 146.188),
+                     ('L', 'DLE', 'D-LEUCINE', 'C6 H13 N O2', 131.173),
+                     ('M', 'MED', 'D-METHIONINE', 'C5 H11 N O2 S', 149.211),
+                     ('N', 'DSG', 'D-ASPARAGINE', 'C4 H8 N2 O3', 132.118),
+                     ('P', 'DPR', 'D-PROLINE', 'C5 H9 N O2', 115.130),
+                     ('Q', 'DGN', 'D-GLUTAMINE', 'C5 H10 N2 O3', 146.144),
+                     ('R', 'DAR', 'D-ARGININE', 'C6 H15 N4 O2 1', 175.209),
+                     ('S', 'DSN', 'D-SERINE', 'C3 H7 N O3', 105.093),
+                     ('T', 'DTH', 'D-THREONINE', 'C4 H9 N O3', 119.119),
+                     ('V', 'DVA', 'D-VALINE', 'C5 H11 N O2', 117.146),
+                     ('W', 'DTR', 'D-TRYPTOPHAN', 'C11 H12 N2 O2', 204.225),
+                     ('Y', 'DTY', 'D-TYROSINE', 'C9 H11 N O3', 181.189)])
     _comps['G'] = PeptideChemComp('GLY', 'G', 'G', name='GLYCINE',
+                                  formula="C2 H5 N O2",
                                   formula_weight=75.067)
 
 
 class RNAAlphabet(Alphabet):
     """A mapping from one-letter nucleic acid codes (e.g. A) to
        RNA (as :class:`RNAChemComp` objects)."""
-    _comps = dict([id, RNAChemComp(id, id, id, name, weight)]
-                  for id, name, weight in
-                    [('A', "ADENOSINE-5'-MONOPHOSPHATE", 347.221),
-                     ('C', "CYTIDINE-5'-MONOPHOSPHATE", 323.197),
-                     ('G', "GUANOSINE-5'-MONOPHOSPHATE", 363.221),
-                     ('U', "URIDINE-5'-MONOPHOSPHATE", 324.181)])
+    _comps = dict([id, RNAChemComp(id, id, id, name, formula, weight)]
+                  for id, name, formula, weight in
+                    [('A', "ADENOSINE-5'-MONOPHOSPHATE", 'C10 H14 N5 O7 P',
+                      347.221),
+                     ('C', "CYTIDINE-5'-MONOPHOSPHATE", 'C9 H14 N3 O8 P',
+                      323.197),
+                     ('G', "GUANOSINE-5'-MONOPHOSPHATE", 'C10 H14 N5 O8 P',
+                      363.221),
+                     ('U', "URIDINE-5'-MONOPHOSPHATE", 'C9 H13 N2 O9 P',
+                      324.181)])
 
 
 class DNAAlphabet(Alphabet):
     """A mapping from two-letter nucleic acid codes (e.g. DA) to
        DNA (as :class:`DNAChemComp` objects)."""
-    _comps = dict([code, DNAChemComp(code, code, canon, name, weight)]
-                  for code, canon, name, weight in
-                    [('DA', 'A', "2'-DEOXYADENOSINE-5'-MONOPHOSPHATE", 331.222),
-                     ('DC', 'C', "2'-DEOXYCYTIDINE-5'-MONOPHOSPHATE", 307.197),
-                     ('DG', 'G', "2'-DEOXYGUANOSINE-5'-MONOPHOSPHATE", 347.221),
-                     ('DT', 'T', "THYMIDINE-5'-MONOPHOSPHATE", 322.208)])
+    _comps = dict([code, DNAChemComp(code, code, canon, name, formula, weight)]
+                  for code, canon, name, formula, weight in
+                    [('DA', 'A', "2'-DEOXYADENOSINE-5'-MONOPHOSPHATE",
+                      'C10 H14 N5 O6 P', 331.222),
+                     ('DC', 'C', "2'-DEOXYCYTIDINE-5'-MONOPHOSPHATE",
+                      'C9 H14 N3 O7 P', 307.197),
+                     ('DG', 'G', "2'-DEOXYGUANOSINE-5'-MONOPHOSPHATE",
+                      'C10 H14 N5 O7 P', 347.221),
+                     ('DT', 'T', "THYMIDINE-5'-MONOPHOSPHATE",
+                      'C10 H15 N2 O8 P', 322.208)])
 
 
 class EntityRange(object):

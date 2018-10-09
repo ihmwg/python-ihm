@@ -125,12 +125,13 @@ class _ChemCompDumper(_Dumper):
         seen = {}
 
         with writer.loop("_chem_comp", ["id", "type", "name",
-                                        "formula_weight"]) as l:
+                                        "formula", "formula_weight"]) as l:
             for entity in system.entities:
                 for comp in entity.sequence:
                     if comp not in seen:
                         seen[comp] = None
                         l.write(id=comp.id, type=comp.type, name=comp.name,
+                                formula=comp.formula,
                                 formula_weight=comp.formula_weight)
 
 

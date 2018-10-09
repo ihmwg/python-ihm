@@ -32,6 +32,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(cc1.code, 'G')
         self.assertEqual(cc1.code_canonical, 'G')
         self.assertEqual(cc1.type, 'other')
+        self.assertEqual(cc1.formula, None)
         self.assertEqual(cc1.formula_weight, None)
         cc2 = ihm.ChemComp(id='GLY', code='G', code_canonical='G')
         cc3 = ihm.ChemComp(id='G', code='G', code_canonical='G')
@@ -79,6 +80,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(a._comps['M'].code_canonical, 'M')
         self.assertEqual(a._comps['M'].type, 'L-peptide linking')
         self.assertEqual(a._comps['M'].name, "METHIONINE")
+        self.assertEqual(a._comps['M'].formula, 'C5 H11 N O2 S')
         self.assertAlmostEqual(a._comps['M'].formula_weight, 149.211, places=2)
 
         a = ihm.LPeptideAlphabet()
@@ -109,12 +111,13 @@ class Tests(unittest.TestCase):
                              'V': 'DVA', 'W': 'DTR', 'Y': 'DTY', 'G': 'G'}
         d = ihm.DPeptideAlphabet
         l = ihm.LPeptideAlphabet
-        # Weights of all standard amino acids should be identical between
-        # L- and D- forms (except for lysine, where the formal charge
+        # Weights and formulae of all standard amino acids should be identical
+        # between L- and D- forms (except for lysine, where the formal charge
         # differs between the two forms)
         for canon in 'ACDEFGHILMNPQRSTVWY':
             lcode = canon
             dcode = dcode_from_canon[canon]
+            self.assertEqual(d._comps[dcode].formula, l._comps[lcode].formula)
             self.assertAlmostEqual(d._comps[dcode].formula_weight,
                                    l._comps[lcode].formula_weight, places=2)
 
