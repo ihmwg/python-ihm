@@ -342,6 +342,8 @@ struct ihm_category {
   struct ihm_mapping *keyword_map;
   /* Function called when we have all data for this category */
   ihm_category_callback data_callback;
+  /* Function called at the end of each save frame */
+  ihm_category_callback end_frame_callback;
   /* Function called at the very end of the data block */
   ihm_category_callback finalize_callback;
   /* Data passed to callbacks */
@@ -397,12 +399,14 @@ static void ihm_category_free(void *value)
 struct ihm_category *ihm_category_new(struct ihm_reader *reader,
                                       const char *name,
                                       ihm_category_callback data_callback,
+                                      ihm_category_callback end_frame_callback,
                                       ihm_category_callback finalize_callback,
                                       void *data, ihm_free_callback free_func)
 {
   struct ihm_category *category = ihm_malloc(sizeof(struct ihm_category));
   category->name = strdup(name);
   category->data_callback = data_callback;
+  category->end_frame_callback = end_frame_callback;
   category->finalize_callback = finalize_callback;
   category->data = data;
   category->free_func = free_func;
@@ -1012,12 +1016,9 @@ static void call_category_foreach(void *key, void *value, void *user_data)
   if (!*(d->err)) {
     call_category(d->reader, category, FALSE, d->err);
   }
-  if (!*(d->err) && category->finalize_callback) {
-    (*category->finalize_callback)(d->reader, category->data, d->err);
-  }
 }
 
-/* Process any data stored in all categories, and finalize */
+/* Process any data stored in all categories */
 static void call_all_categories(struct ihm_reader *reader,
                                 struct ihm_error **err)
 {
@@ -1025,6 +1026,44 @@ static void call_all_categories(struct ihm_reader *reader,
   d.err = err;
   d.reader = reader;
   ihm_mapping_foreach(reader->category_map, call_category_foreach, &d);
+}
+
+static void finalize_category_foreach(void *key, void *value, void *user_data)
+{
+  struct category_foreach_data *d = user_data;
+  struct ihm_category *category = value;
+  if (!*(d->err) && category->finalize_callback) {
+    (*category->finalize_callback)(d->reader, category->data, d->err);
+  }
+}
+
+/* Call each category's finalize callback */
+static void finalize_all_categories(struct ihm_reader *reader,
+                                    struct ihm_error **err)
+{
+  struct category_foreach_data d;
+  d.err = err;
+  d.reader = reader;
+  ihm_mapping_foreach(reader->category_map, finalize_category_foreach, &d);
+}
+
+static void end_frame_category_foreach(void *key, void *value, void *user_data)
+{
+  struct category_foreach_data *d = user_data;
+  struct ihm_category *category = value;
+  if (!*(d->err) && category->end_frame_callback) {
+    (*category->end_frame_callback)(d->reader, category->data, d->err);
+  }
+}
+
+/* Call each category's end_frame callback */
+static void end_frame_all_categories(struct ihm_reader *reader,
+                                     struct ihm_error **err)
+{
+  struct category_foreach_data d;
+  d.err = err;
+  d.reader = reader;
+  ihm_mapping_foreach(reader->category_map, end_frame_category_foreach, &d);
 }
 
 static void sort_category_foreach(void *key, void *value, void *user_data)
@@ -1064,11 +1103,13 @@ int ihm_read_file(struct ihm_reader *reader, int *more_data,
       in_save = !in_save;
       if (!in_save) {
         call_all_categories(reader, err);
+        end_frame_all_categories(reader, err);
       }
     }
   }
   if (!*err) {
     call_all_categories(reader, err);
+    finalize_all_categories(reader, err);
   }
   if (*err) {
     return FALSE;

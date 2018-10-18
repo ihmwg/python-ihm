@@ -76,6 +76,7 @@ typedef void (*ihm_free_callback)(void *data);
 struct ihm_category *ihm_category_new(struct ihm_reader *reader,
                                       const char *name,
                                       ihm_category_callback data_callback,
+                                      ihm_category_callback end_frame_callback,
                                       ihm_category_callback finalize_callback,
                                       void *data, ihm_free_callback free_func);
 

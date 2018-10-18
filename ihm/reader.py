@@ -383,6 +383,11 @@ class _Handler(object):
         self.sysr = sysr
 
     def finalize(self):
+        """Called at the end of each data block."""
+        pass
+
+    def end_save_frame(self):
+        """Called at the end of each save frame."""
         pass
 
     def _copy_if_present(self, obj, data, keys=[], mapkeys={}):

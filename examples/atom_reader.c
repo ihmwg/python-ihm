@@ -43,7 +43,7 @@ static void add_atom_site_handler(struct ihm_reader *reader)
   /* Register a callback for the atom_site category. 'data' will be passed
      to it (and 'data' will be freed with 'free' when we're done) */
   struct ihm_category *c = ihm_category_new(reader, "_atom_site",
-                                            atom_site_handler, NULL, data,
+                                            atom_site_handler, NULL, NULL, data,
                                             free);
 
   /* Ask the reader to extract a set of keywords from the atom_site

@@ -44,6 +44,9 @@ class GenericHandler(object):
                 d[k] = v
         self.data.append(d)
 
+    def end_save_frame(self):
+        self.data.append('SAVE')
+
 
 class TestFinalizeHandler(GenericHandler):
     if _format is not None:
@@ -290,7 +293,8 @@ save_
         for real_file in (True, False):
             h = GenericHandler()
             self._read_cif(cif, real_file, {'_exptl':h})
-            self.assertEqual(h.data, [{'method':'foo'}, {'method':'bar'}])
+            self.assertEqual(h.data, [{'method':'foo'}, 'SAVE',
+                                      {'method':'bar'}, 'SAVE'])
 
     def test_omitted_ignored(self):
         """CIF omitted value ('.') should be ignored"""

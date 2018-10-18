@@ -521,6 +521,8 @@ class CifReader(_Reader):
                 in_save = not in_save
                 if not in_save:
                     call_all_categories()
+                    for handler in self.category_handler.values():
+                        handler.end_save_frame()
         call_all_categories()
         return ndata > 1
 
