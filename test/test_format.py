@@ -276,6 +276,22 @@ x
             self._read_cif(cif, real_file, {'_exptl':h})
             self.assertEqual(h.data, [{'method':'bar'}])
 
+    def test_save_frames(self):
+        """Category handlers should be called for each save frame"""
+        cif = """
+save_foo
+_exptl.method foo
+save_
+
+save_bar
+_exptl.method bar
+save_
+"""
+        for real_file in (True, False):
+            h = GenericHandler()
+            self._read_cif(cif, real_file, {'_exptl':h})
+            self.assertEqual(h.data, [{'method':'foo'}, {'method':'bar'}])
+
     def test_omitted_ignored(self):
         """CIF omitted value ('.') should be ignored"""
         for real_file in (True, False):

@@ -237,6 +237,11 @@ class _LoopToken(_Token):
     pass
 
 
+class _SaveToken(_Token):
+    """A save_* keyword in mmCIF, denoting the start or end of a save frame"""
+    pass
+
+
 class _Reader(object):
     """Base class for reading a file and extracting some or all of its data."""
 
@@ -348,6 +353,8 @@ class CifReader(_Reader):
                 tok = _LoopToken()
             elif val.startswith('data_'):
                 tok = _DataToken()
+            elif val.startswith('save_'):
+                tok = _SaveToken()
             elif val.startswith('_'):
                 tok = _VariableToken(val, self._linenum)
             else:
@@ -484,7 +491,14 @@ class CifReader(_Reader):
         self._add_category_keys()
         if hasattr(self, '_c_format'):
             return self._read_file_c()
+        def call_all_categories():
+            for cat, data in self._category_data.items():
+                ch = self.category_handler[cat]
+                ch(*[data.get(k, None) for k in ch._keys])
+            # Clear category data for next call to read_file()
+            self._category_data = {}
         ndata = 0
+        in_save = False
         while True:
             token = self._get_token(ignore_multiline=True)
             if token is None:
@@ -503,11 +517,11 @@ class CifReader(_Reader):
                 # Did we hit the end of the file?
                 if self._token_index < 0:
                     break
-        for cat, data in self._category_data.items():
-            ch = self.category_handler[cat]
-            ch(*[data.get(k, None) for k in ch._keys])
-        # Clear category data for next call to read_file()
-        self._category_data = {}
+            elif isinstance(token, _SaveToken):
+                in_save = not in_save
+                if not in_save:
+                    call_all_categories()
+        call_all_categories()
         return ndata > 1
 
     def _read_file_c(self):

@@ -370,6 +370,7 @@ typedef enum {
   MMCIF_TOKEN_VALUE = 1,
   MMCIF_TOKEN_LOOP,
   MMCIF_TOKEN_DATA,
+  MMCIF_TOKEN_SAVE,
   MMCIF_TOKEN_VARIABLE
 } ihm_token_type;
 
@@ -664,11 +665,13 @@ static size_t get_next_token(struct ihm_reader *reader, char *line,
       t.type = MMCIF_TOKEN_LOOP;
     } else if (strncmp(t.str, "data_", 5) == 0) {
       t.type = MMCIF_TOKEN_DATA;
+    } else if (strncmp(t.str, "save_", 5) == 0) {
+      t.type = MMCIF_TOKEN_SAVE;
     } else if (t.str[0] == '_') {
       t.type = MMCIF_TOKEN_VARIABLE;
     } else {
       /* Note that we do no special processing for other reserved words
-         (global_, save_, stop_). But the probability of them occurring
+         (global_, stop_). But the probability of them occurring
          where we expect a value is pretty small. */
       t.type = MMCIF_TOKEN_VALUE;
     }
@@ -1041,7 +1044,7 @@ static void sort_mappings(struct ihm_reader *reader)
 int ihm_read_file(struct ihm_reader *reader, int *more_data,
                   struct ihm_error **err)
 {
-  int ndata = 0;
+  int ndata = 0, in_save = 0;
   struct ihm_token *token;
   sort_mappings(reader);
   while (!*err && (token = get_token(reader, TRUE, err))) {
@@ -1057,6 +1060,11 @@ int ihm_read_file(struct ihm_reader *reader, int *more_data,
       }
     } else if (token->type == MMCIF_TOKEN_LOOP) {
       read_loop(reader, err);
+    } else if (token->type == MMCIF_TOKEN_SAVE) {
+      in_save = !in_save;
+      if (!in_save) {
+        call_all_categories(reader, err);
+      }
     }
   }
   if (!*err) {
