@@ -83,7 +83,7 @@ class Dictionary(object):
            :param str format: The format of the file. This can be 'mmCIF' (the
               default) for the (text-based) mmCIF format or 'BCIF' for
               BinaryCIF.
-           :raises ValidatorError if the file fails to validate.
+           :raises: :class:`ValidatorError` if the file fails to validate.
 
            .. note:: Only basic validation is performed. In particular, extra
               categories or keywords that are not present in the dictionary
