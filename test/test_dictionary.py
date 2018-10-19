@@ -101,6 +101,17 @@ save_
         d = make_test_dictionary()
         d.validate(StringIO("_test_mandatory_category.bar 1"))
 
+    def test_validate_multi_data_ok(self):
+        """Test successful validation of multiple data blocks"""
+        d = make_test_dictionary()
+        d.validate(StringIO("""
+data_block1
+_test_mandatory_category.bar 1
+
+data_block2
+_test_mandatory_category.bar 2
+"""))
+
     def test_validate_missing_mandatory_category(self):
         """Test validation failure with missing mandatory category"""
         d = make_test_dictionary()
