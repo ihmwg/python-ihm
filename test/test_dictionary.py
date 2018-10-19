@@ -25,7 +25,8 @@ def make_test_dictionary():
     c.name = 'test_mandatory_category'
     c.mandatory = True
     add_keyword("foo", False, c)
-    add_keyword("bar", True, c)
+    k = add_keyword("bar", True, c)
+    k.item_type = ihm.dictionary.ItemType('int', '[+-]?[0-9]+')
     d.categories[c.name] = c
 
     c = ihm.dictionary.Category()
@@ -98,7 +99,7 @@ save_
     def test_validate_ok(self):
         """Test successful validation"""
         d = make_test_dictionary()
-        d.validate(StringIO("_test_mandatory_category.bar id1"))
+        d.validate(StringIO("_test_mandatory_category.bar 1"))
 
     def test_validate_missing_mandatory_category(self):
         """Test validation failure with missing mandatory category"""
@@ -108,7 +109,7 @@ save_
 
     def test_validate_enumeration(self):
         """Test validation of enumerated values"""
-        prefix = """_test_mandatory_category.bar id1
+        prefix = """_test_mandatory_category.bar 1
                     _test_optional_category.bar """
         d = make_test_dictionary()
         # Value in the enumeration is OK
@@ -118,6 +119,26 @@ save_
         # Value not in the enumeration is not OK
         self.assertRaises(ihm.dictionary.ValidatorError, d.validate,
                           StringIO(prefix + 'bad'))
+
+    def test_validate_item_type(self):
+        """Test validation of item type"""
+        prefix = "_test_mandatory_category.bar "
+        d = make_test_dictionary()
+        # Int value is OK
+        d.validate(StringIO(prefix + '+45'))
+        d.validate(StringIO(prefix + '-4'))
+        d.validate(StringIO(prefix + '5'))
+        # Omitted value is OK
+        d.validate(StringIO(prefix + '.'))
+        # Non-int value is not OK
+        self.assertRaises(ihm.dictionary.ValidatorError, d.validate,
+                          StringIO(prefix + '45A'))
+        self.assertRaises(ihm.dictionary.ValidatorError, d.validate,
+                          StringIO(prefix + 'foo'))
+        self.assertRaises(ihm.dictionary.ValidatorError, d.validate,
+                          StringIO(prefix + '++44'))
+        self.assertRaises(ihm.dictionary.ValidatorError, d.validate,
+                          StringIO(prefix + '44+'))
 
 
 if __name__ == '__main__':

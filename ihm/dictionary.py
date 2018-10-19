@@ -3,6 +3,7 @@
 import ihm.reader
 import ihm.format
 import ihm.format_bcif
+import re
 
 from ihm.reader import _Handler, _get_bool
 
@@ -39,12 +40,19 @@ class _ValidatorReader(object):
             if kwobj.mandatory and value == ihm.unknown:
                 self.errors.append("Mandatory keyword %s.%s cannot have "
                                    "value '?'" % (category.name, key))
-            if kwobj.enumeration and value is not None \
-               and value not in kwobj.enumeration:
+            if value is None or value == ihm.unknown:
+                continue
+            if kwobj.enumeration and value not in kwobj.enumeration:
                 self.errors.append("Keyword %s.%s value %s is not a valid "
                                    "enumerated value (options are %s)"
                                    % (category.name, key, value,
                                       ", ".join(sorted(kwobj.enumeration))))
+            if kwobj.item_type and not kwobj.item_type.regex.match(value):
+                self.errors.append("Keyword %s.%s value %s does not match "
+                                   "item type (%s) regular expression (%s)"
+                                   % (category.name, key, value,
+                                      kwobj.item_type.name,
+                                      kwobj.item_type.construct))
 
     def _check_mandatory_categories(self):
         all_categories = self.dictionary.categories
@@ -115,6 +123,8 @@ class ItemType(object):
        the digits 0-9 with an optional +/- prefix."""
     def __init__(self, name, construct):
         self.name, self.construct = name, construct
+        # Ensure that regex matches the entire value
+        self.regex = re.compile(construct + '$')
 
 
 class Keyword(object):
