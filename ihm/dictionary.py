@@ -109,6 +109,8 @@ class Keyword(object):
         self.name = None
         #: True iff this keyword is required in a compliant mmCIF file
         self.mandatory = None
+        #: Set of acceptable values, or None
+        self.enumeration = None
 
 
 class _DictionaryReader(object):
@@ -171,11 +173,22 @@ class _ItemHandler(_Handler):
         self.sysr.keyword_good = True
 
 
+class _ItemEnumerationHandler(_Handler):
+    category = '_item_enumeration'
+
+    def __call__(self, value):
+        k = self.sysr.keyword
+        if k.enumeration is None:
+            k.enumeration = set()
+        k.enumeration.add(value)
+
+
 def read(fh):
     """Read dictionary data from the mmCIF file handle `fh`."""
     r = ihm.format.CifReader(fh, {})
     s = _DictionaryReader()
-    handlers = [_CategoryHandler(s), _ItemHandler(s)]
+    handlers = [_CategoryHandler(s), _ItemHandler(s),
+                _ItemEnumerationHandler(s)]
     r.category_handler = dict((h.category, h) for h in handlers)
     r.read_file()
     return s.dictionary

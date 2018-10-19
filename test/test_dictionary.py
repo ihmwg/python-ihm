@@ -55,6 +55,10 @@ save_baz
   _item.name                 'test_category2.baz'
   _item.category_id          test_category2
   _item.mandatory_code       no
+  loop_
+    _item_enumeration.value
+    "enum 1"
+    "enum 2"
 save_
 """
         d = ihm.dictionary.read(StringIO(cif))
@@ -64,10 +68,14 @@ save_
         self.assertTrue(c1.mandatory)
         self.assertEqual(sorted(c1.keywords.keys()), ["bar"])
         self.assertFalse(c1.keywords['bar'].mandatory)
+        self.assertEqual(c1.keywords['bar'].enumeration, None)
+
         c2 = d.categories['test_category2']
         self.assertEqual(c2.mandatory, None)
         self.assertEqual(sorted(c2.keywords.keys()), ["baz"])
         self.assertFalse(c2.keywords['baz'].mandatory)
+        self.assertEqual(c2.keywords['baz'].enumeration,
+                         set(('enum 1', 'enum 2')))
 
     def test_validate_ok(self):
         """Test successful validation"""
