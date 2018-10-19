@@ -108,6 +108,15 @@ class Category(object):
         self.mandatory = None
 
 
+class ItemType(object):
+    """Represent the type of a data item.
+       This keeps the set of valid strings for values of a given
+       :class:`Keyword`. For example, integer values can only contain
+       the digits 0-9 with an optional +/- prefix."""
+    def __init__(self, name, construct):
+        self.name, self.construct = name, construct
+
+
 class Keyword(object):
     """Representation of a single keyword in a :class:`Category`."""
     def __init__(self):
@@ -117,12 +126,15 @@ class Keyword(object):
         self.mandatory = None
         #: Set of acceptable values, or None
         self.enumeration = None
+        #: :class:`ItemType` for this keyword, or None
+        self.item_type = None
 
 
 class _DictionaryReader(object):
     """Track information for a Dictionary being read from a file."""
     def __init__(self):
         self.dictionary = Dictionary()
+        self.item_types = {} # Mapping from name to ItemType object
         self._reset_category()
         self._reset_keyword()
 
@@ -189,12 +201,41 @@ class _ItemEnumerationHandler(_Handler):
         k.enumeration.add(value)
 
 
+class _ItemTypeListHandler(_Handler):
+    category = '_item_type_list'
+
+    def __call__(self, code, construct):
+        it = ItemType(code, construct)
+        self.sysr.item_types[it.name] = it
+
+
+class _ItemTypeHandler(_Handler):
+    category = '_item_type'
+
+    def __call__(self, code):
+        k = self.sysr.keyword
+        k.item_type = code
+
+    def finalize(self):
+        for c in self.sysr.dictionary.categories.values():
+            for k in c.keywords.values():
+                if k.item_type is not None:
+                    # Map unrecognized type codes to None
+                    # For example, the ihm dictionary often uses the
+                    # 'atcode' type which is not defined in the dictionary
+                    # itself (but presumably is in the base PDBx dict)
+                    k.item_type = self.sysr.item_types.get(k.item_type)
+
+
 def read(fh):
     """Read dictionary data from the mmCIF file handle `fh`."""
     r = ihm.format.CifReader(fh, {})
     s = _DictionaryReader()
     handlers = [_CategoryHandler(s), _ItemHandler(s),
-                _ItemEnumerationHandler(s)]
+                _ItemEnumerationHandler(s),
+                _ItemTypeListHandler(s), _ItemTypeHandler(s)]
     r.category_handler = dict((h.category, h) for h in handlers)
     r.read_file()
+    for h in handlers:
+        h.finalize()
     return s.dictionary

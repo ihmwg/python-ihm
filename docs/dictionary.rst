@@ -11,6 +11,8 @@ The :mod:`ihm.dictionary` Python module
 
 .. autoclass:: Category
 
+.. autoclass:: ItemType
+
 .. autoclass:: Keyword
 
 .. autofunction:: read

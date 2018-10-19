@@ -42,6 +42,11 @@ class Tests(unittest.TestCase):
     def test_read(self):
         """Test read() function"""
         cif = """
+loop_
+_item_type_list.code
+_item_type_list.construct
+code '[][_,.;:"&<>()/\{}'`~!@#$%A-Za-z0-9*|+-]*'
+
 save_foo
   _category.id               test_category1
   _category.mandatory_code   yes
@@ -51,6 +56,14 @@ save_bar
   _item.name                 'test_category1.bar'
   _item.category_id          test_category1
   _item.mandatory_code       no
+  _item_type.code            code
+save_
+
+save_bar2
+  _item.name                 'test_category1.bar2'
+  _item.category_id          test_category1
+  _item.mandatory_code       no
+  _item_type.code            atcode
 save_
 
 save_baz
@@ -68,9 +81,11 @@ save_
                          ['test_category1', 'test_category2'])
         c1 = d.categories['test_category1']
         self.assertTrue(c1.mandatory)
-        self.assertEqual(sorted(c1.keywords.keys()), ["bar"])
+        self.assertEqual(sorted(c1.keywords.keys()), ["bar", "bar2"])
         self.assertFalse(c1.keywords['bar'].mandatory)
         self.assertEqual(c1.keywords['bar'].enumeration, None)
+        self.assertEqual(c1.keywords['bar'].item_type.name, "code")
+        self.assertEqual(c1.keywords['bar2'].item_type, None)
 
         c2 = d.categories['test_category2']
         self.assertEqual(c2.mandatory, None)
@@ -78,6 +93,7 @@ save_
         self.assertFalse(c2.keywords['baz'].mandatory)
         self.assertEqual(c2.keywords['baz'].enumeration,
                          set(('enum 1', 'enum 2')))
+        self.assertEqual(c2.keywords['baz'].item_type, None)
 
     def test_validate_ok(self):
         """Test successful validation"""
