@@ -238,7 +238,11 @@ class _ItemTypeHandler(_Handler):
 
 
 def read(fh):
-    """Read dictionary data from the mmCIF file handle `fh`."""
+    """Read dictionary data from the mmCIF file handle `fh`.
+
+       :return: The dictionary data.
+       :rtype: :class:`Dictionary`
+    """
     r = ihm.format.CifReader(fh, {})
     s = _DictionaryReader()
     handlers = [_CategoryHandler(s), _ItemHandler(s),
