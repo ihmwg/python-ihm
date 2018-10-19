@@ -107,6 +107,12 @@ save_
         self.assertRaises(ihm.dictionary.ValidatorError,
                           d.validate, StringIO("_struct.entry_id id1"))
 
+    def test_validate_missing_mandatory_keyword(self):
+        """Test validation failure with missing mandatory keyword"""
+        d = make_test_dictionary()
+        self.assertRaises(ihm.dictionary.ValidatorError, d.validate,
+                          StringIO("_test_mandatory_category.bar ?"))
+
     def test_validate_enumeration(self):
         """Test validation of enumerated values"""
         prefix = """_test_mandatory_category.bar 1
