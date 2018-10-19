@@ -32,7 +32,9 @@ def make_test_dictionary():
     c = ihm.dictionary.Category()
     c.name = 'test_optional_category'
     c.mandatory = False
-    add_keyword("foo", False, c)
+    k = add_keyword("foo", False, c)
+    # For testing we only accept upper case values
+    k.item_type = ihm.dictionary.ItemType('text', r'[ \n\t_()A-Z]+')
     k = add_keyword("bar", True, c)
     k.enumeration = set(('enum1', 'enum2'))
     d.categories[c.name] = c
@@ -137,8 +139,8 @@ _test_mandatory_category.bar 2
         self.assertRaises(ihm.dictionary.ValidatorError, d.validate,
                           StringIO(prefix + 'bad'))
 
-    def test_validate_item_type(self):
-        """Test validation of item type"""
+    def test_validate_item_type_int(self):
+        """Test validation of int item type"""
         prefix = "_test_mandatory_category.bar "
         d = make_test_dictionary()
         # Int value is OK
@@ -156,6 +158,30 @@ _test_mandatory_category.bar 2
                           StringIO(prefix + '++44'))
         self.assertRaises(ihm.dictionary.ValidatorError, d.validate,
                           StringIO(prefix + '44+'))
+
+    def test_validate_item_type_multiline(self):
+        """Test validation of multiline item type"""
+        # This regex '[ \n\t_()A-Z]+' includes \n and \t special characters,
+        # which should match newline and tab, not literal \n and \t
+        prefix = "_test_mandatory_category.bar 1\n"
+        prefix = """_test_mandatory_category.bar 1
+                    _test_optional_category.bar enum1
+                    _test_optional_category.foo """
+        d = make_test_dictionary()
+        # OK strings
+        d.validate(StringIO(prefix + '"FOO BAR"'))
+        d.validate(StringIO(prefix + '"FOO_BAR"'))
+        d.validate(StringIO(prefix + '"FOO\tBAR"'))
+        d.validate(StringIO(prefix + '\n;FOO\nBAR\n;'))
+        # Bad strings
+        self.assertRaises(ihm.dictionary.ValidatorError, d.validate,
+                          StringIO(prefix + '"foo BAR"'))
+        self.assertRaises(ihm.dictionary.ValidatorError, d.validate,
+                          StringIO(prefix + '"FOO\\BAR"'))
+        self.assertRaises(ihm.dictionary.ValidatorError, d.validate,
+                          StringIO(prefix + 'n'))
+        self.assertRaises(ihm.dictionary.ValidatorError, d.validate,
+                          StringIO(prefix + 't'))
 
 
 if __name__ == '__main__':
