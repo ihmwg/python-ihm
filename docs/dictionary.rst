@@ -14,3 +14,5 @@ The :mod:`ihm.dictionary` Python module
 .. autoclass:: Keyword
 
 .. autofunction:: read
+
+.. autoexception:: ValidatorError

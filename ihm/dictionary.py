@@ -2,8 +2,58 @@
 
 import ihm.reader
 import ihm.format
+import ihm.format_bcif
 
 from ihm.reader import _Handler, _get_bool
+
+class ValidatorError(Exception):
+    """Exception raised if a file fails to validate.
+       See :meth:`Dictionary.validate`."""
+    pass
+
+
+class _ValidatorCategoryHandler(_Handler):
+    def __init__(self, sysr, category):
+        super(_ValidatorCategoryHandler, self).__init__(sysr)
+        self.category = '_' + category.name
+        self.category_obj = category
+        self._keys = [k for k in category.keywords.keys()]
+
+    def __call__(self, *args):
+        self.sysr.validate_data(self.category_obj, self._keys, args)
+
+
+class _ValidatorReader(object):
+    """Track information used for validation while reading an mmCIF file"""
+    def __init__(self, dictionary):
+        self.dictionary = dictionary
+        self._seen_categories = set()
+        self.errors = []
+
+    def validate_data(self, category, keywords, args):
+        self._seen_categories.add(category.name)
+        for key, value in zip(keywords, args):
+            kwobj = category.keywords[key]
+            # todo: We cannot currently detect values that are genuinely
+            # missing from the file because they just show up as None in Python
+            if kwobj.mandatory and value == ihm.unknown:
+                self.errors.append("Mandatory keyword %s.%s cannot have "
+                                   "value '?'" % (category.name, key))
+
+    def _check_mandatory_categories(self):
+        all_categories = self.dictionary.categories
+        mandatory_categories = [c.name for c in all_categories.values()
+                                if c.mandatory]
+        missing = set(mandatory_categories) - self._seen_categories
+        if missing:
+            self.errors.append("The following mandatory categories are missing "
+                               "in the file: %s" % ", ".join(sorted(missing)))
+
+    def report_errors(self):
+        self._check_mandatory_categories()
+        if self.errors:
+            raise ValidatorError("\n\n".join(self.errors))
+
 
 class Dictionary(object):
     """Representation of an mmCIF dictionary.
@@ -11,6 +61,32 @@ class Dictionary(object):
     def __init__(self):
         #: Mapping from name to :class:`Category` objects
         self.categories = {}
+
+    def validate(self, fh, format='mmCIF'):
+        """Validate the given file against this dictionary.
+
+           :param file fh: The file handle to read from.
+           :param str format: The format of the file. This can be 'mmCIF' (the
+              default) for the (text-based) mmCIF format or 'BCIF' for
+              BinaryCIF.
+           :raises ValidatorError if the file fails to validate.
+
+           .. note:: Only basic validation is performed. In particular, extra
+              categories or keywords that are not present in the dictionary
+              are ignored rather than treated as errors, and parent-child
+              relationships are not checked.
+        """
+        reader_map = {'mmCIF': ihm.format.CifReader,
+                      'BCIF': ihm.format_bcif.BinaryCifReader}
+        r = reader_map[format](fh, {})
+        s = _ValidatorReader(self)
+        handlers = [_ValidatorCategoryHandler(s, cat)
+                    for cat in self.categories.values()]
+        r.category_handler = dict((h.category, h) for h in handlers)
+        # Read all data blocks
+        while r.read_file():
+            pass
+        s.report_errors()
 
 
 class Category(object):
