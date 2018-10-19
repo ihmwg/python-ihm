@@ -17,6 +17,7 @@ def make_test_dictionary():
         k = ihm.dictionary.Keyword()
         k.name, k.mandatory = name, mandatory
         category.keywords[k.name] = k
+        return k
 
     d = ihm.dictionary.Dictionary()
 
@@ -31,7 +32,8 @@ def make_test_dictionary():
     c.name = 'test_optional_category'
     c.mandatory = False
     add_keyword("foo", False, c)
-    add_keyword("bar", True, c)
+    k = add_keyword("bar", True, c)
+    k.enumeration = set(('enum1', 'enum2'))
     d.categories[c.name] = c
 
     return d
@@ -88,11 +90,18 @@ save_
         self.assertRaises(ihm.dictionary.ValidatorError,
                           d.validate, StringIO("_struct.entry_id id1"))
 
-    def test_validate_missing_mandatory_keyword(self):
-        """Test validation failure with missing mandatory keyword"""
+    def test_validate_enumeration(self):
+        """Test validation of enumerated values"""
+        prefix = """_test_mandatory_category.bar id1
+                    _test_optional_category.bar """
         d = make_test_dictionary()
+        # Value in the enumeration is OK
+        d.validate(StringIO(prefix + 'enum1'))
+        # Omitted value is OK
+        d.validate(StringIO(prefix + '.'))
+        # Value not in the enumeration is not OK
         self.assertRaises(ihm.dictionary.ValidatorError, d.validate,
-                          StringIO("_test_mandatory_category.bar ?"))
+                          StringIO(prefix + 'bad'))
 
 
 if __name__ == '__main__':

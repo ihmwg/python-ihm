@@ -39,6 +39,12 @@ class _ValidatorReader(object):
             if kwobj.mandatory and value == ihm.unknown:
                 self.errors.append("Mandatory keyword %s.%s cannot have "
                                    "value '?'" % (category.name, key))
+            if kwobj.enumeration and value is not None \
+               and value not in kwobj.enumeration:
+                self.errors.append("Keyword %s.%s value %s is not a valid "
+                                   "enumerated value (options are %s)"
+                                   % (category.name, key, value,
+                                      ", ".join(sorted(kwobj.enumeration))))
 
     def _check_mandatory_categories(self):
         all_categories = self.dictionary.categories
