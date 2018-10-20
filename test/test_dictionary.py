@@ -37,8 +37,12 @@ def make_test_dictionary():
     k.item_type = ihm.dictionary.ItemType('text', r'[ \n\t_()A-Z]+')
     k = add_keyword("bar", True, c)
     k.enumeration = set(('enum1', 'enum2'))
+    add_keyword("baz", False, c)
     d.categories[c.name] = c
 
+    d.linked_items = {'_test_optional_category.baz':
+                           '_test_mandatory_category.foo',
+                      '_test_optional_category.foo': '_entity.id'}
     return d
 
 class Tests(unittest.TestCase):
@@ -168,7 +172,6 @@ _test_mandatory_category.bar 2
         """Test validation of multiline item type"""
         # This regex '[ \n\t_()A-Z]+' includes \n and \t special characters,
         # which should match newline and tab, not literal \n and \t
-        prefix = "_test_mandatory_category.bar 1\n"
         prefix = """_test_mandatory_category.bar 1
                     _test_optional_category.bar enum1
                     _test_optional_category.foo """
@@ -187,6 +190,26 @@ _test_mandatory_category.bar 2
                           StringIO(prefix + 'n'))
         self.assertRaises(ihm.dictionary.ValidatorError, d.validate,
                           StringIO(prefix + 't'))
+
+    def test_validate_linked_items(self):
+        """Test validation of linked items"""
+        prefix = "_test_mandatory_category.bar 1\n"
+        d = make_test_dictionary()
+        # OK: same key in child and parent
+        d.validate(StringIO(prefix +
+                            "_test_optional_category.baz 42\n"
+                            "_test_mandatory_category.foo 42"))
+        # OK: missing parent key but in category not in the dictionary
+        d.validate(StringIO(prefix +
+                            "_test_optional_category.foo AB"))
+        # Not OK: parent is missing or does not include the child key
+        self.assertRaises(ihm.dictionary.ValidatorError, d.validate,
+                          StringIO(prefix +
+                                   "_test_optional_category.baz 42\n"
+                                   "_test_mandatory_category.foo 24"))
+        self.assertRaises(ihm.dictionary.ValidatorError, d.validate,
+                          StringIO(prefix +
+                                   "_test_optional_category.baz 42"))
 
 
 if __name__ == '__main__':

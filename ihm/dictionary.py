@@ -4,6 +4,7 @@ import ihm.reader
 import ihm.format
 import ihm.format_bcif
 import re
+import itertools
 
 from ihm.reader import _Handler, _get_bool
 
@@ -19,9 +20,16 @@ class _ValidatorCategoryHandler(_Handler):
         self.category = '_' + category.name
         self.category_obj = category
         self._keys = [k for k in category.keywords.keys()]
+        self.link_keys = set()
+        li = sysr.dictionary.linked_items
+        for link in itertools.chain(li.keys(), li.values()):
+            cat, key = link.split('.')
+            if cat == self.category:
+                self.link_keys.add(key)
 
     def __call__(self, *args):
-        self.sysr.validate_data(self.category_obj, self._keys, args)
+        self.sysr.validate_data(self.category_obj, self._keys, args,
+                                self.link_keys)
 
 
 class _ValidatorReader(object):
@@ -29,11 +37,19 @@ class _ValidatorReader(object):
     def __init__(self, dictionary):
         self.dictionary = dictionary
         self._seen_categories = set()
+        # Keep track of all values (IDs) seen for keys that are involved in
+        # parent-child relationships
+        self._seen_ids = {}
+        li = dictionary.linked_items
+        for link in itertools.chain(li.keys(), li.values()):
+            self._seen_ids[link] = set()
         self.errors = []
 
-    def validate_data(self, category, keywords, args):
+    def validate_data(self, category, keywords, args, link_keys):
         self._seen_categories.add(category.name)
         for key, value in zip(keywords, args):
+            if key in link_keys and value is not None:
+                self._seen_ids["_%s.%s" % (category.name, key)].add(value)
             kwobj = category.keywords[key]
             # todo: We cannot currently detect values that are genuinely
             # missing from the file because they just show up as None in Python
@@ -63,8 +79,25 @@ class _ValidatorReader(object):
             self.errors.append("The following mandatory categories are missing "
                                "in the file: %s" % ", ".join(sorted(missing)))
 
+    def _check_linked_items(self):
+        """Check to make sure any ID referenced by a child item is defined
+           in the parent"""
+        for child, parent in self.dictionary.linked_items.items():
+            if not self._seen_ids[child] <= self._seen_ids[parent]:
+                # Strip _ prefix from category
+                cat, key = parent[1:].split('.')
+                # Only warn about relationships where the parent is defined
+                # in this dictionary (e.g. a lot of IHM items point back
+                # to PDBx categories)
+                if cat in self.dictionary.categories:
+                    missing = self._seen_ids[child] - self._seen_ids[parent]
+                    self.errors.append("The following IDs referenced by %s "
+                            "were not defined in the parent category (%s): %s"
+                            % (child, parent, ", ".join(missing)))
+
     def report_errors(self):
         self._check_mandatory_categories()
+        self._check_linked_items()
         if self.errors:
             raise ValidatorError("\n\n".join(self.errors))
 
@@ -92,8 +125,7 @@ class Dictionary(object):
 
            .. note:: Only basic validation is performed. In particular, extra
               categories or keywords that are not present in the dictionary
-              are ignored rather than treated as errors, and parent-child
-              relationships are not checked.
+              are ignored rather than treated as errors.
         """
         reader_map = {'mmCIF': ihm.format.CifReader,
                       'BCIF': ihm.format_bcif.BinaryCifReader}
