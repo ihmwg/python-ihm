@@ -76,6 +76,11 @@ class Dictionary(object):
         #: Mapping from name to :class:`Category` objects
         self.categories = {}
 
+        #: Links between items; keys are children, values are parents e.g.
+        #: ``linked_items['_ihm_starting_model_details.asym_id'] =
+        #: '_struct_asym.id'``
+        self.linked_items = {}
+
     def validate(self, fh, format='mmCIF'):
         """Validate the given file against this dictionary.
 
@@ -237,6 +242,13 @@ class _ItemTypeHandler(_Handler):
                     k.item_type = self.sysr.item_types.get(k.item_type)
 
 
+class _ItemLinkedHandler(_Handler):
+    category = '_item_linked'
+
+    def __call__(self, child_name, parent_name):
+         self.sysr.dictionary.linked_items[child_name] = parent_name
+
+
 def read(fh):
     """Read dictionary data from the mmCIF file handle `fh`.
 
@@ -247,7 +259,8 @@ def read(fh):
     s = _DictionaryReader()
     handlers = [_CategoryHandler(s), _ItemHandler(s),
                 _ItemEnumerationHandler(s),
-                _ItemTypeListHandler(s), _ItemTypeHandler(s)]
+                _ItemTypeListHandler(s), _ItemTypeHandler(s),
+                _ItemLinkedHandler(s)]
     r.category_handler = dict((h.category, h) for h in handlers)
     r.read_file()
     for h in handlers:

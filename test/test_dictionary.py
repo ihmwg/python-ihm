@@ -73,6 +73,8 @@ save_baz
   _item.name                 'test_category2.baz'
   _item.category_id          test_category2
   _item.mandatory_code       no
+  _item_linked.child_name    'test_category2.baz'
+  _item_linked.parent_name   'test_category1.bar'
   loop_
     _item_enumeration.value
     "enum 1"
@@ -97,6 +99,9 @@ save_
         self.assertEqual(c2.keywords['baz'].enumeration,
                          set(('enum 1', 'enum 2')))
         self.assertEqual(c2.keywords['baz'].item_type, None)
+
+        self.assertEqual(d.linked_items,
+                         {'test_category2.baz': 'test_category1.bar'})
 
     def test_validate_ok(self):
         """Test successful validation"""
