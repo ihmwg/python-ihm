@@ -204,23 +204,28 @@ class _DictionaryReader(object):
         self.category_good = False
 
     def _reset_keyword(self):
-        self.keyword = Keyword()
+        self._keyword_info = []
+        self._keyword_item_type = None
+        self._keyword_enumeration = None
         self.keyword_good = False
 
     def end_save_frame(self):
         if self.keyword_good:
-            k = self.keyword
-            # If the owning category does not exist, make it; this can happen
-            # if we extend something in the core dictionary
-            # (e.g. atom_site.ihm_model_id)
-            if k._category not in self.dictionary.categories:
-                c = Category()
-                c.name = k._category
-                self.dictionary.categories[k._category] = c
-            else:
-                c = self.dictionary.categories[k._category]
-            del k._category
-            c.keywords[k.name] = k
+            for (name, category, mandatory) in self._keyword_info:
+                k = Keyword()
+                k.name, k.mandatory = name, mandatory
+                k.enumeration = self._keyword_enumeration
+                k.item_type = self._keyword_item_type
+                # If the owning category does not exist, make it; this can
+                # happen if we extend something in the core dictionary
+                # (e.g. atom_site.ihm_model_id)
+                if category not in self.dictionary.categories:
+                    c = Category()
+                    c.name = category
+                    self.dictionary.categories[c.name] = c
+                else:
+                    c = self.dictionary.categories[category]
+                c.keywords[k.name] = k
             self._reset_keyword()
         if self.category_good:
             c = self.category
@@ -246,13 +251,12 @@ class _ItemHandler(_Handler):
 
     def __call__(self, name, category_id, mandatory_code):
         cat, name = name.split('.')
-        k = self.sysr.keyword
+        ki = self.sysr._keyword_info
         # If category_id is missing, strip leading _ from the keyword's
         # own category name and use that instead
         if category_id is None:
             category_id = cat[1:]
-        k.name, k._category = name, category_id
-        k.mandatory = _get_bool(mandatory_code)
+        ki.append((name, category_id, _get_bool(mandatory_code)))
         self.sysr.keyword_good = True
 
 
@@ -260,10 +264,9 @@ class _ItemEnumerationHandler(_Handler):
     category = '_item_enumeration'
 
     def __call__(self, value):
-        k = self.sysr.keyword
-        if k.enumeration is None:
-            k.enumeration = set()
-        k.enumeration.add(value)
+        if self.sysr._keyword_enumeration is None:
+            self.sysr._keyword_enumeration = set()
+        self.sysr._keyword_enumeration.add(value)
 
 
 class _ItemTypeListHandler(_Handler):
@@ -278,8 +281,7 @@ class _ItemTypeHandler(_Handler):
     category = '_item_type'
 
     def __call__(self, code):
-        k = self.sysr.keyword
-        k.item_type = code
+        self.sysr._keyword_item_type = code
 
     def finalize(self):
         for c in self.sysr.dictionary.categories.values():

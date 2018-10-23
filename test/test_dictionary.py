@@ -74,9 +74,13 @@ save_foo
 save_
 
 save_bar
-  _item.name                 '_test_category1.bar'
-  _item.category_id          test_category1
-  _item.mandatory_code       no
+  loop_
+  _item.name
+  _item.category_id
+  _item.mandatory_code
+        '_test_category1.bar'     test_category1     no
+        '_test_category3.bar'     test_category3     yes
+
   _item_type.code            code
 save_
 
@@ -100,7 +104,8 @@ save_
 """
         d = ihm.dictionary.read(StringIO(cif))
         self.assertEqual(sorted(d.categories.keys()),
-                         ['test_category1', 'test_category2'])
+                         ['test_category1', 'test_category2',
+                          'test_category3'])
         c1 = d.categories['test_category1']
         self.assertTrue(c1.mandatory)
         self.assertEqual(sorted(c1.keywords.keys()), ["bar", "bar2"])
@@ -116,6 +121,11 @@ save_
         self.assertEqual(c2.keywords['baz'].enumeration,
                          set(('enum 1', 'enum 2')))
         self.assertEqual(c2.keywords['baz'].item_type, None)
+
+        c3 = d.categories['test_category3']
+        self.assertEqual(c3.mandatory, None)
+        self.assertEqual(sorted(c3.keywords.keys()), ["bar"])
+        self.assertTrue(c3.keywords['bar'].mandatory)
 
         self.assertEqual(d.linked_items,
                          {'_test_category2.baz': '_test_category1.bar'})
