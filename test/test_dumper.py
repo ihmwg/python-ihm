@@ -269,7 +269,7 @@ _chem_comp.formula
 _chem_comp.formula_weight
 ALA 'L-peptide linking' ALANINE 'C3 H7 N O2' 89.094
 CYS 'L-peptide linking' CYSTEINE 'C3 H7 N O2 S' 121.154
-GLY 'Peptide linking' GLYCINE 'C2 H5 N O2' 75.067
+GLY 'peptide linking' GLYCINE 'C2 H5 N O2' 75.067
 THR 'L-peptide linking' THREONINE 'C4 H9 N O3' 119.120
 A 'RNA linking' "ADENOSINE-5'-MONOPHOSPHATE" 'C10 H14 N5 O7 P' 347.224
 C 'RNA linking' "CYTIDINE-5'-MONOPHOSPHATE" 'C9 H14 N3 O8 P' 323.198

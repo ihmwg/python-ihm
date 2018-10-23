@@ -184,7 +184,7 @@ class _EntityPolyDumper(_Dumper):
         self._seq_type_map = {
             frozenset(('D-peptide linking',)): 'polypeptide(D)',
             frozenset(('D-peptide linking',
-                       'Peptide linking')): 'polypeptide(D)',
+                       'peptide linking')): 'polypeptide(D)',
             frozenset(('RNA linking',)): 'polyribonucleotide',
             frozenset(('DNA linking',)): 'polydeoxyribonucleotide',
             frozenset(('DNA linking', 'RNA linking')):
