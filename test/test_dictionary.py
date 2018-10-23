@@ -12,13 +12,13 @@ TOPDIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 utils.set_search_paths(TOPDIR)
 import ihm.dictionary
 
-def make_test_dictionary():
-    def add_keyword(name, mandatory, category):
-        k = ihm.dictionary.Keyword()
-        k.name, k.mandatory = name, mandatory
-        category.keywords[k.name] = k
-        return k
+def add_keyword(name, mandatory, category):
+    k = ihm.dictionary.Keyword()
+    k.name, k.mandatory = name, mandatory
+    category.keywords[k.name] = k
+    return k
 
+def make_test_dictionary():
     d = ihm.dictionary.Dictionary()
 
     c = ihm.dictionary.Category()
@@ -43,6 +43,19 @@ def make_test_dictionary():
     d.linked_items = {'_test_optional_category.baz':
                            '_test_mandatory_category.foo',
                       '_test_optional_category.foo': '_entity.id'}
+    return d
+
+def make_other_test_dictionary():
+    d = ihm.dictionary.Dictionary()
+
+    c = ihm.dictionary.Category()
+    c.name = 'ext_category'
+    c.mandatory = False
+    add_keyword("foo", False, c)
+    d.categories[c.name] = c
+
+    d.linked_items = {'_ext_category.foo':
+                           '_test_mandatory_category.foo'}
     return d
 
 class Tests(unittest.TestCase):
@@ -106,6 +119,47 @@ save_
 
         self.assertEqual(d.linked_items,
                          {'test_category2.baz': 'test_category1.bar'})
+
+    def test_add(self):
+        """Test adding two Dictionaries"""
+        d1 = make_test_dictionary()
+        d2 = make_other_test_dictionary()
+        d = d1 + d2
+        self._check_test_dictionary(d1)
+        self._check_other_test_dictionary(d2)
+        self._check_summed_dictionary(d)
+
+    def test_add_inplace(self):
+        """Test adding two Dictionaries in place"""
+        d1 = make_test_dictionary()
+        d2 = make_other_test_dictionary()
+        d1 += d2
+        self._check_other_test_dictionary(d2)
+        self._check_summed_dictionary(d1)
+
+    def _check_test_dictionary(self, d):
+        self.assertEqual(sorted(d.categories.keys()),
+                         ['test_mandatory_category', 'test_optional_category'])
+        self.assertEqual(d.linked_items,
+                         {'_test_optional_category.baz':
+                             '_test_mandatory_category.foo',
+                          '_test_optional_category.foo': '_entity.id'})
+
+    def _check_other_test_dictionary(self, d):
+        self.assertEqual(sorted(d.categories.keys()),
+                         ['ext_category'])
+        self.assertEqual(d.linked_items,
+                         {'_ext_category.foo': '_test_mandatory_category.foo'})
+
+    def _check_summed_dictionary(self, d):
+        self.assertEqual(sorted(d.categories.keys()),
+                         ['ext_category', 'test_mandatory_category',
+                          'test_optional_category'])
+        self.assertEqual(d.linked_items,
+                         {'_test_optional_category.baz':
+                             '_test_mandatory_category.foo',
+                          '_test_optional_category.foo': '_entity.id',
+                          '_ext_category.foo': '_test_mandatory_category.foo'})
 
     def test_validate_ok(self):
         """Test successful validation"""

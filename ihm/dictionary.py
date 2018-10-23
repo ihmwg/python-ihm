@@ -104,7 +104,10 @@ class _ValidatorReader(object):
 
 class Dictionary(object):
     """Representation of an mmCIF dictionary.
-       See :func:`read` to create a Dictionary from a file."""
+       See :func:`read` to create a Dictionary from a file.
+
+       Multiple Dictionaries can be added together to yield a Dictionary
+       that includes all the data in the original Dictionaries."""
     def __init__(self):
         #: Mapping from name to :class:`Category` objects
         self.categories = {}
@@ -113,6 +116,17 @@ class Dictionary(object):
         #: ``linked_items['_ihm_starting_model_details.asym_id'] =
         #: '_struct_asym.id'``
         self.linked_items = {}
+
+    def __iadd__(self, other):
+        self.categories.update(other.categories)
+        self.linked_items.update(other.linked_items)
+        return self
+
+    def __add__(self, other):
+        d = Dictionary()
+        d += self
+        d += other
+        return d
 
     def validate(self, fh, format='mmCIF'):
         """Validate the given file against this dictionary.
