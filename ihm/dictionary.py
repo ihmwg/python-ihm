@@ -247,6 +247,10 @@ class _ItemHandler(_Handler):
     def __call__(self, name, category_id, mandatory_code):
         cat, name = name.split('.')
         k = self.sysr.keyword
+        # If category_id is missing, strip leading _ from the keyword's
+        # own category name and use that instead
+        if category_id is None:
+            category_id = cat[1:]
         k.name, k._category = name, category_id
         k.mandatory = _get_bool(mandatory_code)
         self.sysr.keyword_good = True

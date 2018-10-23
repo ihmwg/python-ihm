@@ -61,6 +61,7 @@ def make_other_test_dictionary():
 class Tests(unittest.TestCase):
     def test_read(self):
         """Test read() function"""
+        # Note that _item.category_id is intentionally missing from save_bar2
         cif = """
 loop_
 _item_type_list.code
@@ -73,25 +74,24 @@ save_foo
 save_
 
 save_bar
-  _item.name                 'test_category1.bar'
+  _item.name                 '_test_category1.bar'
   _item.category_id          test_category1
   _item.mandatory_code       no
   _item_type.code            code
 save_
 
 save_bar2
-  _item.name                 'test_category1.bar2'
-  _item.category_id          test_category1
+  _item.name                 '_test_category1.bar2'
   _item.mandatory_code       no
   _item_type.code            atcode
 save_
 
 save_baz
-  _item.name                 'test_category2.baz'
+  _item.name                 '_test_category2.baz'
   _item.category_id          test_category2
   _item.mandatory_code       no
-  _item_linked.child_name    'test_category2.baz'
-  _item_linked.parent_name   'test_category1.bar'
+  _item_linked.child_name    '_test_category2.baz'
+  _item_linked.parent_name   '_test_category1.bar'
   loop_
     _item_enumeration.value
     "enum 1"
@@ -118,7 +118,7 @@ save_
         self.assertEqual(c2.keywords['baz'].item_type, None)
 
         self.assertEqual(d.linked_items,
-                         {'test_category2.baz': 'test_category1.bar'})
+                         {'_test_category2.baz': '_test_category1.bar'})
 
     def test_add(self):
         """Test adding two Dictionaries"""
