@@ -109,7 +109,10 @@ class _ValidatorReader(object):
                 # Only warn about relationships where the parent is defined
                 # in this dictionary (e.g. a lot of IHM items point back
                 # to PDBx categories)
-                if cat in self.dictionary.categories:
+                # Chemical component dictionary checks are handled elsewhere;
+                # the chem_comp_* categories don't need to be fully populated
+                if cat in self.dictionary.categories \
+                   and not cat.startswith('chem_comp_'):
                     missing = self._seen_ids[child] - self._seen_ids[parent]
                     self.errors.append("The following IDs referenced by %s "
                             "were not defined in the parent category (%s): %s"

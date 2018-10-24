@@ -293,7 +293,15 @@ _test_mandatory_category.bar 2
     def test_validate_linked_items(self):
         """Test validation of linked items"""
         prefix = "_test_mandatory_category.bar 1\n"
+
         d = make_test_dictionary()
+
+        c = ihm.dictionary.Category()
+        c.name = 'chem_comp_atom'
+        add_keyword("foo", False, c)
+        d.categories[c.name] = c
+        d.linked_items['_test_optional_category.bar']= '_chem_comp_atom.atom_id'
+
         # OK: same key in child and parent
         d.validate(StringIO(prefix +
                             "_test_optional_category.baz 42\n"
@@ -301,6 +309,10 @@ _test_mandatory_category.bar 2
         # OK: missing parent key but in category not in the dictionary
         d.validate(StringIO(prefix +
                             "_test_optional_category.foo AB"))
+        # OK: missing parent key but chem_comp_* is explicitly excluded
+        # from validation
+        d.validate(StringIO(prefix +
+                            "_test_optional_category.bar enum1"))
         # Not OK: parent is missing or does not include the child key
         self.assertRaises(ihm.dictionary.ValidatorError, d.validate,
                           StringIO(prefix +
