@@ -8,6 +8,26 @@ import itertools
 
 from ihm.reader import _Handler, _get_bool
 
+class _KeywordEnumeration(set):
+    """Set of possible values for a keyword. Can be case insensitive."""
+    def __init__(self):
+        super(_KeywordEnumeration, self).__init__()
+        self.case_sensitive = True
+        self._upper_set = None
+
+    def add(self, item):
+        self._upper_set = None # Invalidate upper_set
+        super(_KeywordEnumeration, self).add(item)
+
+    def __contains__(self, item):
+        if self.case_sensitive:
+            return super(_KeywordEnumeration, self).__contains__(item)
+        else:
+            if self._upper_set is None:
+                self._upper_set = set(x.upper() for x in self)
+            return item.upper() in self._upper_set
+
+
 class ValidatorError(Exception):
     """Exception raised if a file fails to validate.
        See :meth:`Dictionary.validate`."""
@@ -172,10 +192,14 @@ class ItemType(object):
        This keeps the set of valid strings for values of a given
        :class:`Keyword`. For example, integer values can only contain
        the digits 0-9 with an optional +/- prefix."""
-    def __init__(self, name, construct):
+    def __init__(self, name, primitive_code, construct):
         self.name, self.construct = name, construct
+        self.primitive_code = primitive_code
         # Ensure that regex matches the entire value
         self.regex = re.compile(construct + '$')
+
+    case_sensitive = property(lambda x: x.primitive_code != 'uchar',
+                              doc='True iff this type is case sensitive')
 
 
 class Keyword(object):
@@ -265,15 +289,15 @@ class _ItemEnumerationHandler(_Handler):
 
     def __call__(self, value):
         if self.sysr._keyword_enumeration is None:
-            self.sysr._keyword_enumeration = set()
+            self.sysr._keyword_enumeration = _KeywordEnumeration()
         self.sysr._keyword_enumeration.add(value)
 
 
 class _ItemTypeListHandler(_Handler):
     category = '_item_type_list'
 
-    def __call__(self, code, construct):
-        it = ItemType(code, construct)
+    def __call__(self, code, primitive_code, construct):
+        it = ItemType(code, primitive_code, construct)
         self.sysr.item_types[it.name] = it
 
 
@@ -292,6 +316,8 @@ class _ItemTypeHandler(_Handler):
                     # 'atcode' type which is not defined in the dictionary
                     # itself (but presumably is in the base PDBx dict)
                     k.item_type = self.sysr.item_types.get(k.item_type)
+                if k.item_type is not None and k.enumeration:
+                    k.enumeration.case_sensitive = k.item_type.case_sensitive
 
 
 class _ItemLinkedHandler(_Handler):

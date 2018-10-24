@@ -26,7 +26,7 @@ def make_test_dictionary():
     c.mandatory = True
     add_keyword("foo", False, c)
     k = add_keyword("bar", True, c)
-    k.item_type = ihm.dictionary.ItemType('int', '[+-]?[0-9]+')
+    k.item_type = ihm.dictionary.ItemType('int', 'numb', '[+-]?[0-9]+')
     d.categories[c.name] = c
 
     c = ihm.dictionary.Category()
@@ -34,7 +34,7 @@ def make_test_dictionary():
     c.mandatory = False
     k = add_keyword("foo", False, c)
     # For testing we only accept upper case values
-    k.item_type = ihm.dictionary.ItemType('text', r'[ \n\t_()A-Z]+')
+    k.item_type = ihm.dictionary.ItemType('text', 'char', r'[ \n\t_()A-Z]+')
     k = add_keyword("bar", True, c)
     k.enumeration = set(('enum1', 'enum2'))
     add_keyword("baz", False, c)
@@ -59,14 +59,39 @@ def make_other_test_dictionary():
     return d
 
 class Tests(unittest.TestCase):
+    def test_keyword_enum_case_insen(self):
+        """Test KeywordEnumeration (case insensitive)"""
+        x = ihm.dictionary._KeywordEnumeration()
+        x.case_sensitive = False
+        self.assertFalse('foo' in x)
+        x.add('foo')
+        self.assertFalse('bar' in x)
+        self.assertTrue('foo' in x)
+        self.assertTrue('FOO' in x)
+        x.add('bar')
+        self.assertTrue('BAR' in x)
+
+    def test_keyword_enum_case_sen(self):
+        """Test KeywordEnumeration (case sensitive)"""
+        x = ihm.dictionary._KeywordEnumeration()
+        self.assertFalse('foo' in x)
+        x.add('foo')
+        self.assertFalse('bar' in x)
+        self.assertTrue('foo' in x)
+        self.assertFalse('FOO' in x)
+        x.add('bar')
+        self.assertFalse('BAR' in x)
+
     def test_read(self):
         """Test read() function"""
         # Note that _item.category_id is intentionally missing from save_bar2
         cif = """
 loop_
 _item_type_list.code
+_item_type_list.primitive_code
 _item_type_list.construct
-code '[][_,.;:"&<>()/\{}'`~!@#$%A-Za-z0-9*|+-]*'
+code char '[][_,.;:"&<>()/\{}'`~!@#$%A-Za-z0-9*|+-]*'
+ucode uchar '[][_,.;:"&<>()/\{}'`~!@#$%A-Za-z0-9*|+-]*'
 
 save_foo
   _category.id               test_category1
@@ -90,10 +115,17 @@ save_bar2
   _item_type.code            atcode
 save_
 
+save_bar3
+  _item.name                 '_test_category1.bar3'
+  _item.mandatory_code       no
+  _item_type.code            ucode
+save_
+
 save_baz
   _item.name                 '_test_category2.baz'
   _item.category_id          test_category2
   _item.mandatory_code       no
+  _item_type.code            ucode
   _item_linked.child_name    '_test_category2.baz'
   _item_linked.parent_name   '_test_category1.bar'
   loop_
@@ -108,11 +140,13 @@ save_
                           'test_category3'])
         c1 = d.categories['test_category1']
         self.assertTrue(c1.mandatory)
-        self.assertEqual(sorted(c1.keywords.keys()), ["bar", "bar2"])
+        self.assertEqual(sorted(c1.keywords.keys()), ["bar", "bar2", "bar3"])
         self.assertFalse(c1.keywords['bar'].mandatory)
         self.assertEqual(c1.keywords['bar'].enumeration, None)
         self.assertEqual(c1.keywords['bar'].item_type.name, "code")
+        self.assertTrue(c1.keywords['bar'].item_type.case_sensitive)
         self.assertEqual(c1.keywords['bar2'].item_type, None)
+        self.assertFalse(c1.keywords['bar3'].item_type.case_sensitive)
 
         c2 = d.categories['test_category2']
         self.assertEqual(c2.mandatory, None)
@@ -120,7 +154,8 @@ save_
         self.assertFalse(c2.keywords['baz'].mandatory)
         self.assertEqual(c2.keywords['baz'].enumeration,
                          set(('enum 1', 'enum 2')))
-        self.assertEqual(c2.keywords['baz'].item_type, None)
+        self.assertFalse(c2.keywords['baz'].enumeration.case_sensitive)
+        self.assertFalse(c2.keywords['baz'].item_type.case_sensitive)
 
         c3 = d.categories['test_category3']
         self.assertEqual(c3.mandatory, None)
