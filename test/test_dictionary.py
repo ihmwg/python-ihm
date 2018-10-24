@@ -84,7 +84,8 @@ class Tests(unittest.TestCase):
 
     def test_read(self):
         """Test read() function"""
-        # Note that _item.category_id is intentionally missing from save_bar2
+        # Note that _item.category_id is intentionally missing from
+        # save_unknown_code
         cif = """
 loop_
 _item_type_list.code
@@ -109,14 +110,21 @@ save_bar
   _item_type.code            code
 save_
 
-save_bar2
-  _item.name                 '_test_category1.bar2'
+save_unknown_code
+  _item.name                 '_test_category1.unknown_code'
   _item.mandatory_code       no
   _item_type.code            atcode
 save_
 
-save_bar3
-  _item.name                 '_test_category1.bar3'
+save_missing_code
+  _item.name                 '_test_category1.missing_code'
+  _item.category_id          test_category1
+  _item.mandatory_code       no
+save_
+
+save_insensitive_code
+  _item.name                 '_test_category1.insensitive_code'
+  _item.category_id          test_category1
   _item.mandatory_code       no
   _item_type.code            ucode
 save_
@@ -140,13 +148,16 @@ save_
                           'test_category3'])
         c1 = d.categories['test_category1']
         self.assertTrue(c1.mandatory)
-        self.assertEqual(sorted(c1.keywords.keys()), ["bar", "bar2", "bar3"])
+        self.assertEqual(sorted(c1.keywords.keys()),
+                ['bar', 'insensitive_code', 'missing_code', 'unknown_code'])
         self.assertFalse(c1.keywords['bar'].mandatory)
         self.assertEqual(c1.keywords['bar'].enumeration, None)
         self.assertEqual(c1.keywords['bar'].item_type.name, "code")
         self.assertTrue(c1.keywords['bar'].item_type.case_sensitive)
-        self.assertEqual(c1.keywords['bar2'].item_type, None)
-        self.assertFalse(c1.keywords['bar3'].item_type.case_sensitive)
+        self.assertEqual(c1.keywords['missing_code'].item_type, None)
+        self.assertEqual(c1.keywords['unknown_code'].item_type, None)
+        self.assertFalse(
+                c1.keywords['insensitive_code'].item_type.case_sensitive)
 
         c2 = d.categories['test_category2']
         self.assertEqual(c2.mandatory, None)
