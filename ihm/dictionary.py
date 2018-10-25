@@ -8,6 +8,22 @@ import itertools
 
 from ihm.reader import _Handler, _get_bool
 
+# Handle special values for CIF data items ('.', '?', or missing entirely)
+class _CifSpecialValue(object):
+    pass
+
+class _NotInFileCif(_CifSpecialValue):
+    pass
+
+
+class _OmittedCif(_CifSpecialValue):
+    pass
+
+
+class _UnknownCif(_CifSpecialValue):
+    pass
+
+
 class _KeywordEnumeration(set):
     """Set of possible values for a keyword. Can be case insensitive."""
     def __init__(self):
@@ -35,6 +51,12 @@ class ValidatorError(Exception):
 
 
 class _ValidatorCategoryHandler(_Handler):
+    # Handle special values for CIF data items ('.', '?', or missing entirely)
+    # explicitly, rather the default behavior (mapping to None or '?')
+    not_in_file = _NotInFileCif()
+    omitted = _OmittedCif()
+    unknown = _UnknownCif()
+
     def __init__(self, sysr, category):
         super(_ValidatorCategoryHandler, self).__init__(sysr)
         self.category = '_' + category.name
@@ -68,15 +90,18 @@ class _ValidatorReader(object):
     def validate_data(self, category, keywords, args, link_keys):
         self._seen_categories.add(category.name)
         for key, value in zip(keywords, args):
-            if key in link_keys and value is not None:
+            if key in link_keys and not isinstance(value, _CifSpecialValue):
                 self._seen_ids["_%s.%s" % (category.name, key)].add(value)
             kwobj = category.keywords[key]
-            # todo: We cannot currently detect values that are genuinely
-            # missing from the file because they just show up as None in Python
-            if kwobj.mandatory and value == ihm.unknown:
-                self.errors.append("Mandatory keyword %s.%s cannot have "
-                                   "value '?'" % (category.name, key))
-            if value is None or value == ihm.unknown:
+            if kwobj.mandatory:
+                if isinstance(value, _UnknownCif):
+                    self.errors.append("Mandatory keyword %s.%s cannot have "
+                                       "value '?'" % (category.name, key))
+                elif isinstance(value, _NotInFileCif):
+                    self.errors.append("Mandatory keyword %s.%s cannot be "
+                                       "missing from the file"
+                                       % (category.name, key))
+            if isinstance(value, _CifSpecialValue):
                 continue
             if kwobj.enumeration and value not in kwobj.enumeration:
                 self.errors.append("Keyword %s.%s value %s is not a valid "

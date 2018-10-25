@@ -242,8 +242,12 @@ _test_mandatory_category.bar 2
     def test_validate_missing_mandatory_keyword(self):
         """Test validation failure with missing mandatory keyword"""
         d = make_test_dictionary()
+        # mandatory 'bar' is marked unknown
         self.assertRaises(ihm.dictionary.ValidatorError, d.validate,
                           StringIO("_test_mandatory_category.bar ?"))
+        # mandatory 'bar' is missing entirely
+        self.assertRaises(ihm.dictionary.ValidatorError, d.validate,
+                          StringIO("_test_mandatory_category.foo xy"))
 
     def test_validate_enumeration(self):
         """Test validation of enumerated values"""
@@ -315,10 +319,12 @@ _test_mandatory_category.bar 2
 
         # OK: same key in child and parent
         d.validate(StringIO(prefix +
+                            "_test_optional_category.bar .\n"
                             "_test_optional_category.baz 42\n"
                             "_test_mandatory_category.foo 42"))
         # OK: missing parent key but in category not in the dictionary
         d.validate(StringIO(prefix +
+                            "_test_optional_category.bar .\n"
                             "_test_optional_category.foo AB"))
         # OK: missing parent key but chem_comp_* is explicitly excluded
         # from validation
@@ -327,10 +333,12 @@ _test_mandatory_category.bar 2
         # Not OK: parent is missing or does not include the child key
         self.assertRaises(ihm.dictionary.ValidatorError, d.validate,
                           StringIO(prefix +
+                                   "_test_optional_category.bar .\n"
                                    "_test_optional_category.baz 42\n"
                                    "_test_mandatory_category.foo 24"))
         self.assertRaises(ihm.dictionary.ValidatorError, d.validate,
                           StringIO(prefix +
+                                   "_test_optional_category.bar .\n"
                                    "_test_optional_category.baz 42"))
 
 
