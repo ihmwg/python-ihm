@@ -51,6 +51,18 @@ class Tests(unittest.TestCase):
         self.assertEqual(len(contents), 144)
         os.unlink(out)
 
+    def test_non_standard_residues_example(self):
+        """Test non_standard_residues example"""
+        subprocess.check_call([sys.executable, "non_standard_residues.py"],
+                              cwd=get_example_dir())
+        out = get_example_path("output.cif")
+
+        # Make sure that a complete output file was produced
+        with open(out) as fh:
+            contents = fh.readlines()
+        self.assertEqual(len(contents), 74)
+        os.unlink(out)
+
 
 if __name__ == '__main__':
     unittest.main()
