@@ -410,12 +410,16 @@ class CifReader(_Reader):
           in self.category_handler[vartoken.category]._keys:
             valtoken = self._get_token()
             if isinstance(valtoken, _ValueToken):
+                ch = self.category_handler[vartoken.category]
                 if vartoken.category not in self._category_data:
                     self._category_data[vartoken.category] = {}
-                # Treat omitted values as if they don't exist
-                if valtoken.txt != '.':
-                    self._category_data[vartoken.category][vartoken.keyword] \
-                                                     = valtoken.txt
+                if valtoken.txt == '.':
+                    val = ch.omitted
+                elif valtoken.txt == '?':
+                    val = ch.unknown
+                else:
+                    val = valtoken.txt
+                self._category_data[vartoken.category][vartoken.keyword] = val
             else:
                 raise CifParserError("No valid value found for %s.%s on line %d"
                               % (vartoken.category, vartoken.keyword,
@@ -445,14 +449,18 @@ class CifReader(_Reader):
 
     def _read_loop_data(self, handler, num_wanted_keys, keyword_indices):
         """Read the data for a loop_ construct"""
-        data = [None] * num_wanted_keys
+        data = [handler.not_in_file] * num_wanted_keys
         while True:
             for i, index in enumerate(keyword_indices):
                 token = self._get_token()
                 if isinstance(token, _ValueToken):
                     if index >= 0:
-                        # Treat omitted values as if they don't exist
-                        data[index] = None if token.txt == '.' else token.txt
+                        if token.txt == '.':
+                            data[index] = handler.omitted
+                        elif token.txt == '?':
+                            data[index] = handler.unknown
+                        else:
+                            data[index] = token.txt
                 elif i == 0:
                     # OK, end of the loop
                     self._unget_token()
@@ -495,7 +503,7 @@ class CifReader(_Reader):
         def call_all_categories():
             for cat, data in self._category_data.items():
                 ch = self.category_handler[cat]
-                ch(*[data.get(k, None) for k in ch._keys])
+                ch(*[data.get(k, ch.not_in_file) for k in ch._keys])
             # Clear category data for next call to read_file()
             self._category_data = {}
         ndata = 0

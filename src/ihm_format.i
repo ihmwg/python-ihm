@@ -182,6 +182,12 @@ struct ihm_file *ihm_file_new_from_python(PyObject *pyfile,
 struct category_handler_data {
   /* The Python callable object that is given the data */
   PyObject *callable;
+  /* Python value used for keywords not in the file (usually None) */
+  PyObject *not_in_file;
+  /* Python value used for keywords marked as omitted, '.' (usually None) */
+  PyObject *omitted;
+  /* Python value used for keywords marked as unknown, '?' (usually "?") */
+  PyObject *unknown;
   /* The number of keywords in the category that we extract from the file */
   int num_keywords;
   /* Array of the keywords */
@@ -192,6 +198,9 @@ static void category_handler_data_free(void *data)
 {
   struct category_handler_data *hd = data;
   Py_DECREF(hd->callable);
+  Py_XDECREF(hd->not_in_file);
+  Py_XDECREF(hd->omitted);
+  Py_XDECREF(hd->unknown);
   /* Don't need to free each hd->keywords[i] as the ihm_reader owns
      these pointers */
   free(hd->keywords);
@@ -216,21 +225,26 @@ static void handle_category_data(struct ihm_reader *reader, void *data,
 
   for (i = 0, keys = hd->keywords; i < hd->num_keywords; ++i, ++keys) {
     PyObject *val;
-    /* Add item to tuple if it's in the file and not ., otherwise add None */
-    if ((*keys)->in_file && !(*keys)->omitted) {
+    if (!(*keys)->in_file) {
+      val = hd->not_in_file;
+      Py_INCREF(val);
+    } else if ((*keys)->omitted) {
+      val = hd->omitted;
+      Py_INCREF(val);
+    } else if ((*keys)->unknown) {
+      val = hd->unknown;
+      Py_INCREF(val);
+    } else {
 #if PY_VERSION_HEX < 0x03000000
-      val = PyString_FromString((*keys)->unknown ? "?" : (*keys)->data);
+      val = PyString_FromString((*keys)->data);
 #else
-      val = PyUnicode_FromString((*keys)->unknown ? "?" : (*keys)->data);
+      val = PyUnicode_FromString((*keys)->data);
 #endif
       if (!val) {
         ihm_error_set(err, IHM_ERROR_VALUE, "string creation failed");
         Py_DECREF(tuple);
         return;
       }
-    } else {
-      val = Py_None;
-      Py_INCREF(val);
     }
     /* Steals ref to val */
     PyTuple_SET_ITEM(tuple, i, val);
@@ -288,11 +302,20 @@ static struct category_handler_data *do_add_handler(
   hd = malloc(sizeof(struct category_handler_data));
   Py_INCREF(callable);
   hd->callable = callable;
+  hd->not_in_file = NULL;
+  hd->omitted = NULL;
+  hd->unknown = NULL;
   hd->num_keywords = seqlen;
   hd->keywords = malloc(sizeof(struct ihm_keyword *) * seqlen);
   category = ihm_category_new(reader, name, data_callback, end_frame_callback,
                               finalize_callback, hd,
                               category_handler_data_free);
+  if (!(hd->not_in_file = PyObject_GetAttrString(callable, "not_in_file"))
+      || !(hd->omitted = PyObject_GetAttrString(callable, "omitted"))
+      || !(hd->unknown = PyObject_GetAttrString(callable, "unknown"))) {
+    ihm_error_set(err, IHM_ERROR_VALUE, "missing attribute");
+    return NULL;
+  }
   for (i = 0; i < seqlen; ++i) {
     PyObject *o = PySequence_GetItem(keywords, i);
 #if PY_VERSION_HEX < 0x03000000

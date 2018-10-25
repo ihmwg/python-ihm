@@ -379,6 +379,16 @@ class _SystemReader(object):
 
 class _Handler(object):
     """Base class for all handlers of mmCIF data."""
+
+    #: Value passed to __call__ for keywords not in the file
+    not_in_file = None
+
+    #: Value passed to __call__ for data marked as omitted ('.')
+    omitted = None
+
+    #: Value passed to __call__ for data marked as unknown ('?')
+    unknown = '?'
+
     def __init__(self, sysr):
         self.sysr = sysr
 

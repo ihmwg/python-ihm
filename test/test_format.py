@@ -30,6 +30,9 @@ except ImportError:
 
 class GenericHandler(object):
     """Capture mmCIF data as a simple list of dicts"""
+    not_in_file = None
+    omitted = None
+    unknown = "?"
 
     _keys = ('method', 'foo', 'bar', 'baz', 'pdbx_keywords', 'var1',
              'var2', 'var3')
@@ -310,6 +313,40 @@ save_
                            {'_foo':h})
             self.assertEqual(h.data, [{'bar':'.1'}])
 
+    def test_omitted_explicit(self):
+        """Check explicit handling of CIF omitted value ('.')"""
+        for real_file in (True, False):
+            h = GenericHandler()
+            h.omitted = 'OMIT'
+            self._read_cif("_foo.bar .1\n_foo.baz .\n", real_file, {'_foo':h})
+            self.assertEqual(h.data, [{'baz': 'OMIT', 'bar': '.1'}])
+
+            h = GenericHandler()
+            h.omitted = 'OMIT'
+            self._read_cif("loop_\n_foo.bar\n_foo.baz\n.1 .\n", real_file,
+                           {'_foo':h})
+            self.assertEqual(h.data, [{'baz': 'OMIT', 'bar': '.1'}])
+
+    def test_not_in_file_explicit(self):
+        """Check explicit handling of keywords not in the file"""
+        for real_file in (True, False):
+            h = GenericHandler()
+            h.not_in_file = 'NOT'
+            self._read_cif("_foo.bar .1\n_foo.baz x\n", real_file, {'_foo':h})
+            self.assertEqual(h.data,
+                    [{'var1': 'NOT', 'var3': 'NOT', 'var2': 'NOT',
+                      'pdbx_keywords': 'NOT', 'bar': '.1', 'foo': 'NOT',
+                      'method': 'NOT', 'baz': 'x'}])
+
+            h = GenericHandler()
+            h.not_in_file = 'NOT'
+            self._read_cif("loop_\n_foo.bar\n_foo.baz\n.1 x\n", real_file,
+                           {'_foo':h})
+            self.assertEqual(h.data,
+                    [{'var1': 'NOT', 'var3': 'NOT', 'var2': 'NOT',
+                      'pdbx_keywords': 'NOT', 'bar': '.1', 'foo': 'NOT',
+                      'method': 'NOT', 'baz': 'x'}])
+
     def test_loop_linebreak(self):
         """Make sure that linebreaks are ignored in loop data"""
         for real_file in (True, False):
@@ -338,6 +375,20 @@ save_
             self._read_cif("loop_\n_foo.bar\n_foo.baz\n?1 ?\n", real_file,
                            {'_foo':h})
             self.assertEqual(h.data, [{'bar':'?1', 'baz':ihm.unknown}])
+
+    def test_unknown_explicit(self):
+        """Check explicit handling of CIF unknown value"""
+        for real_file in (True, False):
+            h = GenericHandler()
+            h.unknown = 'UNK'
+            self._read_cif("_foo.bar ?1\n_foo.baz ?\n", real_file, {'_foo':h})
+            self.assertEqual(h.data, [{'bar':'?1', 'baz':'UNK'}])
+
+            h = GenericHandler()
+            h.unknown = 'UNK'
+            self._read_cif("loop_\n_foo.bar\n_foo.baz\n?1 ?\n", real_file,
+                           {'_foo':h})
+            self.assertEqual(h.data, [{'bar':'?1', 'baz':'UNK'}])
 
     def test_multiline(self):
         """Check that multiline strings are handled correctly"""
