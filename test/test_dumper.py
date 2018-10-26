@@ -1979,7 +1979,9 @@ _ihm_geometric_object_plane.transformation_id
         f = ihm.restraint.Feature([a2(3,3)])
         system.orphan_features.append(f)
         # Check error handling of get_obj_* methods
-        self.assertRaises(TypeError, f._Feature__get_obj_type, None)
+        self.assertRaises(TypeError, f._Feature__get_obj_type, None, 'polymer')
+        self.assertRaises(TypeError, f._Feature__get_obj_type, None,
+                          'non-polymer')
         self.assertRaises(TypeError, f._Feature__get_obj_entity, None)
         # Cannot make a Feature that spans polymer and non-polymer
         self.assertRaises(ValueError, ihm.restraint.Feature, [a1, a3])
