@@ -1,8 +1,6 @@
 """Classes for handling restraints on the system.
 """
 
-import ihm
-
 class Restraint(object):
     """Base class for all restraints.
        See :attr:`ihm.System.restraints`.
@@ -400,69 +398,85 @@ class CrossLinkFit(object):
 
 
 class Feature(object):
-    """Class for selecting parts of the system that a restraint acts on.
+    """Base class for selecting parts of the system that a restraint acts on.
+       See :class:`ResidueFeature`, :class:`AtomFeature`, and
+       :class:`NonPolyFeature`.
 
        Features are typically assigned to one or more
        :class:`~ihm.restraint.GeometricRestraint` objects.
+    """
+    pass
 
-       :param sequence seq: A sequence of :class:`AsymUnitRange`,
-              :class:`AsymUnit`, and/or :class:`Atom` objects. All objects
-              must belong to entities of a single type (either all polymeric,
-              or all non-polymeric). Not all combinations of objects are
-              supported by the dictionary (e.g. a single feature cannot select
-              both residues and atoms from a polymer).
+
+class ResidueFeature(Feature):
+    """Selection of one or more residues from the system.
+
+       :param sequence ranges: A list of :class:`AsymUnitRange` and/or
+              :class:`AsymUnit` objects.
     """
 
-    def __init__(self, seq):
-        self.seq = seq
-        self._get_type_entity_type()
-
-    def __get_obj_type(self, o, entity_type):
-        if entity_type == 'polymer':
-            if isinstance(o, (ihm.AsymUnit, ihm.AsymUnitRange)):
-                if o.seq_id_range[0] != o.seq_id_range[1]:
-                    return 'residue range'
-                else:
-                    return 'residue'
-            elif isinstance(o, ihm.Atom):
-                return 'atom'
-        elif isinstance(o, (ihm.AsymUnit, ihm.Atom)):
-            return 'ligand'
-        raise TypeError("Feature objects must be AsymUnit, AsymUnitRange, "
-                        "or Atom")
-
-    def __get_obj_entity(self, o):
-        if isinstance(o, (ihm.AsymUnit, ihm.AsymUnitRange)):
-            return o.entity
-        elif isinstance(o, ihm.Atom):
-            return o.residue.asym.entity
-        raise TypeError("Feature objects must be AsymUnit, AsymUnitRange, "
-                        "or Atom")
-
-    def __get_type(self, entity_type):
-        all_types = frozenset(self.__get_obj_type(x, entity_type)
-                              for x in self.seq)
-        if len(all_types) > 1:
-            if all_types == frozenset(('residue', 'residue range')):
+    # Type is 'residue' if each range selects a single residue, otherwise
+    # it is 'residue range'
+    def __get_type(self):
+        for r in self.ranges:
+            if r.seq_id_range[0] != r.seq_id_range[1]:
                 return 'residue range'
-            else:
-                raise TypeError("Incompatible mix of object types: %s"
-                                % ", ".join(all_types))
-        return list(all_types)[0] if all_types else None
+        return 'residue'
+    type = property(__get_type)
 
-    def __get_entity_type(self):
-        types = frozenset(self.__get_obj_entity(x).type for x in self.seq)
+    def __init__(self, ranges):
+        self.ranges = ranges
+        _ = self._get_entity_type()
+
+    def _get_entity_type(self):
+        if any(not r.entity.is_polymeric() for r in self.ranges):
+            raise ValueError("%s cannot select non-polymeric entities" % self)
+        else:
+            return self.ranges[0].entity.type if self.ranges else None
+
+
+class AtomFeature(Feature):
+    """Selection of one or more atoms from the system.
+       Atoms can be selected from polymers or non-polymers (but not both).
+       For selecting an entire polymer or residue(s),
+       see :class:`ResidueFeature`. For selecting an entire non-polymer,
+       see :class:`NonPolyFeature`.
+
+       :param sequence atoms: A list of :class:`ihm.Atom` objects.
+    """
+    type = 'atom'
+
+    def __init__(self, atoms):
+        self.atoms = atoms
+        _ = self._get_entity_type()
+
+    def _get_entity_type(self):
+        types = frozenset(a.residue.asym.entity.type for a in self.atoms)
         if len(types) > 1:
             raise ValueError("%s cannot span both polymeric and "
                              "non-polymeric entities" % self)
-        return list(types)[0] if types else None
+        elif types:
+            return self.atoms[0].residue.asym.entity.type
 
-    def _get_type_entity_type(self):
-        """Get the type of this feature (residue, atom, etc.) and the type
-           of the selected entities (polymer, non-polymer)"""
-        entity_type = self.__get_entity_type()
-        type = self.__get_type(entity_type)
-        return type, entity_type
+
+class NonPolyFeature(Feature):
+    """Selection of one or more non-polymers from the system.
+       To select individual atoms from a non-polymer, see :class:`AtomFeature`.
+
+       :param sequence asyms: A list of :class:`AsymUnit` objects.
+    """
+
+    type = 'ligand'
+
+    def __init__(self, asyms):
+        self.asyms = asyms
+        _ = self._get_entity_type()
+
+    def _get_entity_type(self):
+        if any(r.entity.is_polymeric() for r in self.asyms):
+            raise ValueError("%s can only select non-polymeric entities" % self)
+        else:
+            return self.asyms[0].entity.type if self.asyms else None
 
 
 class GeometricRestraint(object):

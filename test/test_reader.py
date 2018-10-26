@@ -1262,14 +1262,14 @@ _ihm_derived_distance_restraint.dataset_list_id
             r1, r2, r3, r4 = s.restraints
             self.assertEqual(r1.dataset._id, '97')
             self.assertTrue(isinstance(r1.feature1,
-                                       ihm.restraint.Feature))
-            self.assertEqual(len(r1.feature1.seq), 1)
-            self.assertEqual(r1.feature1.seq[0].id, 'CA')
-            self.assertEqual(r1.feature1.seq[0].residue.seq_id, 1)
+                                       ihm.restraint.AtomFeature))
+            self.assertEqual(len(r1.feature1.atoms), 1)
+            self.assertEqual(r1.feature1.atoms[0].id, 'CA')
+            self.assertEqual(r1.feature1.atoms[0].residue.seq_id, 1)
             self.assertTrue(isinstance(r1.feature2,
-                                       ihm.restraint.Feature))
-            self.assertEqual(len(r1.feature2.seq), 1)
-            self.assertEqual(r1.feature2.seq[0].seq_id_range, (2,3))
+                                       ihm.restraint.ResidueFeature))
+            self.assertEqual(len(r1.feature2.ranges), 1)
+            self.assertEqual(r1.feature2.ranges[0].seq_id_range, (2,3))
             self.assertTrue(isinstance(r1.distance,
                                  ihm.restraint.LowerBoundDistanceRestraint))
             self.assertAlmostEqual(r1.distance.distance, 25.000, places=1)
@@ -1278,9 +1278,9 @@ _ihm_derived_distance_restraint.dataset_list_id
             self.assertEqual(r2.restrain_all, True)
             self.assertEqual(r3.restrain_all, False)
             self.assertTrue(isinstance(r2.feature2,
-                                       ihm.restraint.Feature))
-            self.assertEqual(len(r2.feature2.seq), 1)
-            self.assertEqual(r2.feature2.seq[0]._id, 'C')
+                                       ihm.restraint.NonPolyFeature))
+            self.assertEqual(len(r2.feature2.asyms), 1)
+            self.assertEqual(r2.feature2.asyms[0]._id, 'C')
             self.assertTrue(isinstance(r2.distance,
                                  ihm.restraint.UpperBoundDistanceRestraint))
             self.assertTrue(isinstance(r3.distance,
@@ -1288,7 +1288,7 @@ _ihm_derived_distance_restraint.dataset_list_id
             self.assertTrue(isinstance(r4.distance,
                                  ihm.restraint.HarmonicDistanceRestraint))
             self.assertTrue(isinstance(r4.feature2,
-                                       ihm.restraint.Feature))
+                                       ihm.restraint.AtomFeature))
 
     def test_sphere_handler(self):
         """Test SphereHandler"""
