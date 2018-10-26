@@ -134,29 +134,27 @@ class Tests(unittest.TestCase):
         self.assertEqual(f.asym1, 'asym1')
         self.assertEqual(f.asym2, 'asym2')
 
-    def test_feature(self):
-        """Test Feature base class"""
-        f = ihm.restraint.Feature() # does nothing
-
     def test_residue_feature(self):
-        """Test ResidueFeature class"""
+        """Test Feature class with residues"""
         e = ihm.Entity('AHCDAH')
         a = ihm.AsymUnit(e)
-        f = ihm.restraint.ResidueFeature(ranges=[])
-        self.assertEqual(f._get_entity_type(), None)
+        f = ihm.restraint.Feature([])
+        ftype, etype = f._get_type_entity_type()
+        self.assertEqual(etype, None)
 
-        # No ranges - type is 'residue'
-        self.assertEqual(f.type, 'residue')
+        # No ranges - type is None
+        self.assertEqual(ftype, None)
 
         # All ranges are individual residues
-        f.ranges.append(a(1,1))
-        f.ranges.append(a(2,2))
-        self.assertEqual(f.type, 'residue')
+        f.seq.append(a(1,1))
+        f.seq.append(a(2,2))
+        ftype, etype = f._get_type_entity_type()
+        self.assertEqual(ftype, 'residue')
 
         # At least one range is a true range
-        f.ranges.append(a(3,4))
-        self.assertEqual(f.type, 'residue range')
-
+        f.seq.append(a(3,4))
+        ftype, etype = f._get_type_entity_type()
+        self.assertEqual(ftype, 'residue range')
 
     def test_geometric_restraint(self):
         """Test GeometricRestraint class"""

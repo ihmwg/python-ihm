@@ -1972,33 +1972,43 @@ _ihm_geometric_object_plane.transformation_id
         a3 = ihm.AsymUnit(e2, 'heme')
         system.asym_units.extend((a1, a2, a3))
 
-        f = ihm.restraint.ResidueFeature([a1, a2(2,3)])
+        # Residue range feature
+        f = ihm.restraint.Feature([a1, a2(2,2)])
         system.orphan_features.append(f)
-        # Cannot make a ResidueFeature that includes a non-polymer 'residue'
-        self.assertRaises(ValueError, ihm.restraint.ResidueFeature, [a1, a3])
+        # Residue feature
+        f = ihm.restraint.Feature([a2(3,3)])
+        system.orphan_features.append(f)
+        # Check error handling of get_obj_* methods
+        self.assertRaises(TypeError, f._Feature__get_obj_type, None)
+        self.assertRaises(TypeError, f._Feature__get_obj_entity, None)
+        # Cannot make a Feature that spans polymer and non-polymer
+        self.assertRaises(ValueError, ihm.restraint.Feature, [a1, a3])
 
         # Polymeric atom feature
-        f = ihm.restraint.AtomFeature([a1.residue(1).atom('CA'),
-                                       a2.residue(2).atom('N')])
+        f = ihm.restraint.Feature([a1.residue(1).atom('CA'),
+                                   a2.residue(2).atom('N')])
         system.orphan_features.append(f)
         # Nonpolymeric atom feature
-        f = ihm.restraint.AtomFeature([a3.residue(1).atom('FE')])
+        f = ihm.restraint.Feature([a3.residue(1).atom('FE')])
         system.orphan_features.append(f)
-        # Cannot make one feature that selects both polymer and nonpolymer
-        self.assertRaises(ValueError, ihm.restraint.AtomFeature,
-                                      [a1.residue(1).atom('CA'),
-                                       a2.residue(2).atom('N'),
-                                       a3.residue(1).atom('FE')])
+        # Nonpolymeric whole-asym feature
+        f = ihm.restraint.Feature([a3])
+        system.orphan_features.append(f)
+        # Cannot make a feature that selects both residues and atoms
+        self.assertRaises(TypeError, ihm.restraint.Feature,
+                          [a1, a2.residue(2).atom('N')])
+        # Check invalid types passed to Feature
+        self.assertRaises(TypeError, ihm.restraint.Feature, [None])
 
         ihm.dumper._EntityDumper().finalize(system) # assign entity IDs
         ihm.dumper._StructAsymDumper().finalize(system) # assign asym IDs
 
         dumper = ihm.dumper._FeatureDumper()
         dumper.finalize(system) # assign IDs
-        self.assertEqual(len(dumper._features_by_id), 3)
+        self.assertEqual(len(dumper._features_by_id), 5)
         # Repeated calls to finalize should yield identical results
         dumper.finalize(system)
-        self.assertEqual(len(dumper._features_by_id), 3)
+        self.assertEqual(len(dumper._features_by_id), 5)
         out = _get_dumper_output(dumper, system)
         self.assertEqual(out, """#
 loop_
@@ -2006,8 +2016,10 @@ _ihm_feature_list.feature_id
 _ihm_feature_list.feature_type
 _ihm_feature_list.entity_type
 1 'residue range' polymer
-2 atom polymer
-3 atom non-polymer
+2 residue polymer
+3 atom polymer
+4 ligand non-polymer
+5 ligand non-polymer
 #
 #
 loop_
@@ -2020,7 +2032,8 @@ _ihm_poly_residue_feature.comp_id_begin
 _ihm_poly_residue_feature.seq_id_end
 _ihm_poly_residue_feature.comp_id_end
 1 1 1 A 1 ALA 4 THR
-2 1 1 B 2 CYS 3 GLY
+2 1 1 B 2 CYS 2 CYS
+3 2 1 B 3 GLY 3 GLY
 #
 #
 loop_
@@ -2031,18 +2044,19 @@ _ihm_poly_atom_feature.asym_id
 _ihm_poly_atom_feature.seq_id
 _ihm_poly_atom_feature.comp_id
 _ihm_poly_atom_feature.atom_id
-1 2 1 A 1 ALA CA
-2 2 1 B 2 CYS N
+1 3 1 A 1 ALA CA
+2 3 1 B 2 CYS N
 #
 #
 loop_
-_ihm_non_poly_atom_feature.ordinal_id
-_ihm_non_poly_atom_feature.feature_id
-_ihm_non_poly_atom_feature.entity_id
-_ihm_non_poly_atom_feature.asym_id
-_ihm_non_poly_atom_feature.comp_id
-_ihm_non_poly_atom_feature.atom_id
-1 3 2 C HEM FE
+_ihm_non_poly_feature.ordinal_id
+_ihm_non_poly_feature.feature_id
+_ihm_non_poly_feature.entity_id
+_ihm_non_poly_feature.asym_id
+_ihm_non_poly_feature.comp_id
+_ihm_non_poly_feature.atom_id
+1 4 2 C HEM FE
+2 5 2 C HEM .
 #
 """)
 

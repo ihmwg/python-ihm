@@ -171,22 +171,7 @@ class _FeatureIDMapper(_IDMapper):
     """Add extra handling to _IDMapper for restraint features"""
 
     def _make_new_object(self, newcls=None):
-        if newcls is None:
-            # Make Feature base class (takes no args)
-            return self._cls()
-        else:
-            # Make subclass (takes one ranges/atoms argument)
-            return newcls([])
-
-    def _update_old_object(self, obj, newcls=None):
-        super(_FeatureIDMapper, self)._update_old_object(obj, newcls)
-        # Add missing members if the base class was originally instantianted
-        if newcls is ihm.restraint.ResidueFeature \
-           and not hasattr(obj, 'ranges'):
-            obj.ranges = []
-        elif newcls is ihm.restraint.AtomFeature \
-           and not hasattr(obj, 'atoms'):
-            obj.atoms = []
+        return self._cls([])
 
 
 class _GeometryIDMapper(_IDMapper):
@@ -351,7 +336,7 @@ class _SystemReader(object):
                                    self.datasets,
                                    ihm.restraint.SASRestraint, None)
         self.features = _FeatureIDMapper(self.system.orphan_features,
-                                   ihm.restraint.Feature)
+                                         ihm.restraint.Feature)
         self.dist_restraints = _IDMapper(self.system.restraints,
                                    ihm.restraint.DerivedDistanceRestraint,
                                    *(None,)*4)
@@ -1090,36 +1075,35 @@ class _PolyResidueFeatureHandler(_Handler):
     category = '_ihm_poly_residue_feature'
 
     def __call__(self, feature_id, asym_id, seq_id_begin, seq_id_end):
-        f = self.sysr.features.get_by_id(
-                           feature_id, ihm.restraint.ResidueFeature)
+        f = self.sysr.features.get_by_id(feature_id)
         asym = self.sysr.asym_units.get_by_id(asym_id)
         r1 = int(seq_id_begin)
         r2 = int(seq_id_end)
-        f.ranges.append(asym(r1,r2))
+        f.seq.append(asym(r1,r2))
 
 
 class _PolyAtomFeatureHandler(_Handler):
     category = '_ihm_poly_atom_feature'
 
     def __call__(self, feature_id, asym_id, seq_id, atom_id):
-        f = self.sysr.features.get_by_id(
-                           feature_id, ihm.restraint.AtomFeature)
+        f = self.sysr.features.get_by_id(feature_id)
         asym = self.sysr.asym_units.get_by_id(asym_id)
         seq_id = int(seq_id)
         atom = asym.residue(seq_id).atom(atom_id)
-        f.atoms.append(atom)
+        f.seq.append(atom)
 
 
-class _NonPolyAtomFeatureHandler(_Handler):
-    category = '_ihm_non_poly_atom_feature'
+class _NonPolyFeatureHandler(_Handler):
+    category = '_ihm_non_poly_feature'
 
     def __call__(self, feature_id, asym_id, atom_id):
-        f = self.sysr.features.get_by_id(
-                           feature_id, ihm.restraint.AtomFeature)
+        f = self.sysr.features.get_by_id(feature_id)
         asym = self.sysr.asym_units.get_by_id(asym_id)
         # todo: handle multiple copies, e.g. waters?
-        atom = asym.residue(1).atom(atom_id)
-        f.atoms.append(atom)
+        if atom_id:
+            f.seq.append(asym.residue(1).atom(atom_id))
+        else:
+            f.seq.append(asym)
 
 
 def _make_harmonic(low, up):
@@ -1541,7 +1525,7 @@ def read(fh, model_class=ihm.model.Model, format='mmCIF'):
                     _EM2DFittingHandler(s), _SASRestraintHandler(s),
                     _SphereObjSiteHandler(s), _AtomSiteHandler(s),
                     _PolyResidueFeatureHandler(s), _PolyAtomFeatureHandler(s),
-                    _NonPolyAtomFeatureHandler(s),
+                    _NonPolyFeatureHandler(s),
                     _DerivedDistanceRestraintHandler(s),
                     _CenterHandler(s), _TransformationHandler(s),
                     _GeometricObjectHandler(s), _SphereHandler(s),
