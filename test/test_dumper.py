@@ -1227,8 +1227,8 @@ _ihm_model_list.representation_id
         state.append(group)
         return system, model, asym
 
-    def test_check_representation(self):
-        """Test _check_representation()"""
+    def test_check_representation_asym(self):
+        """Test _check_representation() with missing asym_id"""
         system, model, asym = self._make_test_model()
         asym2 = ihm.AsymUnit(asym.entity, 'bar')
         asym2._id = 'Y'
@@ -1242,6 +1242,25 @@ _ihm_model_list.representation_id
         # Not OK, since asym2 is represented but not in assembly
         s = ihm.representation.ResidueSegment(asym2, True, 'sphere')
         model.representation.append(s)
+        self.assertRaises(ValueError, dumper._check_representation, model)
+
+    def test_check_representation_range(self):
+        """Test _check_representation() with mismatched range"""
+        system, model, asym = self._make_test_model()
+        asym2 = ihm.AsymUnit(asym.entity, 'bar')
+        asym2._id = 'Y'
+        system.asym_units.append(asym2)
+
+        dumper = ihm.dumper._ModelDumper()
+
+        # OK, since both assembly & representation contain asym
+        dumper._check_representation(model)
+
+        # Not OK, since asym2 range is represented (1-4) but not in
+        # assembly (1-2)
+        s = ihm.representation.ResidueSegment(asym2, True, 'sphere')
+        model.representation.append(s)
+        model.assembly.append(asym2(1,2))
         self.assertRaises(ValueError, dumper._check_representation, model)
 
     def test_range_checker(self):

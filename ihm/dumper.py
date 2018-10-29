@@ -10,6 +10,11 @@ from . import location
 from . import restraint
 from . import geometry
 
+def _range_in(subrange, ranges):
+    """Return True iff subrange (a 2 element int tuple) is fully
+       enclosed with at least one of the given ranges"""
+    return any(subrange[0] >= r[0] and subrange[1] <= r[1] for r in ranges)
+
 class _Dumper(object):
     """Base class for helpers to dump output to mmCIF"""
     def __init__(self):
@@ -884,10 +889,18 @@ class _ModelDumper(_Dumper):
 
     def _check_representation(self, model):
         """Check the Representation of the given Model for sanity."""
-        # Representation should only reference asyms that are in Assembly
+        # Representation should only reference asyms and seq_id ranges
+        # that are in Assembly
         a = model.assembly if model.assembly else []
-        # Get IDs of all asym units and ranges (not entities)
-        asym_ids = frozenset(x._id for x in a if hasattr(x, 'entity'))
+        # Get mapping from IDs to list of ranges for all asym units
+        # and ranges (not entities)
+        asym_ids= {}
+        for obj in a:
+            if hasattr(obj, 'entity'):
+                asym_id = obj._id
+                if asym_id not in asym_ids:
+                    asym_ids[asym_id] = []
+                asym_ids[asym_id].append(obj.seq_id_range)
         r = model.representation if model.representation else []
         for segment in r:
             if segment.asym_unit._id not in asym_ids:
@@ -896,6 +909,15 @@ class _ModelDumper(_Dumper):
                          "asym IDs: %s)"
                          % (segment, segment.asym_unit._id,
                             ", ".join(sorted(a for a in asym_ids))))
+            asmb_ranges = asym_ids[segment.asym_unit._id]
+            repr_range = segment.asym_unit.seq_id_range
+            if not _range_in(repr_range, asmb_ranges):
+                raise ValueError("%s seq_id range (%d-%d) is not part of any "
+                         "assembly range for asym ID %s (valid ranges in the "
+                         "assembly are %s)"
+                         % (segment, repr_range[0], repr_range[1],
+                            segment.asym_unit._id,
+                            ", ".join("%d-%d" % x for x in asmb_ranges)))
 
     def dump_model_list(self, system, writer):
         ordinal = 1
