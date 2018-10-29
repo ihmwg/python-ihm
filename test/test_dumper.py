@@ -1263,32 +1263,71 @@ _ihm_model_list.representation_id
         model.assembly.append(asym2(1,2))
         self.assertRaises(ValueError, dumper._check_representation, model)
 
-    def test_range_checker(self):
-        """Test RangeChecker class"""
+    def test_range_checker_asym(self):
+        """Test RangeChecker class checking asym ID match"""
         system, model, asym = self._make_test_model()
         asym2 = ihm.AsymUnit(asym.entity, 'bar')
         asym2._id = 'Y'
         system.asym_units.append(asym2)
 
         rngcheck = ihm.dumper._RangeChecker(model)
-        # Atom in range (good asym)
+        # Atom is OK (good asym)
         atom = ihm.model.Atom(asym_unit=asym, seq_id=1, atom_id='C',
                               type_symbol='C', x=1.0, y=2.0, z=3.0)
-        rngcheck(atom, atom.asym_unit)
+        rngcheck(atom)
+        # Sphere is OK (good asym)
+        sphere = ihm.model.Sphere(asym_unit=asym, seq_id_range=(1,2),
+                                  x=1.0, y=2.0, z=3.0, radius=4.0)
+        rngcheck(sphere)
 
-        # Atom out of range (bad asym)
+        # Atom is not OK (bad asym)
         atom = ihm.model.Atom(asym_unit=asym2, seq_id=1, atom_id='C',
                               type_symbol='C', x=1.0, y=2.0, z=3.0)
-        self.assertRaises(ValueError, rngcheck, atom, atom.asym_unit)
+        self.assertRaises(ValueError, rngcheck, atom)
+
+        # Sphere is not OK (bad asym)
+        sphere = ihm.model.Sphere(asym_unit=asym2, seq_id_range=(1,2),
+                                  x=1.0, y=2.0, z=3.0, radius=4.0)
+        self.assertRaises(ValueError, rngcheck, sphere)
+
+    def test_range_checker_seq_id(self):
+        """Test RangeChecker class checking seq_id range"""
+        system, model, asym = self._make_test_model()
+
+        rngcheck = ihm.dumper._RangeChecker(model)
+        self.assertEqual(rngcheck._last_segment_matched, None)
+        # Atom is OK (good range)
+        atom = ihm.model.Atom(asym_unit=asym, seq_id=1, atom_id='C',
+                              type_symbol='C', x=1.0, y=2.0, z=3.0)
+        rngcheck(atom)
+        # Cache should now be set
+        self.assertEqual(rngcheck._last_segment_matched.asym_unit.seq_id_range,
+                         (1,4))
+        # 2nd check should use the cache
+        rngcheck(atom)
+        # Sphere is OK (good range)
+        sphere = ihm.model.Sphere(asym_unit=asym, seq_id_range=(1,2),
+                                  x=1.0, y=2.0, z=3.0, radius=4.0)
+        rngcheck(sphere)
+
+        # Atom is not OK (bad range)
+        atom = ihm.model.Atom(asym_unit=asym, seq_id=10, atom_id='C',
+                              type_symbol='C', x=1.0, y=2.0, z=3.0)
+        self.assertRaises(ValueError, rngcheck, atom)
+
+        # Sphere is not OK (bad range)
+        sphere = ihm.model.Sphere(asym_unit=asym, seq_id_range=(1,10),
+                                  x=1.0, y=2.0, z=3.0, radius=4.0)
+        self.assertRaises(ValueError, rngcheck, sphere)
 
     def test_model_dumper_spheres(self):
         """Test ModelDumper with spheres"""
         system, model, asym = self._make_test_model()
         model._spheres = [ihm.model.Sphere(asym_unit=asym,
-                                           seq_id_range=(1,5), x=1.0,
+                                           seq_id_range=(1,3), x=1.0,
                                            y=2.0, z=3.0, radius=4.0),
                           ihm.model.Sphere(asym_unit=asym,
-                                           seq_id_range=(6,6), x=4.0,
+                                           seq_id_range=(4,4), x=4.0,
                                            y=5.0, z=6.0, radius=1.0, rmsf=8.0)]
 
         dumper = ihm.dumper._ModelDumper()
@@ -1320,8 +1359,8 @@ _ihm_sphere_obj_site.Cartn_z
 _ihm_sphere_obj_site.object_radius
 _ihm_sphere_obj_site.rmsf
 _ihm_sphere_obj_site.model_id
-1 9 1 5 X 1.000 2.000 3.000 4.000 . 1
-2 9 6 6 X 4.000 5.000 6.000 1.000 8.000 1
+1 9 1 3 X 1.000 2.000 3.000 4.000 . 1
+2 9 4 4 X 4.000 5.000 6.000 1.000 8.000 1
 #
 """)
 

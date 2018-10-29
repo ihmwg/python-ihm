@@ -846,14 +846,41 @@ class _RangeChecker(object):
        Representation"""
     def __init__(self, model):
         r = model.representation if model.representation else []
-        self.asym_ids = frozenset(s.asym_unit._id for s in r)
+        # Make map from asym_id to representation segments for that ID
+        self.asym_ids = {}
+        for segment in r:
+            asym_id = segment.asym_unit._id
+            if asym_id not in self.asym_ids:
+                self.asym_ids[asym_id] = []
+            self.asym_ids[asym_id].append(segment)
+        self._last_segment_matched = None
 
-    def __call__(self, obj, asym):
+    def __call__(self, obj):
+        """Check the given Atom or Sphere object"""
+        asym = obj.asym_unit
+        if hasattr(obj, 'seq_id_range'):
+            seq_id_range = obj.seq_id_range
+        else:
+            seq_id_range = (obj.seq_id, obj.seq_id)
+        # Check last match first
+        last_seg = self._last_segment_matched
+        if last_seg and asym._id == last_seg.asym_unit._id \
+           and seq_id_range[0] >= last_seg.asym_unit.seq_id_range[0] \
+           and seq_id_range[1] <= last_seg.asym_unit.seq_id_range[1]:
+            return
+        # Check asym_id
         if asym._id not in self.asym_ids:
             raise ValueError("%s refers to an asym ID (%s) that is not in this "
                  "model's representation (which includes the following asym "
                  "IDs: %s)"
                  % (obj, asym._id, ", ".join(sorted(a for a in self.asym_ids))))
+        # Check range
+        for segment in self.asym_ids[asym._id]:
+            rng = segment.asym_unit.seq_id_range
+            if seq_id_range[0] >= rng[0] and seq_id_range[1] <= rng[1]:
+                self._last_segment_matched = segment
+                return
+        raise ValueError("%s seq_id range (%d-%d) does not match any range in the representation for asym ID %s (representation ranges are %s)" % (obj, seq_id_range[0], seq_id_range[1], asym._id, ", ".join("%d-%d" % x.asym_unit.seq_id_range for x in self.asym_ids[asym._id])))
 
 
 class _ModelDumper(_Dumper):
@@ -962,7 +989,7 @@ class _ModelDumper(_Dumper):
             for group, model in system._all_models():
                 rngcheck = _RangeChecker(model)
                 for atom in model.get_atoms():
-                    rngcheck(atom, atom.asym_unit)
+                    rngcheck(atom)
                     comp = atom.asym_unit.entity.sequence[atom.seq_id-1]
                     seen_types[atom.type_symbol] = None
                     l.write(id=ordinal,
@@ -991,7 +1018,7 @@ class _ModelDumper(_Dumper):
             for group, model in system._all_models():
                 rngcheck = _RangeChecker(model)
                 for sphere in model.get_spheres():
-                    rngcheck(sphere, sphere.asym_unit)
+                    rngcheck(sphere)
                     l.write(ordinal_id=ordinal,
                             entity_id=sphere.asym_unit.entity._id,
                             seq_id_begin=sphere.seq_id_range[0],
