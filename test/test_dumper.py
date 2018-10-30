@@ -1302,6 +1302,10 @@ _ihm_model_list.representation_id
         """Test RangeChecker class checking seq_id range"""
         system, model, asym = self._make_test_model()
 
+        # Add multiple representation segments for asym
+        s = ihm.representation.AtomicSegment(asym(1,2), rigid=True)
+        model.representation.append(s)
+
         rngcheck = ihm.dumper._RangeChecker(model)
         self.assertEqual(rngcheck._last_segment_matched, None)
         # Atom is OK (good range)
