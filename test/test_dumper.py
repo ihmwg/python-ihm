@@ -1234,6 +1234,13 @@ _ihm_model_list.representation_id
         asym2._id = 'Y'
         system.asym_units.append(asym2)
 
+        # Add an Entity to the Assembly (should be ignored by
+        # check_representation)
+        e2 = ihm.Entity('ACC')
+        e2._id = 10
+        system.entities.append(e2)
+        model.assembly.append(e2)
+
         dumper = ihm.dumper._ModelDumper()
 
         # OK, since both assembly & representation contain asym
@@ -1257,10 +1264,11 @@ _ihm_model_list.representation_id
         dumper._check_representation(model)
 
         # Not OK, since asym2 range is represented (1-4) but not in
-        # assembly (1-2)
+        # assembly (1-2, 3)
         s = ihm.representation.ResidueSegment(asym2, True, 'sphere')
         model.representation.append(s)
         model.assembly.append(asym2(1,2))
+        model.assembly.append(asym2(3,3))
         self.assertRaises(ValueError, dumper._check_representation, model)
 
     def test_range_checker_asym(self):
