@@ -35,6 +35,17 @@ class _EntryDumper(_Dumper):
             l.write(id=system.id)
 
 
+class _AuditConformDumper(_Dumper):
+    URL = ("https://raw.githubusercontent.com/" +
+           "ihmwg/IHM-dictionary/%s/ihm-extension.dic")
+
+    def dump(self, system, writer):
+        with writer.category("_audit_conform") as l:
+            # Update to match the version of the IHM dictionary we support:
+            l.write(dict_name="ihm-extension.dic", dict_version="0.137",
+                    dict_location=self.URL % "7ea672a")
+
+
 class _StructDumper(_Dumper):
     def dump(self, system, writer):
         with writer.category("_struct") as l:
@@ -1695,7 +1706,7 @@ def write(fh, systems, format='mmCIF'):
               BinaryCIF."""
     dumpers = [_EntryDumper(), # must be first
                _StructDumper(), _CommentDumper(),
-               _SoftwareDumper(),
+               _AuditConformDumper(), _SoftwareDumper(),
                _CitationDumper(),
                _AuditAuthorDumper(),
                _ChemCompDumper(),

@@ -46,7 +46,7 @@ class Tests(unittest.TestCase):
         ihm.dumper.write(fh, [sys1, sys2])
         lines = fh.getvalue().split('\n')
         self.assertEqual(lines[:2], ["data_system1", "_entry.id system1"])
-        self.assertEqual(lines[11:13],
+        self.assertEqual(lines[14:16],
                          ["data_system23", "_entry.id 'system 2+3'"])
 
     def test_dumper(self):
@@ -76,6 +76,17 @@ class Tests(unittest.TestCase):
         dumper = ihm.dumper._EntryDumper()
         out = _get_dumper_output(dumper, system)
         self.assertEqual(out, "data_test_model\n_entry.id test_model\n")
+
+    def test_audit_conform_dumper(self):
+        """Test AuditConformDumper"""
+        system = ihm.System()
+        dumper = ihm.dumper._AuditConformDumper()
+        out = _get_dumper_output(dumper, system)
+        lines = sorted(out.split('\n'))
+        self.assertEqual(lines[1].split()[0], "_audit_conform.dict_location")
+        self.assertEqual(lines[2].rstrip('\r\n'),
+                         "_audit_conform.dict_name ihm-extension.dic")
+        self.assertEqual(lines[3].split()[0], "_audit_conform.dict_version")
 
     def test_struct_dumper(self):
         """Test StructDumper"""
