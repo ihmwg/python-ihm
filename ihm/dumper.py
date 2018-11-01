@@ -5,6 +5,8 @@ import os
 import operator
 import ihm.format
 import ihm.format_bcif
+import ihm.model
+import ihm.representation
 from . import util
 from . import location
 from . import restraint
@@ -866,18 +868,43 @@ class _RangeChecker(object):
             self.asym_ids[asym_id].append(segment)
         self._last_segment_matched = None
 
+    def _type_check_atom(self, obj, segment):
+        """Check an Atom object against a representation segment."""
+        # Atom objects can only match an AtomicSegment
+        return isinstance(segment, ihm.representation.AtomicSegment)
+
+    def _type_check_sphere(self, obj, segment):
+        """Check a Sphere object against a representation segment."""
+        if isinstance(segment, ihm.representation.ResidueSegment):
+            # Only 1-residue Spheres are OK for by-residue segments
+            return obj.seq_id_range[0] == obj.seq_id_range[1]
+        elif isinstance(segment, ihm.representation.MultiResidueSegment):
+            # Sphere must cover the entire range for multi-residue segments
+            return (obj.seq_id_range[0] == segment.asym_unit.seq_id_range[0]
+                and obj.seq_id_range[1] == segment.asym_unit.seq_id_range[1])
+        elif isinstance(segment, ihm.representation.FeatureSegment):
+            # Sphere can cover any set of residues but must fall within the
+            # segment range for by-feature (already checked)
+            return True
+        else:
+            # Spheres can never be used to represent a by-atom segment
+            return False
+
     def __call__(self, obj):
         """Check the given Atom or Sphere object"""
         asym = obj.asym_unit
-        if hasattr(obj, 'seq_id_range'):
+        if isinstance(obj, ihm.model.Sphere):
+            type_check = self._type_check_sphere
             seq_id_range = obj.seq_id_range
         else:
+            type_check = self._type_check_atom
             seq_id_range = (obj.seq_id, obj.seq_id)
         # Check last match first
         last_seg = self._last_segment_matched
         if last_seg and asym._id == last_seg.asym_unit._id \
            and seq_id_range[0] >= last_seg.asym_unit.seq_id_range[0] \
-           and seq_id_range[1] <= last_seg.asym_unit.seq_id_range[1]:
+           and seq_id_range[1] <= last_seg.asym_unit.seq_id_range[1] \
+           and type_check(obj, last_seg):
             return
         # Check asym_id
         if asym._id not in self.asym_ids:
@@ -886,12 +913,28 @@ class _RangeChecker(object):
                  "IDs: %s)"
                  % (obj, asym._id, ", ".join(sorted(a for a in self.asym_ids))))
         # Check range
+        bad_type_segments = []
         for segment in self.asym_ids[asym._id]:
             rng = segment.asym_unit.seq_id_range
             if seq_id_range[0] >= rng[0] and seq_id_range[1] <= rng[1]:
-                self._last_segment_matched = segment
-                return
-        raise ValueError("%s seq_id range (%d-%d) does not match any range in the representation for asym ID %s (representation ranges are %s)" % (obj, seq_id_range[0], seq_id_range[1], asym._id, ", ".join("%d-%d" % x.asym_unit.seq_id_range for x in self.asym_ids[asym._id])))
+                if type_check(obj, segment):
+                    self._last_segment_matched = segment
+                    return
+                else:
+                    bad_type_segments.append(segment)
+        if bad_type_segments:
+            raise ValueError("%s does not match the type of any representation "
+                    "segment in the seq_id_range (%d-%d) for asym ID %s. "
+                    "Representation segments are: %s"
+                    % (obj, seq_id_range[0], seq_id_range[1], asym._id,
+                       ", ".join(str(s) for s in bad_type_segments)))
+        else:
+            raise ValueError("%s seq_id range (%d-%d) does not match any range "
+                    "in the representation for asym ID %s (representation "
+                    "ranges are %s)"
+                    % (obj, seq_id_range[0], seq_id_range[1], asym._id,
+                       ", ".join("%d-%d" % x.asym_unit.seq_id_range
+                                 for x in self.asym_ids[asym._id])))
 
 
 class _ModelDumper(_Dumper):
