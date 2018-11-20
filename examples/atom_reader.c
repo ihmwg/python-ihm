@@ -76,6 +76,7 @@ static void read_mmcif_filedesc(int fd)
   if (!ihm_read_file(reader, &more_data, &err)) {
     fprintf(stderr, "IHM error: %s\n", err->msg);
     ihm_error_free(err);
+    ihm_reader_free(reader);
     exit(1);
   }
   ihm_reader_free(reader);
