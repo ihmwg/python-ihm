@@ -43,7 +43,7 @@ void ihm_error_free(struct ihm_error *err);
 
 /* Set the error indicator */
 void ihm_error_set(struct ihm_error **err, IHMErrorCode code,
-                   char *format, ...);
+                   const char *format, ...);
 
 /* A keyword in an mmCIF file. Holds a description of its format and any
    value read from the file. */

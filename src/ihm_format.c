@@ -65,7 +65,8 @@ void ihm_error_free(struct ihm_error *err)
 }
 
 /* Set the error indicator */
-void ihm_error_set(struct ihm_error **err, IHMErrorCode code, char *format, ...)
+void ihm_error_set(struct ihm_error **err, IHMErrorCode code,
+                   const char *format, ...)
 {
   va_list ap;
   int len;
