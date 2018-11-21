@@ -78,12 +78,12 @@ void ihm_error_set(struct ihm_error **err, IHMErrorCode code,
   len = vsnprintf(msg, 0, format, ap);
   va_end(ap);
 
-  msg = ihm_realloc(msg, len + 1);
+  msg = (char *)ihm_realloc(msg, len + 1);
   va_start(ap, format);
   vsnprintf(msg, len + 1, format, ap);
   va_end(ap);
 
-  *err = ihm_malloc(sizeof(struct ihm_error));
+  *err = (struct ihm_error *)ihm_malloc(sizeof(struct ihm_error));
   (*err)->code = code;
   (*err)->msg = msg;
 }
@@ -103,7 +103,8 @@ struct ihm_array {
 /* Make a new empty ihm_array */
 static struct ihm_array *ihm_array_new(size_t element_size)
 {
-  struct ihm_array *a = ihm_malloc(sizeof(struct ihm_array));
+  struct ihm_array *a = (struct ihm_array *)ihm_malloc(
+                                                  sizeof(struct ihm_array));
   a->len = 0;
   a->element_size = element_size;
   a->capacity = 8;
@@ -154,10 +155,11 @@ struct ihm_string {
 /* Make a new ihm_string of zero length */
 static struct ihm_string *ihm_string_new(void)
 {
-  struct ihm_string *s = ihm_malloc(sizeof(struct ihm_string));
+  struct ihm_string *s = (struct ihm_string *)ihm_malloc(
+                                                sizeof(struct ihm_string));
   s->len = 0;
   s->capacity = 64;
-  s->str = ihm_malloc(s->capacity);
+  s->str = (char *)ihm_malloc(s->capacity);
   /* Ensure string is null terminated */
   s->str[0] = '\0';
   return s;
@@ -187,7 +189,7 @@ static void ihm_string_set_size(struct ihm_string *s, size_t len)
     if (len >= s->capacity) {
       s->capacity = len + 1;
     }
-    s->str = ihm_realloc(s->str, s->capacity);
+    s->str = (char *)ihm_realloc(s->str, s->capacity);
   }
 
   s->len = len;
@@ -233,7 +235,8 @@ struct ihm_mapping {
    small). */
 struct ihm_mapping *ihm_mapping_new(ihm_destroy_callback value_destroy_func)
 {
-  struct ihm_mapping *m = ihm_malloc(sizeof(struct ihm_mapping));
+  struct ihm_mapping *m = (struct ihm_mapping *)ihm_malloc(
+                                                 sizeof(struct ihm_mapping));
   m->keyvalues = ihm_array_new(sizeof(struct ihm_key_value));
   m->value_destroy_func = value_destroy_func;
   return m;
@@ -274,8 +277,8 @@ static void ihm_mapping_insert(struct ihm_mapping *m, char *key,
 static int mapping_compare(const void *a, const void *b)
 {
   const struct ihm_key_value *kv1, *kv2;
-  kv1 = a;
-  kv2 = b;
+  kv1 = (const struct ihm_key_value *)a;
+  kv2 = (const struct ihm_key_value *)b;
   return strcasecmp(kv1->key, kv2->key);
 }
 
@@ -328,7 +331,7 @@ static void ihm_mapping_foreach(struct ihm_mapping *m,
 /* Free the memory used by a struct ihm_keyword */
 static void ihm_keyword_free(void *value)
 {
-  struct ihm_keyword *key = value;
+  struct ihm_keyword *key = (struct ihm_keyword *)value;
   free(key->name);
   if (key->own_data && key->in_file) {
     free(key->data);
@@ -387,7 +390,7 @@ struct ihm_token {
 /* Free memory used by a struct ihm_category */
 static void ihm_category_free(void *value)
 {
-  struct ihm_category *cat = value;
+  struct ihm_category *cat = (struct ihm_category *)value;
   ihm_mapping_free(cat->keyword_map);
   free(cat->name);
   if (cat->free_func) {
@@ -404,7 +407,8 @@ struct ihm_category *ihm_category_new(struct ihm_reader *reader,
                                       ihm_category_callback finalize_callback,
                                       void *data, ihm_free_callback free_func)
 {
-  struct ihm_category *category = ihm_malloc(sizeof(struct ihm_category));
+  struct ihm_category *category =
+        (struct ihm_category *)ihm_malloc(sizeof(struct ihm_category));
   category->name = strdup(name);
   category->data_callback = data_callback;
   category->end_frame_callback = end_frame_callback;
@@ -420,7 +424,8 @@ struct ihm_category *ihm_category_new(struct ihm_reader *reader,
 struct ihm_keyword *ihm_keyword_new(struct ihm_category *category,
                                     const char *name)
 {
-  struct ihm_keyword *key = ihm_malloc(sizeof(struct ihm_keyword));
+  struct ihm_keyword *key =
+          (struct ihm_keyword *)ihm_malloc(sizeof(struct ihm_keyword));
   key->name = strdup(name);
   key->own_data = FALSE;
   key->in_file = FALSE;
@@ -468,7 +473,8 @@ static void set_value(struct ihm_reader *reader,
 struct ihm_file *ihm_file_new(ihm_file_read_callback read_callback,
                               void *data, ihm_free_callback free_func)
 {
-  struct ihm_file *file = ihm_malloc(sizeof(struct ihm_file));
+  struct ihm_file *file =
+           (struct ihm_file *)ihm_malloc(sizeof(struct ihm_file));
   file->buffer = ihm_string_new();
   file->line_start = file->next_line_start = 0;
   file->read_callback = read_callback;
@@ -587,7 +593,8 @@ struct ihm_file *ihm_file_new_from_fd(int fd)
 /* Make a new struct ihm_reader */
 struct ihm_reader *ihm_reader_new(struct ihm_file *fh)
 {
-  struct ihm_reader *reader = ihm_malloc(sizeof(struct ihm_reader));
+  struct ihm_reader *reader =
+            (struct ihm_reader *)ihm_malloc(sizeof(struct ihm_reader));
   reader->fh = fh;
   reader->linenum = 0;
   reader->multiline = ihm_string_new();
@@ -826,10 +833,12 @@ static void read_value(struct ihm_reader *reader,
   if (*err)
     return;
 
-  category = ihm_mapping_lookup(reader->category_map, category_name);
+  category = (struct ihm_category *)ihm_mapping_lookup(reader->category_map,
+                                                       category_name);
   if (category) {
     struct ihm_keyword *key;
-    key = ihm_mapping_lookup(category->keyword_map, keyword_name);
+    key = (struct ihm_keyword *)ihm_mapping_lookup(category->keyword_map,
+                                                   keyword_name);
     if (key) {
       struct ihm_token *val_token = get_token(reader, FALSE, err);
       if (val_token && val_token->type == MMCIF_TOKEN_VALUE) {
@@ -859,7 +868,8 @@ static struct ihm_keyword *handle_loop_index(struct ihm_reader *reader,
   if (*err)
     return NULL;
 
-  category = ihm_mapping_lookup(reader->category_map, category_name);
+  category = (struct ihm_category *)ihm_mapping_lookup(reader->category_map,
+                                                       category_name);
   if (first_loop) {
     *catpt = category;
   } else if (*catpt != category) {
@@ -870,7 +880,8 @@ static struct ihm_keyword *handle_loop_index(struct ihm_reader *reader,
   }
   if (category) {
     struct ihm_keyword *key;
-    key = ihm_mapping_lookup(category->keyword_map, keyword_name);
+    key = (struct ihm_keyword *)ihm_mapping_lookup(category->keyword_map,
+                                                   keyword_name);
     if (key) {
       return key;
     }
@@ -880,14 +891,14 @@ static struct ihm_keyword *handle_loop_index(struct ihm_reader *reader,
 
 static void check_keywords_in_file(void *k, void *value, void *user_data)
 {
-  struct ihm_keyword *key = value;
-  int *in_file = user_data;
+  struct ihm_keyword *key = (struct ihm_keyword *)value;
+  int *in_file = (int *)user_data;
   *in_file |= key->in_file;
 }
 
 static void clear_keywords(void *k, void *value, void *user_data)
 {
-  struct ihm_keyword *key = value;
+  struct ihm_keyword *key = (struct ihm_keyword *)value;
   if (key->own_data) {
     free(key->data);
   }
@@ -1012,8 +1023,8 @@ struct category_foreach_data {
 
 static void call_category_foreach(void *key, void *value, void *user_data)
 {
-  struct category_foreach_data *d = user_data;
-  struct ihm_category *category = value;
+  struct category_foreach_data *d = (struct category_foreach_data *)user_data;
+  struct ihm_category *category = (struct ihm_category *)value;
   if (!*(d->err)) {
     call_category(d->reader, category, FALSE, d->err);
   }
@@ -1031,8 +1042,8 @@ static void call_all_categories(struct ihm_reader *reader,
 
 static void finalize_category_foreach(void *key, void *value, void *user_data)
 {
-  struct category_foreach_data *d = user_data;
-  struct ihm_category *category = value;
+  struct category_foreach_data *d = (struct category_foreach_data *)user_data;
+  struct ihm_category *category = (struct ihm_category *)value;
   if (!*(d->err) && category->finalize_callback) {
     (*category->finalize_callback)(d->reader, category->data, d->err);
   }
@@ -1050,8 +1061,8 @@ static void finalize_all_categories(struct ihm_reader *reader,
 
 static void end_frame_category_foreach(void *key, void *value, void *user_data)
 {
-  struct category_foreach_data *d = user_data;
-  struct ihm_category *category = value;
+  struct category_foreach_data *d = (struct category_foreach_data *)user_data;
+  struct ihm_category *category = (struct ihm_category *)value;
   if (!*(d->err) && category->end_frame_callback) {
     (*category->end_frame_callback)(d->reader, category->data, d->err);
   }
@@ -1069,7 +1080,7 @@ static void end_frame_all_categories(struct ihm_reader *reader,
 
 static void sort_category_foreach(void *key, void *value, void *user_data)
 {
-  struct ihm_category *category = value;
+  struct ihm_category *category = (struct ihm_category *)value;
   ihm_mapping_sort(category->keyword_map);
 }
 
