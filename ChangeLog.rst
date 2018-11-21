@@ -1,5 +1,5 @@
-HEAD
-====
+0.3 - 2018-11-21
+================
 
  - The library now includes basic support for nonpolymers and water molecules.
    In addition to the previous support for polymers (amino or nucleic acid
