@@ -25,4 +25,8 @@ HEAD
 0.1 - 2018-09-06
 ================
 
- - Initial point release.
+ - First stable release. This provides largely complete support for the current
+   version of the wwPDB IHM mmCIF extension dictionary, and will read and
+   write mmCIF and BinaryCIF files that are compliant with the PDBx and
+   IHM dictionaries.
+
