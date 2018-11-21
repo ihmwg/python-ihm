@@ -197,7 +197,7 @@ static void ihm_string_set_size(struct ihm_string *s, size_t len)
 }
 
 /* Set the ihm_string contents to be equal to str */
-static void ihm_string_assign(struct ihm_string *s, char *str)
+static void ihm_string_assign(struct ihm_string *s, const char *str)
 {
   size_t len = strlen(str);
   ihm_string_set_size(s, len);
@@ -205,7 +205,7 @@ static void ihm_string_assign(struct ihm_string *s, char *str)
 }
 
 /* Append str to the end of the ihm_string */
-static void ihm_string_append(struct ihm_string *s, char *str)
+static void ihm_string_append(struct ihm_string *s, const char *str)
 {
   size_t len = strlen(str);
   size_t oldlen = s->len;
