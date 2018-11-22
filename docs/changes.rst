@@ -2,7 +2,7 @@
 
 .. currentmodule:: ihm
 
-Python-IHM documentation
-************************
+Change history
+**************
 
 .. include:: ../ChangeLog.rst
