@@ -18,6 +18,9 @@ class RestraintGroup(list):
        only certain types (currently only :class:`DerivedDistanceRestraint`)
        can be grouped.
 
+       Empty groups can be created, but will be ignored on output as the
+       dictionary does not support them.
+
        Restraint groups should be stored in the system by adding them to
        :attr:`ihm.System.restraint_groups`.
     """

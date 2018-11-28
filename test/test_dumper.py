@@ -2366,6 +2366,13 @@ _ihm_derived_distance_restraint.dataset_list_id
         s = ihm.System()
         dataset = MockObject()
         assembly = MockObject()
+
+        # Empty restraint groups are OK (even though they don't get IDs)
+        rg = ihm.restraint.RestraintGroup([])
+        s.restraint_groups.append(rg)
+        fh = StringIO()
+        ihm.dumper.write(fh, [s])
+
         r = ihm.restraint.SASRestraint(dataset=dataset, assembly=assembly,
                        segment=False, fitting_method='FoXS',
                        fitting_atom_type='Heavy atoms',
