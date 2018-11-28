@@ -119,6 +119,10 @@ class System(object):
         #: See :class:`~ihm.restraint.Restraint`.
         self.restraints = []
 
+        #: All restraint groups.
+        #: See :class:`~ihm.restraint.RestraintGroup`.
+        self.restraint_groups = []
+
         #: All orphaned modeling protocols.
         #: This can be used to keep track of all protocols that are not
         #: otherwise used - normally a protocol is assigned to a
@@ -180,6 +184,15 @@ class System(object):
         for loc in self._all_locations():
             if isinstance(loc, location.FileLocation):
                 location.Repository._update_in_repos(loc, repos)
+
+    def _all_restraints(self):
+        """Iterate over all Restraints in the system.
+           Duplicates may be present."""
+        def _all_restraints_in_groups():
+            for rg in self.restraint_groups:
+                for r in rg:
+                    yield r
+        return itertools.chain(self.restraints, _all_restraints_in_groups())
 
     def _all_model_groups(self, only_in_states=True):
         """Iterate over all ModelGroups in the system.

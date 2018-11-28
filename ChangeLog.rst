@@ -1,3 +1,12 @@
+HEAD
+====
+
+ - Certain restraints can now be grouped using the
+   :class:`ihm.restraint.RestraintGroup` class. Due to limitations of the
+   underlying dictionary, this only works for some restraint types (currently
+   only :class:`ihm.restraint.DerivedDistanceRestraint`) and all restraints
+   in the group must be of the same type.
+
 0.3 - 2018-11-21
 ================
 
