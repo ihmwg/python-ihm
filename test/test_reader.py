@@ -304,9 +304,10 @@ _entity.id
 _entity.type
 _entity.pdbx_description
 _entity.pdbx_number_of_molecules
+_entity.formula_weight
 _entity.details
-1 polymer Nup84 2 .
-2 polymer Nup85 3 .
+1 polymer Nup84 2 100.0 .
+2 polymer Nup85 3 200.0 .
 """
         for fh in cif_file_handles(cif):
             s, = ihm.reader.read(fh)
