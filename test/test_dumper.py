@@ -1245,7 +1245,7 @@ _ihm_model_list.representation_id
         asym2._id = 'Y'
         system.asym_units.append(asym2)
         # Handle multiple ranges for a given asym
-        system.asym_units.append(asym2(1,2))
+        model.assembly.append(asym(1,2))
         # RangeChecker should ignore entities in the assembly
         model.assembly.append(asym.entity)
 
