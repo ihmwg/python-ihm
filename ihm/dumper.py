@@ -12,11 +12,6 @@ from . import location
 from . import restraint
 from . import geometry
 
-def _range_in(subrange, ranges):
-    """Return True iff subrange (a 2 element int tuple) is fully
-       enclosed with at least one of the given ranges"""
-    return any(subrange[0] >= r[0] and subrange[1] <= r[1] for r in ranges)
-
 class _Dumper(object):
     """Base class for helpers to dump output to mmCIF"""
     def __init__(self):
