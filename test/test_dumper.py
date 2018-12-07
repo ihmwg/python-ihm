@@ -1244,6 +1244,8 @@ _ihm_model_list.representation_id
         asym2 = ihm.AsymUnit(asym.entity, 'bar')
         asym2._id = 'Y'
         system.asym_units.append(asym2)
+        # RangeChecker should ignore entities in the assembly
+        model.assembly.append(asym.entity)
 
         # Everything is represented
         for a in asym, asym2:
@@ -1322,6 +1324,7 @@ _ihm_model_list.representation_id
         asym2 = ihm.AsymUnit(asym.entity, 'bar')
         asym2._id = 'Y'
         system.asym_units.append(asym2)
+        model.assembly.append(asym2)
 
         # Add multiple representation segments for asym
         s = ihm.representation.AtomicSegment(asym(1,2), rigid=True)
@@ -1353,18 +1356,22 @@ _ihm_model_list.representation_id
     def test_range_checker_repr_seq_id(self):
         """Test RangeChecker class checking representation seq_id range"""
         system, model, asym = self._make_test_model()
+        asym2 = ihm.AsymUnit(asym.entity, 'bar')
+        asym2._id = 'Y'
+        system.asym_units.append(asym2)
+        model.assembly.append(asym2)
 
-        # Add multiple representation segments for asym
-        s = ihm.representation.AtomicSegment(asym(1,2), rigid=True)
+        # Add multiple representation segments for asym2
+        s = ihm.representation.AtomicSegment(asym2(1,2), rigid=True)
         model.representation.append(s)
-        s = ihm.representation.FeatureSegment(asym, rigid=False,
+        s = ihm.representation.FeatureSegment(asym2(1,2), rigid=False,
                                               primitive='sphere', count=2)
         model.representation.append(s)
 
         rngcheck = ihm.dumper._RangeChecker(model)
         self.assertEqual(rngcheck._last_repr_segment_matched, None)
         # Atom is OK (good range)
-        atom = ihm.model.Atom(asym_unit=asym, seq_id=1, atom_id='C',
+        atom = ihm.model.Atom(asym_unit=asym2, seq_id=1, atom_id='C',
                               type_symbol='C', x=1.0, y=2.0, z=3.0)
         rngcheck(atom)
         # Cache should now be set
@@ -1374,17 +1381,17 @@ _ihm_model_list.representation_id
         # 2nd check should use the cache
         rngcheck(atom)
         # Sphere is OK (good range)
-        sphere = ihm.model.Sphere(asym_unit=asym, seq_id_range=(1,2),
+        sphere = ihm.model.Sphere(asym_unit=asym2, seq_id_range=(1,2),
                                   x=1.0, y=2.0, z=3.0, radius=4.0)
         rngcheck(sphere)
 
         # Atom is not OK (bad range)
-        atom = ihm.model.Atom(asym_unit=asym, seq_id=10, atom_id='C',
+        atom = ihm.model.Atom(asym_unit=asym2, seq_id=4, atom_id='C',
                               type_symbol='C', x=1.0, y=2.0, z=3.0)
         self.assertRaises(ValueError, rngcheck, atom)
 
         # Sphere is not OK (bad range)
-        sphere = ihm.model.Sphere(asym_unit=asym, seq_id_range=(1,10),
+        sphere = ihm.model.Sphere(asym_unit=asym2, seq_id_range=(1,4),
                                   x=1.0, y=2.0, z=3.0, radius=4.0)
         self.assertRaises(ValueError, rngcheck, sphere)
 
