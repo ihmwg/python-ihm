@@ -1238,52 +1238,86 @@ _ihm_model_list.representation_id
         state.append(group)
         return system, model, asym
 
-    def test_check_representation_asym(self):
-        """Test _check_representation() with missing asym_id"""
+    def test_range_checker_asmb_asym(self):
+        """Test RangeChecker class checking assembly asym ID match"""
         system, model, asym = self._make_test_model()
         asym2 = ihm.AsymUnit(asym.entity, 'bar')
         asym2._id = 'Y'
         system.asym_units.append(asym2)
 
-        # Add an Entity to the Assembly (should be ignored by
-        # check_representation)
-        e2 = ihm.Entity('ACC')
-        e2._id = 10
-        system.entities.append(e2)
-        model.assembly.append(e2)
+        # Everything is represented
+        for a in asym, asym2:
+            s = ihm.representation.AtomicSegment(a, rigid=True)
+            model.representation.append(s)
+            s = ihm.representation.FeatureSegment(a, rigid=False,
+                                                  primitive='sphere', count=2)
+            model.representation.append(s)
 
-        dumper = ihm.dumper._ModelDumper()
+        rngcheck = ihm.dumper._RangeChecker(model)
+        # Atom is OK (good asym)
+        atom = ihm.model.Atom(asym_unit=asym, seq_id=1, atom_id='C',
+                              type_symbol='C', x=1.0, y=2.0, z=3.0)
+        rngcheck(atom)
+        # Sphere is OK (good asym)
+        sphere = ihm.model.Sphere(asym_unit=asym, seq_id_range=(1,2),
+                                  x=1.0, y=2.0, z=3.0, radius=4.0)
+        rngcheck(sphere)
 
-        # OK, since both assembly & representation contain asym
-        dumper._check_representation(model)
+        # Atom is not OK (bad asym)
+        atom = ihm.model.Atom(asym_unit=asym2, seq_id=1, atom_id='C',
+                              type_symbol='C', x=1.0, y=2.0, z=3.0)
+        self.assertRaises(ValueError, rngcheck, atom)
 
-        # Not OK, since asym2 is represented but not in assembly
-        s = ihm.representation.ResidueSegment(asym2, True, 'sphere')
-        model.representation.append(s)
-        self.assertRaises(ValueError, dumper._check_representation, model)
+        # Sphere is not OK (bad asym)
+        sphere = ihm.model.Sphere(asym_unit=asym2, seq_id_range=(1,2),
+                                  x=1.0, y=2.0, z=3.0, radius=4.0)
+        self.assertRaises(ValueError, rngcheck, sphere)
 
-    def test_check_representation_range(self):
-        """Test _check_representation() with mismatched range"""
+    def test_range_checker_asmb_seq_id(self):
+        """Test RangeChecker class checking assembly seq_id range"""
         system, model, asym = self._make_test_model()
-        asym2 = ihm.AsymUnit(asym.entity, 'bar')
-        asym2._id = 'Y'
-        system.asym_units.append(asym2)
+        # Only part of asym is in the assembly
+        asmb = ihm.Assembly([asym(1,2)])
+        model.assembly = asmb
 
-        dumper = ihm.dumper._ModelDumper()
-
-        # OK, since both assembly & representation contain asym
-        dumper._check_representation(model)
-
-        # Not OK, since asym2 range is represented (1-4) but not in
-        # assembly (1-2, 3)
-        s = ihm.representation.ResidueSegment(asym2, True, 'sphere')
+        # Everything is represented
+        s = ihm.representation.AtomicSegment(asym, rigid=True)
         model.representation.append(s)
-        model.assembly.append(asym2(1,2))
-        model.assembly.append(asym2(3,3))
-        self.assertRaises(ValueError, dumper._check_representation, model)
+        s = ihm.representation.FeatureSegment(asym, rigid=False,
+                                              primitive='sphere', count=2)
+        model.representation.append(s)
 
-    def test_range_checker_asym(self):
-        """Test RangeChecker class checking asym ID match"""
+        rngcheck = ihm.dumper._RangeChecker(model)
+        self.assertEqual(rngcheck._last_asmb_range_matched, None)
+        self.assertEqual(rngcheck._last_asmb_asym_matched, None)
+        # Atom is OK (good range)
+        atom = ihm.model.Atom(asym_unit=asym, seq_id=1, atom_id='C',
+                              type_symbol='C', x=1.0, y=2.0, z=3.0)
+        rngcheck(atom)
+        # Cache should now be set
+        self.assertEqual(
+                rngcheck._last_asmb_range_matched, (1,2))
+        self.assertEqual(
+                rngcheck._last_asmb_asym_matched, 'X')
+        # 2nd check should use the cache
+        rngcheck(atom)
+        # Sphere is OK (good range)
+        sphere = ihm.model.Sphere(asym_unit=asym, seq_id_range=(1,2),
+                                  x=1.0, y=2.0, z=3.0, radius=4.0)
+        rngcheck(sphere)
+
+        # Atom is not OK (bad range)
+        atom = ihm.model.Atom(asym_unit=asym, seq_id=10, atom_id='C',
+                              type_symbol='C', x=1.0, y=2.0, z=3.0)
+        self.assertRaises(ValueError, rngcheck, atom)
+
+        # Sphere is not OK (bad range)
+        sphere = ihm.model.Sphere(asym_unit=asym, seq_id_range=(1,10),
+                                  x=1.0, y=2.0, z=3.0, radius=4.0)
+        self.assertRaises(ValueError, rngcheck, sphere)
+
+    def test_range_checker_repr_asym(self):
+        """Test RangeChecker class checking representation asym ID match"""
         system, model, asym = self._make_test_model()
         asym2 = ihm.AsymUnit(asym.entity, 'bar')
         asym2._id = 'Y'
@@ -1316,8 +1350,8 @@ _ihm_model_list.representation_id
                                   x=1.0, y=2.0, z=3.0, radius=4.0)
         self.assertRaises(ValueError, rngcheck, sphere)
 
-    def test_range_checker_seq_id(self):
-        """Test RangeChecker class checking seq_id range"""
+    def test_range_checker_repr_seq_id(self):
+        """Test RangeChecker class checking representation seq_id range"""
         system, model, asym = self._make_test_model()
 
         # Add multiple representation segments for asym
@@ -1328,14 +1362,15 @@ _ihm_model_list.representation_id
         model.representation.append(s)
 
         rngcheck = ihm.dumper._RangeChecker(model)
-        self.assertEqual(rngcheck._last_segment_matched, None)
+        self.assertEqual(rngcheck._last_repr_segment_matched, None)
         # Atom is OK (good range)
         atom = ihm.model.Atom(asym_unit=asym, seq_id=1, atom_id='C',
                               type_symbol='C', x=1.0, y=2.0, z=3.0)
         rngcheck(atom)
         # Cache should now be set
-        self.assertEqual(rngcheck._last_segment_matched.asym_unit.seq_id_range,
-                         (1,2))
+        self.assertEqual(
+                rngcheck._last_repr_segment_matched.asym_unit.seq_id_range,
+                (1,2))
         # 2nd check should use the cache
         rngcheck(atom)
         # Sphere is OK (good range)
@@ -1353,7 +1388,7 @@ _ihm_model_list.representation_id
                                   x=1.0, y=2.0, z=3.0, radius=4.0)
         self.assertRaises(ValueError, rngcheck, sphere)
 
-    def test_range_checker_type_atomic(self):
+    def test_range_checker_repr_type_atomic(self):
         """Test RangeChecker class type checking against AtomicSegments"""
         system, model, asym = self._make_test_model()
         # Replace test model's residue representation with atomic
@@ -1372,7 +1407,7 @@ _ihm_model_list.representation_id
                                   x=1.0, y=2.0, z=3.0, radius=4.0)
         self.assertRaises(ValueError, rngcheck, sphere)
 
-    def test_range_checker_type_residue(self):
+    def test_range_checker_repr_type_residue(self):
         """Test RangeChecker class type checking against ResidueSegments"""
         system, model, asym = self._make_test_model()
         # Test model already has ResidueSegment representation
@@ -1394,7 +1429,7 @@ _ihm_model_list.representation_id
                                   x=1.0, y=2.0, z=3.0, radius=4.0)
         rngcheck(sphere)
 
-    def test_range_checker_type_multi_residue(self):
+    def test_range_checker_repr_type_multi_residue(self):
         """Test RangeChecker class type checking against MultiResidueSegments"""
         system, model, asym = self._make_test_model()
         # Replace test model's residue representation with multi-residue
@@ -1418,7 +1453,7 @@ _ihm_model_list.representation_id
                                   x=1.0, y=2.0, z=3.0, radius=4.0)
         self.assertRaises(ValueError, rngcheck, sphere)
 
-    def test_range_checker_type_feature(self):
+    def test_range_checker_repr_type_feature(self):
         """Test RangeChecker class type checking against FeatureSegments"""
         system, model, asym = self._make_test_model()
         # Replace test model's residue representation with feature
