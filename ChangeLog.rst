@@ -1,11 +1,16 @@
-HEAD
-====
-
+0.4 - 2018-12-17
+================
  - Certain restraints can now be grouped using the
    :class:`ihm.restraint.RestraintGroup` class. Due to limitations of the
    underlying dictionary, this only works for some restraint types (currently
    only :class:`ihm.restraint.DerivedDistanceRestraint`) and all restraints
    in the group must be of the same type.
+ - Bugfix: the the model's representation (see :mod:`ihm.representation`)
+   need not be a strict subset of the model's :class:`ihm.Assembly`. However,
+   any :class:`ihm.model.Atom` or :class:`ihm.model.Sphere` objects must be
+   covered by both the representation and the model's :class:`ihm.Assembly`.
+ - Bugfix: the reader no longer fails to read files that contain
+   _entity.formula_weight.
 
 0.3 - 2018-11-21
 ================
