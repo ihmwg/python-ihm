@@ -1237,6 +1237,14 @@ _ihm_non_poly_feature.atom_id
 1 3 3 C HEM FE
 2 4 3 C HEM .
 #
+loop_
+_ihm_feature_pseudo_site.feature_id
+_ihm_feature_pseudo_site.Cartn_x
+_ihm_feature_pseudo_site.Cartn_y
+_ihm_feature_pseudo_site.Cartn_z
+_ihm_feature_pseudo_site.radius
+_ihm_feature_pseudo_site.description
+5 10.000 20.000 30.000 4.0 'centroid'
 """
         rsr = """
 loop_
@@ -1253,14 +1261,14 @@ _ihm_derived_distance_restraint.dataset_list_id
 1 . 1 2 'lower bound' 25.000 . 0.800 . 97
 2 . 1 4 'upper bound' . 45.000 0.800 ALL 98
 3 1 1 2 'lower and upper bound' 22.000 45.000 0.800 ANY 99
-4 1 2 3 'harmonic' 35.000 35.000 0.800 ALL .
+4 1 5 3 'harmonic' 35.000 35.000 0.800 ALL .
 """
         # Test both ways to make sure features still work if they are
         # referenced by ID before their type is known
         for text in (feats+rsr, rsr+feats):
             fh = StringIO(text)
             s, = ihm.reader.read(fh)
-            self.assertEqual(len(s.orphan_features), 4)
+            self.assertEqual(len(s.orphan_features), 5)
             r1, r2, r3, r4 = s.restraints
             rg1, = s.restraint_groups
             self.assertEqual([r for r in rg1], [r3, r4])
@@ -1293,6 +1301,13 @@ _ihm_derived_distance_restraint.dataset_list_id
                                  ihm.restraint.HarmonicDistanceRestraint))
             self.assertTrue(isinstance(r4.feature2,
                                        ihm.restraint.AtomFeature))
+            self.assertTrue(isinstance(r4.feature1,
+                                       ihm.restraint.PseudoSiteFeature))
+            self.assertAlmostEqual(r4.feature1.x, 10.0, places=1)
+            self.assertAlmostEqual(r4.feature1.y, 20.0, places=1)
+            self.assertAlmostEqual(r4.feature1.z, 30.0, places=1)
+            self.assertAlmostEqual(r4.feature1.radius, 4.0, places=1)
+            self.assertEqual(r4.feature1.description, 'centroid')
 
     def test_sphere_handler(self):
         """Test SphereHandler"""

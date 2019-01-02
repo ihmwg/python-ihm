@@ -1346,6 +1346,7 @@ class _FeatureDumper(_Dumper):
         self.dump_poly_residue(writer)
         self.dump_poly_atom(writer)
         self.dump_non_poly(writer)
+        self.dump_pseudo_site(writer)
 
     def dump_list(self, writer):
         with writer.loop("_ihm_feature_list",
@@ -1416,6 +1417,16 @@ class _FeatureDumper(_Dumper):
                                 asym_id=a._id, comp_id=seq[0].id,
                                 atom_id=None)
                         ordinal += 1
+
+    def dump_pseudo_site(self, writer):
+        with writer.loop("_ihm_feature_pseudo_site",
+                         ["feature_id", "Cartn_x", "Cartn_y",
+                          "Cartn_z", "radius", "description"]) as l:
+            for f in self._features_by_id:
+                if not isinstance(f, restraint.PseudoSiteFeature):
+                    continue
+                l.write(feature_id=f._id, Cartn_x=f.x, Cartn_y=f.y,
+                        Cartn_z=f.z, radius=f.radius, description=f.description)
 
 
 class _CrossLinkDumper(_Dumper):

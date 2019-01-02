@@ -418,8 +418,8 @@ class CrossLinkFit(object):
 
 class Feature(object):
     """Base class for selecting parts of the system that a restraint acts on.
-       See :class:`ResidueFeature`, :class:`AtomFeature`, and
-       :class:`NonPolyFeature`.
+       See :class:`ResidueFeature`, :class:`AtomFeature`,
+       :class:`NonPolyFeature`, and :class:`PseudoSiteFeature`.
 
        Features are typically assigned to one or more
        :class:`~ihm.restraint.GeometricRestraint` objects.
@@ -496,6 +496,27 @@ class NonPolyFeature(Feature):
             raise ValueError("%s can only select non-polymeric entities" % self)
         else:
             return self.asyms[0].entity.type if self.asyms else None
+
+
+class PseudoSiteFeature(Feature):
+    """Selection of a pseudo position in the system.
+
+       :param float x: Cartesian X coordinate of this site.
+       :param float y: Cartesian Y coordinate of this site.
+       :param float z: Cartesian Z coordinate of this site.
+       :param float radius: Radius of the site, if applicable.
+       :param str description: Textual description of this site.
+    """
+
+    type = 'pseudo site'
+
+    def __init__(self, x, y, z, radius=None, description=None):
+        self.x, self.y, self.z = x, y, z
+        self.radius = radius
+        self.description = description
+
+    def _get_entity_type(self):
+        return 'other'
 
 
 class GeometricRestraint(object):

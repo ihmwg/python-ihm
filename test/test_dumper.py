@@ -2234,15 +2234,19 @@ _ihm_geometric_object_plane.transformation_id
         # Cannot make a NonPolyFeature that includes a polymer 'residue'
         self.assertRaises(ValueError, ihm.restraint.NonPolyFeature, [a1, a3])
 
+        # Pseudo site feature
+        f = ihm.restraint.PseudoSiteFeature(x=10., y=20., z=30.)
+        system.orphan_features.append(f)
+
         ihm.dumper._EntityDumper().finalize(system) # assign entity IDs
         ihm.dumper._StructAsymDumper().finalize(system) # assign asym IDs
 
         dumper = ihm.dumper._FeatureDumper()
         dumper.finalize(system) # assign IDs
-        self.assertEqual(len(dumper._features_by_id), 4)
+        self.assertEqual(len(dumper._features_by_id), 5)
         # Repeated calls to finalize should yield identical results
         dumper.finalize(system)
-        self.assertEqual(len(dumper._features_by_id), 4)
+        self.assertEqual(len(dumper._features_by_id), 5)
         out = _get_dumper_output(dumper, system)
         self.assertEqual(out, """#
 loop_
@@ -2253,6 +2257,7 @@ _ihm_feature_list.entity_type
 2 atom polymer
 3 atom non-polymer
 4 ligand non-polymer
+5 'pseudo site' other
 #
 #
 loop_
@@ -2289,6 +2294,16 @@ _ihm_non_poly_feature.comp_id
 _ihm_non_poly_feature.atom_id
 1 3 2 C HEM FE
 2 4 2 C HEM .
+#
+#
+loop_
+_ihm_feature_pseudo_site.feature_id
+_ihm_feature_pseudo_site.Cartn_x
+_ihm_feature_pseudo_site.Cartn_y
+_ihm_feature_pseudo_site.Cartn_z
+_ihm_feature_pseudo_site.radius
+_ihm_feature_pseudo_site.description
+5 10.000 20.000 30.000 . .
 #
 """)
 

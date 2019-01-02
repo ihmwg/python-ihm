@@ -1,3 +1,10 @@
+HEAD
+====
+ - Pseudo sites are now supported. :class:`ihm.restraint.PseudoSiteFeature`
+   always points or spheres with arbitrary coordinates to be designated as
+   features, which can then be used in
+   :class:`ihm.restraint.DerivedDistanceRestraint`.
+
 0.4 - 2018-12-17
 ================
  - Certain restraints can now be grouped using the

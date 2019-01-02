@@ -174,6 +174,9 @@ class _FeatureIDMapper(_IDMapper):
         if newcls is None:
             # Make Feature base class (takes no args)
             return self._cls()
+        elif newcls is ihm.restraint.PseudoSiteFeature:
+            # Pseudo site constructor needs x, y, z coordinates
+            return newcls(None, None, None)
         else:
             # Make subclass (takes one ranges/atoms argument)
             return newcls([])
@@ -190,6 +193,10 @@ class _FeatureIDMapper(_IDMapper):
         elif newcls is ihm.restraint.NonPolyFeature \
            and not hasattr(obj, 'asyms'):
             obj.asyms = []
+        elif newcls is ihm.restraint.PseudoSiteFeature \
+           and not hasattr(obj, 'x'):
+            obj.x = obj.y = obj.z = None
+            obj.radius = obj.description = None
 
 
 class _GeometryIDMapper(_IDMapper):
@@ -1132,6 +1139,20 @@ class _NonPolyFeatureHandler(_Handler):
             f.atoms.append(atom)
 
 
+class _PseudoSiteFeatureHandler(_Handler):
+    category = '_ihm_feature_pseudo_site'
+
+    def __call__(self, feature_id, cartn_x, cartn_y, cartn_z, radius,
+                 description):
+        f = self.sysr.features.get_by_id(feature_id,
+                                         ihm.restraint.PseudoSiteFeature)
+        f.x = _get_float(cartn_x)
+        f.y = _get_float(cartn_y)
+        f.z = _get_float(cartn_z)
+        f.radius = _get_float(radius)
+        f.description = description
+
+
 def _make_harmonic(low, up):
     low = _get_float(low)
     up = _get_float(up)
@@ -1555,6 +1576,7 @@ def read(fh, model_class=ihm.model.Model, format='mmCIF'):
                     _SphereObjSiteHandler(s), _AtomSiteHandler(s),
                     _PolyResidueFeatureHandler(s), _PolyAtomFeatureHandler(s),
                     _NonPolyFeatureHandler(s),
+                    _PseudoSiteFeatureHandler(s),
                     _DerivedDistanceRestraintHandler(s),
                     _CenterHandler(s), _TransformationHandler(s),
                     _GeometricObjectHandler(s), _SphereHandler(s),
