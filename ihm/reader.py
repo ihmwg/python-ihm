@@ -1140,7 +1140,7 @@ class _NonPolyFeatureHandler(_Handler):
 
 
 class _PseudoSiteFeatureHandler(_Handler):
-    category = '_ihm_feature_pseudo_site'
+    category = '_ihm_pseudo_site_feature'
 
     def __call__(self, feature_id, cartn_x, cartn_y, cartn_z, radius,
                  description):

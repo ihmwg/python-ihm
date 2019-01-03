@@ -1419,7 +1419,7 @@ class _FeatureDumper(_Dumper):
                         ordinal += 1
 
     def dump_pseudo_site(self, writer):
-        with writer.loop("_ihm_feature_pseudo_site",
+        with writer.loop("_ihm_pseudo_site_feature",
                          ["feature_id", "Cartn_x", "Cartn_y",
                           "Cartn_z", "radius", "description"]) as l:
             for f in self._features_by_id:

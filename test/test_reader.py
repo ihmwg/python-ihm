@@ -1238,12 +1238,12 @@ _ihm_non_poly_feature.atom_id
 2 4 3 C HEM .
 #
 loop_
-_ihm_feature_pseudo_site.feature_id
-_ihm_feature_pseudo_site.Cartn_x
-_ihm_feature_pseudo_site.Cartn_y
-_ihm_feature_pseudo_site.Cartn_z
-_ihm_feature_pseudo_site.radius
-_ihm_feature_pseudo_site.description
+_ihm_pseudo_site_feature.feature_id
+_ihm_pseudo_site_feature.Cartn_x
+_ihm_pseudo_site_feature.Cartn_y
+_ihm_pseudo_site_feature.Cartn_z
+_ihm_pseudo_site_feature.radius
+_ihm_pseudo_site_feature.description
 5 10.000 20.000 30.000 4.0 'centroid'
 """
         rsr = """
