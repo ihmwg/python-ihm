@@ -1,6 +1,8 @@
-"""Chemical descriptors of commonly-used cross-linkers
+"""Chemical descriptors of commonly-used cross-linkers.
 
-   See also :class:`ihm.ChemDescriptor`.
+   Each of these is an instance of the :class:`ihm.ChemDescriptor` class,
+   and so can be used anywhere these objects are required, generally for
+   :class:`ihm.restraint.CrossLinkRestraint`.
 """
 
 import ihm
