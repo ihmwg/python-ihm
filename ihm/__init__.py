@@ -64,6 +64,12 @@ class System(object):
         #: All asymmetric units used in the system. See :class:`AsymUnit`.
         self.asym_units = []
 
+        #: All orphaned chemical descriptors in the system.
+        #: See :class:`ChemDescriptor`. This can be used to track descriptors
+        #: that are not otherwise used - normally one is assigned to a
+        #: :class:`ihm.restraint.CrossLinkRestraint`.
+        self.orphan_chem_descriptors = []
+
         #: All orphaned assemblies in the system. See :class:`Assembly`.
         #: This can be used to keep track of all assemblies that are not
         #: otherwise used - normally one is assigned to a
@@ -193,6 +199,12 @@ class System(object):
                 for r in rg:
                     yield r
         return itertools.chain(self.restraints, _all_restraints_in_groups())
+
+    def _all_chem_descriptors(self):
+        """Iterate over all ChemDescriptors in the system.
+           Duplicates may be present."""
+        # todo: add chemdescs used in crosslinks
+        return self.orphan_chem_descriptors
 
     def _all_model_groups(self, only_in_states=True):
         """Iterate over all ModelGroups in the system.
@@ -1037,3 +1049,29 @@ class Assembly(list):
     def __init__(self, elements=(), name=None, description=None):
         super(Assembly, self).__init__(elements)
         self.name, self.description = name, description
+
+
+class ChemDescriptor(object):
+    """Description of a non-polymeric chemical component used in the experiment.
+       For example, this might be a fluorescent probe or crosslinking agent.
+       This class describes the chemical structure of the component, for
+       example with a SMILES or INCHI descriptor, so that it is uniquely
+       defined.
+
+       :param str auth_name: Author-provided name
+       :param str chem_comp_id: If this chemical is listed in the Chemical
+              Component Dictionary, its three-letter identifier
+       :param str chemical_name: The systematic (IUPAC) chemical name
+       :param str common_name: Common name for the component
+       :param str smiles: SMILES string
+       :param str smiles_canonical: Canonical SMILES string
+       :param str inchi: IUPAC INCHI descriptor
+       :param str inchi_key: Hashed INCHI key
+    """
+    def __init__(self, auth_name, chem_comp_id=None, chemical_name=None,
+                 common_name=None, smiles=None, smiles_canonical=None,
+                 inchi=None, inchi_key=None):
+        self.auth_name, self.chem_comp_id = auth_name, chem_comp_id
+        self.chemical_name, self.common_name = chemical_name, common_name
+        self.smiles, self.smiles_canonical = smiles, smiles_canonical
+        self.inchi, self.inchi_key = inchi, inchi_key

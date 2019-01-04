@@ -290,6 +290,30 @@ DC 'DNA linking' "2'-DEOXYCYTIDINE-5'-MONOPHOSPHATE" 'C9 H14 N3 O7 P' 307.199
 #
 """)
 
+    def test_chem_descriptor_dumper(self):
+        """Test ChemDescriptorDumper"""
+        system = ihm.System()
+        d1 = ihm.ChemDescriptor('EDC', smiles='CCN=C=NCCCN(C)C',
+                                inchi_key='LMDZBCPBFSXMTL-UHFFFAOYSA-N')
+        system.orphan_chem_descriptors.append(d1)
+        dumper = ihm.dumper._ChemDescriptorDumper()
+        dumper.finalize(system) # Assign descriptor IDs
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_ihm_chemical_descriptor.id
+_ihm_chemical_descriptor.auth_name
+_ihm_chemical_descriptor.chem_comp_id
+_ihm_chemical_descriptor.chemical_name
+_ihm_chemical_descriptor.common_name
+_ihm_chemical_descriptor.smiles
+_ihm_chemical_descriptor.smiles_canonical
+_ihm_chemical_descriptor.inchi
+_ihm_chemical_descriptor.inchi_key
+1 EDC . . . CCN=C=NCCCN(C)C . . LMDZBCPBFSXMTL-UHFFFAOYSA-N
+#
+""")
+
     def test_entity_poly_dumper(self):
         """Test EntityPolyDumper"""
         system = ihm.System()

@@ -321,6 +321,8 @@ class _SystemReader(object):
         self.citations = _IDMapper(self.system.citations, ihm.Citation,
                                    *(None,)*8)
         self.entities = _IDMapper(self.system.entities, _make_new_entity)
+        self.chem_descriptors = _IDMapper(self.system.orphan_chem_descriptors,
+                                          ihm.ChemDescriptor, None)
         self.asym_units = _IDMapper(self.system.asym_units, ihm.AsymUnit, None)
         self.chem_comps = _ChemCompIDMapper(None, ihm.ChemComp, *(None,)*3)
         self.assemblies = _IDMapper(self.system.orphan_assemblies, ihm.Assembly)
@@ -491,6 +493,18 @@ class _ChemCompHandler(_Handler):
         s = self.sysr.chem_comps.get_by_id(id,
                                            self.type_map.get(typ, ihm.ChemComp))
         self._copy_if_present(s, locals(), keys=('name', 'formula'))
+
+
+class _ChemDescriptorHandler(_Handler):
+    category = '_ihm_chemical_descriptor'
+
+    def __call__(self, id, auth_name, chem_comp_id, chemical_name, common_name,
+                 smiles, smiles_canonical, inchi, inchi_key):
+        d = self.sysr.chem_descriptors.get_by_id(id)
+        self._copy_if_present(d, locals(),
+                keys=('auth_name', 'chem_comp_id', 'chemical_name',
+                      'common_name', 'smiles', 'smiles_canonical', 'inchi',
+                      'inchi_key'))
 
 
 class _EntityHandler(_Handler):
@@ -1557,6 +1571,7 @@ def read(fh, model_class=ihm.model.Model, format='mmCIF'):
         s = _SystemReader(model_class)
         handlers = [_StructHandler(s), _SoftwareHandler(s), _CitationHandler(s),
                     _CitationAuthorHandler(s), _ChemCompHandler(s),
+                    _ChemDescriptorHandler(s),
                     _EntityHandler(s), _EntityPolySeqHandler(s),
                     _EntityNonPolyHandler(s),
                     _StructAsymHandler(s), _AssemblyDetailsHandler(s),

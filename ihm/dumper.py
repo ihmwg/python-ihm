@@ -148,6 +148,30 @@ class _ChemCompDumper(_Dumper):
                                 formula_weight=comp.formula_weight)
 
 
+class _ChemDescriptorDumper(_Dumper):
+    def finalize(self, system):
+        seen_desc = {}
+        # Assign IDs to all descriptors
+        self._descriptor_by_id = []
+        for d in system._all_chem_descriptors():
+            util._remove_id(d)
+        for d in system._all_chem_descriptors():
+            util._assign_id(d, seen_desc, self._descriptor_by_id)
+
+    def dump(self, system, writer):
+        with writer.loop("_ihm_chemical_descriptor",
+                ["id", "auth_name", "chem_comp_id", "chemical_name",
+                 "common_name", "smiles", "smiles_canonical", "inchi",
+                 "inchi_key"]) as l:
+            for d in self._descriptor_by_id:
+                l.write(id=d._id, auth_name=d.auth_name,
+                        chem_comp_id=d.chem_comp_id,
+                        chemical_name=d.chemical_name,
+                        common_name=d.common_name, smiles=d.smiles,
+                        smiles_canonical=d.smiles_canonical, inchi=d.inchi,
+                        inchi_key=d.inchi_key)
+
+
 class _EntityDumper(_Dumper):
     def finalize(self, system):
         # Assign IDs and check for duplicates
@@ -1805,7 +1829,7 @@ def write(fh, systems, format='mmCIF'):
                _AuditConformDumper(), _SoftwareDumper(),
                _CitationDumper(),
                _AuditAuthorDumper(),
-               _ChemCompDumper(),
+               _ChemCompDumper(), _ChemDescriptorDumper(),
                _EntityDumper(),
                _EntityPolyDumper(),
                _EntityNonPolyDumper(),

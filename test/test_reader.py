@@ -296,6 +296,32 @@ _pdbx_entity_nonpoly.comp_id
                 self.assertEqual(s[0].type, 'non-polymer')
                 self.assertEqual(s[0].__class__, ihm.WaterChemComp)
 
+    def test_chem_descriptor_handler(self):
+        """Test ChemDescriptorHandler"""
+        cif = """
+loop_
+_ihm_chemical_descriptor.id
+_ihm_chemical_descriptor.auth_name
+_ihm_chemical_descriptor.chem_comp_id
+_ihm_chemical_descriptor.chemical_name
+_ihm_chemical_descriptor.common_name
+_ihm_chemical_descriptor.smiles
+_ihm_chemical_descriptor.smiles_canonical
+_ihm_chemical_descriptor.inchi
+_ihm_chemical_descriptor.inchi_key
+1 EDC UNK "test-chem-EDC" . "CCN=C=NCCCN(C)C" . test-inchi test-inchi-key
+"""
+        for fh in cif_file_handles(cif):
+            s, = ihm.reader.read(fh)
+            d1, = s.orphan_chem_descriptors
+            self.assertEqual(d1.auth_name, 'EDC')
+            self.assertEqual(d1.chem_comp_id, 'UNK')
+            self.assertEqual(d1.chemical_name, 'test-chem-EDC')
+            self.assertEqual(d1.smiles, 'CCN=C=NCCCN(C)C')
+            self.assertEqual(d1.smiles_canonical, None)
+            self.assertEqual(d1.inchi, 'test-inchi')
+            self.assertEqual(d1.inchi_key, 'test-inchi-key')
+
     def test_entity_handler(self):
         """Test EntityHandler"""
         cif = """
