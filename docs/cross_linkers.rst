@@ -7,6 +7,10 @@ The :mod:`ihm.cross_linkers` Python module
 
 .. automodule:: ihm.cross_linkers
 
-.. autodata:: dss
+.. data:: dss
 
-.. autodata:: edc
+   DSS cross-linker that links primary amines to primary amines
+
+.. data:: edc
+
+   EDC cross-linker that links carboxyls groups and primary amines
