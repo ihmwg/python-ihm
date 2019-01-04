@@ -188,13 +188,14 @@ class CrossLinkRestraint(Restraint):
        :param dataset: Reference to the cross-link data (usually
               a :class:`~ihm.dataset.CXMSDataset`).
        :type dataset: :class:`~ihm.dataset.Dataset`
-       :param str linker_type: The type of chemical linker used.
+       :param linker: The type of chemical linker used.
+       :type linker: :class:`ihm.ChemDescriptor`
     """
 
     assembly = None # no struct_assembly_id for XL restraints
 
-    def __init__(self, dataset, linker_type):
-        self.dataset, self.linker_type = dataset, linker_type
+    def __init__(self, dataset, linker):
+        self.dataset, self.linker = dataset, linker
 
         #: All cross-links identified in the experiment, as a simple list
         #: of lists of :class:`ExperimentalCrossLink` objects. All cross-links

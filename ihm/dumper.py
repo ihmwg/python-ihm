@@ -1473,7 +1473,7 @@ class _CrossLinkDumper(_Dumper):
                     # Assign identical cross-links the same ID and group ID
                     sig = (xl.residue1.entity, xl.residue1.seq_id,
                            xl.residue2.entity, xl.residue2.seq_id,
-                           r.linker_type)
+                           r.linker)
                     if sig in seen_cross_links:
                         xl._id, xl._group_id = seen_cross_links[sig]
                     else:
@@ -1496,7 +1496,7 @@ class _CrossLinkDumper(_Dumper):
                 ex_xl = xl.experimental_cross_link
                 sig = (xl.asym1._id, ex_xl.residue1.seq_id, xl.atom1,
                        xl.asym2._id, ex_xl.residue2.seq_id, xl.atom2,
-                       r.linker_type)
+                       r.linker)
                 if sig in seen_cross_links:
                     xl._id = seen_cross_links[sig]
                 else:
@@ -1516,7 +1516,8 @@ class _CrossLinkDumper(_Dumper):
                           "entity_id_1", "seq_id_1", "comp_id_1",
                           "entity_description_2",
                           "entity_id_2", "seq_id_2", "comp_id_2",
-                          "linker_type", "dataset_list_id"]) as l:
+                          "linker_descriptor_id", "linker_type",
+                          "dataset_list_id"]) as l:
             for r, xl in self._ex_xls_by_id:
                 entity1 = xl.residue1.entity
                 entity2 = xl.residue2.entity
@@ -1531,7 +1532,8 @@ class _CrossLinkDumper(_Dumper):
                         entity_id_2=entity2._id,
                         seq_id_2=xl.residue2.seq_id,
                         comp_id_2=seq2[xl.residue2.seq_id-1].id,
-                        linker_type=r.linker_type,
+                        linker_descriptor_id=r.linker._id,
+                        linker_type=r.linker.auth_name,
                         dataset_list_id=r.dataset._id)
 
     def dump_restraint(self, system, writer):

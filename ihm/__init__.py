@@ -203,8 +203,10 @@ class System(object):
     def _all_chem_descriptors(self):
         """Iterate over all ChemDescriptors in the system.
            Duplicates may be present."""
-        # todo: add chemdescs used in crosslinks
-        return self.orphan_chem_descriptors
+        return itertools.chain(self.orphan_chem_descriptors,
+                      (restraint.linker for restraint in self.restraints
+                                        if hasattr(restraint, 'linker')
+                                        and restraint.linker))
 
     def _all_model_groups(self, only_in_states=True):
         """Iterate over all ModelGroups in the system.
@@ -1053,10 +1055,11 @@ class Assembly(list):
 
 class ChemDescriptor(object):
     """Description of a non-polymeric chemical component used in the experiment.
-       For example, this might be a fluorescent probe or crosslinking agent.
+       For example, this might be a fluorescent probe or cross-linking agent.
        This class describes the chemical structure of the component, for
        example with a SMILES or INCHI descriptor, so that it is uniquely
-       defined.
+       defined. A descriptor is typically assigned to a
+       :class:`ihm.restraint.CrossLinkRestraint`.
 
        :param str auth_name: Author-provided name
        :param str chem_comp_id: If this chemical is listed in the Chemical
@@ -1067,6 +1070,8 @@ class ChemDescriptor(object):
        :param str smiles_canonical: Canonical SMILES string
        :param str inchi: IUPAC INCHI descriptor
        :param str inchi_key: Hashed INCHI key
+
+       See also :attr:`System.orphan_chem_descriptors`.
     """
     def __init__(self, auth_name, chem_comp_id=None, chemical_name=None,
                  common_name=None, smiles=None, smiles_canonical=None,

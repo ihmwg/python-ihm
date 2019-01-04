@@ -295,12 +295,12 @@ class _XLRestraintMapper(object):
         self.system_list = system_list
         self._seen_rsrs = {}
 
-    def get_by_attrs(self, dataset, linker_type):
-        """Group all crosslinks with same dataset and linker type in one
+    def get_by_attrs(self, dataset, linker):
+        """Group all crosslinks with same dataset and linker in one
            CrossLinkRestraint object"""
-        k = (dataset._id, linker_type)
+        k = (dataset._id, linker)
         if k not in self._seen_rsrs:
-            r = ihm.restraint.CrossLinkRestraint(dataset, linker_type)
+            r = ihm.restraint.CrossLinkRestraint(dataset, linker)
             self.system_list.append(r)
             self._seen_rsrs[k] = r
         return self._seen_rsrs[k]
@@ -1422,13 +1422,13 @@ class _CrossLinkListHandler(_Handler):
         super(_CrossLinkListHandler, self).__init__(*args)
         self._seen_group_ids = set()
 
-    def __call__(self, dataset_list_id, linker_type, group_id, id,
+    def __call__(self, dataset_list_id, linker_descriptor_id, group_id, id,
                  entity_id_1, entity_id_2, seq_id_1, seq_id_2):
         dataset = self.sysr.datasets.get_by_id_or_none(dataset_list_id)
-        linker_type = linker_type.upper()
-        # Group all crosslinks with same dataset and linker type in one
+        linker = self.sysr.chem_descriptors.get_by_id(linker_descriptor_id)
+        # Group all crosslinks with same dataset and linker in one
         # CrossLinkRestraint object
-        r = self.sysr.xl_restraints.get_by_attrs(dataset, linker_type)
+        r = self.sysr.xl_restraints.get_by_attrs(dataset, linker)
 
         xl_group = self.sysr.experimental_xl_groups.get_by_id(group_id)
         xl = self.sysr.experimental_xls.get_by_id(id)

@@ -1,5 +1,11 @@
 HEAD
 ====
+ - :class:`ihm.restraint.CrossLinkRestraint` now takes an
+   :class:`ihm.ChemDescriptor` object rather than the name of the cross-linker
+   used. This allows the use of novel cross-linkers (beyond those currently
+   listed in a fixed enumeration in the IHM dictionary).
+   :class:`ihm.ChemDescriptor` allows for the chemical structure of the
+   cross-linker to be uniquely specified, as a SMILES or INCHI string.
  - Pseudo sites are now supported. :class:`ihm.restraint.PseudoSiteFeature`
    allows points or spheres with arbitrary coordinates to be designated as
    features, which can then be used in
