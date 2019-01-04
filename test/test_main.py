@@ -747,14 +747,26 @@ class Tests(unittest.TestCase):
 
     def test_all_chem_descriptors(self):
         """Test _all_chem_descriptors() method"""
+        class MockObject(object):
+            pass
+
         d1 = ihm.ChemDescriptor("d1")
         d2 = ihm.ChemDescriptor("d2")
+        d3 = ihm.ChemDescriptor("d3")
 
         s = ihm.System()
+        r1 = MockObject()
+        r2 = MockObject()
+        r2.linker = None
+        r3 = MockObject()
+        r2.linker = d3
+        s.restraints.extend((r1, r2))
+
+        r2.feature = None
         s.orphan_chem_descriptors.extend((d1, d2, d1))
 
         # duplicates should not be filtered
-        self.assertEqual(list(s._all_chem_descriptors()), [d1, d2, d1])
+        self.assertEqual(list(s._all_chem_descriptors()), [d1, d2, d1, d3])
 
     def test_update_locations_in_repositories(self):
         """Test update_locations_in_repositories() method"""
