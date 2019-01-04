@@ -1061,6 +1061,9 @@ class ChemDescriptor(object):
        defined. A descriptor is typically assigned to a
        :class:`ihm.restraint.CrossLinkRestraint`.
 
+       See :mod:`ihm.cross_linkers` for chemical descriptors of some
+       commonly-used cross-linking agents.
+
        :param str auth_name: Author-provided name
        :param str chem_comp_id: If this chemical is listed in the Chemical
               Component Dictionary, its three-letter identifier

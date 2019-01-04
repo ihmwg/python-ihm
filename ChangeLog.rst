@@ -6,6 +6,8 @@ HEAD
    listed in a fixed enumeration in the IHM dictionary).
    :class:`ihm.ChemDescriptor` allows for the chemical structure of the
    cross-linker to be uniquely specified, as a SMILES or INCHI string.
+   The :mod:`ihm.cross_linkers` module provides chemical descriptors for
+   some commonly-used cross-linkers.
  - Pseudo sites are now supported. :class:`ihm.restraint.PseudoSiteFeature`
    allows points or spheres with arbitrary coordinates to be designated as
    features, which can then be used in
