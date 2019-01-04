@@ -537,7 +537,7 @@ class ChemComp(object):
        :param str code_canonical: Canonical version of `code` (which need not
               be unique).
        :param str name: A longer human-readable name for the component.
-       :param str formula: The chemical formula. This is a spaced-separated
+       :param str formula: The chemical formula. This is a space-separated
               list of the element symbols in the component, each followed
               by an optional count (if omitted, 1 is assumed). The formula
               is terminated with the formal charge (if not zero). The element
