@@ -585,7 +585,7 @@ class ChemComp(object):
         # Remove formal charge if present
         if len(spl) > 0 and spl[-1].isdigit():
             del spl[-1]
-        r = re.compile('(\D+)(\d*)$')
+        r = re.compile(r'(\D+)(\d*)$')
         weight = 0.
         for s in spl:
             m = r.match(s)
