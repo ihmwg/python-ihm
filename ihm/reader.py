@@ -20,7 +20,7 @@ except ImportError:
 def _make_new_entity():
     """Make a new Entity object"""
     e = ihm.Entity([])
-    # make sequence mutable
+    # make sequence mutable (see also _SystemReader.finalize)
     e.sequence = list(e.sequence)
     return e
 
@@ -389,6 +389,11 @@ class _SystemReader(object):
         self.ordered_procs = _IDMapper(self.system.ordered_processes,
                                     ihm.model.OrderedProcess, None)
         self.ordered_steps = _IDMapper(None, ihm.model.ProcessStep)
+
+    def finalize(self):
+        # make sequence immutable (see also _make_new_entity)
+        for e in self.system.entities:
+            e.sequence = tuple(e.sequence)
 
 
 class _Handler(object):
@@ -1606,6 +1611,7 @@ def read(fh, model_class=ihm.model.Model, format='mmCIF'):
         more_data = r.read_file()
         for h in handlers:
             h.finalize()
+        s.finalize()
         systems.append(s.system)
         if not more_data:
             break
