@@ -582,6 +582,22 @@ class _AssemblyHandler(_Handler):
             entity = self.sysr.entities.get_by_id(entity_id)
             a.append(entity(*seqrng))
 
+    def finalize(self):
+        # Any EntityRange or AsymUnitRange which covers an entire entity,
+        # replace with Entity or AsymUnit object
+        for a in self.system.orphan_assemblies:
+            a[:] = [self._handle_component(x) for x in a]
+
+    def _handle_component(self, comp):
+        if isinstance(comp, ihm.EntityRange) \
+           and comp.seq_id_range == comp.entity.seq_id_range:
+            return comp.entity
+        if isinstance(comp, ihm.AsymUnitRange) \
+           and comp.seq_id_range == comp.asym.seq_id_range:
+            return comp.asym
+        else:
+            return comp
+
 
 class _LocalFiles(ihm.location.Repository):
     """Placeholder for files stored locally"""
