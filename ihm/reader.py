@@ -28,20 +28,6 @@ def _get_lower(val):
     """Return lowercase val or None if val is None"""
     return val.lower() if val is not None else None
 
-def _get_int(val):
-    """Return int(val) or None if val is None"""
-    return int(val) if val is not None else None
-
-def _get_int_or_string(val):
-    """Return val as an int or str as appropriate,
-       or None if val is None"""
-    if val is not None:
-        return int(val) if isinstance(val, int) or val.isdigit() else val
-
-def _get_float(val):
-    """Return float(val) or None if val is None"""
-    return float(val) if val is not None else None
-
 def _get_vector3(d, key):
     """Return a 3D vector (as a list) from d[key+[1..3]] or None"""
     if d[key+'1'] is not None:
@@ -55,11 +41,6 @@ def _get_matrix33(d, key):
         # Assume if one element is present, all are
         return [[float(d[key+"%d%d" % (i,j)]) for j in (1,2,3)]
                 for i in (1,2,3)]
-
-_boolmap = {'YES':True, 'NO':False}
-def _get_bool(val):
-    """Convert val to bool and return, or None if val is None"""
-    return _boolmap.get(val.upper(), None) if val is not None else None
 
 class _IDMapper(object):
     """Handle mapping from mmCIF IDs to Python objects.
@@ -399,7 +380,8 @@ class _SystemReader(object):
 class Handler(object):
     """Base class for all handlers of mmCIF data.
        Each class handles a single category in the mmCIF or BinaryCIF file.
-       To add a new handler, make a subclass and set the class attribute
+       To add a new handler (for example to handle a custom category)
+       make a subclass and set the class attribute
        `category` to the mmCIF category name (e.g. `_struct`). Provide
        a `__call__` method. This will be called for each category (multiple
        times for loop constructs) with the parameters to `__call__` filled in
@@ -415,6 +397,10 @@ class Handler(object):
            _custom.key1 x
            _custom.key2 y
 
+       Note that the arguments will always be strings when reading an mmCIF
+       file. To convert to integer, floating point, or boolean, use the utility
+       methods :meth:`get_int`, :meth:`get_float` or :meth:`get_bool`
+       respectively.
        """
 
     #: Value passed to `__call__` for keywords not in the file
@@ -429,6 +415,25 @@ class Handler(object):
     def __init__(self, sysr):
         #: Utility class to map IDs to Python objects.
         self.sysr = sysr
+
+    def get_int(self, val):
+        """Return int(val) or None if val is None"""
+        return int(val) if val is not None else None
+
+    def get_int_or_string(self, val):
+        """Return val as an int or str as appropriate,
+           or None if val is None"""
+        if val is not None:
+            return int(val) if isinstance(val, int) or val.isdigit() else val
+
+    def get_float(self, val):
+        """Return float(val) or None if val is None"""
+        return float(val) if val is not None else None
+
+    _boolmap = {'YES':True, 'NO':False}
+    def get_bool(self, val):
+        """Convert val to bool and return, or None if val is None"""
+        return self._boolmap.get(val.upper(), None) if val is not None else None
 
     def finalize(self):
         """Called at the end of each data block."""
@@ -788,7 +793,7 @@ class _ModelRepresentationHandler(Handler):
         primitive = _get_lower(model_object_primitive)
         gran = _get_lower(model_granularity)
         primitive = _get_lower(model_object_primitive)
-        count = _get_int(model_object_count)
+        count = self.get_int(model_object_count)
         rigid = self._rigid_map[_get_lower(model_mode)]
         segment = self._segment_factory[gran](asym, rigid, primitive,
                                               count, smodel)
@@ -844,8 +849,8 @@ class _StartingComparativeModelsHandler(Handler):
         template_seq_id_range = (int(template_seq_id_begin),
                                  int(template_seq_id_end))
         identity = ihm.startmodel.SequenceIdentity(
-                      _get_float(template_sequence_identity),
-                      _get_int(template_sequence_identity_denominator))
+                      self.get_float(template_sequence_identity),
+                      self.get_int(template_sequence_identity_denominator))
         t = ihm.startmodel.Template(dataset, asym_id, seq_id_range,
                         template_seq_id_range, identity, aln)
         m.templates.append(t)
@@ -860,11 +865,11 @@ class _ProtocolHandler(Handler):
                  software_id, script_file_id, step_name, step_method):
         p = self.sysr.protocols.get_by_id(protocol_id)
         self._copy_if_present(p, locals(),  mapkeys={'protocol_name':'name'})
-        nbegin = _get_int(num_models_begin)
-        nend = _get_int(num_models_end)
-        mscale = _get_bool(multi_scale_flag)
-        mstate = _get_bool(multi_state_flag)
-        ordered = _get_bool(ordered_flag)
+        nbegin = self.get_int(num_models_begin)
+        nend = self.get_int(num_models_end)
+        mscale = self.get_bool(multi_scale_flag)
+        mstate = self.get_bool(multi_state_flag)
+        ordered = self.get_bool(ordered_flag)
         assembly = self.sysr.assemblies.get_by_id_or_none(
                                             struct_assembly_id)
         dg = self.sysr.dataset_groups.get_by_id_or_none(dataset_group_id)
@@ -912,8 +917,8 @@ class _PostProcessHandler(Handler):
             # to Python None - set it to explicit 'none' instead
             step.feature = 'none'
         else:
-            step.num_models_begin = _get_int(num_models_begin)
-            step.num_models_end = _get_int(num_models_end)
+            step.num_models_begin = self.get_int(num_models_begin)
+            step.num_models_end = self.get_int(num_models_end)
             step.assembly = self.sysr.assemblies.get_by_id_or_none(
                                             struct_assembly_id)
             step.dataset_group = self.sysr.dataset_groups.get_by_id_or_none(
@@ -977,7 +982,7 @@ class _MultiStateHandler(Handler):
         model_group = self.sysr.model_groups.get_by_id(model_group_id)
         state.append(model_group)
 
-        state.population_fraction = _get_float(population_fraction)
+        state.population_fraction = self.get_float(population_fraction)
         self._copy_if_present(state, locals(),
                 keys=['experiment_type', 'details'],
                 mapkeys={'state_name':'name', 'state_type':'type'})
@@ -996,8 +1001,8 @@ class _EnsembleHandler(Handler):
         f = self.sysr.external_files.get_by_id_or_none(ensemble_file_id)
 
         ensemble.model_group = mg
-        ensemble.num_models = _get_int(num_ensemble_models)
-        ensemble.precision = _get_float(ensemble_precision_value)
+        ensemble.num_models = self.get_int(num_ensemble_models)
+        ensemble.precision = self.get_float(ensemble_precision_value)
         # note that num_ensemble_models_deposited is ignored (should be size of
         # model group anyway)
         ensemble.post_process = pp
@@ -1039,10 +1044,10 @@ class _EM3DRestraintHandler(Handler):
         r.fitting_method_citation = self.sysr.citations.get_by_id_or_none(
                                             fitting_method_citation_id)
         self._copy_if_present(r, locals(), keys=('fitting_method',))
-        r.number_of_gaussians = _get_int(number_of_gaussians)
+        r.number_of_gaussians = self.get_int(number_of_gaussians)
 
         model = self.sysr.models.get_by_id(model_id)
-        ccc = _get_float(cross_correlation_coefficient)
+        ccc = self.get_float(cross_correlation_coefficient)
         r.fits[model] = ihm.restraint.EM3DRestraintFit(ccc)
 
 
@@ -1055,12 +1060,12 @@ class _EM2DRestraintHandler(Handler):
                  struct_assembly_id, details):
         r = self.sysr.em2d_restraints.get_by_id(id)
         r.dataset = self.sysr.datasets.get_by_id(dataset_list_id)
-        r.number_raw_micrographs = _get_int(number_raw_micrographs)
-        r.pixel_size_width = _get_float(pixel_size_width)
-        r.pixel_size_height = _get_float(pixel_size_height)
-        r.image_resolution = _get_float(image_resolution)
-        r.segment = _get_bool(image_segment_flag)
-        r.number_of_projections = _get_int(number_of_projections)
+        r.number_raw_micrographs = self.get_int(number_raw_micrographs)
+        r.pixel_size_width = self.get_float(pixel_size_width)
+        r.pixel_size_height = self.get_float(pixel_size_height)
+        r.image_resolution = self.get_float(image_resolution)
+        r.segment = self.get_bool(image_segment_flag)
+        r.number_of_projections = self.get_int(number_of_projections)
         r.assembly = self.sysr.assemblies.get_by_id_or_none(
                                             struct_assembly_id)
         self._copy_if_present(r, locals(), keys=('details',))
@@ -1075,7 +1080,7 @@ class _EM2DFittingHandler(Handler):
                  rot_matrix32, rot_matrix13, rot_matrix23, rot_matrix33):
         r = self.sysr.em2d_restraints.get_by_id(restraint_id)
         model = self.sysr.models.get_by_id(model_id)
-        ccc = _get_float(cross_correlation_coefficient)
+        ccc = self.get_float(cross_correlation_coefficient)
         tr_vector = _get_vector3(locals(), 'tr_vector')
         rot_matrix = _get_matrix33(locals(), 'rot_matrix')
         r.fits[model] = ihm.restraint.EM2DRestraintFit(
@@ -1094,17 +1099,17 @@ class _SASRestraintHandler(Handler):
         r = self.sysr.sas_restraints.get_by_dataset(dataset_list_id)
         r.assembly = self.sysr.assemblies.get_by_id_or_none(
                                             struct_assembly_id)
-        r.segment = _get_bool(profile_segment_flag)
+        r.segment = self.get_bool(profile_segment_flag)
         self._copy_if_present(r, locals(),
                 keys=('fitting_atom_type', 'fitting_method', 'details'))
         fs = fitting_state if fitting_state is not None else 'Single'
         r.multi_state = fs.lower() != 'single'
-        r.radius_of_gyration = _get_float(radius_of_gyration)
-        r.number_of_gaussians = _get_int(number_of_gaussians)
+        r.radius_of_gyration = self.get_float(radius_of_gyration)
+        r.number_of_gaussians = self.get_int(number_of_gaussians)
 
         model = self.sysr.models.get_by_id(model_id)
         r.fits[model] = ihm.restraint.SASRestraintFit(
-                                 chi_value=_get_float(chi_value))
+                                 chi_value=self.get_float(chi_value))
 
 
 class _SphereObjSiteHandler(Handler):
@@ -1114,7 +1119,7 @@ class _SphereObjSiteHandler(Handler):
                  cartn_x, cartn_y, cartn_z, object_radius):
         model = self.sysr.models.get_by_id(model_id)
         asym = self.sysr.asym_units.get_by_id(asym_id)
-        rmsf = _get_float(rmsf)
+        rmsf = self.get_float(rmsf)
         s = ihm.model.Sphere(asym_unit=asym,
                 seq_id_range=(int(seq_id_begin), int(seq_id_end)),
                 x=float(cartn_x), y=float(cartn_y),
@@ -1133,9 +1138,9 @@ class _AtomSiteHandler(Handler):
         # todo: handle insertion codes
         model = self.sysr.models.get_by_id(pdbx_pdb_model_num)
         asym = self.sysr.asym_units.get_by_id(label_asym_id)
-        biso = _get_float(b_iso_or_equiv)
+        biso = self.get_float(b_iso_or_equiv)
         # seq_id can be None for non-polymers (HETATM)
-        seq_id = _get_int(label_seq_id)
+        seq_id = self.get_int(label_seq_id)
         group = 'ATOM' if group_pdb is None else group_pdb
         a = ihm.model.Atom(asym_unit=asym,
                 seq_id=seq_id,
@@ -1146,7 +1151,7 @@ class _AtomSiteHandler(Handler):
                 biso=biso)
         model.add_atom(a)
 
-        auth_seq_id = _get_int_or_string(auth_seq_id)
+        auth_seq_id = self.get_int_or_string(auth_seq_id)
         # Note any residues that have different seq_id and auth_seq_id
         if auth_seq_id is not None and seq_id != auth_seq_id:
             if asym.auth_seq_id_map == 0:
@@ -1202,27 +1207,27 @@ class _PseudoSiteFeatureHandler(Handler):
                  description):
         f = self.sysr.features.get_by_id(feature_id,
                                          ihm.restraint.PseudoSiteFeature)
-        f.x = _get_float(cartn_x)
-        f.y = _get_float(cartn_y)
-        f.z = _get_float(cartn_z)
-        f.radius = _get_float(radius)
+        f.x = self.get_float(cartn_x)
+        f.y = self.get_float(cartn_y)
+        f.z = self.get_float(cartn_z)
+        f.radius = self.get_float(radius)
         f.description = description
 
 
-def _make_harmonic(low, up):
+def _make_harmonic(low, up, _get_float):
     low = _get_float(low)
     up = _get_float(up)
     return ihm.restraint.HarmonicDistanceRestraint(up if low is None else low)
 
-def _make_upper_bound(low, up):
+def _make_upper_bound(low, up, _get_float):
     up = _get_float(up)
     return ihm.restraint.UpperBoundDistanceRestraint(up)
 
-def _make_lower_bound(low, up):
+def _make_lower_bound(low, up, _get_float):
     low = _get_float(low)
     return ihm.restraint.LowerBoundDistanceRestraint(low)
 
-def _make_lower_upper_bound(low, up):
+def _make_lower_upper_bound(low, up, _get_float):
     low = _get_float(low)
     up = _get_float(up)
     return ihm.restraint.LowerUpperBoundDistanceRestraint(
@@ -1249,9 +1254,10 @@ class _DerivedDistanceRestraintHandler(Handler):
         r.feature1 = self.sysr.features.get_by_id(feature_id_1)
         r.feature2 = self.sysr.features.get_by_id(feature_id_2)
         r.distance = _handle_distance[restraint_type](distance_lower_limit,
-                                                      distance_upper_limit)
+                                                      distance_upper_limit,
+                                                      self.get_float)
         r.restrain_all = self._cond_map[group_conditionality]
-        r.probability = _get_float(probability)
+        r.probability = self.get_float(probability)
 
 
 class _CenterHandler(Handler):
@@ -1259,9 +1265,9 @@ class _CenterHandler(Handler):
 
     def __call__(self, id, xcoord, ycoord, zcoord):
         c = self.sysr.centers.get_by_id(id)
-        c.x = _get_float(xcoord)
-        c.y = _get_float(ycoord)
-        c.z = _get_float(zcoord)
+        c.x = self.get_float(xcoord)
+        c.y = self.get_float(ycoord)
+        c.z = self.get_float(zcoord)
 
 
 class _TransformationHandler(Handler):
@@ -1304,7 +1310,7 @@ class _SphereHandler(Handler):
         s.center = self.sysr.centers.get_by_id_or_none(center_id)
         s.transformation = self.sysr.transformations.get_by_id_or_none(
                                                   transformation_id)
-        s.radius = _get_float(radius_r)
+        s.radius = self.get_float(radius_r)
 
 
 class _TorusHandler(Handler):
@@ -1316,8 +1322,8 @@ class _TorusHandler(Handler):
         t.center = self.sysr.centers.get_by_id_or_none(center_id)
         t.transformation = self.sysr.transformations.get_by_id_or_none(
                                                   transformation_id)
-        t.major_radius = _get_float(major_radius_r)
-        t.minor_radius = _get_float(minor_radius_r)
+        t.major_radius = self.get_float(major_radius_r)
+        t.minor_radius = self.get_float(minor_radius_r)
 
 
 class _HalfTorusHandler(Handler):
@@ -1328,7 +1334,7 @@ class _HalfTorusHandler(Handler):
     def __call__(self, object_id, thickness_th, section):
         t = self.sysr.geometries.get_by_id(object_id,
                                            ihm.geometry.HalfTorus)
-        t.thickness = _get_float(thickness_th)
+        t.thickness = self.get_float(thickness_th)
         section = section.lower() if section is not None else ''
         t.inner = self._inner_map.get(section, None)
 
@@ -1387,8 +1393,9 @@ class _GeometricRestraintHandler(Handler):
         r.geometric_object = self.sysr.geometries.get_by_id(object_id)
         r.feature = self.sysr.features.get_by_id(feature_id)
         r.distance = _handle_distance[restraint_type](distance_lower_limit,
-                                                      distance_upper_limit)
-        r.harmonic_force_constant = _get_float(harmonic_force_constant)
+                                                      distance_upper_limit,
+                                                      self.get_float)
+        r.harmonic_force_constant = self.get_float(harmonic_force_constant)
         r.restrain_all = self._cond_map[group_conditionality]
 
 
@@ -1402,8 +1409,8 @@ class _PolySeqSchemeHandler(Handler):
     # function; the C parser expects them in this order
     def __call__(self, asym_id, seq_id, auth_seq_num):
         asym = self.sysr.asym_units.get_by_id(asym_id)
-        seq_id = _get_int(seq_id)
-        auth_seq_num = _get_int_or_string(auth_seq_num)
+        seq_id = self.get_int(seq_id)
+        auth_seq_num = self.get_int_or_string(auth_seq_num)
         # Note any residues that have different seq_id and auth_seq_id
         if seq_id is not None and auth_seq_num is not None \
            and seq_id != auth_seq_num:
@@ -1452,7 +1459,7 @@ class _NonPolySchemeHandler(Handler):
     def __call__(self, asym_id, auth_seq_num):
         asym = self.sysr.asym_units.get_by_id(asym_id)
         # todo: handle multiple instances (e.g. water)
-        auth_seq_num = _get_int_or_string(auth_seq_num)
+        auth_seq_num = self.get_int_or_string(auth_seq_num)
         if auth_seq_num != 1:
             asym.auth_seq_id_map = {1:auth_seq_num}
 
@@ -1519,9 +1526,9 @@ class _CrossLinkRestraintHandler(Handler):
         if isinstance(xl, ihm.restraint.AtomCrossLink):
             xl.atom1 = atom_id_1
             xl.atom2 = atom_id_2
-        xl.psi = _get_float(psi)
-        xl.sigma1 = _get_float(sigma_1)
-        xl.sigma2 = _get_float(sigma_2)
+        xl.psi = self.get_float(psi)
+        xl.sigma1 = self.get_float(sigma_1)
+        xl.sigma2 = self.get_float(sigma_2)
 
     def finalize(self):
         # Put each cross link in the restraint that owns its experimental xl
@@ -1542,9 +1549,9 @@ class _CrossLinkResultHandler(Handler):
         xl = self.sysr.cross_links.get_by_id(restraint_id)
         model = self.sysr.models.get_by_id(model_id)
         xl.fits[model] = ihm.restraint.CrossLinkFit(
-                                psi=_get_float(psi),
-                                sigma1=_get_float(sigma_1),
-                                sigma2=_get_float(sigma_2))
+                                psi=self.get_float(psi),
+                                sigma1=self.get_float(sigma_1),
+                                sigma2=self.get_float(sigma_2))
 
 
 class _OrderedEnsembleHandler(Handler):

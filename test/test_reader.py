@@ -1011,11 +1011,12 @@ _ihm_3dem_restraint.cross_correlation_coefficient
                                0.9, places=1)
 
     def test_get_int_or_string(self):
-        """Test _get_int_or_string function"""
-        self.assertEqual(ihm.reader._get_int_or_string('45A'), '45A')
-        self.assertEqual(ihm.reader._get_int_or_string('45'), 45)
-        self.assertEqual(ihm.reader._get_int_or_string(None), None)
-        self.assertEqual(ihm.reader._get_int_or_string(45), 45)
+        """Test _get_int_or_string method"""
+        h = ihm.reader.Handler(None)
+        self.assertEqual(h.get_int_or_string('45A'), '45A')
+        self.assertEqual(h.get_int_or_string('45'), 45)
+        self.assertEqual(h.get_int_or_string(None), None)
+        self.assertEqual(h.get_int_or_string(45), 45)
 
     def test_get_vector3(self):
         """Test _get_vector3 function"""

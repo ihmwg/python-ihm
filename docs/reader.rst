@@ -7,7 +7,8 @@ The :mod:`ihm.reader` Python module
 
 .. automodule:: ihm.reader
 
+.. autofunction:: read
+
 .. autoclass:: Handler
    :members:
 
-.. autofunction:: read
