@@ -94,7 +94,7 @@ class Tests(unittest.TestCase):
 
     def test_system_reader(self):
         """Test SystemReader class"""
-        s = ihm.reader._SystemReader(ihm.model.Model)
+        s = ihm.reader.SystemReader(ihm.model.Model)
 
     def test_id_mapper(self):
         """Test IDMapper class"""
@@ -103,7 +103,7 @@ class Tests(unittest.TestCase):
                 self.x, self.y = x, y
 
         testlist = []
-        im = ihm.reader._IDMapper(testlist, MockObject, '1', y='2')
+        im = ihm.reader.IDMapper(testlist, MockObject, '1', y='2')
         a = im.get_by_id('ID1')
         b = im.get_by_id('ID1')
         self.assertEqual(id(a), id(b))
@@ -127,9 +127,9 @@ class Tests(unittest.TestCase):
         Keys = namedtuple('Keys', 'foo bar t test x')
         o = MockObject()
         h = ihm.reader.Handler(None)
-        h._copy_if_present(o, {'foo':'bar', 'bar':'baz', 't':'u'},
-                           keys=['test', 'foo'],
-                           mapkeys={'bar':'baro', 'x':'y'})
+        h.copy_if_present(o, {'foo':'bar', 'bar':'baz', 't':'u'},
+                          keys=['test', 'foo'],
+                          mapkeys={'bar':'baro', 'x':'y'})
         self.assertEqual(o.foo, 'bar')
         self.assertEqual(o.baro, 'baz')
         self.assertFalse(hasattr(o, 't'))

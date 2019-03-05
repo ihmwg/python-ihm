@@ -12,3 +12,8 @@ The :mod:`ihm.reader` Python module
 .. autoclass:: Handler
    :members:
 
+.. autoclass:: SystemReader
+   :members:
+
+.. autoclass:: IDMapper
+   :members:
