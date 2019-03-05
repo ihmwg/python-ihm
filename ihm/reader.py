@@ -854,7 +854,7 @@ class _StartingComparativeModelsHandler(Handler):
 class _ProtocolHandler(Handler):
     category = '_ihm_modeling_protocol'
 
-    def __call__(self, protocol_id, protocol_name, num_models_begin,
+    def __call__(self, protocol_id, step_id, protocol_name, num_models_begin,
                  num_models_end, multi_scale_flag, multi_state_flag,
                  ordered_flag, struct_assembly_id, dataset_group_id,
                  software_id, script_file_id, step_name, step_method):
@@ -875,6 +875,7 @@ class _ProtocolHandler(Handler):
                               num_models_end=nend, multi_scale=mscale,
                               multi_state=mstate, ordered=ordered,
                               software=software, script_file=script)
+        s._id = step_id
         self._copy_if_present(s, locals(),
                 mapkeys={'step_name':'name', 'step_method':'method'})
         p.steps.append(s)

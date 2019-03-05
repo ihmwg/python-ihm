@@ -777,6 +777,7 @@ _ihm_modeling_protocol.script_file_id
             p1, = s.orphan_protocols
             self.assertEqual(p1.name, "Prot1")
             self.assertEqual(len(p1.steps), 2)
+            self.assertEqual(p1.steps[0]._id, '1')
             self.assertEqual(p1.steps[0].assembly._id, '1')
             self.assertEqual(p1.steps[0].dataset_group._id, '1')
             self.assertEqual(p1.steps[0].name, 'Sampling')
@@ -788,6 +789,7 @@ _ihm_modeling_protocol.script_file_id
             self.assertEqual(p1.steps[0].ordered, False)
             self.assertEqual(p1.steps[0].software, None)
             self.assertEqual(p1.steps[0].script_file, None)
+            self.assertEqual(p1.steps[1]._id, '2')
             self.assertEqual(p1.steps[1].multi_scale, True)
             self.assertEqual(p1.steps[1].multi_state, None)
             self.assertEqual(p1.steps[1].ordered, False)
