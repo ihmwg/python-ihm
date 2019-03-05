@@ -24,10 +24,6 @@ def _make_new_entity():
     e.sequence = list(e.sequence)
     return e
 
-def _get_lower(val):
-    """Return lowercase val or None if val is None"""
-    return val.lower() if val is not None else None
-
 def _get_vector3(d, key):
     """Return a 3D vector (as a list) from d[key+[1..3]] or None"""
     if d[key+'1'] is not None:
@@ -435,6 +431,10 @@ class Handler(object):
         """Convert val to bool and return, or None if val is None"""
         return self._boolmap.get(val.upper(), None) if val is not None else None
 
+    def get_lower(self, val):
+        """Return lowercase string val or None if val is None"""
+        return val.lower() if val is not None else None
+
     def finalize(self):
         """Called at the end of each data block."""
         pass
@@ -790,11 +790,11 @@ class _ModelRepresentationHandler(Handler):
         rep = self.sysr.representations.get_by_id(representation_id)
         smodel = self.sysr.starting_models.get_by_id_or_none(
                                             starting_model_id)
-        primitive = _get_lower(model_object_primitive)
-        gran = _get_lower(model_granularity)
-        primitive = _get_lower(model_object_primitive)
+        primitive = self.get_lower(model_object_primitive)
+        gran = self.get_lower(model_granularity)
+        primitive = self.get_lower(model_object_primitive)
         count = self.get_int(model_object_count)
-        rigid = self._rigid_map[_get_lower(model_mode)]
+        rigid = self._rigid_map[self.get_lower(model_mode)]
         segment = self._segment_factory[gran](asym, rigid, primitive,
                                               count, smodel)
         rep.append(segment)
