@@ -443,7 +443,7 @@ class Handler(object):
         """Called at the end of each save frame."""
         pass
 
-    def _copy_if_present(self, obj, data, keys=[], mapkeys={}):
+    def copy_if_present(self, obj, data, keys=[], mapkeys={}):
         """Set obj.x from data['x'] for each x in keys if present in data.
            The dict mapkeys is handled similarly except that its keys are looked
            up in data and the corresponding value used to set obj."""
@@ -464,7 +464,7 @@ class _StructHandler(Handler):
     category = '_struct'
 
     def __call__(self, title, entry_id):
-        self._copy_if_present(self.system, locals(), keys=('title',),
+        self.copy_if_present(self.system, locals(), keys=('title',),
                               mapkeys={'entry_id': 'id'})
 
 
@@ -474,7 +474,7 @@ class _SoftwareHandler(Handler):
     def __call__(self, pdbx_ordinal, name, classification, description,
                  version, type, location):
         s = self.sysr.software.get_by_id(pdbx_ordinal)
-        self._copy_if_present(s, locals(),
+        self.copy_if_present(s, locals(),
                 keys=('name', 'classification', 'description', 'version',
                       'type', 'location'))
 
@@ -486,7 +486,7 @@ class _CitationHandler(Handler):
                  journal_abbrev, journal_volume, pdbx_database_id_doi,
                  page_first, page_last):
         s = self.sysr.citations.get_by_id(id)
-        self._copy_if_present(s, locals(),
+        self.copy_if_present(s, locals(),
                 keys=('title', 'year'),
                 mapkeys={'pdbx_database_id_pubmed':'pmid',
                          'journal_abbrev':'journal',
@@ -522,7 +522,7 @@ class _ChemCompHandler(Handler):
         typ = 'other' if type is None else type.lower()
         s = self.sysr.chem_comps.get_by_id(id,
                                            self.type_map.get(typ, ihm.ChemComp))
-        self._copy_if_present(s, locals(), keys=('name', 'formula'))
+        self.copy_if_present(s, locals(), keys=('name', 'formula'))
 
 
 class _ChemDescriptorHandler(Handler):
@@ -531,7 +531,7 @@ class _ChemDescriptorHandler(Handler):
     def __call__(self, id, auth_name, chem_comp_id, chemical_name, common_name,
                  smiles, smiles_canonical, inchi, inchi_key):
         d = self.sysr.chem_descriptors.get_by_id(id)
-        self._copy_if_present(d, locals(),
+        self.copy_if_present(d, locals(),
                 keys=('auth_name', 'chem_comp_id', 'chemical_name',
                       'common_name', 'smiles', 'smiles_canonical', 'inchi',
                       'inchi_key'))
@@ -543,7 +543,7 @@ class _EntityHandler(Handler):
     def __call__(self, id, details, type, src_method, formula_weight,
                  pdbx_description, pdbx_number_of_molecules):
         s = self.sysr.entities.get_by_id(id)
-        self._copy_if_present(s, locals(),
+        self.copy_if_present(s, locals(),
                 keys=('details', 'src_method'),
                 mapkeys={'pdbx_description':'description',
                          'pdbx_number_of_molecules':'number_of_molecules'})
@@ -574,7 +574,7 @@ class _StructAsymHandler(Handler):
     def __call__(self, id, entity_id, details):
         s = self.sysr.asym_units.get_by_id(id)
         s.entity = self.sysr.entities.get_by_id(entity_id)
-        self._copy_if_present(s, locals(), keys=('details',))
+        self.copy_if_present(s, locals(), keys=('details',))
 
 
 class _AssemblyDetailsHandler(Handler):
@@ -582,7 +582,7 @@ class _AssemblyDetailsHandler(Handler):
 
     def __call__(self, assembly_id, assembly_name, assembly_description):
         s = self.sysr.assemblies.get_by_id(assembly_id)
-        self._copy_if_present(s, locals(),
+        self.copy_if_present(s, locals(),
                 mapkeys={'assembly_name':'name',
                          'assembly_description':'description'})
 
@@ -646,7 +646,7 @@ class _ExtRefHandler(Handler):
         typ = 'doi' if reference_type is None else reference_type.lower()
         repo = self.sysr.repos.get_by_id(ref_id,
                              self.type_map.get(typ, ihm.location.Repository))
-        self._copy_if_present(repo, locals(),
+        self.copy_if_present(repo, locals(),
                     mapkeys={'reference':'doi', 'associated_url':'url'})
 
     def finalize(self):
@@ -675,7 +675,7 @@ class _ExtFileHandler(Handler):
         f = self.sysr.external_files.get_by_id(id,
                              self.type_map.get(typ, ihm.location.FileLocation))
         f.repo = self.sysr.repos.get_by_id(reference_id)
-        self._copy_if_present(f, locals(),
+        self.copy_if_present(f, locals(),
                     keys=['details'],
                     mapkeys={'file_path':'path'})
         # Handle DOI that is itself a file
@@ -739,7 +739,7 @@ class _DatasetDBRefHandler(Handler):
         dbloc = self.sysr.db_locations.get_by_id(id,
                                                  self.type_map.get(typ, None))
         ds.location = dbloc
-        self._copy_if_present(dbloc, locals(),
+        self.copy_if_present(dbloc, locals(),
                     keys=['version', 'details'],
                     mapkeys={'accession_code':'access_code'})
 
@@ -813,7 +813,7 @@ class _StartingModelDetailsHandler(Handler):
             asym = asym(int(seq_id_begin), int(seq_id_end))
         m.asym_unit = asym
         m.dataset = self.sysr.datasets.get_by_id(dataset_list_id)
-        self._copy_if_present(m, locals(),
+        self.copy_if_present(m, locals(),
                     mapkeys={'starting_model_auth_asym_id':'asym_id'})
         if starting_model_sequence_offset is not None:
             m.offset = int(starting_model_sequence_offset)
@@ -864,7 +864,7 @@ class _ProtocolHandler(Handler):
                  ordered_flag, struct_assembly_id, dataset_group_id,
                  software_id, script_file_id, step_name, step_method):
         p = self.sysr.protocols.get_by_id(protocol_id)
-        self._copy_if_present(p, locals(),  mapkeys={'protocol_name':'name'})
+        self.copy_if_present(p, locals(),  mapkeys={'protocol_name':'name'})
         nbegin = self.get_int(num_models_begin)
         nend = self.get_int(num_models_end)
         mscale = self.get_bool(multi_scale_flag)
@@ -881,7 +881,7 @@ class _ProtocolHandler(Handler):
                               multi_state=mstate, ordered=ordered,
                               software=software, script_file=script)
         s._id = step_id
-        self._copy_if_present(s, locals(),
+        self.copy_if_present(s, locals(),
                 mapkeys={'step_name':'name', 'step_method':'method'})
         p.steps.append(s)
 
@@ -927,7 +927,7 @@ class _PostProcessHandler(Handler):
                                             software_id)
             step.script_file = self.sysr.external_files.get_by_id_or_none(
                                             script_file_id)
-            self._copy_if_present(step, locals(), keys=['feature'])
+            self.copy_if_present(step, locals(), keys=['feature'])
 
 
 class _ModelListHandler(Handler):
@@ -936,15 +936,15 @@ class _ModelListHandler(Handler):
     def __call__(self, model_group_id, model_group_name, model_id, model_name,
                  assembly_id, representation_id, protocol_id):
         model_group = self.sysr.model_groups.get_by_id(model_group_id)
-        self._copy_if_present(model_group, locals(),
-                              mapkeys={'model_group_name':'name'})
+        self.copy_if_present(model_group, locals(),
+                             mapkeys={'model_group_name':'name'})
 
         model = self.sysr.models.get_by_id(model_id)
 
         assert model._id not in (m._id for m in model_group)
         model_group.append(model)
 
-        self._copy_if_present(model, locals(), mapkeys={'model_name':'name'})
+        self.copy_if_present(model, locals(), mapkeys={'model_name':'name'})
         model.assembly = self.sysr.assemblies.get_by_id_or_none(
                                             assembly_id)
         model.representation = self.sysr.representations.get_by_id_or_none(
@@ -983,7 +983,7 @@ class _MultiStateHandler(Handler):
         state.append(model_group)
 
         state.population_fraction = self.get_float(population_fraction)
-        self._copy_if_present(state, locals(),
+        self.copy_if_present(state, locals(),
                 keys=['experiment_type', 'details'],
                 mapkeys={'state_name':'name', 'state_type':'type'})
 
@@ -1007,7 +1007,7 @@ class _EnsembleHandler(Handler):
         # model group anyway)
         ensemble.post_process = pp
         ensemble.file = f
-        self._copy_if_present(ensemble, locals(),
+        self.copy_if_present(ensemble, locals(),
                 mapkeys={'ensemble_name':'name',
                          'ensemble_clustering_method':'clustering_method',
                          'ensemble_clustering_feature':'clustering_feature'})
@@ -1043,7 +1043,7 @@ class _EM3DRestraintHandler(Handler):
                                             struct_assembly_id)
         r.fitting_method_citation = self.sysr.citations.get_by_id_or_none(
                                             fitting_method_citation_id)
-        self._copy_if_present(r, locals(), keys=('fitting_method',))
+        self.copy_if_present(r, locals(), keys=('fitting_method',))
         r.number_of_gaussians = self.get_int(number_of_gaussians)
 
         model = self.sysr.models.get_by_id(model_id)
@@ -1068,7 +1068,7 @@ class _EM2DRestraintHandler(Handler):
         r.number_of_projections = self.get_int(number_of_projections)
         r.assembly = self.sysr.assemblies.get_by_id_or_none(
                                             struct_assembly_id)
-        self._copy_if_present(r, locals(), keys=('details',))
+        self.copy_if_present(r, locals(), keys=('details',))
 
 
 class _EM2DFittingHandler(Handler):
@@ -1100,7 +1100,7 @@ class _SASRestraintHandler(Handler):
         r.assembly = self.sysr.assemblies.get_by_id_or_none(
                                             struct_assembly_id)
         r.segment = self.get_bool(profile_segment_flag)
-        self._copy_if_present(r, locals(),
+        self.copy_if_present(r, locals(),
                 keys=('fitting_atom_type', 'fitting_method', 'details'))
         fs = fitting_state if fitting_state is not None else 'Single'
         r.multi_state = fs.lower() != 'single'
@@ -1296,10 +1296,10 @@ class _GeometricObjectHandler(Handler):
         typ = object_type.lower() if object_type is not None else 'other'
         g = self.sysr.geometries.get_by_id(object_id,
                           self._type_map.get(typ, ihm.geometry.GeometricObject))
-        self._copy_if_present(g, locals(),
-                              mapkeys={'object_name': 'name',
-                                       'object_description': 'description',
-                                       'other_details': 'details'})
+        self.copy_if_present(g, locals(),
+                             mapkeys={'object_name': 'name',
+                                      'object_description': 'description',
+                                      'other_details': 'details'})
 
 
 class _SphereHandler(Handler):
@@ -1566,17 +1566,17 @@ class _OrderedEnsembleHandler(Handler):
         edge = ihm.model.ProcessEdge(
                    self.sysr.model_groups.get_by_id(model_group_id_begin),
                    self.sysr.model_groups.get_by_id(model_group_id_end))
-        self._copy_if_present(edge, locals(),
+        self.copy_if_present(edge, locals(),
                 mapkeys={'edge_description':'description'})
         step.append(edge)
 
         if step_id not in [s._id for s in proc.steps]:
             proc.steps.append(step)
 
-        self._copy_if_present(proc, locals(),
+        self.copy_if_present(proc, locals(),
                 keys=('ordered_by',),
                 mapkeys={'process_description':'description'})
-        self._copy_if_present(step, locals(),
+        self.copy_if_present(step, locals(),
                 mapkeys={'step_description':'description'})
 
 
