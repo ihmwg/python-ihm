@@ -1720,7 +1720,31 @@ A 1 4 9A
 
     def test_nonpoly_scheme_handler(self):
         """Test NonPolySchemeHandler"""
-        fh = StringIO(ASYM_ENTITY + """
+        fh = StringIO("""
+loop_
+_chem_comp.id
+_chem_comp.type
+_chem_comp.name
+CA non-polymer 'CALCIUM ION'
+#
+loop_
+_entity.id
+_entity.type
+_entity.pdbx_description
+1 non-polymer 'CALCIUM ION'
+#
+loop_
+_pdbx_entity_nonpoly.entity_id
+_pdbx_entity_nonpoly.name
+_pdbx_entity_nonpoly.comp_id
+1 'CALCIUM ION'             CA
+#
+loop_
+_struct_asym.id
+_struct_asym.entity_id
+_struct_asym.details
+A 1 foo
+#
 loop_
 _pdbx_nonpoly_scheme.asym_id
 _pdbx_nonpoly_scheme.entity_id
@@ -1730,6 +1754,8 @@ A 1 101
 """)
         s, = ihm.reader.read(fh)
         asym, = s.asym_units
+        # non-polymers have no seq_id_range
+        self.assertEqual(asym.seq_id_range, (None, None))
         self.assertEqual(asym.auth_seq_id_map, {1:101})
         self.assertEqual(asym.residue(1).auth_seq_id, 101)
 
