@@ -1516,6 +1516,9 @@ class _PolySeqSchemeHandler(Handler):
     def _get_auth_seq_id_offset(self, asym):
         """Get the offset from seq_id to auth_seq_id. Return None if no
            consistent offset exists."""
+        # Do nothing if the entity is not polymeric
+        if asym.entity is None or not asym.entity.is_polymeric():
+            return
         # Do nothing if no map exists
         if asym.auth_seq_id_map == 0:
             return
