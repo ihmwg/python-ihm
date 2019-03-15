@@ -17,14 +17,19 @@ from .format import CifWriter
 import operator
 import struct
 import json
+import warnings
 import sys
 import re
 
 # Handle different naming of urllib in Python 2/3
 try:
-    import urllib.request as urllib2
+    import urllib.request
+    import urllib.error
 except ImportError:
-    import urllib2
+    class MockUrlLib(object):
+        pass
+    urllib = MockUrlLib()
+    urllib.request = urllib.error = __import__('urllib2')
 
 class Parser(object):
     """Base class for all metadata parsers."""
@@ -49,8 +54,8 @@ class MRCParser(Parser):
                     otherwise to the file itself.
 
            If the file turns out to be an EMDB entry, this will also query
-           the EMDB web API to extract version information and details for the
-           dataset.
+           the EMDB web API (if available) to extract version information
+           and details for the dataset.
         """
         emdb = self._get_emdb(filename)
         if emdb:
@@ -65,9 +70,15 @@ class MRCParser(Parser):
 
     def _get_emdb_info(self, emdb):
         """Query EMDB API and return version & details of a given entry"""
-        req = urllib2.Request('https://www.ebi.ac.uk/pdbe/api/emdb/entry/'
-                              'summary/%s' % emdb, None, {})
-        response = urllib2.urlopen(req)
+        req = urllib.request.Request(
+                'https://www.ebi.ac.uk/pdbe/api/emdb/entry/summary/%s' % emdb,
+                None, {})
+        try:
+            response = urllib.request.urlopen(req, timeout=10)
+        except urllib.error.URLError as err:
+            warnings.warn("EMDB API query failed; using default metadata "
+                          "for MRC file; %s" % str(err))
+            return None, None
         contents = json.load(response)
         keys = list(contents.keys())
         info = contents[keys[0]][0]['deposition']
