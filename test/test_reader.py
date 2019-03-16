@@ -432,10 +432,12 @@ _ihm_struct_assembly.seq_id_end
 3 1 1 Nup84 1 A 1 1
 4 2 1 Nup86 2 . 1 50
 5 2 1 Nup85 2 . 1 1
+6 3 1 Nup84 1 A . .
+7 3 1 Nup85 2 . . .
 """
         for fh in cif_file_handles(cif):
             s, = ihm.reader.read(fh)
-            a1, a2 = s.orphan_assemblies
+            a1, a2, a3 = s.orphan_assemblies
             self.assertEqual(a1._id, '1')
             self.assertEqual(a1.parent, None)
             self.assertEqual(len(a1), 3)
@@ -457,6 +459,11 @@ _ihm_struct_assembly.seq_id_end
             self.assertEqual(a2[0].seq_id_range, (1,50))
             # Entity
             self.assertTrue(isinstance(a2[1], ihm.Entity))
+
+            # Assembly with no ranges given
+            self.assertEqual(len(a3), 2)
+            self.assertTrue(isinstance(a3[0], ihm.AsymUnit))
+            self.assertTrue(isinstance(a3[1], ihm.Entity))
 
     def test_external_file_handler(self):
         """Test ExtRef and ExtFileHandler"""

@@ -697,14 +697,17 @@ class _AssemblyHandler(Handler):
         parent_id = parent_assembly_id
         if parent_id and parent_id != a_id and not a.parent:
             a.parent = self.sysr.assemblies.get_by_id(parent_id)
-        seqrng = (int(seq_id_begin), int(seq_id_end))
-        asym_id = asym_id
+        def handle_range(obj):
+            # seq_id_range can be None for assemblies of nonpolymers - treat as
+            # complete entity/asym
+            if seq_id_begin is None or seq_id_end is None:
+                return obj
+            else:
+                return obj(int(seq_id_begin), int(seq_id_end))
         if asym_id:
-            asym = self.sysr.asym_units.get_by_id(asym_id)
-            a.append(asym(*seqrng))
+            a.append(handle_range(self.sysr.asym_units.get_by_id(asym_id)))
         else:
-            entity = self.sysr.entities.get_by_id(entity_id)
-            a.append(entity(*seqrng))
+            a.append(handle_range(self.sysr.entities.get_by_id(entity_id)))
 
     def finalize(self):
         # Any EntityRange or AsymUnitRange which covers an entire entity,
