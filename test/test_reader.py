@@ -1999,8 +1999,10 @@ _ihm_ordered_ensemble.model_group_id_end
     def test_read_full_pdbx(self):
         """Test reading a full PDBx file"""
         fname = utils.get_input_file_name(TOPDIR, '6ep0.cif.gz')
-        with gzip.open(fname, 'rt') as f:
-            s, = ihm.reader.read(f)
+        # We can't use 'with' here because that requires Python >= 2.7
+        f = gzip.open(fname, 'rt')
+        s, = ihm.reader.read(f)
+        f.close()
 
 
 if __name__ == '__main__':
