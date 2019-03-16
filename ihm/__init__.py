@@ -81,7 +81,7 @@ class System(object):
         #: The assembly of the entire system. By convention this is always
         #: the first assembly in the mmCIF file (assembly_id=1). Note that
         #: currently this isn't filled in on output until dumper.write()
-        #: is called. See :class:`Assembly`
+        #: is called. See :class:`Assembly`.
         self.complete_assembly = Assembly((), name='Complete assembly',
                                           description='All known components')
 
