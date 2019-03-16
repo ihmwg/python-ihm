@@ -7,6 +7,8 @@ import subprocess
 TOPDIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 utils.set_search_paths(TOPDIR)
 
+import ihm.reader
+
 def get_example_dir():
     return os.path.join(TOPDIR, "examples")
 
@@ -22,10 +24,13 @@ class Tests(unittest.TestCase):
                                    get_example_path("simple-docking.py")],
                                   cwd=tmpdir)
 
-            # Make sure that a complete output file was produced
+            # Make sure that a complete output file was produced and that we
+            # can read it
             with open(os.path.join(tmpdir, 'output.cif')) as fh:
                 contents = fh.readlines()
             self.assertEqual(len(contents), 271)
+            with open(os.path.join(tmpdir, 'output.cif')) as fh:
+                s, = ihm.reader.read(fh)
 
     def test_locations_example(self):
         """Test locations example"""
@@ -33,10 +38,13 @@ class Tests(unittest.TestCase):
                               cwd=get_example_dir())
         out = get_example_path("output.cif")
 
-        # Make sure that a complete output file was produced
+        # Make sure that a complete output file was produced and that we
+        # can read it
         with open(out) as fh:
             contents = fh.readlines()
         self.assertEqual(len(contents), 66)
+        with open(out) as fh:
+            s, = ihm.reader.read(fh)
         os.unlink(out)
 
     def test_ligands_water_example(self):
@@ -45,10 +53,13 @@ class Tests(unittest.TestCase):
                               cwd=get_example_dir())
         out = get_example_path("output.cif")
 
-        # Make sure that a complete output file was produced
+        # Make sure that a complete output file was produced and that we
+        # can read it
         with open(out) as fh:
             contents = fh.readlines()
         self.assertEqual(len(contents), 147)
+        with open(out) as fh:
+            s, = ihm.reader.read(fh)
         os.unlink(out)
 
     def test_non_standard_residues_example(self):
@@ -57,10 +68,13 @@ class Tests(unittest.TestCase):
                               cwd=get_example_dir())
         out = get_example_path("output.cif")
 
-        # Make sure that a complete output file was produced
+        # Make sure that a complete output file was produced and that we
+        # can read it
         with open(out) as fh:
             contents = fh.readlines()
         self.assertEqual(len(contents), 77)
+        with open(out) as fh:
+            s, = ihm.reader.read(fh)
         os.unlink(out)
 
 
