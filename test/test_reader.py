@@ -2,6 +2,7 @@ import utils
 import os
 from collections import namedtuple
 import unittest
+import gzip
 import sys
 if sys.version_info[0] >= 3:
     from io import StringIO
@@ -1987,6 +1988,12 @@ _ihm_ordered_ensemble.model_group_id_end
         self.assertEqual(e2.description, None)
         self.assertEqual(e2.group_begin._id, '1')
         self.assertEqual(e2.group_end._id, '4')
+
+    def test_read_full_pdbx(self):
+        """Test reading a full PDBx file"""
+        fname = utils.get_input_file_name(TOPDIR, '6ep0.cif.gz')
+        with gzip.open(fname, 'rt') as f:
+            s, = ihm.reader.read(f)
 
 
 if __name__ == '__main__':
