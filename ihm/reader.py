@@ -627,13 +627,25 @@ class _ChemDescriptorHandler(Handler):
 class _EntityHandler(Handler):
     category = '_entity'
 
+    def __init__(self, *args):
+        super(_EntityHandler, self).__init__(*args)
+        self.src_map = dict(
+            (x[1].src_method.lower(), x[1])
+            for x in inspect.getmembers(ihm, inspect.isclass)
+            if issubclass(x[1], ihm.EntitySource)
+            and x[1] is not ihm.EntitySource)
+
     def __call__(self, id, details, type, src_method, formula_weight,
                  pdbx_description, pdbx_number_of_molecules):
         s = self.sysr.entities.get_by_id(id)
         self.copy_if_present(s, locals(),
-                keys=('details', 'src_method'),
+                keys=('details',),
                 mapkeys={'pdbx_description':'description',
                          'pdbx_number_of_molecules':'number_of_molecules'})
+        if src_method:
+            source_cls = self.src_map.get(src_method.lower(), None)
+            if source_cls:
+                s.source = source_cls()
 
 
 class _EntityPolySeqHandler(Handler):

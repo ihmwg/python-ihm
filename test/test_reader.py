@@ -342,18 +342,25 @@ _ihm_chemical_descriptor.inchi_key
 loop_
 _entity.id
 _entity.type
+_entity.src_method
 _entity.pdbx_description
 _entity.pdbx_number_of_molecules
 _entity.formula_weight
 _entity.details
-1 polymer Nup84 2 100.0 .
-2 polymer Nup85 3 200.0 .
+1 polymer nat Nup84 2 100.0 .
+2 polymer syn Nup85 3 200.0 .
+3 polymer . Nup86 3 300.0 .
+4 polymer unknown Nup87 3 300.0 .
 """
         for fh in cif_file_handles(cif):
             s, = ihm.reader.read(fh)
-            e1, e2 = s.entities
+            e1, e2, e3, e4 = s.entities
             self.assertEqual(e1.description, 'Nup84')
             self.assertEqual(e1.number_of_molecules, '2') # todo: coerce to int
+            self.assertEqual(e1.source.src_method, 'nat')
+            self.assertEqual(e2.source.src_method, 'syn')
+            self.assertEqual(e3.source, None)
+            self.assertEqual(e4.source, None)
 
     def test_asym_unit_handler(self):
         """Test AsymUnitHandler"""
