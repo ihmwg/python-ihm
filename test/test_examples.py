@@ -3,6 +3,7 @@ import os
 import unittest
 import sys
 import subprocess
+import pickle
 
 TOPDIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 utils.set_search_paths(TOPDIR)
@@ -60,7 +61,14 @@ class Tests(unittest.TestCase):
         self.assertEqual(len(contents), 147)
         with open(out) as fh:
             s, = ihm.reader.read(fh)
+        # Make sure that resulting Python objects are picklable
+        testpck = 'test-lig-wat.pck'
+        with open(testpck, 'wb') as fh:
+            pickle.dump(s, fh, protocol=-1)
+        with open(testpck, 'rb') as fh:
+            s2 = pickle.load(fh)
         os.unlink(out)
+        os.unlink(testpck)
 
     def test_non_standard_residues_example(self):
         """Test non_standard_residues example"""
