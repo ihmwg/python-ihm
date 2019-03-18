@@ -1,6 +1,6 @@
 HEAD
 ====
- - :class:`Entity` now takes an optional :class:`EntitySource` object to
+ - :class:`Entity` now takes an optional :class:`ihm.source.Source` object to
    describe the method by which the sample for the entity was produced.
 
 0.5 - 2019-01-17

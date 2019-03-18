@@ -20,6 +20,7 @@ import ihm.analysis
 import ihm.model
 import ihm.restraint
 import ihm.geometry
+import ihm.source
 
 from test_format_bcif import MockFh, MockMsgPack
 
@@ -250,11 +251,11 @@ auth4 4
         """Test EntityDumper"""
         system = ihm.System()
         system.entities.append(ihm.Entity('AHC', description='foo',
-                                          source=ihm.ManipulatedEntitySource()))
+                                          source=ihm.source.Manipulated()))
         system.entities.append(ihm.Entity('AHCD', description='baz',
-                                          source=ihm.NaturalEntitySource()))
+                                          source=ihm.source.Natural()))
         system.entities.append(ihm.Entity('AHD', description='bar',
-                                          source=ihm.SyntheticEntitySource()))
+                                          source=ihm.source.Synthetic()))
         dumper = ihm.dumper._EntityDumper()
         dumper.finalize(system) # Assign IDs
         out = _get_dumper_output(dumper, system)

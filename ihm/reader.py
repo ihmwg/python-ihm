@@ -11,6 +11,7 @@ import ihm.analysis
 import ihm.model
 import ihm.restraint
 import ihm.geometry
+import ihm.source
 import inspect
 try:
     from . import _format
@@ -631,9 +632,9 @@ class _EntityHandler(Handler):
         super(_EntityHandler, self).__init__(*args)
         self.src_map = dict(
             (x[1].src_method.lower(), x[1])
-            for x in inspect.getmembers(ihm, inspect.isclass)
-            if issubclass(x[1], ihm.EntitySource)
-            and x[1] is not ihm.EntitySource)
+            for x in inspect.getmembers(ihm.source, inspect.isclass)
+            if issubclass(x[1], ihm.source.Source)
+            and x[1] is not ihm.source.Source)
 
     def __call__(self, id, details, type, src_method, formula_weight,
                  pdbx_description, pdbx_number_of_molecules):
