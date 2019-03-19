@@ -27,9 +27,9 @@ class Manipulated(Source):
        See :class:`Entity`.
 
        :param gene: Details about the gene source.
-       :type gene: class:`Details`
+       :type gene: :class:`Details`
        :param host: Details about the host organism.
-       :type host: class:`Details`
+       :type host: :class:`Details`
     """
     src_method = 'man'
 
