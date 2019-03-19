@@ -312,6 +312,12 @@ class SystemReader(object):
         #: Mapping from ID to :class:`ihm.Entity` objects
         self.entities = IDMapper(self.system.entities, _make_new_entity)
 
+        #: Mapping from ID to :class:`ihm.source.Manipulated` objects
+        self.src_gens = IDMapper(None, ihm.source.Manipulated)
+
+        #: Mapping from ID to :class:`ihm.source.Natural` objects
+        self.src_nats = IDMapper(None, ihm.source.Natural)
+
         #: Mapping from ID to :class:`ihm.ChemDescriptor` objects
         self.chem_descriptors = IDMapper(self.system.orphan_chem_descriptors,
                                          ihm.ChemDescriptor, None)
@@ -645,8 +651,37 @@ class _EntityHandler(Handler):
                          'pdbx_number_of_molecules':'number_of_molecules'})
         if src_method:
             source_cls = self.src_map.get(src_method.lower(), None)
-            if source_cls:
+            if source_cls and s.source is None:
                 s.source = source_cls()
+
+
+class _EntitySrcNatHandler(Handler):
+    category = '_entity_src_nat'
+
+    def __call__(self, entity_id, pdbx_src_id, pdbx_ncbi_taxonomy_id,
+                 pdbx_organism_scientific):
+        e = self.sysr.entities.get_by_id(entity_id)
+        s = self.sysr.src_nats.get_by_id(pdbx_src_id)
+        s.ncbi_taxonomy_id = pdbx_ncbi_taxonomy_id
+        s.scientific_name = pdbx_organism_scientific
+        e.source = s
+
+
+class _EntitySrcGenHandler(Handler):
+    category = '_entity_src_gen'
+
+    def __call__(self, entity_id, pdbx_src_id, pdbx_gene_src_ncbi_taxonomy_id,
+                 pdbx_gene_src_scientific_name, pdbx_host_org_ncbi_taxonomy_id,
+                 pdbx_host_org_scientific_name):
+        e = self.sysr.entities.get_by_id(entity_id)
+        s = self.sysr.src_gens.get_by_id(pdbx_src_id)
+        s.gene = ihm.source.Details(
+                          ncbi_taxonomy_id=pdbx_gene_src_ncbi_taxonomy_id,
+                          scientific_name=pdbx_gene_src_scientific_name)
+        s.host = ihm.source.Details(
+                          ncbi_taxonomy_id=pdbx_host_org_ncbi_taxonomy_id,
+                          scientific_name=pdbx_host_org_scientific_name)
+        e.source = s
 
 
 class _EntityPolySeqHandler(Handler):
@@ -1729,6 +1764,7 @@ def read(fh, model_class=ihm.model.Model, format='mmCIF', handlers=[]):
         hs = [_StructHandler(s), _SoftwareHandler(s), _CitationHandler(s),
               _CitationAuthorHandler(s), _ChemCompHandler(s),
               _ChemDescriptorHandler(s), _EntityHandler(s),
+              _EntitySrcNatHandler(s), _EntitySrcGenHandler(s),
               _EntityPolySeqHandler(s), _EntityNonPolyHandler(s),
               _StructAsymHandler(s), _AssemblyDetailsHandler(s),
               _AssemblyHandler(s), _ExtRefHandler(s), _ExtFileHandler(s),
