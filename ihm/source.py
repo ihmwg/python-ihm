@@ -8,14 +8,38 @@ class Source(object):
     src_method = None
 
 
+class Details(object):
+    """Identifying information for an entity source.
+       See :class:`Manipulated` or :class:`Natural`.
+
+       :param ncbi_taxonomy_id: NCBI taxonomy identifier, e.g. "469008"
+       :param scientific_name: Scientific name,
+              e.g. "Escherichia coli BL21(DE3)"
+    """
+
+    def __init__(self, ncbi_taxonomy_id=None, scientific_name=None):
+        self.ncbi_taxonomy_id = ncbi_taxonomy_id
+        self.scientific_name = scientific_name
+
+
 class Manipulated(Source):
     """An entity isolated from a genetically manipulated source.
-       See :class:`Entity`."""
+       See :class:`Entity`.
+
+       :param gene: Details about the gene source.
+       :type gene: class:`Details`
+       :param host: Details about the host organism.
+       :type host: class:`Details`
+    """
     src_method = 'man'
 
+    def __init__(self, gene=None, host=None):
+        self.gene, self.host = gene, host
 
-class Natural(Source):
-    """An entity isolated from a natural source. See :class:`Entity`."""
+
+class Natural(Source, Details):
+    """An entity isolated from a natural source. See :class:`Entity`.
+       See :class:`Details` for a description of the parameters."""
     src_method = 'nat'
 
 

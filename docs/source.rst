@@ -10,6 +10,9 @@ The :mod:`ihm.source` Python module
 .. autoclass:: Source
    :members:
 
+.. autoclass:: Details
+   :members:
+
 .. autoclass:: Manipulated
    :members:
 
