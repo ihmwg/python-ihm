@@ -318,6 +318,9 @@ class SystemReader(object):
         #: Mapping from ID to :class:`ihm.source.Natural` objects
         self.src_nats = IDMapper(None, ihm.source.Natural)
 
+        #: Mapping from ID to :class:`ihm.source.Synthetic` objects
+        self.src_syns = IDMapper(None, ihm.source.Synthetic)
+
         #: Mapping from ID to :class:`ihm.ChemDescriptor` objects
         self.chem_descriptors = IDMapper(self.system.orphan_chem_descriptors,
                                          ihm.ChemDescriptor, None)
@@ -664,6 +667,18 @@ class _EntitySrcNatHandler(Handler):
         s = self.sysr.src_nats.get_by_id(pdbx_src_id)
         s.ncbi_taxonomy_id = pdbx_ncbi_taxonomy_id
         s.scientific_name = pdbx_organism_scientific
+        e.source = s
+
+
+class _EntitySrcSynHandler(Handler):
+    category = '_pdbx_entity_src_syn'
+
+    def __call__(self, entity_id, pdbx_src_id, ncbi_taxonomy_id,
+                 organism_scientific):
+        e = self.sysr.entities.get_by_id(entity_id)
+        s = self.sysr.src_syns.get_by_id(pdbx_src_id)
+        s.ncbi_taxonomy_id = ncbi_taxonomy_id
+        s.scientific_name = organism_scientific
         e.source = s
 
 
@@ -1765,6 +1780,7 @@ def read(fh, model_class=ihm.model.Model, format='mmCIF', handlers=[]):
               _CitationAuthorHandler(s), _ChemCompHandler(s),
               _ChemDescriptorHandler(s), _EntityHandler(s),
               _EntitySrcNatHandler(s), _EntitySrcGenHandler(s),
+              _EntitySrcSynHandler(s),
               _EntityPolySeqHandler(s), _EntityNonPolyHandler(s),
               _StructAsymHandler(s), _AssemblyDetailsHandler(s),
               _AssemblyHandler(s), _ExtRefHandler(s), _ExtFileHandler(s),

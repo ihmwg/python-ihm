@@ -43,6 +43,7 @@ class Natural(Source, Details):
     src_method = 'nat'
 
 
-class Synthetic(Source):
-    """An entity obtained synthetically. See :class:`Entity`."""
+class Synthetic(Source, Details):
+    """An entity obtained synthetically. See :class:`Entity`.
+       See :class:`Details` for a description of the parameters."""
     src_method = 'syn'

@@ -206,17 +206,22 @@ class _EntityDumper(Dumper):
 			details=entity.details)
 
 
+def _assign_src_ids(system, srccls):
+    """Assign IDs to all entity sources of type `srccls`."""
+    # Assign IDs
+    seen_src = {}
+    src_by_id = []
+    for e in system.entities:
+        if isinstance(e.source, srccls):
+            util._remove_id(e.source)
+    for e in system.entities:
+        if isinstance(e.source, srccls):
+            util._assign_id(e.source, seen_src, src_by_id)
+
+
 class _EntitySrcGenDumper(Dumper):
     def finalize(self, system):
-        # Assign IDs
-        seen_src = {}
-        src_by_id = []
-        for e in system.entities:
-            if isinstance(e.source, ihm.source.Manipulated):
-                util._remove_id(e.source)
-        for e in system.entities:
-            if isinstance(e.source, ihm.source.Manipulated):
-                util._assign_id(e.source, seen_src, src_by_id)
+        _assign_src_ids(system, ihm.source.Manipulated)
 
     def dump(self, system, writer):
         with writer.loop("_entity_src_gen",
@@ -243,15 +248,7 @@ class _EntitySrcGenDumper(Dumper):
 
 class _EntitySrcNatDumper(Dumper):
     def finalize(self, system):
-        # Assign IDs
-        seen_src = {}
-        src_by_id = []
-        for e in system.entities:
-            if isinstance(e.source, ihm.source.Natural):
-                util._remove_id(e.source)
-        for e in system.entities:
-            if isinstance(e.source, ihm.source.Natural):
-                util._assign_id(e.source, seen_src, src_by_id)
+        _assign_src_ids(system, ihm.source.Natural)
 
     def dump(self, system, writer):
         with writer.loop("_entity_src_nat",
@@ -263,6 +260,22 @@ class _EntitySrcNatDumper(Dumper):
                     l.write(entity_id=e._id, pdbx_src_id=s._id,
                             pdbx_ncbi_taxonomy_id=s.ncbi_taxonomy_id,
                             pdbx_organism_scientific=s.scientific_name)
+
+
+class _EntitySrcSynDumper(Dumper):
+    def finalize(self, system):
+        _assign_src_ids(system, ihm.source.Synthetic)
+
+    def dump(self, system, writer):
+        with writer.loop("_pdbx_entity_src_syn",
+                ["entity_id", "pdbx_src_id", "ncbi_taxonomy_id",
+                 "organism_scientific"]) as l:
+            for e in system.entities:
+                s = e.source
+                if isinstance(s, ihm.source.Synthetic):
+                    l.write(entity_id=e._id, pdbx_src_id=s._id,
+                            ncbi_taxonomy_id=s.ncbi_taxonomy_id,
+                            organism_scientific=s.scientific_name)
 
 
 def _prettyprint_seq(seq, width):
@@ -1907,7 +1920,7 @@ def write(fh, systems, format='mmCIF', dumpers=[]):
                _AuditAuthorDumper(),
                _ChemCompDumper(), _ChemDescriptorDumper(),
                _EntityDumper(), _EntitySrcGenDumper(), _EntitySrcNatDumper(),
-               _EntityPolyDumper(),
+               _EntitySrcSynDumper(), _EntityPolyDumper(),
                _EntityNonPolyDumper(),
                _EntityPolySeqDumper(),
                _StructAsymDumper(),

@@ -431,6 +431,37 @@ _entity_src_nat.pdbx_ncbi_taxonomy_id 5678
                 self.assertEqual(e.source.ncbi_taxonomy_id, '5678')
                 self.assertEqual(e.source.scientific_name, 'test latin name')
 
+    def test_entity_src_syn_handler(self):
+        """Test EntitySrcSynHandler"""
+        entity = """
+loop_
+_entity.id
+_entity.type
+_entity.src_method
+_entity.pdbx_description
+_entity.pdbx_number_of_molecules
+_entity.formula_weight
+_entity.details
+1 polymer man Nup84 2 100.0 .
+"""
+        src_syn = """
+_pdbx_entity_src_syn.entity_id 1
+_pdbx_entity_src_syn.pdbx_src_id 42
+_pdbx_entity_src_syn.organism_scientific 'test latin name'
+_pdbx_entity_src_syn.ncbi_taxonomy_id 5678
+"""
+        # Order of the categories shouldn't matter
+        cif1 = entity + src_syn
+        cif2 = src_syn + entity
+        for cif in cif1, cif2:
+            for fh in cif_file_handles(cif):
+                s, = ihm.reader.read(fh)
+                e, = s.entities
+                self.assertEqual(e.source.src_method, 'syn')
+                self.assertEqual(e.source._id, '42')
+                self.assertEqual(e.source.ncbi_taxonomy_id, '5678')
+                self.assertEqual(e.source.scientific_name, 'test latin name')
+
     def test_asym_unit_handler(self):
         """Test AsymUnitHandler"""
         cif = """

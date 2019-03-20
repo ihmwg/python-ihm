@@ -305,6 +305,29 @@ _entity_src_nat.pdbx_organism_scientific
 #
 """)
 
+    def test_entity_src_syn_dumper(self):
+        """Test EntitySrcSynDumper"""
+        system = ihm.System()
+        system.entities.append(ihm.Entity('AHC', description='foo',
+                                          source=ihm.source.Manipulated()))
+        s = ihm.source.Synthetic(ncbi_taxonomy_id='1234',
+                                 scientific_name='Test latin name')
+        system.entities.append(ihm.Entity('AHCD', description='baz',
+                                          source=s))
+        ihm.dumper._EntityDumper().finalize(system)
+        dumper = ihm.dumper._EntitySrcSynDumper()
+        dumper.finalize(system) # Assign IDs
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_pdbx_entity_src_syn.entity_id
+_pdbx_entity_src_syn.pdbx_src_id
+_pdbx_entity_src_syn.ncbi_taxonomy_id
+_pdbx_entity_src_syn.organism_scientific
+2 1 1234 'Test latin name'
+#
+""")
+
     def test_entity_src_gen_dumper(self):
         """Test EntitySrcGenDumper"""
         system = ihm.System()
