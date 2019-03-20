@@ -662,11 +662,12 @@ class _EntitySrcNatHandler(Handler):
     category = '_entity_src_nat'
 
     def __call__(self, entity_id, pdbx_src_id, pdbx_ncbi_taxonomy_id,
-                 pdbx_organism_scientific, strain):
+                 pdbx_organism_scientific, common_name, strain):
         e = self.sysr.entities.get_by_id(entity_id)
         s = self.sysr.src_nats.get_by_id(pdbx_src_id)
         s.ncbi_taxonomy_id = pdbx_ncbi_taxonomy_id
         s.scientific_name = pdbx_organism_scientific
+        s.common_name = common_name
         s.strain = strain
         e.source = s
 
@@ -676,11 +677,12 @@ class _EntitySrcSynHandler(Handler):
 
     # Note that _pdbx_entity_src_syn.strain is not used in current PDB entries
     def __call__(self, entity_id, pdbx_src_id, ncbi_taxonomy_id,
-                 organism_scientific):
+                 organism_scientific, organism_common_name):
         e = self.sysr.entities.get_by_id(entity_id)
         s = self.sysr.src_syns.get_by_id(pdbx_src_id)
         s.ncbi_taxonomy_id = ncbi_taxonomy_id
         s.scientific_name = organism_scientific
+        s.common_name = organism_common_name
         e.source = s
 
 
@@ -688,18 +690,21 @@ class _EntitySrcGenHandler(Handler):
     category = '_entity_src_gen'
 
     def __call__(self, entity_id, pdbx_src_id, pdbx_gene_src_ncbi_taxonomy_id,
-                 pdbx_gene_src_scientific_name, gene_src_strain,
-                 pdbx_host_org_ncbi_taxonomy_id,
-                 pdbx_host_org_scientific_name, pdbx_host_org_strain):
+                 pdbx_gene_src_scientific_name, gene_src_common_name,
+                 gene_src_strain, pdbx_host_org_ncbi_taxonomy_id,
+                 pdbx_host_org_scientific_name, host_org_common_name,
+                 pdbx_host_org_strain):
         e = self.sysr.entities.get_by_id(entity_id)
         s = self.sysr.src_gens.get_by_id(pdbx_src_id)
         s.gene = ihm.source.Details(
                           ncbi_taxonomy_id=pdbx_gene_src_ncbi_taxonomy_id,
                           scientific_name=pdbx_gene_src_scientific_name,
+                          common_name=gene_src_common_name,
                           strain=gene_src_strain)
         s.host = ihm.source.Details(
                           ncbi_taxonomy_id=pdbx_host_org_ncbi_taxonomy_id,
                           scientific_name=pdbx_host_org_scientific_name,
+                          common_name=host_org_common_name,
                           strain=pdbx_host_org_strain)
         e.source = s
 

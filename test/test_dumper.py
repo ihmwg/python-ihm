@@ -289,6 +289,7 @@ _entity.details
                                           source=ihm.source.Manipulated()))
         s = ihm.source.Natural(ncbi_taxonomy_id='1234',
                                scientific_name='Test latin name',
+                               common_name='Test common name',
                                strain='test strain')
         system.entities.append(ihm.Entity('AHCD', description='baz',
                                           source=s))
@@ -302,8 +303,9 @@ _entity_src_nat.entity_id
 _entity_src_nat.pdbx_src_id
 _entity_src_nat.pdbx_ncbi_taxonomy_id
 _entity_src_nat.pdbx_organism_scientific
+_entity_src_nat.common_name
 _entity_src_nat.strain
-2 1 1234 'Test latin name' 'test strain'
+2 1 1234 'Test latin name' 'Test common name' 'test strain'
 #
 """)
 
@@ -314,6 +316,7 @@ _entity_src_nat.strain
                                           source=ihm.source.Manipulated()))
         s = ihm.source.Synthetic(ncbi_taxonomy_id='1234',
                                  scientific_name='Test latin name',
+                                 common_name='Test common name',
                                  strain='test strain')
         system.entities.append(ihm.Entity('AHCD', description='baz',
                                           source=s))
@@ -328,7 +331,8 @@ _pdbx_entity_src_syn.entity_id
 _pdbx_entity_src_syn.pdbx_src_id
 _pdbx_entity_src_syn.ncbi_taxonomy_id
 _pdbx_entity_src_syn.organism_scientific
-2 1 1234 'Test latin name'
+_pdbx_entity_src_syn.organism_common_name
+2 1 1234 'Test latin name' 'Test common name'
 #
 """)
 
@@ -339,9 +343,11 @@ _pdbx_entity_src_syn.organism_scientific
                                           source=ihm.source.Natural()))
         gene = ihm.source.Details(ncbi_taxonomy_id='1234',
                                   scientific_name='Test latin name',
+                                  common_name='Test common name',
                                   strain='test strain')
         host = ihm.source.Details(ncbi_taxonomy_id='5678',
                                   scientific_name='Other latin name',
+                                  common_name='Other common name',
                                   strain='other strain')
         s = ihm.source.Manipulated(gene=gene, host=host)
         system.entities.append(ihm.Entity('AHCD', description='baz',
@@ -356,11 +362,14 @@ _entity_src_gen.entity_id
 _entity_src_gen.pdbx_src_id
 _entity_src_gen.pdbx_gene_src_ncbi_taxonomy_id
 _entity_src_gen.pdbx_gene_src_scientific_name
+_entity_src_gen.gene_src_common_name
 _entity_src_gen.gene_src_strain
 _entity_src_gen.pdbx_host_org_ncbi_taxonomy_id
 _entity_src_gen.pdbx_host_org_scientific_name
+_entity_src_gen.host_org_common_name
 _entity_src_gen.pdbx_host_org_strain
-2 1 1234 'Test latin name' 'test strain' 5678 'Other latin name' 'other strain'
+2 1 1234 'Test latin name' 'Test common name' 'test strain' 5678
+'Other latin name' 'Other common name' 'other strain'
 #
 """)
 
