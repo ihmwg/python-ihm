@@ -426,11 +426,13 @@ class PDBParser(Parser):
         """Make a single ihm.source.Source object"""
         def make_from_source(cls):
             return cls(scientific_name=source.get('ORGANISM_SCIENTIFIC'),
+                       strain=source.get('STRAIN'),
                        ncbi_taxonomy_id=source.get('ORGANISM_TAXID'))
         if compnd.get('ENGINEERED', None) == 'YES':
             gene = make_from_source(ihm.source.Details)
             host = ihm.source.Details(
                     scientific_name=source.get('EXPRESSION_SYSTEM'),
+                    strain=source.get('EXPRESSION_SYSTEM_STRAIN'),
                     ncbi_taxonomy_id=source.get('EXPRESSION_SYSTEM_TAXID'))
             return ihm.source.Manipulated(gene=gene, host=host)
         else:

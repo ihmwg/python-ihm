@@ -288,7 +288,8 @@ _entity.details
         system.entities.append(ihm.Entity('AHC', description='foo',
                                           source=ihm.source.Manipulated()))
         s = ihm.source.Natural(ncbi_taxonomy_id='1234',
-                               scientific_name='Test latin name')
+                               scientific_name='Test latin name',
+                               strain='test strain')
         system.entities.append(ihm.Entity('AHCD', description='baz',
                                           source=s))
         ihm.dumper._EntityDumper().finalize(system)
@@ -301,7 +302,8 @@ _entity_src_nat.entity_id
 _entity_src_nat.pdbx_src_id
 _entity_src_nat.pdbx_ncbi_taxonomy_id
 _entity_src_nat.pdbx_organism_scientific
-2 1 1234 'Test latin name'
+_entity_src_nat.strain
+2 1 1234 'Test latin name' 'test strain'
 #
 """)
 
@@ -311,13 +313,15 @@ _entity_src_nat.pdbx_organism_scientific
         system.entities.append(ihm.Entity('AHC', description='foo',
                                           source=ihm.source.Manipulated()))
         s = ihm.source.Synthetic(ncbi_taxonomy_id='1234',
-                                 scientific_name='Test latin name')
+                                 scientific_name='Test latin name',
+                                 strain='test strain')
         system.entities.append(ihm.Entity('AHCD', description='baz',
                                           source=s))
         ihm.dumper._EntityDumper().finalize(system)
         dumper = ihm.dumper._EntitySrcSynDumper()
         dumper.finalize(system) # Assign IDs
         out = _get_dumper_output(dumper, system)
+        # _pdbx_entity_src_syn.strain is not used in current PDB entries
         self.assertEqual(out, """#
 loop_
 _pdbx_entity_src_syn.entity_id
@@ -334,9 +338,11 @@ _pdbx_entity_src_syn.organism_scientific
         system.entities.append(ihm.Entity('AHC', description='foo',
                                           source=ihm.source.Natural()))
         gene = ihm.source.Details(ncbi_taxonomy_id='1234',
-                                  scientific_name='Test latin name')
+                                  scientific_name='Test latin name',
+                                  strain='test strain')
         host = ihm.source.Details(ncbi_taxonomy_id='5678',
-                                  scientific_name='Other latin name')
+                                  scientific_name='Other latin name',
+                                  strain='other strain')
         s = ihm.source.Manipulated(gene=gene, host=host)
         system.entities.append(ihm.Entity('AHCD', description='baz',
                                           source=s))
@@ -350,9 +356,11 @@ _entity_src_gen.entity_id
 _entity_src_gen.pdbx_src_id
 _entity_src_gen.pdbx_gene_src_ncbi_taxonomy_id
 _entity_src_gen.pdbx_gene_src_scientific_name
+_entity_src_gen.gene_src_strain
 _entity_src_gen.pdbx_host_org_ncbi_taxonomy_id
 _entity_src_gen.pdbx_host_org_scientific_name
-2 1 1234 'Test latin name' 5678 'Other latin name'
+_entity_src_gen.pdbx_host_org_strain
+2 1 1234 'Test latin name' 'test strain' 5678 'Other latin name' 'other strain'
 #
 """)
 

@@ -662,17 +662,19 @@ class _EntitySrcNatHandler(Handler):
     category = '_entity_src_nat'
 
     def __call__(self, entity_id, pdbx_src_id, pdbx_ncbi_taxonomy_id,
-                 pdbx_organism_scientific):
+                 pdbx_organism_scientific, strain):
         e = self.sysr.entities.get_by_id(entity_id)
         s = self.sysr.src_nats.get_by_id(pdbx_src_id)
         s.ncbi_taxonomy_id = pdbx_ncbi_taxonomy_id
         s.scientific_name = pdbx_organism_scientific
+        s.strain = strain
         e.source = s
 
 
 class _EntitySrcSynHandler(Handler):
     category = '_pdbx_entity_src_syn'
 
+    # Note that _pdbx_entity_src_syn.strain is not used in current PDB entries
     def __call__(self, entity_id, pdbx_src_id, ncbi_taxonomy_id,
                  organism_scientific):
         e = self.sysr.entities.get_by_id(entity_id)
@@ -686,16 +688,19 @@ class _EntitySrcGenHandler(Handler):
     category = '_entity_src_gen'
 
     def __call__(self, entity_id, pdbx_src_id, pdbx_gene_src_ncbi_taxonomy_id,
-                 pdbx_gene_src_scientific_name, pdbx_host_org_ncbi_taxonomy_id,
-                 pdbx_host_org_scientific_name):
+                 pdbx_gene_src_scientific_name, gene_src_strain,
+                 pdbx_host_org_ncbi_taxonomy_id,
+                 pdbx_host_org_scientific_name, pdbx_host_org_strain):
         e = self.sysr.entities.get_by_id(entity_id)
         s = self.sysr.src_gens.get_by_id(pdbx_src_id)
         s.gene = ihm.source.Details(
                           ncbi_taxonomy_id=pdbx_gene_src_ncbi_taxonomy_id,
-                          scientific_name=pdbx_gene_src_scientific_name)
+                          scientific_name=pdbx_gene_src_scientific_name,
+                          strain=gene_src_strain)
         s.host = ihm.source.Details(
                           ncbi_taxonomy_id=pdbx_host_org_ncbi_taxonomy_id,
-                          scientific_name=pdbx_host_org_scientific_name)
+                          scientific_name=pdbx_host_org_scientific_name,
+                          strain=pdbx_host_org_strain)
         e.source = s
 
 

@@ -227,8 +227,10 @@ class _EntitySrcGenDumper(Dumper):
         with writer.loop("_entity_src_gen",
                 ["entity_id", "pdbx_src_id", "pdbx_gene_src_ncbi_taxonomy_id",
                  "pdbx_gene_src_scientific_name",
+                 "gene_src_strain",
                  "pdbx_host_org_ncbi_taxonomy_id",
-                 "pdbx_host_org_scientific_name"]) as l:
+                 "pdbx_host_org_scientific_name",
+                 "pdbx_host_org_strain"]) as l:
             for e in system.entities:
                 if isinstance(e.source, ihm.source.Manipulated):
                     self._dump_source(l, e)
@@ -240,10 +242,12 @@ class _EntitySrcGenDumper(Dumper):
                                                if s.gene else None,
                 pdbx_gene_src_scientific_name=s.gene.scientific_name
                                                if s.gene else None,
+                gene_src_strain=s.gene.strain if s.gene else None,
                 pdbx_host_org_ncbi_taxonomy_id=s.host.ncbi_taxonomy_id
                                                if s.host else None,
                 pdbx_host_org_scientific_name=s.host.scientific_name
-                                               if s.host else None)
+                                               if s.host else None,
+                pdbx_host_org_strain=s.host.strain if s.host else None)
 
 
 class _EntitySrcNatDumper(Dumper):
@@ -253,13 +257,14 @@ class _EntitySrcNatDumper(Dumper):
     def dump(self, system, writer):
         with writer.loop("_entity_src_nat",
                 ["entity_id", "pdbx_src_id", "pdbx_ncbi_taxonomy_id",
-                 "pdbx_organism_scientific"]) as l:
+                 "pdbx_organism_scientific", "strain"]) as l:
             for e in system.entities:
                 s = e.source
                 if isinstance(s, ihm.source.Natural):
                     l.write(entity_id=e._id, pdbx_src_id=s._id,
                             pdbx_ncbi_taxonomy_id=s.ncbi_taxonomy_id,
-                            pdbx_organism_scientific=s.scientific_name)
+                            pdbx_organism_scientific=s.scientific_name,
+                            strain=s.strain)
 
 
 class _EntitySrcSynDumper(Dumper):
@@ -267,6 +272,8 @@ class _EntitySrcSynDumper(Dumper):
         _assign_src_ids(system, ihm.source.Synthetic)
 
     def dump(self, system, writer):
+        # Note that _pdbx_entity_src_syn.strain is not used in current PDB
+        # entries
         with writer.loop("_pdbx_entity_src_syn",
                 ["entity_id", "pdbx_src_id", "ncbi_taxonomy_id",
                  "organism_scientific"]) as l:
