@@ -148,17 +148,14 @@ class _AuditAuthorDumper(Dumper):
 
 class _ChemCompDumper(Dumper):
     def dump(self, system, writer):
-        seen = {}
+        comps = frozenset(comp for e in system.entities for comp in e.sequence)
 
         with writer.loop("_chem_comp", ["id", "type", "name",
                                         "formula", "formula_weight"]) as l:
-            for entity in system.entities:
-                for comp in entity.sequence:
-                    if comp not in seen:
-                        seen[comp] = None
-                        l.write(id=comp.id, type=comp.type, name=comp.name,
-                                formula=comp.formula,
-                                formula_weight=comp.formula_weight)
+            for comp in sorted(comps, key=operator.attrgetter('id')):
+                l.write(id=comp.id, type=comp.type, name=comp.name,
+                        formula=comp.formula,
+                        formula_weight=comp.formula_weight)
 
 
 class _ChemDescriptorDumper(Dumper):
