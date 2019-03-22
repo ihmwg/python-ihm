@@ -1,3 +1,4 @@
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2603378.svg)](https://doi.org/10.5281/zenodo.2603378)
 [![docs](https://readthedocs.org/projects/python-ihm/badge/)](https://python-ihm.readthedocs.org/)
 [![pypi package](https://badge.fury.io/py/ihm.svg)](https://badge.fury.io/py/ihm)
 [![Linux Build Status](https://travis-ci.org/ihmwg/python-ihm.svg?branch=master)](https://travis-ci.org/ihmwg/python-ihm)
