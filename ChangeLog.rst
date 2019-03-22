@@ -4,6 +4,8 @@ HEAD
    describe the method by which the sample for the entity was produced.
    :class:`ihm.metadata.PDBParser` will also extract this information
    from input PDB files.
+ - :func:`ihm.reader.read` and :func:`ihm.dumper.write` now support reading
+   or writing additional user-defined mmCIF categories.
 
 0.5 - 2019-01-17
 ================
