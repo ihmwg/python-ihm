@@ -1,5 +1,5 @@
-HEAD
-====
+0.6 - 2019-03-22
+================
  - :class:`Entity` now takes an optional :class:`ihm.source.Source` object to
    describe the method by which the sample for the entity was produced.
    :class:`ihm.metadata.PDBParser` will also extract this information
