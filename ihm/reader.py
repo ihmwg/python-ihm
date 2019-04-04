@@ -596,6 +596,13 @@ class _CitationHandler(Handler):
                 s.page_range = page_first
 
 
+class _AuditAuthorHandler(Handler):
+    category = '_audit_author'
+
+    def __call__(self, name):
+        self.system.authors.append(name)
+
+
 class _CitationAuthorHandler(Handler):
     category = '_citation_author'
 
@@ -1787,6 +1794,7 @@ def read(fh, model_class=ihm.model.Model, format='mmCIF', handlers=[]):
     while True:
         s = SystemReader(model_class)
         hs = [_StructHandler(s), _SoftwareHandler(s), _CitationHandler(s),
+              _AuditAuthorHandler(s),
               _CitationAuthorHandler(s), _ChemCompHandler(s),
               _ChemDescriptorHandler(s), _EntityHandler(s),
               _EntitySrcNatHandler(s), _EntitySrcGenHandler(s),

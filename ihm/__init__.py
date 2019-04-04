@@ -55,6 +55,12 @@ class System(object):
         #: List of all software used in the modeling. See :class:`Software`.
         self.software = []
 
+        #: List of all authors of this system, as a list of strings (last name
+        #: followed by initials, e.g. "Smith AJ"). When writing out a file,
+        #: if this is list is empty, the set of all citation authors (see
+        #: :attr:`Citation.authors`) is used instead.
+        self.authors = []
+
         #: List of all citations. See :class:`Citation`.
         self.citations = []
 

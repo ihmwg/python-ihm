@@ -129,21 +129,22 @@ class _CitationDumper(Dumper):
 
 
 class _AuditAuthorDumper(Dumper):
-    """Populate the mmCIF audit_author category (a list of the people that
-       authored this mmCIF file; here we assume that's just the authors of
-       any associated publications)"""
+    def _get_citation_authors(self, system):
+        # If system.authors is empty, get the set of all citation authors
+        # instead
+        seen_authors = set()
+        for c in system._all_citations():
+            for a in c.authors:
+                if a not in seen_authors:
+                    seen_authors.add(a)
+                    yield a
 
     def dump(self, system, writer):
-        seen_authors = {}
+        authors = system.authors or self._get_citation_authors(system)
         with writer.loop("_audit_author",
                          ["name", "pdbx_ordinal"]) as l:
-            ordinal = 1
-            for c in system._all_citations():
-                for a in c.authors:
-                    if a not in seen_authors:
-                        seen_authors[a] = None
-                        l.write(name=a, pdbx_ordinal=ordinal)
-                        ordinal += 1
+            for n, author in enumerate(authors):
+                l.write(name=author, pdbx_ordinal=n+1)
 
 
 class _ChemCompDumper(Dumper):

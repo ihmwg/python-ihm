@@ -1,3 +1,9 @@
+HEAD
+====
+ - Authors of the mmCIF file itself (`_audit_author` category) can now be
+   set by manipulating :attr:`ihm.System.authors`. (If this list is empty on
+   output, the set of all citation authors is used instead, as before.)
+
 0.6 - 2019-03-22
 ================
  - :class:`Entity` now takes an optional :class:`ihm.source.Source` object to

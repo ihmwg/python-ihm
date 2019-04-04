@@ -220,8 +220,8 @@ _citation_author.ordinal
         out = _get_dumper_output(dumper, system)
         self.assertTrue("'Mol Cell Proteomics' 13 e1637 . 2014 " in out)
 
-    def test_audit_author(self):
-        """Test AuditAuthorDumper"""
+    def test_audit_author_empty(self):
+        """Test AuditAuthorDumper with empty list"""
         system = ihm.System()
 
         c1 = ihm.Citation(pmid='25161197', title='foo',
@@ -244,6 +244,23 @@ auth1 1
 auth2 2
 auth3 3
 auth4 4
+#
+""")
+
+    def test_audit_author(self):
+        """Test AuditAuthorDumper"""
+        system = ihm.System()
+        system.authors.extend(('auth1', 'auth2', 'auth3'))
+
+        dumper = ihm.dumper._AuditAuthorDumper()
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_audit_author.name
+_audit_author.pdbx_ordinal
+auth1 1
+auth2 2
+auth3 3
 #
 """)
 

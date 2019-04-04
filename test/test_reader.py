@@ -181,6 +181,20 @@ _software.location
             self.assertEqual(software.name, 'test software')
             self.assertEqual(software.classification, 'test class')
 
+    def test_audit_author_handler(self):
+        """Test AuditAuthorHandler"""
+        cif = """
+loop_
+_audit_author.name
+_audit_author.pdbx_ordinal
+auth1 1
+auth2 2
+auth3 3
+"""
+        for fh in cif_file_handles(cif):
+            s, = ihm.reader.read(fh)
+            self.assertEqual(s.authors, ['auth1', 'auth2', 'auth3'])
+
     def test_citation_handler(self):
         """Test CitationHandler and CitationAuthorHandler"""
         cif = """
