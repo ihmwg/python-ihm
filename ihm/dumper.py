@@ -147,6 +147,17 @@ class _AuditAuthorDumper(Dumper):
                 l.write(name=author, pdbx_ordinal=n+1)
 
 
+class _GrantDumper(Dumper):
+    def dump(self, system, writer):
+        with writer.loop("_pdbx_audit_support",
+                         ["funding_organization", "country", "grant_number",
+                          "ordinal"]) as l:
+            for n, grant in enumerate(system.grants):
+                l.write(funding_organization=grant.funding_organization,
+                        country=grant.country,
+                        grant_number=grant.grant_number, ordinal=n+1)
+
+
 class _ChemCompDumper(Dumper):
     def dump(self, system, writer):
         comps = frozenset(comp for e in system.entities for comp in e.sequence)
@@ -1928,7 +1939,7 @@ def write(fh, systems, format='mmCIF', dumpers=[]):
                _StructDumper(), _CommentDumper(),
                _AuditConformDumper(), _SoftwareDumper(),
                _CitationDumper(),
-               _AuditAuthorDumper(),
+               _AuditAuthorDumper(), _GrantDumper(),
                _ChemCompDumper(), _ChemDescriptorDumper(),
                _EntityDumper(), _EntitySrcGenDumper(), _EntitySrcNatDumper(),
                _EntitySrcSynDumper(), _EntityPolyDumper(),

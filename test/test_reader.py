@@ -195,6 +195,27 @@ auth3 3
             s, = ihm.reader.read(fh)
             self.assertEqual(s.authors, ['auth1', 'auth2', 'auth3'])
 
+    def test_grant_handler(self):
+        """Test GrantHandler"""
+        cif = """
+loop_
+_pdbx_audit_support.funding_organization
+_pdbx_audit_support.country
+_pdbx_audit_support.grant_number
+_pdbx_audit_support.ordinal
+NIH 'United States' foo 1
+NSF 'United States' bar 2
+"""
+        for fh in cif_file_handles(cif):
+            s, = ihm.reader.read(fh)
+            g1, g2 = s.grants
+            self.assertEqual(g1.funding_organization, "NIH")
+            self.assertEqual(g1.country, "United States")
+            self.assertEqual(g1.grant_number, "foo")
+            self.assertEqual(g2.funding_organization, "NSF")
+            self.assertEqual(g2.country, "United States")
+            self.assertEqual(g2.grant_number, "bar")
+
     def test_citation_handler(self):
         """Test CitationHandler and CitationAuthorHandler"""
         cif = """

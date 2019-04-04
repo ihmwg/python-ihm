@@ -61,6 +61,9 @@ class System(object):
         #: :attr:`Citation.authors`) is used instead.
         self.authors = []
 
+        #: List of all grants that supported this work. See :class:`Grant`.
+        self.grants = []
+
         #: List of all citations. See :class:`Citation`.
         self.citations = []
 
@@ -471,6 +474,23 @@ class Software(object):
         return self._eq_vals() == other._eq_vals()
     def __hash__(self):
         return hash(self._eq_vals())
+
+
+class Grant(object):
+    """Information on funding support for the modeling.
+       See :attr:`System.grants`.
+
+       :param str funding_organization: The name of the organization providing
+              the funding, e.g. "National Institutes of Health".
+       :param str country: The country that hosts the funding organization,
+              e.g. "United States".
+       :param str grant_number: Identifying information for the grant, e.g.
+              "1R01GM072999-01".
+    """
+    def __init__(self, funding_organization, country, grant_number):
+        self.funding_organization = funding_organization
+        self.country = country
+        self.grant_number = grant_number
 
 
 class Citation(object):

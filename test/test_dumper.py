@@ -264,6 +264,28 @@ auth3 3
 #
 """)
 
+    def test_grant(self):
+        """Test GrantDumper"""
+        system = ihm.System()
+        g1 = ihm.Grant(funding_organization="NIH", country="United States",
+                       grant_number="foo")
+        g2 = ihm.Grant(funding_organization="NSF", country="United States",
+                       grant_number="bar")
+        system.grants.extend((g1, g2))
+
+        dumper = ihm.dumper._GrantDumper()
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_pdbx_audit_support.funding_organization
+_pdbx_audit_support.country
+_pdbx_audit_support.grant_number
+_pdbx_audit_support.ordinal
+NIH 'United States' foo 1
+NSF 'United States' bar 2
+#
+""")
+
     def test_entity_dumper(self):
         """Test EntityDumper"""
         system = ihm.System()
