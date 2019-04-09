@@ -2496,6 +2496,7 @@ _ihm_feature_list.entity_type
 #
 #
 loop_
+_ihm_poly_residue_feature.ordinal_id
 _ihm_poly_residue_feature.feature_id
 _ihm_poly_residue_feature.entity_id
 _ihm_poly_residue_feature.asym_id
@@ -2503,29 +2504,31 @@ _ihm_poly_residue_feature.seq_id_begin
 _ihm_poly_residue_feature.comp_id_begin
 _ihm_poly_residue_feature.seq_id_end
 _ihm_poly_residue_feature.comp_id_end
-1 1 A 1 ALA 4 THR
-1 1 B 2 CYS 3 GLY
+1 1 1 A 1 ALA 4 THR
+2 1 1 B 2 CYS 3 GLY
 #
 #
 loop_
+_ihm_poly_atom_feature.ordinal_id
 _ihm_poly_atom_feature.feature_id
 _ihm_poly_atom_feature.entity_id
 _ihm_poly_atom_feature.asym_id
 _ihm_poly_atom_feature.seq_id
 _ihm_poly_atom_feature.comp_id
 _ihm_poly_atom_feature.atom_id
-2 1 A 1 ALA CA
-2 1 B 2 CYS N
+1 2 1 A 1 ALA CA
+2 2 1 B 2 CYS N
 #
 #
 loop_
+_ihm_non_poly_feature.ordinal_id
 _ihm_non_poly_feature.feature_id
 _ihm_non_poly_feature.entity_id
 _ihm_non_poly_feature.asym_id
 _ihm_non_poly_feature.comp_id
 _ihm_non_poly_feature.atom_id
-3 2 C HEM FE
-4 2 C HEM .
+1 3 2 C HEM FE
+2 4 2 C HEM .
 #
 #
 loop_

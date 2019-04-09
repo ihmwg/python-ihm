@@ -1523,8 +1523,9 @@ class _FeatureDumper(Dumper):
                         entity_type=f._get_entity_type())
 
     def dump_poly_residue(self, writer):
+        ordinal = 1
         with writer.loop("_ihm_poly_residue_feature",
-                         ["feature_id", "entity_id", "asym_id",
+                         ["ordinal_id", "feature_id", "entity_id", "asym_id",
                           "seq_id_begin", "comp_id_begin", "seq_id_end",
                           "comp_id_end"]) as l:
             for f in self._features_by_id:
@@ -1532,16 +1533,18 @@ class _FeatureDumper(Dumper):
                     continue
                 for r in f.ranges:
                     seq = r.entity.sequence
-                    l.write(feature_id=f._id,
+                    l.write(ordinal_id=ordinal, feature_id=f._id,
                             entity_id=r.entity._id, asym_id=r._id,
                             seq_id_begin=r.seq_id_range[0],
                             comp_id_begin=seq[r.seq_id_range[0]-1].id,
                             seq_id_end=r.seq_id_range[1],
                             comp_id_end=seq[r.seq_id_range[1]-1].id)
+                    ordinal += 1
 
     def dump_poly_atom(self, writer):
+        ordinal = 1
         with writer.loop("_ihm_poly_atom_feature",
-                         ["feature_id", "entity_id", "asym_id",
+                         ["ordinal_id", "feature_id", "entity_id", "asym_id",
                           "seq_id", "comp_id", "atom_id"]) as l:
             for f in self._features_by_id:
                 if not isinstance(f, restraint.AtomFeature):
@@ -1550,14 +1553,16 @@ class _FeatureDumper(Dumper):
                     r = a.residue
                     if r.asym.entity.is_polymeric():
                         seq = r.asym.entity.sequence
-                        l.write(feature_id=f._id,
+                        l.write(ordinal_id=ordinal, feature_id=f._id,
                                 entity_id=r.asym.entity._id, asym_id=r.asym._id,
                                 seq_id=r.seq_id, comp_id=seq[r.seq_id-1].id,
                                 atom_id=a.id)
+                        ordinal += 1
 
     def dump_non_poly(self, writer):
+        ordinal = 1
         with writer.loop("_ihm_non_poly_feature",
-                         ["feature_id", "entity_id", "asym_id",
+                         ["ordinal_id", "feature_id", "entity_id", "asym_id",
                           "comp_id", "atom_id"]) as l:
             for f in self._features_by_id:
                 if isinstance(f, restraint.AtomFeature):
@@ -1565,18 +1570,20 @@ class _FeatureDumper(Dumper):
                         r = a.residue
                         if not r.asym.entity.is_polymeric():
                             seq = r.asym.entity.sequence
-                            l.write(feature_id=f._id,
+                            l.write(ordinal_id=ordinal, feature_id=f._id,
                                     entity_id=r.asym.entity._id,
                                     asym_id=r.asym._id,
                                     comp_id=seq[r.seq_id-1].id, atom_id=a.id)
+                            ordinal += 1
                 elif isinstance(f, restraint.NonPolyFeature):
                     _ = f._get_entity_type() # trigger check for poly/nonpoly
                     for a in f.asyms:
                         seq = a.entity.sequence
-                        l.write(feature_id=f._id,
+                        l.write(ordinal_id=ordinal, feature_id=f._id,
                                 entity_id=a.entity._id,
                                 asym_id=a._id, comp_id=seq[0].id,
                                 atom_id=None)
+                        ordinal += 1
 
     def dump_pseudo_site(self, writer):
         with writer.loop("_ihm_pseudo_site_feature",
