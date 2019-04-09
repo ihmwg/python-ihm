@@ -536,13 +536,13 @@ B 1 Nup85
             self.assertEqual(a2.details, 'Nup85')
             self.assertEqual(id(a1.entity), id(a2.entity))
 
-    def test_assembly_details_handler(self):
-        """Test AssemblyDetailsHandler"""
+    def test_assembly_handler(self):
+        """Test AssemblyHandler"""
         cif = """
 loop_
-_ihm_struct_assembly_details.assembly_id
-_ihm_struct_assembly_details.assembly_name
-_ihm_struct_assembly_details.assembly_description
+_ihm_struct_assembly.id
+_ihm_struct_assembly.name
+_ihm_struct_assembly.description
 1 'Complete assembly' 'All known components'
 """
         for fh in cif_file_handles(cif):
@@ -552,8 +552,8 @@ _ihm_struct_assembly_details.assembly_description
             self.assertEqual(a1.name, 'Complete assembly')
             self.assertEqual(a1.description, 'All known components')
 
-    def test_assembly_handler(self):
-        """Test AssemblyHandler"""
+    def test_assembly_details_handler(self):
+        """Test AssemblyDetailsHandler"""
         cif = """
 loop_
 _entity_poly_seq.entity_id
@@ -570,14 +570,14 @@ A 1 Nup84
 B 2 Nup85
 #
 loop_
-_ihm_struct_assembly.ordinal_id
-_ihm_struct_assembly.assembly_id
-_ihm_struct_assembly.parent_assembly_id
-_ihm_struct_assembly.entity_description
-_ihm_struct_assembly.entity_id
-_ihm_struct_assembly.asym_id
-_ihm_struct_assembly.seq_id_begin
-_ihm_struct_assembly.seq_id_end
+_ihm_struct_assembly_details.id
+_ihm_struct_assembly_details.assembly_id
+_ihm_struct_assembly_details.parent_assembly_id
+_ihm_struct_assembly_details.entity_description
+_ihm_struct_assembly_details.entity_id
+_ihm_struct_assembly_details.asym_id
+_ihm_struct_assembly_details.seq_id_begin
+_ihm_struct_assembly_details.seq_id_end
 1 1 1 Nup84 1 A 1 726
 2 1 1 Nup85 2 B 1 744
 3 1 1 Nup84 1 A 1 1
@@ -696,11 +696,28 @@ _ihm_dataset_list.database_hosted
         """Test DatasetGroupHandler"""
         cif = """
 loop_
-_ihm_dataset_group.ordinal_id
-_ihm_dataset_group.group_id
-_ihm_dataset_group.dataset_list_id
-1 1 1
-2 1 2
+_ihm_dataset_group.id
+_ihm_dataset_group.name
+_ihm_dataset_group.application
+_ihm_dataset_group.details
+1 "foo" "foo app" "foo details"
+"""
+        for fh in cif_file_handles(cif):
+            s, = ihm.reader.read(fh)
+            g1, = s.orphan_dataset_groups
+            self.assertEqual(len(g1), 0) # no datasets read yet
+            self.assertEqual(g1.name, 'foo')
+            self.assertEqual(g1.application, 'foo app')
+            self.assertEqual(g1.details, 'foo details')
+
+    def test_dataset_group_link_handler(self):
+        """Test DatasetGroupLinkHandler"""
+        cif = """
+loop_
+_ihm_dataset_group_link.group_id
+_ihm_dataset_group_link.dataset_list_id
+1 1
+1 2
 """
         for fh in cif_file_handles(cif):
             s, = ihm.reader.read(fh)
@@ -771,10 +788,9 @@ _ihm_dataset_related_db_reference.details
         """Test RelatedDatasetsHandler"""
         cif = """
 loop_
-_ihm_related_datasets.ordinal_id
 _ihm_related_datasets.dataset_list_id_derived
 _ihm_related_datasets.dataset_list_id_primary
-1 4 1
+4 1
 """
         for fh in cif_file_handles(cif):
             s, = ihm.reader.read(fh)
@@ -788,19 +804,35 @@ _ihm_related_datasets.dataset_list_id_primary
         """Test ModelRepresentationHandler"""
         cif = """
 loop_
-_ihm_model_representation.ordinal_id
-_ihm_model_representation.representation_id
-_ihm_model_representation.segment_id
-_ihm_model_representation.entity_id
-_ihm_model_representation.entity_description
-_ihm_model_representation.entity_asym_id
-_ihm_model_representation.seq_id_begin
-_ihm_model_representation.seq_id_end
-_ihm_model_representation.model_object_primitive
-_ihm_model_representation.starting_model_id
-_ihm_model_representation.model_mode
-_ihm_model_representation.model_granularity
-_ihm_model_representation.model_object_count
+_ihm_model_representation.id
+_ihm_model_representation.name
+_ihm_model_representation.details
+1 "rep A" "rep A details"
+"""
+        for fh in cif_file_handles(cif):
+            s, = ihm.reader.read(fh)
+            r1, = s.orphan_representations
+            self.assertEqual(len(r1), 0) # no segments read yet
+            self.assertEqual(r1.name, 'rep A')
+            self.assertEqual(r1.details, 'rep A details')
+
+    def test_model_representation_details_handler(self):
+        """Test ModelRepresentationDetailsHandler"""
+        cif = """
+loop_
+_ihm_model_representation_details.id
+_ihm_model_representation_details.representation_id
+_ihm_model_representation_details.segment_id
+_ihm_model_representation_details.entity_id
+_ihm_model_representation_details.entity_description
+_ihm_model_representation_details.entity_asym_id
+_ihm_model_representation_details.seq_id_begin
+_ihm_model_representation_details.seq_id_end
+_ihm_model_representation_details.model_object_primitive
+_ihm_model_representation_details.starting_model_id
+_ihm_model_representation_details.model_mode
+_ihm_model_representation_details.model_granularity
+_ihm_model_representation_details.model_object_count
 1 1 1 1 Nup84 A 1 6 sphere . flexible by-feature 1
 2 1 2 1 Nup84 A 7 20 sphere 1 rigid by-residue .
 3 2 1 1 Nup84 A . . atomistic . flexible by-atom .
@@ -887,7 +919,7 @@ _ihm_starting_computational_models.script_file_id
         """Test StartingComparativeModelsHandler"""
         cif = """
 loop_
-_ihm_starting_comparative_models.ordinal_id
+_ihm_starting_comparative_models.id
 _ihm_starting_comparative_models.starting_model_id
 _ihm_starting_comparative_models.starting_model_auth_asym_id
 _ihm_starting_comparative_models.starting_model_seq_id_begin
@@ -919,29 +951,43 @@ _ihm_starting_comparative_models.alignment_file_id
         """Test ProtocolHandler"""
         cif = """
 loop_
-_ihm_modeling_protocol.ordinal_id
-_ihm_modeling_protocol.protocol_id
-_ihm_modeling_protocol.step_id
-_ihm_modeling_protocol.struct_assembly_id
-_ihm_modeling_protocol.dataset_group_id
-_ihm_modeling_protocol.struct_assembly_description
+_ihm_modeling_protocol.id
 _ihm_modeling_protocol.protocol_name
-_ihm_modeling_protocol.step_name
-_ihm_modeling_protocol.step_method
-_ihm_modeling_protocol.num_models_begin
-_ihm_modeling_protocol.num_models_end
-_ihm_modeling_protocol.multi_scale_flag
-_ihm_modeling_protocol.multi_state_flag
-_ihm_modeling_protocol.ordered_flag
-_ihm_modeling_protocol.software_id
-_ihm_modeling_protocol.script_file_id
-1 1 1 1 1 . Prot1 Sampling 'Monte Carlo' 0 500 YES NO NO . .
-2 1 2 1 2 . Prot1 Sampling 'Monte Carlo' 500 5000 YES . NO 401 501
+_ihm_modeling_protocol.num_steps
+1 Prot1 5
 """
         for fh in cif_file_handles(cif):
             s, = ihm.reader.read(fh)
             p1, = s.orphan_protocols
             self.assertEqual(p1.name, "Prot1")
+            # no step objects read yet, num_steps ignored
+            self.assertEqual(len(p1.steps), 0)
+
+    def test_protocol_details_handler(self):
+        """Test ProtocolDetailsHandler"""
+        cif = """
+loop_
+_ihm_modeling_protocol_details.id
+_ihm_modeling_protocol_details.protocol_id
+_ihm_modeling_protocol_details.step_id
+_ihm_modeling_protocol_details.struct_assembly_id
+_ihm_modeling_protocol_details.dataset_group_id
+_ihm_modeling_protocol_details.struct_assembly_description
+_ihm_modeling_protocol_details.step_name
+_ihm_modeling_protocol_details.step_method
+_ihm_modeling_protocol_details.num_models_begin
+_ihm_modeling_protocol_details.num_models_end
+_ihm_modeling_protocol_details.multi_scale_flag
+_ihm_modeling_protocol_details.multi_state_flag
+_ihm_modeling_protocol_details.ordered_flag
+_ihm_modeling_protocol_details.software_id
+_ihm_modeling_protocol_details.script_file_id
+1 1 1 1 1 . Sampling 'Monte Carlo' 0 500 YES NO NO . .
+2 1 2 1 2 . Sampling 'Monte Carlo' 500 5000 YES . NO 401 501
+"""
+        for fh in cif_file_handles(cif):
+            s, = ihm.reader.read(fh)
+            p1, = s.orphan_protocols
             self.assertEqual(len(p1.steps), 2)
             self.assertEqual(p1.steps[0]._id, '1')
             self.assertEqual(p1.steps[0].assembly._id, '1')
@@ -1011,19 +1057,29 @@ _ihm_modeling_post_process.script_file_id
             self.assertEqual(a1.steps[0].num_models_end, None)
 
     def test_model_list_handler(self):
-        """Test ModelListHandler"""
+        """Test ModelListHandler and ModelGroupHandler"""
         cif = """
 loop_
-_ihm_model_list.ordinal_id
 _ihm_model_list.model_id
-_ihm_model_list.model_group_id
 _ihm_model_list.model_name
-_ihm_model_list.model_group_name
 _ihm_model_list.assembly_id
 _ihm_model_list.protocol_id
 _ihm_model_list.representation_id
-1 1 1 'Best scoring model' 'Cluster 1' 1 2 3
-2 2 2 'Best scoring model' 'Cluster 2' 1 1 1
+1 'Best scoring model' 1 2 3
+2 'Best scoring model' 1 1 1
+#
+loop_
+_ihm_model_group.id
+_ihm_model_group.name
+_ihm_model_group.details
+1 "Cluster 1" .
+2 "Cluster 2" .
+#
+loop_
+_ihm_model_group_link.group_id
+_ihm_model_group_link.model_id
+1 1
+2 2
 """
         for fh in cif_file_handles(cif):
             s, = ihm.reader.read(fh)
@@ -1048,19 +1104,25 @@ _ihm_model_list.representation_id
         """Test MultiStateHandler"""
         cif = """
 loop_
-_ihm_model_list.ordinal_id
 _ihm_model_list.model_id
-_ihm_model_list.model_group_id
 _ihm_model_list.model_name
-_ihm_model_list.model_group_name
 _ihm_model_list.assembly_id
 _ihm_model_list.protocol_id
 _ihm_model_list.representation_id
-1 1 1 'Best scoring model' 'Cluster 1' 1 2 3
-#
+1 'Best scoring model' 1 2 3
 #
 loop_
-_ihm_multi_state_modeling.ordinal_id
+_ihm_model_group.id
+_ihm_model_group.name
+_ihm_model_group.details
+1 "Cluster 1" .
+#
+loop_
+_ihm_model_group_link.group_id
+_ihm_model_group_link.model_id
+1 1
+#
+loop_
 _ihm_multi_state_modeling.state_id
 _ihm_multi_state_modeling.state_group_id
 _ihm_multi_state_modeling.population_fraction
@@ -1069,10 +1131,10 @@ _ihm_multi_state_modeling.state_name
 _ihm_multi_state_modeling.model_group_id
 _ihm_multi_state_modeling.experiment_type
 _ihm_multi_state_modeling.details
-1 1 1 0.4 'complex formation' 'unbound' 1  'Fraction of bulk'  'unbound molecule 1'
-2 2 1 .  'complex formation' 'unbound' 2  'Fraction of bulk'  'unbound molecule 2'
-3 3 1 .  'complex formation' 'bound'   3  'Fraction of bulk'  'bound molecules 1 and 2'
-4 3 1 .  'complex formation' 'bound'   4  'Fraction of bulk'  'bound molecules 1 and 2'
+1 1 0.4 'complex formation' 'unbound' 1  'Fraction of bulk'  'unbound molecule 1'
+2 1 .  'complex formation' 'unbound' 2  'Fraction of bulk'  'unbound molecule 2'
+3 1 .  'complex formation' 'bound'   3  'Fraction of bulk'  'bound molecules 1 and 2'
+3 1 .  'complex formation' 'bound'   4  'Fraction of bulk'  'bound molecules 1 and 2'
 """
         for fh in cif_file_handles(cif):
             s, = ihm.reader.read(fh)
@@ -1149,7 +1211,7 @@ _ihm_localization_density_files.seq_id_end
         """Test EM3DRestraintHandler"""
         fh = StringIO("""
 loop_
-_ihm_3dem_restraint.ordinal_id
+_ihm_3dem_restraint.id
 _ihm_3dem_restraint.dataset_list_id
 _ihm_3dem_restraint.fitting_method
 _ihm_3dem_restraint.fitting_method_citation_id
@@ -1225,7 +1287,7 @@ _ihm_2dem_class_average_restraint.details
 1 65 800 2.030 4.030 35.000 NO 10000 42 .
 #
 loop_
-_ihm_2dem_class_average_fitting.ordinal_id
+_ihm_2dem_class_average_fitting.id
 _ihm_2dem_class_average_fitting.restraint_id
 _ihm_2dem_class_average_fitting.model_id
 _ihm_2dem_class_average_fitting.cross_correlation_coefficient
@@ -1267,7 +1329,7 @@ _ihm_2dem_class_average_fitting.tr_vector[3]
         """Test SASRestraintHandler"""
         fh = StringIO("""
 loop_
-_ihm_sas_restraint.ordinal_id
+_ihm_sas_restraint.id
 _ihm_sas_restraint.dataset_list_id
 _ihm_sas_restraint.model_id
 _ihm_sas_restraint.struct_assembly_id
@@ -1302,18 +1364,26 @@ _ihm_sas_restraint.details
 
         fh = StringIO("""
 loop_
-_ihm_model_list.ordinal_id
 _ihm_model_list.model_id
-_ihm_model_list.model_group_id
 _ihm_model_list.model_name
-_ihm_model_list.model_group_name
 _ihm_model_list.assembly_id
 _ihm_model_list.protocol_id
 _ihm_model_list.representation_id
-1 1 1 . 'Cluster 1' 1 1 1
+1 . 1 1 1
 #
 loop_
-_ihm_sphere_obj_site.ordinal_id
+_ihm_model_group.id
+_ihm_model_group.name
+_ihm_model_group.details
+1 "Cluster 1" .
+#
+loop_
+_ihm_model_group_link.group_id
+_ihm_model_group_link.model_id
+1 1
+#
+loop_
+_ihm_sphere_obj_site.id
 _ihm_sphere_obj_site.entity_id
 _ihm_sphere_obj_site.seq_id_begin
 _ihm_sphere_obj_site.seq_id_end
@@ -1344,15 +1414,23 @@ _ihm_sphere_obj_site.model_id
         """Test AtomSiteHandler"""
         fh = StringIO("""
 loop_
-_ihm_model_list.ordinal_id
 _ihm_model_list.model_id
-_ihm_model_list.model_group_id
 _ihm_model_list.model_name
-_ihm_model_list.model_group_name
 _ihm_model_list.assembly_id
 _ihm_model_list.protocol_id
 _ihm_model_list.representation_id
-1 1 1 . 'Cluster 1' 1 1 1
+1 . 1 1 1
+#
+loop_
+_ihm_model_group.id
+_ihm_model_group.name
+_ihm_model_group.details
+1 "Cluster 1" .
+#
+loop_
+_ihm_model_group_link.group_id
+_ihm_model_group_link.model_id
+1 1
 #
 loop_
 _atom_site.group_PDB
@@ -1398,15 +1476,23 @@ HETATM 2 C CA . SER . B 54.452 -48.492 -35.210 1 A 42.0 1 1
         """Test AtomSiteHandler handling of auth_seq_id"""
         fh = StringIO(ASYM_ENTITY + """
 loop_
-_ihm_model_list.ordinal_id
 _ihm_model_list.model_id
-_ihm_model_list.model_group_id
 _ihm_model_list.model_name
-_ihm_model_list.model_group_name
 _ihm_model_list.assembly_id
 _ihm_model_list.protocol_id
 _ihm_model_list.representation_id
-1 1 1 . 'Cluster 1' 1 1 1
+1 . 1 1 1
+#
+loop_
+_ihm_model_group.id
+_ihm_model_group.name
+_ihm_model_group.details
+1 "Cluster 1" .
+#
+loop_
+_ihm_model_group_link.group_id
+_ihm_model_group_link.model_id
+1 1
 #
 loop_
 _atom_site.group_PDB
@@ -1438,17 +1524,15 @@ ATOM 3 N N . SER 3 3 A 54.401 -49.984 -35.287 1 A . 1 1
         """Test DerivedDistanceRestraintHandler"""
         feats = """
 loop_
-_ihm_poly_atom_feature.ordinal_id
 _ihm_poly_atom_feature.feature_id
 _ihm_poly_atom_feature.entity_id
 _ihm_poly_atom_feature.asym_id
 _ihm_poly_atom_feature.seq_id
 _ihm_poly_atom_feature.comp_id
 _ihm_poly_atom_feature.atom_id
-1 1 1 A 1 ALA CA
+1 1 A 1 ALA CA
 #
 loop_
-_ihm_poly_residue_feature.ordinal_id
 _ihm_poly_residue_feature.feature_id
 _ihm_poly_residue_feature.entity_id
 _ihm_poly_residue_feature.asym_id
@@ -1456,17 +1540,16 @@ _ihm_poly_residue_feature.seq_id_begin
 _ihm_poly_residue_feature.comp_id_begin
 _ihm_poly_residue_feature.seq_id_end
 _ihm_poly_residue_feature.comp_id_end
-1 2 1 B 2 CYS 3 GLY
+2 1 B 2 CYS 3 GLY
 #
 loop_
-_ihm_non_poly_feature.ordinal_id
 _ihm_non_poly_feature.feature_id
 _ihm_non_poly_feature.entity_id
 _ihm_non_poly_feature.asym_id
 _ihm_non_poly_feature.comp_id
 _ihm_non_poly_feature.atom_id
-1 3 3 C HEM FE
-2 4 3 C HEM .
+3 3 C HEM FE
+4 3 C HEM .
 #
 loop_
 _ihm_pseudo_site_feature.feature_id
@@ -2079,7 +2162,7 @@ _ihm_cross_link_restraint.sigma_2
 """
         xl_fit = """
 loop_
-_ihm_cross_link_result_parameters.ordinal_id
+_ihm_cross_link_result_parameters.id
 _ihm_cross_link_result_parameters.restraint_id
 _ihm_cross_link_result_parameters.model_id
 _ihm_cross_link_result_parameters.psi

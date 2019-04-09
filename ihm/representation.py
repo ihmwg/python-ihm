@@ -112,6 +112,10 @@ class Representation(list):
        spheres or atoms. This is implemented as a simple list of
        :class:`Segment` objects.
 
+       :param sequence elements: Initial set of segments.
+       :param str name: A short descriptive name.
+       :param str details: A longer description of the representation.
+
        Typically a Representation is assigned to a
        :class:`~ihm.model.Model`. See also
        :attr:`ihm.System.orphan_representations`.
@@ -120,4 +124,6 @@ class Representation(list):
     """
 
     # todo: use set rather than list?
-    pass
+    def __init__(self, elements=(), name=None, details=None):
+        super(Representation, self).__init__(elements)
+        self.name, self.details = name, details

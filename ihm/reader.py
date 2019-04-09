@@ -753,19 +753,17 @@ class _StructAsymHandler(Handler):
         self.copy_if_present(s, locals(), keys=('details',))
 
 
-class _AssemblyDetailsHandler(Handler):
-    category = '_ihm_struct_assembly_details'
-
-    def __call__(self, assembly_id, assembly_name, assembly_description):
-        s = self.sysr.assemblies.get_by_id(assembly_id)
-        self.copy_if_present(s, locals(),
-                mapkeys={'assembly_name':'name',
-                         'assembly_description':'description'})
-
-
 class _AssemblyHandler(Handler):
-    # todo: figure out how to populate System.complete_assembly
     category = '_ihm_struct_assembly'
+
+    def __call__(self, id, name, description):
+        s = self.sysr.assemblies.get_by_id(id)
+        self.copy_if_present(s, locals(), keys=('name', 'description'))
+
+
+class _AssemblyDetailsHandler(Handler):
+    # todo: figure out how to populate System.complete_assembly
+    category = '_ihm_struct_assembly_details'
 
     def __call__(self, assembly_id, parent_assembly_id, seq_id_begin,
                  seq_id_end, asym_id, entity_id):
@@ -883,6 +881,15 @@ class _DatasetListHandler(Handler):
 class _DatasetGroupHandler(Handler):
     category = '_ihm_dataset_group'
 
+    def __call__(self, id, name, application, details):
+        g = self.sysr.dataset_groups.get_by_id(id)
+        self.copy_if_present(g, locals(),
+                             keys=('name', 'application', 'details'))
+
+
+class _DatasetGroupLinkHandler(Handler):
+    category = '_ihm_dataset_group_link'
+
     def __call__(self, group_id, dataset_list_id):
         g = self.sysr.dataset_groups.get_by_id(group_id)
         ds = self.sysr.datasets.get_by_id(dataset_list_id)
@@ -932,6 +939,14 @@ class _RelatedDatasetsHandler(Handler):
         derived.parents.append(primary)
 
 
+class _ModelRepresentationHandler(Handler):
+    category = '_ihm_model_representation'
+
+    def __call__(self, id, name, details):
+        rep = self.sysr.representations.get_by_id(id)
+        self.copy_if_present(rep, locals(), keys=('name', 'details'))
+
+
 def _make_atom_segment(asym, rigid, primitive, count, smodel):
     return ihm.representation.AtomicSegment(
                 asym_unit=asym, rigid=rigid, starting_model=smodel)
@@ -951,8 +966,8 @@ def _make_feature_segment(asym, rigid, primitive, count, smodel):
                 asym_unit=asym, rigid=rigid, primitive=primitive,
                 count=count, starting_model=smodel)
 
-class _ModelRepresentationHandler(Handler):
-    category = '_ihm_model_representation'
+class _ModelRepresentationDetailsHandler(Handler):
+    category = '_ihm_model_representation_details'
 
     _rigid_map = {'rigid': True, 'flexible': False, None: None}
     _segment_factory = {'by-atom': _make_atom_segment,
@@ -1038,12 +1053,19 @@ class _StartingComparativeModelsHandler(Handler):
 class _ProtocolHandler(Handler):
     category = '_ihm_modeling_protocol'
 
-    def __call__(self, protocol_id, step_id, protocol_name, num_models_begin,
+    def __call__(self, id, protocol_name, num_steps):
+        p = self.sysr.protocols.get_by_id(id)
+        self.copy_if_present(p, locals(), mapkeys={'protocol_name':'name'})
+
+
+class _ProtocolDetailsHandler(Handler):
+    category = '_ihm_modeling_protocol_details'
+
+    def __call__(self, protocol_id, step_id, num_models_begin,
                  num_models_end, multi_scale_flag, multi_state_flag,
                  ordered_flag, struct_assembly_id, dataset_group_id,
                  software_id, script_file_id, step_name, step_method):
         p = self.sysr.protocols.get_by_id(protocol_id)
-        self.copy_if_present(p, locals(),  mapkeys={'protocol_name':'name'})
         nbegin = self.get_int(num_models_begin)
         nend = self.get_int(num_models_end)
         mscale = self.get_bool(multi_scale_flag)
@@ -1112,16 +1134,9 @@ class _PostProcessHandler(Handler):
 class _ModelListHandler(Handler):
     category = '_ihm_model_list'
 
-    def __call__(self, model_group_id, model_group_name, model_id, model_name,
+    def __call__(self, model_id, model_name,
                  assembly_id, representation_id, protocol_id):
-        model_group = self.sysr.model_groups.get_by_id(model_group_id)
-        self.copy_if_present(model_group, locals(),
-                             mapkeys={'model_group_name':'name'})
-
         model = self.sysr.models.get_by_id(model_id)
-
-        assert model._id not in (m._id for m in model_group)
-        model_group.append(model)
 
         self.copy_if_present(model, locals(), mapkeys={'model_name':'name'})
         model.assembly = self.sysr.assemblies.get_by_id_or_none(
@@ -1130,6 +1145,14 @@ class _ModelListHandler(Handler):
                                             representation_id)
         model.protocol = self.sysr.protocols.get_by_id_or_none(
                                             protocol_id)
+
+
+class _ModelGroupHandler(Handler):
+    category = '_ihm_model_group'
+
+    def __call__(self, id, name, details):
+        model_group = self.sysr.model_groups.get_by_id(id)
+        self.copy_if_present(model_group, locals(), keys=('name', 'details'))
 
     def finalize(self):
         # Put all model groups not assigned to a state in their own state
@@ -1144,6 +1167,15 @@ class _ModelListHandler(Handler):
         if mgs:
             s = ihm.model.State(mgs)
             self.system.state_groups.append(ihm.model.StateGroup([s]))
+
+
+class _ModelGroupLinkHandler(Handler):
+    category = '_ihm_model_group_link'
+
+    def __call__(self, group_id, model_id):
+        model_group = self.sysr.model_groups.get_by_id(group_id)
+        model = self.sysr.models.get_by_id(model_id)
+        model_group.append(model)
 
 
 class _MultiStateHandler(Handler):
@@ -1812,12 +1844,16 @@ def read(fh, model_class=ihm.model.Model, format='mmCIF', handlers=[]):
               _StructAsymHandler(s), _AssemblyDetailsHandler(s),
               _AssemblyHandler(s), _ExtRefHandler(s), _ExtFileHandler(s),
               _DatasetListHandler(s), _DatasetGroupHandler(s),
+              _DatasetGroupLinkHandler(s),
               _DatasetExtRefHandler(s), _DatasetDBRefHandler(s),
               _RelatedDatasetsHandler(s), _ModelRepresentationHandler(s),
+              _ModelRepresentationDetailsHandler(s),
               _StartingModelDetailsHandler(s),
               _StartingComputationalModelsHandler(s),
               _StartingComparativeModelsHandler(s),
-              _ProtocolHandler(s), _PostProcessHandler(s), _ModelListHandler(s),
+              _ProtocolHandler(s), _ProtocolDetailsHandler(s),
+              _PostProcessHandler(s), _ModelListHandler(s),
+              _ModelGroupHandler(s), _ModelGroupLinkHandler(s),
               _MultiStateHandler(s), _EnsembleHandler(s), _DensityHandler(s),
               _EM3DRestraintHandler(s), _EM2DRestraintHandler(s),
               _EM2DFittingHandler(s), _SASRestraintHandler(s),
