@@ -1969,13 +1969,20 @@ _ihm_multi_state_modeling.state_group_id
 _ihm_multi_state_modeling.population_fraction
 _ihm_multi_state_modeling.state_type
 _ihm_multi_state_modeling.state_name
-_ihm_multi_state_modeling.model_group_id
 _ihm_multi_state_modeling.experiment_type
 _ihm_multi_state_modeling.details
-1 1 . 'complex formation' unbound 1 'Fraction of bulk' 'Unbound molecule 1'
-1 1 . 'complex formation' unbound 2 'Fraction of bulk' 'Unbound molecule 1'
-2 1 . 'complex formation' bound 3 'Fraction of bulk' 'Unbound molecule 2'
-3 2 0.400 . . 4 . .
+1 1 . 'complex formation' unbound 'Fraction of bulk' 'Unbound molecule 1'
+2 1 . 'complex formation' bound 'Fraction of bulk' 'Unbound molecule 2'
+3 2 0.400 . . . .
+#
+#
+loop_
+_ihm_multi_state_model_group_link.state_id
+_ihm_multi_state_model_group_link.model_group_id
+1 1
+1 2
+2 3
+3 4
 #
 """)
 

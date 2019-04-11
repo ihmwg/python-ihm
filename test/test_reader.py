@@ -1101,7 +1101,7 @@ _ihm_model_group_link.model_id
             self.assertEqual(m._id, '2')
 
     def test_multi_state_handler(self):
-        """Test MultiStateHandler"""
+        """Test MultiStateHandler and MultiStateLinkHandler"""
         cif = """
 loop_
 _ihm_model_list.model_id
@@ -1128,13 +1128,19 @@ _ihm_multi_state_modeling.state_group_id
 _ihm_multi_state_modeling.population_fraction
 _ihm_multi_state_modeling.state_type
 _ihm_multi_state_modeling.state_name
-_ihm_multi_state_modeling.model_group_id
 _ihm_multi_state_modeling.experiment_type
 _ihm_multi_state_modeling.details
-1 1 0.4 'complex formation' 'unbound' 1  'Fraction of bulk'  'unbound molecule 1'
-2 1 .  'complex formation' 'unbound' 2  'Fraction of bulk'  'unbound molecule 2'
-3 1 .  'complex formation' 'bound'   3  'Fraction of bulk'  'bound molecules 1 and 2'
-3 1 .  'complex formation' 'bound'   4  'Fraction of bulk'  'bound molecules 1 and 2'
+1 1 0.4 'complex formation' 'unbound' 'Fraction of bulk'  'unbound molecule 1'
+2 1 .  'complex formation' 'unbound' 'Fraction of bulk'  'unbound molecule 2'
+3 1 .  'complex formation' 'bound' 'Fraction of bulk'  'bound molecules 1 and 2'
+#
+loop_
+_ihm_multi_state_model_group_link.state_id
+_ihm_multi_state_model_group_link.model_group_id
+1 1
+2 2
+3 3
+3 4
 """
         for fh in cif_file_handles(cif):
             s, = ihm.reader.read(fh)

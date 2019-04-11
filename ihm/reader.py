@@ -1181,7 +1181,7 @@ class _ModelGroupLinkHandler(Handler):
 class _MultiStateHandler(Handler):
     category = '_ihm_multi_state_modeling'
 
-    def __call__(self, state_group_id, state_id, model_group_id,
+    def __call__(self, state_group_id, state_id,
                  population_fraction, experiment_type, details, state_name,
                  state_type):
         state_group = self.sysr.state_groups.get_by_id(state_group_id)
@@ -1190,13 +1190,19 @@ class _MultiStateHandler(Handler):
         if state._id not in [s._id for s in state_group]:
             state_group.append(state)
 
-        model_group = self.sysr.model_groups.get_by_id(model_group_id)
-        state.append(model_group)
-
         state.population_fraction = self.get_float(population_fraction)
         self.copy_if_present(state, locals(),
                 keys=['experiment_type', 'details'],
                 mapkeys={'state_name':'name', 'state_type':'type'})
+
+
+class _MultiStateLinkHandler(Handler):
+    category = '_ihm_multi_state_model_group_link'
+
+    def __call__(self, state_id, model_group_id):
+        state = self.sysr.states.get_by_id(state_id)
+        model_group = self.sysr.model_groups.get_by_id(model_group_id)
+        state.append(model_group)
 
 
 class _EnsembleHandler(Handler):
@@ -1854,7 +1860,8 @@ def read(fh, model_class=ihm.model.Model, format='mmCIF', handlers=[]):
               _ProtocolHandler(s), _ProtocolDetailsHandler(s),
               _PostProcessHandler(s), _ModelListHandler(s),
               _ModelGroupHandler(s), _ModelGroupLinkHandler(s),
-              _MultiStateHandler(s), _EnsembleHandler(s), _DensityHandler(s),
+              _MultiStateHandler(s), _MultiStateLinkHandler(s),
+              _EnsembleHandler(s), _DensityHandler(s),
               _EM3DRestraintHandler(s), _EM2DRestraintHandler(s),
               _EM2DFittingHandler(s), _SASRestraintHandler(s),
               _SphereObjSiteHandler(s), _AtomSiteHandler(s),

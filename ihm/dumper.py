@@ -1327,21 +1327,32 @@ class _MultiStateDumper(Dumper):
         # Nothing to do for single state modeling
         if len(system.state_groups) == 1 and len(system.state_groups[0]) <= 1:
             return
+        self.dump_summary(system, writer)
+        self.dump_model_groups(system, writer)
+
+    def dump_summary(self, system, writer):
         with writer.loop("_ihm_multi_state_modeling",
                          ["state_id", "state_group_id",
                           "population_fraction", "state_type", "state_name",
-                          "model_group_id", "experiment_type", "details"]) as l:
+                          "experiment_type", "details"]) as l:
+            for state_group in system.state_groups:
+                for state in state_group:
+                    l.write(state_id=state._id,
+                            state_group_id=state_group._id,
+                            population_fraction=state.population_fraction,
+                            state_type=state.type,
+                            state_name=state.name,
+                            experiment_type=state.experiment_type,
+                            details=state.details)
+
+    def dump_model_groups(self, system, writer):
+        with writer.loop("_ihm_multi_state_model_group_link",
+                         ["state_id", "model_group_id"]) as l:
             for state_group in system.state_groups:
                 for state in state_group:
                     for model_group in state:
                         l.write(state_id=state._id,
-                                state_group_id=state_group._id,
-                                population_fraction=state.population_fraction,
-                                model_group_id=model_group._id,
-                                state_type=state.type,
-                                state_name=state.name,
-                                experiment_type=state.experiment_type,
-                                details=state.details)
+                                model_group_id=model_group._id)
 
 
 class _OrderedDumper(Dumper):
