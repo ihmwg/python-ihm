@@ -791,6 +791,43 @@ class Tests(unittest.TestCase):
         # duplicates should not be filtered
         self.assertEqual(list(s._all_chem_descriptors()), [d1, d2, d1, d3])
 
+    def test_all_entity_ranges(self):
+        """Test _all_entity_ranges() method"""
+        class MockObject(object):
+            pass
+
+        s = ihm.System()
+        e1 = ihm.Entity('AHCD', description='foo')
+        a1 = ihm.AsymUnit(e1)
+        s.entities.append(e1)
+        s.asym_units.append(a1)
+        e1rng = e1(1,3)
+        a1rng = a1(1,2)
+
+        sm1 = MockObject()
+        sm1.asym_unit = e1rng
+        s.orphan_starting_models.append(sm1)
+
+        rep = ihm.representation.Representation()
+        seg1 = ihm.representation.Segment()
+        seg1.starting_model = None
+        seg1.asym_unit = a1
+        rep.append(seg1)
+        s.orphan_representations.append(rep)
+
+        asmb1 = ihm.Assembly([e1, a1])
+        s.orphan_assemblies.append(asmb1)
+
+        ensemble = MockObject()
+        density = MockObject()
+        density.asym_unit = a1rng
+        ensemble.densities = [density]
+        s.ensembles.append(ensemble)
+
+        # duplicates should not be filtered
+        self.assertEqual(list(s._all_entity_ranges()),
+                         [e1rng, a1, e1, a1, a1rng])
+
     def test_update_locations_in_repositories(self):
         """Test update_locations_in_repositories() method"""
         s = ihm.System()

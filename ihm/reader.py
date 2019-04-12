@@ -136,6 +136,41 @@ class _ChemCompIDMapper(IDMapper):
             return newcls(*self._cls_args, **self._cls_keys)
 
 
+class RangeIDMapper(object):
+    """Utility class to handle mapping from mmCIF IDs to
+       :class:`ihm.AsymUnitRange` or :class:`EntityRange` objects."""
+
+    def __init__(self):
+        self._id_map = {}
+
+    def set(self, range_id, seq_id_begin, seq_id_end):
+        """Add a range.
+
+           :param str range_id: mmCIF ID
+           :param int seq_id_begin: Index of the start of the range
+           :param int seq_id_end: Index of the end of the range
+        """
+        self._id_map[range_id] = (seq_id_begin, seq_id_end)
+
+    def get(self, asym_or_entity, range_id):
+        """Get a range from an ID.
+
+           :param asym_or_entity: An :class:`ihm.Entity` or
+                  :class:`ihm.AsymUnit` object representing the part of
+                  the system to which the range will be applied.
+           :param str range_id: mmCIF ID
+           :return: A range as a :class:`ihm.Entity`, :class:`ihm.AsymUnit`,
+                    :class:`ihm.EntityRange` or :class:`ihm.AsymUnitRange`
+                    object.
+        """
+        # range_id can be None if the entire asym/entity should be selected
+        # (e.g. for a non-polymer)
+        if range_id is None:
+            return asym_or_entity
+        else:
+            return asym_or_entity(*self._id_map[range_id])
+
+
 class _AnalysisIDMapper(IDMapper):
     """Add extra handling to IDMapper for the post processing category"""
 
@@ -333,6 +368,10 @@ class SystemReader(object):
 
         #: Mapping from ID to :class:`ihm.Assembly` objects
         self.assemblies = IDMapper(self.system.orphan_assemblies, ihm.Assembly)
+
+        #: Mapping from ID to :class:`ihm.AsymUnitRange`
+        #: or :class:`EntityRange` objects
+        self.ranges = RangeIDMapper()
 
         #: Mapping from ID to :class:`ihm.location.Repository` objects
         self.repos = IDMapper(None, ihm.location.Repository, None)
@@ -736,6 +775,14 @@ class _EntityPolySeqHandler(Handler):
         s.sequence[seq_id-1] = self.sysr.chem_comps.get_by_id(mon_id)
 
 
+class _EntityPolySegmentHandler(Handler):
+    category = '_ihm_entity_poly_segment'
+
+    def __call__(self, id, seq_id_begin, seq_id_end):
+        self.sysr.ranges.set(id, self.get_int(seq_id_begin),
+                             self.get_int(seq_id_end))
+
+
 class _EntityNonPolyHandler(Handler):
     category = '_pdbx_entity_nonpoly'
 
@@ -765,24 +812,18 @@ class _AssemblyDetailsHandler(Handler):
     # todo: figure out how to populate System.complete_assembly
     category = '_ihm_struct_assembly_details'
 
-    def __call__(self, assembly_id, parent_assembly_id, seq_id_begin,
-                 seq_id_end, asym_id, entity_id):
+    def __call__(self, assembly_id, parent_assembly_id, entity_poly_segment_id,
+                 asym_id, entity_id):
         a_id = assembly_id
         a = self.sysr.assemblies.get_by_id(a_id)
         parent_id = parent_assembly_id
         if parent_id and parent_id != a_id and not a.parent:
             a.parent = self.sysr.assemblies.get_by_id(parent_id)
-        def handle_range(obj):
-            # seq_id_range can be None for assemblies of nonpolymers - treat as
-            # complete entity/asym
-            if seq_id_begin is None or seq_id_end is None:
-                return obj
-            else:
-                return obj(int(seq_id_begin), int(seq_id_end))
         if asym_id:
-            a.append(handle_range(self.sysr.asym_units.get_by_id(asym_id)))
+            obj = self.sysr.asym_units.get_by_id(asym_id)
         else:
-            a.append(handle_range(self.sysr.entities.get_by_id(entity_id)))
+            obj = self.sysr.entities.get_by_id(entity_id)
+        a.append(self.sysr.ranges.get(obj, entity_poly_segment_id))
 
     def finalize(self):
         # Any EntityRange or AsymUnitRange which covers an entire entity,
@@ -975,12 +1016,12 @@ class _ModelRepresentationDetailsHandler(Handler):
                         'multi-residue': _make_multi_residue_segment,
                         'by-feature': _make_feature_segment}
 
-    def __call__(self, entity_asym_id, seq_id_begin, seq_id_end,
+    def __call__(self, asym_id, entity_poly_segment_id,
                  representation_id, starting_model_id, model_object_primitive,
                  model_granularity, model_object_count, model_mode):
-        asym = self.sysr.asym_units.get_by_id(entity_asym_id)
-        if seq_id_begin is not None and seq_id_end is not None:
-            asym = asym(int(seq_id_begin), int(seq_id_end))
+        asym = self.sysr.ranges.get(
+                       self.sysr.asym_units.get_by_id(asym_id),
+                       entity_poly_segment_id)
         rep = self.sysr.representations.get_by_id(representation_id)
         smodel = self.sysr.starting_models.get_by_id_or_none(
                                             starting_model_id)
@@ -998,13 +1039,13 @@ class _ModelRepresentationDetailsHandler(Handler):
 class _StartingModelDetailsHandler(Handler):
     category = '_ihm_starting_model_details'
 
-    def __call__(self, starting_model_id, asym_id, seq_id_begin, seq_id_end,
+    def __call__(self, starting_model_id, asym_id, entity_poly_segment_id,
                  dataset_list_id, starting_model_auth_asym_id,
                  starting_model_sequence_offset):
         m = self.sysr.starting_models.get_by_id(starting_model_id)
-        asym = self.sysr.asym_units.get_by_id(asym_id)
-        if seq_id_begin is not None and seq_id_end is not None:
-            asym = asym(int(seq_id_begin), int(seq_id_end))
+        asym = self.sysr.ranges.get(
+                       self.sysr.asym_units.get_by_id(asym_id),
+                       entity_poly_segment_id)
         m.asym_unit = asym
         m.dataset = self.sysr.datasets.get_by_id(dataset_list_id)
         self.copy_if_present(m, locals(),
@@ -1233,16 +1274,15 @@ class _EnsembleHandler(Handler):
 class _DensityHandler(Handler):
     category = '_ihm_localization_density_files'
 
-    def __call__(self, id, ensemble_id, file_id, asym_id, seq_id_begin,
-                 seq_id_end):
+    def __call__(self, id, ensemble_id, file_id, asym_id,
+                 entity_poly_segment_id):
         density = self.sysr.densities.get_by_id(id)
         ensemble = self.sysr.ensembles.get_by_id(ensemble_id)
         f = self.sysr.external_files.get_by_id(file_id)
 
-        asym = self.sysr.asym_units.get_by_id(asym_id)
-        if seq_id_begin is not None and seq_id_end is not None:
-            asym = asym(int(seq_id_begin), int(seq_id_end))
-
+        asym = self.sysr.ranges.get(
+                       self.sysr.asym_units.get_by_id(asym_id),
+                       entity_poly_segment_id)
         density.asym_unit = asym
         density.file = f
         ensemble.densities.append(density)
@@ -1847,6 +1887,7 @@ def read(fh, model_class=ihm.model.Model, format='mmCIF', handlers=[]):
               _EntitySrcNatHandler(s), _EntitySrcGenHandler(s),
               _EntitySrcSynHandler(s),
               _EntityPolySeqHandler(s), _EntityNonPolyHandler(s),
+              _EntityPolySegmentHandler(s),
               _StructAsymHandler(s), _AssemblyDetailsHandler(s),
               _AssemblyHandler(s), _ExtRefHandler(s), _ExtFileHandler(s),
               _DatasetListHandler(s), _DatasetGroupHandler(s),

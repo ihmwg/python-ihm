@@ -354,21 +354,23 @@ class System(object):
             for alld in _all_datasets_and_parents(d):
                 yield alld
 
+    def _all_densities(self):
+        for ensemble in self.ensembles:
+            for density in ensemble.densities:
+                yield density
+
     def _all_locations(self):
         """Iterate over all Locations in the system.
            This includes all Locations referenced from other objects, plus
            any referenced from the top-level system.
            Duplicates may be present."""
-        def all_densities():
-            for ensemble in self.ensembles:
-                for density in ensemble.densities:
-                    yield density
         return itertools.chain(
                 self.locations,
                 (dataset.location for dataset in self._all_datasets()
                           if hasattr(dataset, 'location') and dataset.location),
                 (ensemble.file for ensemble in self.ensembles if ensemble.file),
-                (density.file for density in all_densities() if density.file),
+                (density.file for density in self._all_densities()
+                              if density.file),
                 (sm.script_file for sm in self._all_starting_models()
                                          if sm.script_file),
                 (template.alignment_file for template in self._all_templates()
@@ -425,6 +427,19 @@ class System(object):
                             for restraint in self.restraints
                             if hasattr(restraint, 'fitting_method_citation_id')
                             and restraint.fitting_method_citation_id)))
+
+    def _all_entity_ranges(self):
+        """Iterate over all Entity ranges in the system (these may be
+           :class:`Entity`, :class:`AsymUnit`, :class:`EntityRange` or
+           :class:`AsymUnitRange` objects).
+           Note that we don't include self.entities or self.asym_units here,
+           as we only want ranges that were actually used.
+           Duplicates may be present."""
+        return (itertools.chain(
+                        (sm.asym_unit for sm in self._all_starting_models()),
+                        (seg.asym_unit for seg in self._all_segments()),
+                        (comp for a in self._all_assemblies() for comp in a),
+                        (d.asym_unit for d in self._all_densities())))
 
     def _make_complete_assembly(self):
         """Fill in the complete assembly with all entities/asym units"""

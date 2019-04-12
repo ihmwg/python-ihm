@@ -687,8 +687,8 @@ C 2 tmp
     def test_assembly_all_modeled(self):
         """Test AssemblyDumper, all components modeled"""
         system = ihm.System()
-        e1 = ihm.Entity('AAA', description='foo')
-        e2 = ihm.Entity('AA', description='baz')
+        e1 = ihm.Entity('ACG', description='foo')
+        e2 = ihm.Entity('AW', description='baz')
         a1 = ihm.AsymUnit(e1)
         a2 = ihm.AsymUnit(e1)
         a3 = ihm.AsymUnit(e2)
@@ -711,9 +711,29 @@ C 2 tmp
         # description)
         system.orphan_assemblies.append(a)
 
-        # Assign entity and asym IDs
+        # Assign entity, asym and range IDs
         ihm.dumper._EntityDumper().finalize(system)
         ihm.dumper._StructAsymDumper().finalize(system)
+
+        system._make_complete_assembly()
+
+        # Assign and check segment IDs
+        dumper = ihm.dumper._EntityPolySegmentDumper()
+        dumper.finalize(system)
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_ihm_entity_poly_segment.id
+_ihm_entity_poly_segment.entity_id
+_ihm_entity_poly_segment.seq_id_begin
+_ihm_entity_poly_segment.seq_id_end
+_ihm_entity_poly_segment.comp_id_begin
+_ihm_entity_poly_segment.comp_id_end
+1 1 1 3 ALA GLY
+2 2 1 2 ALA TRP
+3 1 2 3 CYS GLY
+#
+""")
 
         d = ihm.dumper._AssemblyDumper()
         d.finalize(system)
@@ -737,23 +757,22 @@ _ihm_struct_assembly_details.parent_assembly_id
 _ihm_struct_assembly_details.entity_description
 _ihm_struct_assembly_details.entity_id
 _ihm_struct_assembly_details.asym_id
-_ihm_struct_assembly_details.seq_id_begin
-_ihm_struct_assembly_details.seq_id_end
-1 1 1 foo 1 A 1 3
-2 1 1 foo 1 B 1 3
-3 1 1 baz 2 C 1 2
-4 2 2 foo 1 A 1 3
-5 2 2 foo 1 B 2 3
-6 3 3 foo 1 B 1 3
-7 3 3 baz 2 C 1 2
+_ihm_struct_assembly_details.entity_poly_segment_id
+1 1 1 foo 1 A 1
+2 1 1 foo 1 B 1
+3 1 1 baz 2 C 2
+4 2 2 foo 1 A 1
+5 2 2 foo 1 B 3
+6 3 3 foo 1 B 1
+7 3 3 baz 2 C 2
 #
 """)
 
     def test_assembly_subset_modeled(self):
         """Test AssemblyDumper, subset of components modeled"""
         system = ihm.System()
-        e1 = ihm.Entity('AAA', description='foo')
-        e2 = ihm.Entity('AA', description='bar')
+        e1 = ihm.Entity('ACG', description='foo')
+        e2 = ihm.Entity('EW', description='bar')
         a1 = ihm.AsymUnit(e1)
         system.entities.extend((e1, e2))
         system.asym_units.append(a1)
@@ -763,6 +782,25 @@ _ihm_struct_assembly_details.seq_id_end
         # Assign entity and asym IDs
         ihm.dumper._EntityDumper().finalize(system)
         ihm.dumper._StructAsymDumper().finalize(system)
+
+        system._make_complete_assembly()
+
+        # Assign and check segment IDs
+        dumper = ihm.dumper._EntityPolySegmentDumper()
+        dumper.finalize(system)
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_ihm_entity_poly_segment.id
+_ihm_entity_poly_segment.entity_id
+_ihm_entity_poly_segment.seq_id_begin
+_ihm_entity_poly_segment.seq_id_end
+_ihm_entity_poly_segment.comp_id_begin
+_ihm_entity_poly_segment.comp_id_end
+1 1 1 3 ALA GLY
+2 2 1 2 GLU TRP
+#
+""")
 
         d = ihm.dumper._AssemblyDumper()
         d.finalize(system)
@@ -782,10 +820,9 @@ _ihm_struct_assembly_details.parent_assembly_id
 _ihm_struct_assembly_details.entity_description
 _ihm_struct_assembly_details.entity_id
 _ihm_struct_assembly_details.asym_id
-_ihm_struct_assembly_details.seq_id_begin
-_ihm_struct_assembly_details.seq_id_end
-1 1 1 foo 1 A 1 3
-2 1 1 bar 2 . 1 2
+_ihm_struct_assembly_details.entity_poly_segment_id
+1 1 1 foo 1 A 1
+2 1 1 bar 2 . 2
 #
 """)
 
@@ -1070,6 +1107,9 @@ _ihm_related_datasets.dataset_list_id_primary
         e1._id = 42
         asym._id = 'X'
 
+        # Assign segment IDs
+        ihm.dumper._EntityPolySegmentDumper().finalize(system)
+
         dumper = ihm.dumper._ModelRepresentationDumper()
         dumper.finalize(system) # assign IDs
         out = _get_dumper_output(dumper, system)
@@ -1085,21 +1125,19 @@ _ihm_model_representation.details
 loop_
 _ihm_model_representation_details.id
 _ihm_model_representation_details.representation_id
-_ihm_model_representation_details.segment_id
 _ihm_model_representation_details.entity_id
 _ihm_model_representation_details.entity_description
-_ihm_model_representation_details.entity_asym_id
-_ihm_model_representation_details.seq_id_begin
-_ihm_model_representation_details.seq_id_end
+_ihm_model_representation_details.asym_id
+_ihm_model_representation_details.entity_poly_segment_id
 _ihm_model_representation_details.model_object_primitive
 _ihm_model_representation_details.starting_model_id
 _ihm_model_representation_details.model_mode
 _ihm_model_representation_details.model_granularity
 _ihm_model_representation_details.model_object_count
-1 1 1 42 bar X 1 2 atomistic . rigid by-atom .
-2 1 2 42 bar X 3 4 sphere . flexible by-residue .
-3 2 1 42 bar X 1 2 gaussian . flexible multi-residue .
-4 2 2 42 bar X 3 4 other . rigid by-feature 3
+1 1 42 bar X 1 atomistic . rigid by-atom .
+2 1 42 bar X 2 sphere . flexible by-residue .
+3 2 42 bar X 1 gaussian . flexible multi-residue .
+4 2 42 bar X 2 other . rigid by-feature 3
 #
 """)
 
@@ -1156,6 +1194,23 @@ _ihm_model_representation_details.model_object_count
         ali._id = 5
         script._id = 8
         software._id = 99
+        # Assign and check segment IDs
+        dumper = ihm.dumper._EntityPolySegmentDumper()
+        dumper.finalize(system)
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_ihm_entity_poly_segment.id
+_ihm_entity_poly_segment.entity_id
+_ihm_entity_poly_segment.seq_id_begin
+_ihm_entity_poly_segment.seq_id_end
+_ihm_entity_poly_segment.comp_id_begin
+_ihm_entity_poly_segment.comp_id_end
+1 42 1 15 ALA ALA
+2 42 1 12 ALA ALA
+#
+""")
+
         dumper = ihm.dumper._StartingModelDumper()
         dumper.finalize(system) # assign IDs
         out = _get_dumper_output(dumper, system)
@@ -1165,14 +1220,13 @@ _ihm_starting_model_details.starting_model_id
 _ihm_starting_model_details.entity_id
 _ihm_starting_model_details.entity_description
 _ihm_starting_model_details.asym_id
-_ihm_starting_model_details.seq_id_begin
-_ihm_starting_model_details.seq_id_end
+_ihm_starting_model_details.entity_poly_segment_id
 _ihm_starting_model_details.starting_model_source
 _ihm_starting_model_details.starting_model_auth_asym_id
 _ihm_starting_model_details.starting_model_sequence_offset
 _ihm_starting_model_details.dataset_list_id
-1 42 foo 99 1 12 'experimental model' A 10 102
-2 42 foo 99 1 15 'experimental model' A 0 102
+1 42 foo 99 2 'experimental model' A 10 102
+2 42 foo 99 1 'experimental model' A 0 102
 #
 #
 loop_
@@ -1901,6 +1955,9 @@ _ihm_ensemble_info.ensemble_file_id
         ens._id = 5
         system.ensembles.append(ens)
 
+        # Assign segment IDs
+        ihm.dumper._EntityPolySegmentDumper().finalize(system)
+
         dumper = ihm.dumper._DensityDumper()
         dumper.finalize(system) # assign IDs
 
@@ -1912,10 +1969,49 @@ _ihm_localization_density_files.file_id
 _ihm_localization_density_files.ensemble_id
 _ihm_localization_density_files.entity_id
 _ihm_localization_density_files.asym_id
-_ihm_localization_density_files.seq_id_begin
-_ihm_localization_density_files.seq_id_end
-1 3 5 9 X 1 2
-2 3 5 9 X 1 4
+_ihm_localization_density_files.entity_poly_segment_id
+1 3 5 9 X 1
+2 3 5 9 X 2
+#
+""")
+
+    def test_entity_poly_segment_dumper(self):
+        """Test EntityPolySegmentDumper"""
+        system = ihm.System()
+        e1 = ihm.Entity('AHCD')
+        e2 = ihm.Entity('ACG')
+        e3 = ihm.Entity([ihm.NonPolymerChemComp('HEM')])
+        a1 = ihm.AsymUnit(e1)
+        a1._id = 'X'
+        system.entities.extend((e1, e2, e3))
+        system.asym_units.append(a1)
+
+        system._make_complete_assembly()
+
+        ihm.dumper._EntityDumper().finalize(system) # assign entity IDs
+
+        dumper = ihm.dumper._EntityPolySegmentDumper()
+        dumper.finalize(system) # assign IDs
+
+        # e1 isn't directly used in the assembly (a1 is used instead) so
+        # should have no range ID
+        self.assertFalse(hasattr(e1, '_range_id'))
+        self.assertEqual(a1._range_id, 1)
+        self.assertEqual(e2._range_id, 2)
+        # non-polymers don't have ranges
+        self.assertEqual(e3._range_id, None)
+
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_ihm_entity_poly_segment.id
+_ihm_entity_poly_segment.entity_id
+_ihm_entity_poly_segment.seq_id_begin
+_ihm_entity_poly_segment.seq_id_end
+_ihm_entity_poly_segment.comp_id_begin
+_ihm_entity_poly_segment.comp_id_end
+1 1 1 4 ALA ASP
+2 2 1 3 ALA GLY
 #
 """)
 

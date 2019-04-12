@@ -563,6 +563,17 @@ _entity_poly_seq.mon_id
 2 1 ALA
 #
 loop_
+_ihm_entity_poly_segment.id
+_ihm_entity_poly_segment.entity_id
+_ihm_entity_poly_segment.seq_id_begin
+_ihm_entity_poly_segment.seq_id_end
+1 1 1 726
+2 2 1 744
+3 1 1 1
+4 2 1 50
+5 2 1 1
+#
+loop_
 _struct_asym.id
 _struct_asym.entity_id
 _struct_asym.details
@@ -576,15 +587,14 @@ _ihm_struct_assembly_details.parent_assembly_id
 _ihm_struct_assembly_details.entity_description
 _ihm_struct_assembly_details.entity_id
 _ihm_struct_assembly_details.asym_id
-_ihm_struct_assembly_details.seq_id_begin
-_ihm_struct_assembly_details.seq_id_end
-1 1 1 Nup84 1 A 1 726
-2 1 1 Nup85 2 B 1 744
-3 1 1 Nup84 1 A 1 1
-4 2 1 Nup86 2 . 1 50
-5 2 1 Nup85 2 . 1 1
-6 3 1 Nup84 1 A . .
-7 3 1 Nup85 2 . . .
+_ihm_struct_assembly_details.entity_poly_segment_id
+1 1 1 Nup84 1 A 1
+2 1 1 Nup85 2 B 2
+3 1 1 Nup84 1 A 3
+4 2 1 Nup86 2 . 4
+5 2 1 Nup85 2 . 5
+6 3 1 Nup84 1 A .
+7 3 1 Nup85 2 . .
 """
         for fh in cif_file_handles(cif):
             s, = ihm.reader.read(fh)
@@ -820,23 +830,29 @@ _ihm_model_representation.details
         """Test ModelRepresentationDetailsHandler"""
         cif = """
 loop_
+_ihm_entity_poly_segment.id
+_ihm_entity_poly_segment.entity_id
+_ihm_entity_poly_segment.seq_id_begin
+_ihm_entity_poly_segment.seq_id_end
+1 1 1 6
+2 1 7 20
+#
+loop_
 _ihm_model_representation_details.id
 _ihm_model_representation_details.representation_id
-_ihm_model_representation_details.segment_id
 _ihm_model_representation_details.entity_id
 _ihm_model_representation_details.entity_description
 _ihm_model_representation_details.entity_asym_id
-_ihm_model_representation_details.seq_id_begin
-_ihm_model_representation_details.seq_id_end
+_ihm_model_representation_details.entity_poly_segment_id
 _ihm_model_representation_details.model_object_primitive
 _ihm_model_representation_details.starting_model_id
 _ihm_model_representation_details.model_mode
 _ihm_model_representation_details.model_granularity
 _ihm_model_representation_details.model_object_count
-1 1 1 1 Nup84 A 1 6 sphere . flexible by-feature 1
-2 1 2 1 Nup84 A 7 20 sphere 1 rigid by-residue .
-3 2 1 1 Nup84 A . . atomistic . flexible by-atom .
-4 3 1 2 Nup85 B . . sphere . . multi-residue .
+1 1 1 Nup84 A 1 sphere . flexible by-feature 1
+2 1 1 Nup84 A 2 sphere 1 rigid by-residue .
+3 2 1 Nup84 A . atomistic . flexible by-atom .
+4 3 2 Nup85 B . sphere . . multi-residue .
 """
         for fh in cif_file_handles(cif):
             s, = ihm.reader.read(fh)
@@ -870,18 +886,24 @@ _ihm_model_representation_details.model_object_count
         """Test StartingModelDetailsHandler"""
         cif = """
 loop_
+_ihm_entity_poly_segment.id
+_ihm_entity_poly_segment.entity_id
+_ihm_entity_poly_segment.seq_id_begin
+_ihm_entity_poly_segment.seq_id_end
+1 1 7 483
+#
+loop_
 _ihm_starting_model_details.starting_model_id
 _ihm_starting_model_details.entity_id
 _ihm_starting_model_details.entity_description
 _ihm_starting_model_details.asym_id
-_ihm_starting_model_details.seq_id_begin
-_ihm_starting_model_details.seq_id_end
+_ihm_starting_model_details.entity_poly_segment_id
 _ihm_starting_model_details.starting_model_source
 _ihm_starting_model_details.starting_model_auth_asym_id
 _ihm_starting_model_details.starting_model_sequence_offset
 _ihm_starting_model_details.dataset_list_id
-1 1 Nup84 A 7 483 'comparative model' Q 8 4
-2 1 Nup84 A . . 'comparative model' X . 6
+1 1 Nup84 A 1 'comparative model' Q 8 4
+2 1 Nup84 A . 'comparative model' X . 6
 """
         for fh in cif_file_handles(cif):
             s, = ihm.reader.read(fh)
@@ -1191,15 +1213,21 @@ _ihm_ensemble_info.ensemble_file_id
         """Test DensityHandler"""
         cif = """
 loop_
+_ihm_entity_poly_segment.id
+_ihm_entity_poly_segment.entity_id
+_ihm_entity_poly_segment.seq_id_begin
+_ihm_entity_poly_segment.seq_id_end
+1 1 1 726
+#
+loop_
 _ihm_localization_density_files.id
 _ihm_localization_density_files.file_id
 _ihm_localization_density_files.ensemble_id
 _ihm_localization_density_files.entity_id
 _ihm_localization_density_files.asym_id
-_ihm_localization_density_files.seq_id_begin
-_ihm_localization_density_files.seq_id_end
-1 22 9 1 A 1 726
-2 23 9 2 B . .
+_ihm_localization_density_files.entity_poly_segment_id
+1 22 9 1 A 1
+2 23 9 2 B .
 """
         for fh in cif_file_handles(cif):
             s, = ihm.reader.read(fh)

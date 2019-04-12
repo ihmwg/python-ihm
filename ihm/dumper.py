@@ -1,6 +1,7 @@
 """Utility classes to dump out information in mmCIF format"""
 
 import re
+import itertools
 import os
 import operator
 import ihm.format
@@ -398,6 +399,45 @@ class _EntityPolySeqDumper(Dumper):
                     l.write(entity_id=entity._id, num=num + 1, mon_id=comp.id)
 
 
+class _EntityPolySegmentDumper(Dumper):
+    def finalize(self, system):
+        seen_ranges = {}
+        self._ranges_by_id = []
+        # Need to assign ranges for all starting models too
+        for sm in system._all_starting_models():
+            rng = sm._get_seq_id_range_all_templates()
+            util._remove_id(rng, attr='_range_id')
+            sm._all_template_rng = rng
+
+        for rng in system._all_entity_ranges():
+            util._remove_id(rng, attr='_range_id')
+        for rng in itertools.chain(system._all_entity_ranges(),
+                                   (sm._all_template_rng
+                                    for sm in system._all_starting_models())):
+            entity = rng.entity if hasattr(rng, 'entity') else rng
+            if entity.is_polymeric():
+                util._assign_id(rng, seen_ranges, self._ranges_by_id,
+                                attr='_range_id',
+                                # Two ranges are considered the same if they
+                                # have the same entity ID and refer to
+                                # the same residue range
+                                seen_obj=(entity._id, rng.seq_id_range))
+            else:
+                rng._range_id = None
+
+    def dump(self, system, writer):
+        with writer.loop("_ihm_entity_poly_segment",
+                         ["id", "entity_id", "seq_id_begin", "seq_id_end",
+                          "comp_id_begin", "comp_id_end"]) as l:
+            for rng in self._ranges_by_id:
+                entity = rng.entity if hasattr(rng, 'entity') else rng
+                l.write(id=rng._range_id, entity_id=entity._id,
+                        seq_id_begin=rng.seq_id_range[0],
+                        seq_id_end=rng.seq_id_range[1],
+                        comp_id_begin=entity.sequence[rng.seq_id_range[0]-1].id,
+                        comp_id_end=entity.sequence[rng.seq_id_range[1]-1].id)
+
+
 class _PolySeqSchemeDumper(Dumper):
     """Output the _pdbx_poly_seq_scheme table.
        This is needed because it is a parent category of atom_site.
@@ -494,9 +534,6 @@ class _StructAsymDumper(Dumper):
 
 class _AssemblyDumper(Dumper):
     def finalize(self, system):
-        # Fill in complete assembly
-        system._make_complete_assembly()
-
         # Sort each assembly by entity/asym id/range
         def component_key(comp):
             if hasattr(comp, 'entity'): # asymmetric unit or range
@@ -550,13 +587,11 @@ class _AssemblyDumper(Dumper):
         ordinal = 1
         with writer.loop("_ihm_struct_assembly_details",
                          ["id", "assembly_id", "parent_assembly_id",
-                          "entity_description",
-                          "entity_id", "asym_id", "seq_id_begin",
-                          "seq_id_end"]) as l:
+                          "entity_description", "entity_id", "asym_id",
+                          "entity_poly_segment_id"]) as l:
             for a in self._assembly_by_id:
                 for comp in a:
                     entity = comp.entity if hasattr(comp, 'entity') else comp
-                    seqrange = comp.seq_id_range
                     l.write(id=ordinal, assembly_id=a._id,
                             # if no hierarchy then assembly is self-parent
                             parent_assembly_id=a.parent._id if a.parent
@@ -565,8 +600,7 @@ class _AssemblyDumper(Dumper):
                             entity_id=entity._id,
                             asym_id=comp._id if hasattr(comp, 'entity')
                                              else None,
-                            seq_id_begin=seqrange[0],
-                            seq_id_end=seqrange[1])
+                            entity_poly_segment_id=comp._range_id)
                     ordinal += 1
 
 class _ExternalReferenceDumper(Dumper):
@@ -760,9 +794,8 @@ class _ModelRepresentationDumper(Dumper):
         ordinal_id = 1
         with writer.loop("_ihm_model_representation_details",
                          ["id", "representation_id",
-                          "segment_id", "entity_id", "entity_description",
-                          "entity_asym_id",
-                          "seq_id_begin", "seq_id_end",
+                          "entity_id", "entity_description",
+                          "asym_id", "entity_poly_segment_id",
                           "model_object_primitive", "starting_model_id",
                           "model_mode", "model_granularity",
                           "model_object_count"]) as l:
@@ -770,11 +803,10 @@ class _ModelRepresentationDumper(Dumper):
                 for segment in r:
                     entity = segment.asym_unit.entity
                     l.write(id=ordinal_id, representation_id=r._id,
-                            segment_id=segment._id, entity_id=entity._id,
+                            entity_id=entity._id,
                             entity_description=entity.description,
-                            entity_asym_id=segment.asym_unit._id,
-                            seq_id_begin=segment.asym_unit.seq_id_range[0],
-                            seq_id_end=segment.asym_unit.seq_id_range[1],
+                            asym_id=segment.asym_unit._id,
+                            entity_poly_segment_id=segment.asym_unit._range_id,
                             model_object_primitive=segment.primitive,
                             starting_model_id=segment.starting_model._id
                                                   if segment.starting_model
@@ -805,19 +837,17 @@ class _StartingModelDumper(Dumper):
                       'Experimental model': 'experimental model'}
         with writer.loop("_ihm_starting_model_details",
                      ["starting_model_id", "entity_id", "entity_description",
-                      "asym_id", "seq_id_begin",
-                      "seq_id_end", "starting_model_source",
+                      "asym_id", "entity_poly_segment_id",
+                      "starting_model_source",
                       "starting_model_auth_asym_id",
                       "starting_model_sequence_offset",
                       "dataset_list_id"]) as l:
              for sm in system._all_starting_models():
-                seq_id_range = sm.get_seq_id_range_all_templates()
                 l.write(starting_model_id=sm._id,
                         entity_id=sm.asym_unit.entity._id,
                         entity_description=sm.asym_unit.entity.description,
                         asym_id=sm.asym_unit._id,
-                        seq_id_begin=seq_id_range[0],
-                        seq_id_end=seq_id_range[1],
+                        entity_poly_segment_id=sm._all_template_rng._range_id,
                         starting_model_source=source_map[sm.dataset.data_type],
                         starting_model_auth_asym_id=sm.asym_id,
                         dataset_list_id=sm.dataset._id,
@@ -1302,15 +1332,14 @@ class _DensityDumper(Dumper):
     def dump(self, system, writer):
         with writer.loop("_ihm_localization_density_files",
                          ["id", "file_id", "ensemble_id", "entity_id",
-                          "asym_id", "seq_id_begin", "seq_id_end"]) as l:
+                          "asym_id", "entity_poly_segment_id"]) as l:
             for ensemble in system.ensembles:
                 for density in ensemble.densities:
                     l.write(id=density._id, file_id=density.file._id,
                             ensemble_id=ensemble._id,
                             entity_id=density.asym_unit.entity._id,
                             asym_id=density.asym_unit._id,
-                            seq_id_begin=density.asym_unit.seq_id_range[0],
-                            seq_id_end=density.asym_unit.seq_id_range[1])
+                            entity_poly_segment_id=density.asym_unit._range_id)
 
 
 class _MultiStateDumper(Dumper):
@@ -1991,7 +2020,7 @@ def write(fh, systems, format='mmCIF', dumpers=[]):
                _EntityDumper(), _EntitySrcGenDumper(), _EntitySrcNatDumper(),
                _EntitySrcSynDumper(), _EntityPolyDumper(),
                _EntityNonPolyDumper(),
-               _EntityPolySeqDumper(),
+               _EntityPolySeqDumper(), _EntityPolySegmentDumper(),
                _StructAsymDumper(),
                _PolySeqSchemeDumper(),
                _NonPolySchemeDumper(),
@@ -2018,6 +2047,9 @@ def write(fh, systems, format='mmCIF', dumpers=[]):
     writer = writer_map[format](fh)
     for system in systems:
         _init_restraint_groups(system)
+        # Fill in complete assembly
+        system._make_complete_assembly()
+
         for d in dumpers:
             d.finalize(system)
         _check_restraint_groups(system)
