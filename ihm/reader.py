@@ -1227,9 +1227,7 @@ class _MultiStateHandler(Handler):
                  state_type):
         state_group = self.sysr.state_groups.get_by_id(state_group_id)
         state = self.sysr.states.get_by_id(state_id)
-
-        if state._id not in [s._id for s in state_group]:
-            state_group.append(state)
+        state_group.append(state)
 
         state.population_fraction = self.get_float(population_fraction)
         self.copy_if_present(state, locals(),
