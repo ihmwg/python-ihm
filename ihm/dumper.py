@@ -171,30 +171,6 @@ class _ChemCompDumper(Dumper):
                         formula_weight=comp.formula_weight)
 
 
-class _ChemDescriptorDumper(Dumper):
-    def finalize(self, system):
-        seen_desc = {}
-        # Assign IDs to all descriptors
-        self._descriptor_by_id = []
-        for d in system._all_chem_descriptors():
-            util._remove_id(d)
-        for d in system._all_chem_descriptors():
-            util._assign_id(d, seen_desc, self._descriptor_by_id)
-
-    def dump(self, system, writer):
-        with writer.loop("_ihm_chemical_descriptor",
-                ["id", "auth_name", "chem_comp_id", "chemical_name",
-                 "common_name", "smiles", "smiles_canonical", "inchi",
-                 "inchi_key"]) as l:
-            for d in self._descriptor_by_id:
-                l.write(id=d._id, auth_name=d.auth_name,
-                        chem_comp_id=d.chem_comp_id,
-                        chemical_name=d.chemical_name,
-                        common_name=d.common_name, smiles=d.smiles,
-                        smiles_canonical=d.smiles_canonical, inchi=d.inchi,
-                        inchi_key=d.inchi_key)
-
-
 class _EntityDumper(Dumper):
     def finalize(self, system):
         # Assign IDs and check for duplicates
@@ -1699,7 +1675,7 @@ class _CrossLinkDumper(Dumper):
                           "entity_id_1", "seq_id_1", "comp_id_1",
                           "entity_description_2",
                           "entity_id_2", "seq_id_2", "comp_id_2",
-                          "linker_descriptor_id", "linker_type",
+                          "linker_type",
                           "dataset_list_id"]) as l:
             for r, xl in self._ex_xls_by_id:
                 entity1 = xl.residue1.entity
@@ -1715,7 +1691,6 @@ class _CrossLinkDumper(Dumper):
                         entity_id_2=entity2._id,
                         seq_id_2=xl.residue2.seq_id,
                         comp_id_2=seq2[xl.residue2.seq_id-1].id,
-                        linker_descriptor_id=r.linker._id,
                         linker_type=r.linker.auth_name,
                         dataset_list_id=r.dataset._id)
 
@@ -2016,7 +1991,7 @@ def write(fh, systems, format='mmCIF', dumpers=[]):
                _AuditConformDumper(), _SoftwareDumper(),
                _CitationDumper(),
                _AuditAuthorDumper(), _GrantDumper(),
-               _ChemCompDumper(), _ChemDescriptorDumper(),
+               _ChemCompDumper(),
                _EntityDumper(), _EntitySrcGenDumper(), _EntitySrcNatDumper(),
                _EntitySrcSynDumper(), _EntityPolyDumper(),
                _EntityNonPolyDumper(),
