@@ -1016,11 +1016,11 @@ class _ModelRepresentationDetailsHandler(Handler):
                         'multi-residue': _make_multi_residue_segment,
                         'by-feature': _make_feature_segment}
 
-    def __call__(self, asym_id, entity_poly_segment_id,
+    def __call__(self, entity_asym_id, entity_poly_segment_id,
                  representation_id, starting_model_id, model_object_primitive,
                  model_granularity, model_object_count, model_mode):
         asym = self.sysr.ranges.get(
-                       self.sysr.asym_units.get_by_id(asym_id),
+                       self.sysr.asym_units.get_by_id(entity_asym_id),
                        entity_poly_segment_id)
         rep = self.sysr.representations.get_by_id(representation_id)
         smodel = self.sysr.starting_models.get_by_id_or_none(

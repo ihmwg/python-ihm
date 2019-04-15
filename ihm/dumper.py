@@ -795,7 +795,7 @@ class _ModelRepresentationDumper(Dumper):
         with writer.loop("_ihm_model_representation_details",
                          ["id", "representation_id",
                           "entity_id", "entity_description",
-                          "asym_id", "entity_poly_segment_id",
+                          "entity_asym_id", "entity_poly_segment_id",
                           "model_object_primitive", "starting_model_id",
                           "model_mode", "model_granularity",
                           "model_object_count"]) as l:
@@ -805,7 +805,7 @@ class _ModelRepresentationDumper(Dumper):
                     l.write(id=ordinal_id, representation_id=r._id,
                             entity_id=entity._id,
                             entity_description=entity.description,
-                            asym_id=segment.asym_unit._id,
+                            entity_asym_id=segment.asym_unit._id,
                             entity_poly_segment_id=segment.asym_unit._range_id,
                             model_object_primitive=segment.primitive,
                             starting_model_id=segment.starting_model._id
