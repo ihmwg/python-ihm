@@ -61,6 +61,10 @@ class DatasetGroup(list):
        :attr:`ihm.System.orphan_dataset_groups`.
     """
 
+    # For backwards compatibility with earlier versions of this class which
+    # didn't specify name/application/details
+    name = application = details = None
+
     def __init__(self, elements=(), name=None, application=None, details=None):
         super(DatasetGroup, self).__init__(elements)
         self.name, self.application = name, application

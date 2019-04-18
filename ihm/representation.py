@@ -123,6 +123,10 @@ class Representation(list):
        Multiple representations of the same system are possible (multi-scale).
     """
 
+    # For backwards compatibility with earlier versions of this class which
+    # didn't specify name/details
+    name = details = None
+
     # todo: use set rather than list?
     def __init__(self, elements=(), name=None, details=None):
         super(Representation, self).__init__(elements)
