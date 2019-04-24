@@ -1961,6 +1961,39 @@ _ihm_cross_link_list.dataset_list_id
         self.assertEqual(xl.residue1.seq_id, 2)
         self.assertEqual(xl.residue2.seq_id, 3)
 
+    def test_cross_link_list_handler_linker_type(self):
+        """Test CrossLinkListHandler with old-style linker_type"""
+        fh = StringIO("""
+loop_
+_ihm_cross_link_list.id
+_ihm_cross_link_list.group_id
+_ihm_cross_link_list.entity_description_1
+_ihm_cross_link_list.entity_id_1
+_ihm_cross_link_list.seq_id_1
+_ihm_cross_link_list.comp_id_1
+_ihm_cross_link_list.entity_description_2
+_ihm_cross_link_list.entity_id_2
+_ihm_cross_link_list.seq_id_2
+_ihm_cross_link_list.comp_id_2
+_ihm_cross_link_list.linker_type
+_ihm_cross_link_list.dataset_list_id
+1 1 foo 1 2 THR foo 1 3 CYS DSS 97
+2 2 foo 1 2 THR bar 2 3 PHE DSS 97
+3 2 foo 1 2 THR bar 2 2 GLU DSS 97
+4 3 foo 1 1 ALA bar 2 1 ASP DSS 97
+5 4 foo 1 1 ALA bar 2 1 ASP TST 97
+6 5 foo 1 1 ALA bar 2 1 ASP DSS 98
+""")
+        s, = ihm.reader.read(fh)
+        # Check grouping
+        r1, r2, r3 = s.restraints
+        self.assertEqual(r1.linker.auth_name, 'DSS')
+        self.assertEqual(r1.linker.chemical_name, 'disuccinimidyl suberate')
+        self.assertEqual(r2.linker.auth_name, 'TST')
+        self.assertEqual(r2.linker.chemical_name, None)
+        self.assertEqual(r3.linker.auth_name, 'DSS')
+        self.assertEqual(r3.linker.chemical_name, 'disuccinimidyl suberate')
+
     def test_cross_link_restraint_handler(self):
         """Test CrossLinkRestraintHandler"""
         xl_list = """

@@ -12,6 +12,7 @@ import ihm.model
 import ihm.restraint
 import ihm.geometry
 import ihm.source
+import ihm.cross_linkers
 import inspect
 try:
     from . import _format
@@ -1648,15 +1649,29 @@ class _NonPolySchemeHandler(Handler):
 
 class _CrossLinkListHandler(Handler):
     category = '_ihm_cross_link_list'
+    _linkers_by_name = None
 
     def __init__(self, *args):
         super(_CrossLinkListHandler, self).__init__(*args)
         self._seen_group_ids = set()
 
+    def _get_linker_by_name(self, name):
+        """Look up old-style linker, by name rather than descriptor"""
+        if self._linkers_by_name is None:
+            self._linkers_by_name = dict((x[1].auth_name, x[1])
+                                for x in inspect.getmembers(ihm.cross_linkers)
+                                if isinstance(x[1], ihm.ChemDescriptor))
+        if name not in self._linkers_by_name:
+            self._linkers_by_name[name] = ihm.ChemDescriptor(name)
+        return self._linkers_by_name[name]
+
     def __call__(self, dataset_list_id, linker_descriptor_id, group_id, id,
-                 entity_id_1, entity_id_2, seq_id_1, seq_id_2):
+                 entity_id_1, entity_id_2, seq_id_1, seq_id_2, linker_type):
         dataset = self.sysr.datasets.get_by_id_or_none(dataset_list_id)
-        linker = self.sysr.chem_descriptors.get_by_id(linker_descriptor_id)
+        if linker_descriptor_id is None and linker_type is not None:
+            linker = self._get_linker_by_name(linker_type)
+        else:
+            linker = self.sysr.chem_descriptors.get_by_id(linker_descriptor_id)
         # Group all crosslinks with same dataset and linker in one
         # CrossLinkRestraint object
         r = self.sysr.xl_restraints.get_by_attrs(dataset, linker)
