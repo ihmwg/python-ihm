@@ -255,17 +255,20 @@ x
             self._check_bad_cif('loop_\n_foo.bar\n_atom_site.id\n',
                                 real_file, {'_foo':h})
 
-    def _read_cif(self, cif, real_file, category_handlers):
+    def _read_cif(self, cif, real_file, category_handlers,
+                  unknown_category_handler=None):
         if real_file:
             with utils.temporary_directory() as tmpdir:
                 fname = os.path.join(tmpdir, 'test')
                 with open(fname, 'w') as fh:
                     fh.write(cif)
                 with open(fname) as fh:
-                    r = ihm.format.CifReader(fh, category_handlers)
+                    r = ihm.format.CifReader(fh, category_handlers,
+                                             unknown_category_handler)
                     r.read_file()
         else:
-            r = ihm.format.CifReader(StringIO(cif), category_handlers)
+            r = ihm.format.CifReader(StringIO(cif), category_handlers,
+                                     unknown_category_handler)
             r.read_file()
 
     def test_category_case_insensitive(self):
@@ -600,6 +603,42 @@ x y
                            False, {'_struct_keywords':h})
             self.assertEqual(h.data,
                     [{'pdbx_keywords':'COMPLEX \n(HYDROLASE/PEPTIDE)'}])
+
+    def test_unknown_category_ignored(self):
+        """Test that unknown categories are just ignored"""
+        h = GenericHandler()
+        self._read_cif("""
+_cat1.foo baz
+_cat2.bar test
+#
+loop_
+_foo.bar
+_foo.baz
+x y
+""", False, {'_cat1':h})
+        self.assertEqual(h.data, [{'foo':'baz'}])
+
+    def test_unknown_category_handled(self):
+        """Test that unknown categories are handled if requested"""
+        class CatHandler(object):
+            def __init__(self):
+                self.warns = []
+            def __call__(self, cat, line):
+                self.warns.append((cat, line))
+
+        ch = CatHandler()
+        h = GenericHandler()
+        self._read_cif("""
+_cat1.foo baz
+_cat2.bar test
+#
+loop_
+_foo.bar
+_foo.baz
+x y
+""", False, {'_cat1':h}, unknown_category_handler=ch)
+        self.assertEqual(h.data, [{'foo':'baz'}])
+        self.assertEqual(ch.warns, [('_cat2', 3), ('_foo', 8)])
 
 if __name__ == '__main__':
     unittest.main()
