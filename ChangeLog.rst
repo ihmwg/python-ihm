@@ -1,5 +1,5 @@
-HEAD
-====
+0.7 - 2019-04-24
+================
  - Authors of the mmCIF file itself (`_audit_author` category) can now be
    set by manipulating :attr:`ihm.System.authors`. (If this list is empty on
    output, the set of all citation authors is used instead, as before.)
