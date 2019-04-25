@@ -5,6 +5,10 @@ HEAD
    output, the set of all citation authors is used instead, as before.)
  - Any grants that supported the modeling can now be listed in
    :attr:`ihm.System.grants`.
+ - A copy of [SWIG](http://www.swig.org/) is no longer needed to install
+   stable releases of python-ihm (e.g. those installed via `pip`) as
+   pre-generated SWIG outputs are included. SWIG is still needed to build
+   directly from source code though.
 
 0.6 - 2019-03-22
 ================
