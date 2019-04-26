@@ -184,8 +184,9 @@ class BinaryCifReader(ihm.format._Reader):
        Use :meth:`read_file` to actually read the file.
        See :class:`ihm.format.CifReader` for a description of the parameters.
     """
-    def __init__(self, fh, category_handler):
+    def __init__(self, fh, category_handler, unknown_category_handler=None):
         self.category_handler = category_handler
+        self.unknown_category_handler = unknown_category_handler
         self.fh = fh
         self._file_blocks = None
 
@@ -202,6 +203,8 @@ class BinaryCifReader(ihm.format._Reader):
                 handler = self.category_handler.get(cat_name, None)
                 if handler:
                     self._handle_category(handler, category)
+                elif self.unknown_category_handler is not None:
+                    self.unknown_category_handler(cat_name, None)
             del self._file_blocks[0]
         return len(self._file_blocks) > 0
 

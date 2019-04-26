@@ -243,10 +243,12 @@ class Tests(unittest.TestCase):
         data = ihm.format_bcif._decode(data, [runlen, bytearr])
         self.assertEqual(list(data), [1, 1, 1, 2, 3, 3])
 
-    def _read_bcif(self, blocks, category_handlers):
+    def _read_bcif(self, blocks, category_handlers,
+                   unknown_category_handler=None):
         fh = _make_bcif_file(blocks)
         sys.modules['msgpack'] = MockMsgPack
-        r = ihm.format_bcif.BinaryCifReader(fh, category_handlers)
+        r = ihm.format_bcif.BinaryCifReader(fh, category_handlers,
+                                            unknown_category_handler)
         r.read_file()
 
     def test_category_case_insensitive(self):
@@ -283,13 +285,30 @@ class Tests(unittest.TestCase):
                           {'var1': 'OMIT', 'var2': 'NOT'},
                           {'var1': 'test3', 'var2': 'NOT'}])
 
-    def test_extra_categories_ignored(self):
-        """Check that extra categories in the file are ignored"""
+    def test_unknown_categories_ignored(self):
+        """Check that unknown categories are just ignored"""
         cat1 = Category('_foo', {'var1':['test1']})
         cat2 = Category('_bar', {'var2':['test2']})
         h = GenericHandler()
         self._read_bcif([Block([cat1, cat2])], {'_foo':h})
         self.assertEqual(h.data, [{'var1': 'test1'}])
+
+    def test_unknown_categories_handled(self):
+        """Check that unknown categories are handled if requested"""
+        class CatHandler(object):
+            def __init__(self):
+                self.warns = []
+            def __call__(self, cat, line):
+                self.warns.append((cat, line))
+
+        ch = CatHandler()
+        cat1 = Category('_foo', {'var1':['test1']})
+        cat2 = Category('_bar', {'var2':['test2']})
+        h = GenericHandler()
+        self._read_bcif([Block([cat1, cat2])], {'_foo':h},
+                        unknown_category_handler=ch)
+        self.assertEqual(h.data, [{'var1': 'test1'}])
+        self.assertEqual(ch.warns, [('_bar', None)])
 
     def test_extra_keywords_ignored(self):
         """Check that extra keywords in the file are ignored"""

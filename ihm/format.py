@@ -281,7 +281,8 @@ class CifReader(_Reader):
        :param unknown_category_handler: A callable (or `None`) that is called
               for each category in the file that isn't handled; it is given
               two arguments: the name of the category, and the line in the
-              file at which the category was encountered.
+              file at which the category was encountered (if known, otherwise
+              None).
     """
     def __init__(self, fh, category_handler, unknown_category_handler=None):
         if _format is not None:
