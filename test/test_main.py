@@ -579,8 +579,15 @@ class Tests(unittest.TestCase):
         protocol1.analyses = [analysis1]
         s.orphan_protocols.append(protocol1)
 
+        r1 = MockObject()
+        r2 = MockObject()
+        r3 = MockObject()
+        r2.software = None
+        r3.software = s1
+        s.restraints.extend((r1, r2, r3))
+
         # duplicates are kept
-        self.assertEqual(list(s._all_software()), [s2, s2, s1, s2, s2])
+        self.assertEqual(list(s._all_software()), [s2, s2, s1, s2, s2, s1])
 
     def test_all_dataset_groups(self):
         """Test _all_dataset_groups() method"""
