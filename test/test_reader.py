@@ -4,6 +4,7 @@ from collections import namedtuple
 import unittest
 import gzip
 import sys
+import warnings
 if sys.version_info[0] >= 3:
     from io import StringIO
 else:
@@ -2187,6 +2188,57 @@ _ihm_ordered_ensemble.model_group_id_end
         f = gzip.open(fname, 'rt' if sys.version_info[0] >= 3 else 'rb')
         s, = ihm.reader.read(f)
         f.close()
+
+    def test_warn_unknown_category(self):
+        """Test warnings for unknown categories"""
+        cif = """
+_cat1.foo baz
+_cat1.bar baz
+#
+loop_
+_cat2.foo
+_cat2.bar
+x y
+"""
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            # Test with no warnings
+            s, = ihm.reader.read(StringIO(cif))
+            self.assertEqual(len(w), 0)
+            s, = ihm.reader.read(StringIO(cif), warn_unknown_category=True)
+            # Should only warn once per category
+            self.assertEqual(len(w), 2)
+            self.assertEqual(w[0].category, ihm.reader.UnknownCategoryWarning)
+            self.assertTrue('Unknown category _cat1 encountered on line 2'
+                            in str(w[0].message))
+            self.assertEqual(w[1].category, ihm.reader.UnknownCategoryWarning)
+            self.assertTrue('Unknown category _cat2 encountered on line 6'
+                            in str(w[1].message))
+
+    def test_warn_unknown_keyword(self):
+        """Test warnings for unknown keywords"""
+        cif = """
+_cat1.foo baz
+_struct.unknown foo
+#
+loop_
+_struct_asym.id
+_struct_asym.bar
+1 y
+"""
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            # Test with no warnings
+            s, = ihm.reader.read(StringIO(cif))
+            self.assertEqual(len(w), 0)
+            s, = ihm.reader.read(StringIO(cif), warn_unknown_keyword=True)
+            self.assertEqual(len(w), 2)
+            self.assertEqual(w[0].category, ihm.reader.UnknownKeywordWarning)
+            self.assertTrue('keyword _struct.unknown encountered on line 3'
+                            in str(w[0].message))
+            self.assertEqual(w[1].category, ihm.reader.UnknownKeywordWarning)
+            self.assertTrue('keyword _struct_asym.bar encountered on line 7'
+                            in str(w[1].message))
 
 
 if __name__ == '__main__':

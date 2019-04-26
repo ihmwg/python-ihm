@@ -1,3 +1,9 @@
+HEAD
+====
+ - :func:`ihm.reader.read` can now be asked to warn if it encounters
+   categories or keywords in the mmCIF or BinaryCIF file that it doesn't
+   know about (and will ignore).
+
 0.7 - 2019-04-24
 ================
  - Authors of the mmCIF file itself (`_audit_author` category) can now be

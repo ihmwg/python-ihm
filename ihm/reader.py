@@ -14,6 +14,7 @@ import ihm.geometry
 import ihm.source
 import ihm.cross_linkers
 import inspect
+import warnings
 try:
     from . import _format
 except ImportError:
@@ -1777,7 +1778,43 @@ class _OrderedEnsembleHandler(Handler):
                 mapkeys={'step_description':'description'})
 
 
-def read(fh, model_class=ihm.model.Model, format='mmCIF', handlers=[]):
+class UnknownCategoryWarning(Warning):
+    """Warning for unknown categories encountered in the file by :func:`read`"""
+    pass
+
+
+class UnknownKeywordWarning(Warning):
+    """Warning for unknown keywords encountered in the file by :func:`read`"""
+    pass
+
+
+class _UnknownCategoryHandler(object):
+    def __init__(self):
+        self.reset()
+
+    def reset(self):
+        self._seen_categories = set()
+
+    def __call__(self, catname, line):
+        # Only warn about a given category once
+        if catname in self._seen_categories:
+            return
+        self._seen_categories.add(catname)
+        warnings.warn("Unknown category %s encountered%s - will be ignored"
+                      % (catname, " on line %d" % line if line else ""),
+                      UnknownCategoryWarning, stacklevel=2)
+
+
+class _UnknownKeywordHandler(object):
+    def __call__(self, catname, keyname, line):
+        warnings.warn("Unknown keyword %s.%s encountered%s - will be ignored"
+                      % (catname, keyname,
+                         " on line %d" % line if line else ""),
+                      UnknownKeywordWarning, stacklevel=2)
+
+
+def read(fh, model_class=ihm.model.Model, format='mmCIF', handlers=[],
+         warn_unknown_category=False, warn_unknown_keyword=False):
     """Read data from the mmCIF file handle `fh`.
 
        Note that the reader currently expects to see an mmCIF file compliant
@@ -1808,13 +1845,23 @@ def read(fh, model_class=ihm.model.Model, format='mmCIF', handlers=[]):
               BinaryCIF.
        :param list handlers: A list of :class:`Handler` classes (not objects).
               These can be used to read extra categories from the file.
+       :param bool warn_unknown_category: if set, emit an
+              :exc:`UnknownCategoryWarning` for each unknown category
+              encountered in the file.
+       :param bool warn_unknown_keyword: if set, emit an
+              :exc:`UnknownKeywordWarning` for each unknown keyword
+              (within an otherwise-handled category) encountered in the file.
        :return: A list of :class:`ihm.System` objects.
     """
     systems = []
     reader_map = {'mmCIF': ihm.format.CifReader,
                   'BCIF': ihm.format_bcif.BinaryCifReader}
 
-    r = reader_map[format](fh, {})
+    uchandler = _UnknownCategoryHandler() if warn_unknown_category else None
+    ukhandler = _UnknownKeywordHandler() if warn_unknown_keyword else None
+
+    r = reader_map[format](fh, {}, unknown_category_handler=uchandler,
+                           unknown_keyword_handler=ukhandler)
     while True:
         s = SystemReader(model_class)
         hs = [_StructHandler(s), _SoftwareHandler(s), _CitationHandler(s),
@@ -1847,6 +1894,8 @@ def read(fh, model_class=ihm.model.Model, format='mmCIF', handlers=[]):
               _CrossLinkListHandler(s), _CrossLinkRestraintHandler(s),
               _CrossLinkResultHandler(s),
               _OrderedEnsembleHandler(s)] + [h(s) for h in handlers]
+        if uchandler:
+            uchandler.reset()
         r.category_handler = dict((h.category, h) for h in hs)
         more_data = r.read_file()
         for h in hs:
