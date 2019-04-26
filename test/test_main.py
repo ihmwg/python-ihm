@@ -305,13 +305,27 @@ class Tests(unittest.TestCase):
         self.assertEqual(r.seq_id, 3)
         self.assertEqual(r.auth_seq_id, 8)
 
-    def test_atom(self):
-        """Test Atom class"""
+    def test_atom_entity(self):
+        """Test Atom class built from an Entity"""
         e = ihm.Entity('AHCDAH')
         a = e.residue(3).atom('CA')
         self.assertEqual(a.id, 'CA')
         self.assertEqual(a.residue.entity, e)
         self.assertEqual(a.residue.seq_id, 3)
+        self.assertEqual(a.entity, e)
+        self.assertEqual(a.asym, None)
+        self.assertEqual(a.seq_id, 3)
+
+    def test_atom_asym(self):
+        """Test Atom class built from an AsymUnit"""
+        e = ihm.Entity('AHCDAH')
+        asym = ihm.AsymUnit(e)
+        a = asym.residue(3).atom('CA')
+        self.assertEqual(a.id, 'CA')
+        self.assertEqual(a.residue.seq_id, 3)
+        self.assertEqual(a.entity, None)
+        self.assertEqual(a.asym, asym)
+        self.assertEqual(a.seq_id, 3)
 
     def test_entity_range(self):
         """Test EntityRange class"""
