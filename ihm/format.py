@@ -283,13 +283,20 @@ class CifReader(_Reader):
               two arguments: the name of the category, and the line in the
               file at which the category was encountered (if known, otherwise
               None).
+       :param unknown_keyword_handler: A callable (or `None`) that is called
+              for each keyword in the file that isn't handled (within a category
+              that is handled); it is given three arguments: the names of the
+              category and keyword, and the line in the file at which the
+              keyword was encountered (if known, otherwise None).
     """
-    def __init__(self, fh, category_handler, unknown_category_handler=None):
+    def __init__(self, fh, category_handler, unknown_category_handler=None,
+                 unknown_keyword_handler=None):
         if _format is not None:
             c_file = _format.ihm_file_new_from_python(fh)
             self._c_format = _format.ihm_reader_new(c_file)
         self.category_handler = category_handler
         self.unknown_category_handler = unknown_category_handler
+        self.unknown_keyword_handler = unknown_keyword_handler
         self._category_data = {}
         self.fh = fh
         self._tokens = []
@@ -432,6 +439,9 @@ class CifReader(_Reader):
                                "No valid value found for %s.%s on line %d"
                                % (vartoken.category, vartoken.keyword,
                                   self._linenum))
+            elif self.unknown_keyword_handler is not None:
+                self.unknown_keyword_handler(vartoken.category,
+                                             vartoken.keyword, self._linenum)
         elif self.unknown_category_handler is not None:
             self.unknown_category_handler(vartoken.category, self._linenum)
 
@@ -440,6 +450,7 @@ class CifReader(_Reader):
         category = None
         keywords = []
         first_line = None
+        keyword_lines = []
         while True:
             token = self._get_token()
             if isinstance(token, _VariableToken):
@@ -451,10 +462,11 @@ class CifReader(_Reader):
                                 "categories within a single loop at line %d"
                                 % self._linenum)
                 keywords.append(token.keyword)
+                keyword_lines.append(self._linenum)
             elif isinstance(token, _ValueToken):
                 # OK, end of keywords; proceed on to values
                 self._unget_token()
-                return category, keywords, first_line
+                return category, keywords, keyword_lines, first_line
             else:
                 raise CifParserError("Was expecting a keyword or value for "
                                      "loop at line %d" % self._linenum)
@@ -485,7 +497,8 @@ class CifReader(_Reader):
 
     def _read_loop(self):
         """Handle a loop_ construct"""
-        category, keywords, first_line = self._read_loop_keywords()
+        (category, keywords,
+                keyword_lines, first_line) = self._read_loop_keywords()
         # Skip data if we don't have a handler for it
         if category in self.category_handler:
             ch = self.category_handler[category]
@@ -493,6 +506,10 @@ class CifReader(_Reader):
             for i, k in enumerate(ch._keys):
                 wanted_key_index[k] = i
             indices = [wanted_key_index.get(k, -1) for k in keywords]
+            if self.unknown_keyword_handler is not None:
+                for k, i, line in zip(keywords, indices, keyword_lines):
+                    if i == -1:
+                        self.unknown_keyword_handler(category, k, line)
             self._read_loop_data(ch, len(ch._keys), indices)
         elif self.unknown_category_handler is not None:
             self.unknown_category_handler(category, first_line)
@@ -559,6 +576,9 @@ class CifReader(_Reader):
         if self.unknown_category_handler is not None:
             _format.add_unknown_category_handler(self._c_format,
                                                  self.unknown_category_handler)
+        if self.unknown_keyword_handler is not None:
+            _format.add_unknown_keyword_handler(self._c_format,
+                                                self.unknown_keyword_handler)
         try:
             eof, more_data = _format.ihm_read_file(self._c_format)
         except _format.FileFormatError as exc:

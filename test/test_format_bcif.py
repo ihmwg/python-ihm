@@ -244,11 +244,13 @@ class Tests(unittest.TestCase):
         self.assertEqual(list(data), [1, 1, 1, 2, 3, 3])
 
     def _read_bcif(self, blocks, category_handlers,
-                   unknown_category_handler=None):
+                   unknown_category_handler=None,
+                   unknown_keyword_handler=None):
         fh = _make_bcif_file(blocks)
         sys.modules['msgpack'] = MockMsgPack
         r = ihm.format_bcif.BinaryCifReader(fh, category_handlers,
-                                            unknown_category_handler)
+                                            unknown_category_handler,
+                                            unknown_keyword_handler)
         r.read_file()
 
     def test_category_case_insensitive(self):
@@ -310,12 +312,28 @@ class Tests(unittest.TestCase):
         self.assertEqual(h.data, [{'var1': 'test1'}])
         self.assertEqual(ch.warns, [('_bar', None)])
 
-    def test_extra_keywords_ignored(self):
-        """Check that extra keywords in the file are ignored"""
+    def test_unknown_keywords_ignored(self):
+        """Check that unknown keywords are ignored"""
         cat = Category('_foo', {'var1':['test1'], 'othervar':['test2']})
         h = GenericHandler()
         self._read_bcif([Block([cat])], {'_foo':h})
         self.assertEqual(h.data, [{'var1': 'test1'}])
+
+    def test_unknown_keywords_handled(self):
+        """Check that unknown keywords are handled if requested"""
+        class KeyHandler(object):
+            def __init__(self):
+                self.warns = []
+            def __call__(self, cat, key, line):
+                self.warns.append((cat, key, line))
+
+        kh = KeyHandler()
+        cat = Category('_foo', {'var1':['test1'], 'othervar':['test2']})
+        h = GenericHandler()
+        self._read_bcif([Block([cat])], {'_foo':h},
+                        unknown_keyword_handler=kh)
+        self.assertEqual(h.data, [{'var1': 'test1'}])
+        self.assertEqual(kh.warns, [('_foo', 'othervar', None)])
 
     def test_multiple_data_blocks(self):
         """Test handling of multiple data blocks"""

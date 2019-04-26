@@ -377,6 +377,13 @@ struct ihm_reader {
   void *unknown_category_data;
   /* Function to release unknown category data */
   ihm_free_callback unknown_category_free_func;
+
+  /* Handler for unknown keywords */
+  ihm_unknown_keyword_callback unknown_keyword_callback;
+  /* Data passed to unknown keyword callback */
+  void *unknown_keyword_data;
+  /* Function to release unknown keyword data */
+  ihm_free_callback unknown_keyword_free_func;
 };
 
 typedef enum {
@@ -612,6 +619,10 @@ struct ihm_reader *ihm_reader_new(struct ihm_file *fh)
   reader->unknown_category_callback = NULL;
   reader->unknown_category_data = NULL;
   reader->unknown_category_free_func = NULL;
+
+  reader->unknown_keyword_callback = NULL;
+  reader->unknown_keyword_data = NULL;
+  reader->unknown_keyword_free_func = NULL;
   return reader;
 }
 
@@ -624,6 +635,9 @@ void ihm_reader_free(struct ihm_reader *reader)
   ihm_file_free(reader->fh);
   if (reader->unknown_category_free_func) {
     (*reader->unknown_category_free_func) (reader->unknown_category_data);
+  }
+  if (reader->unknown_keyword_free_func) {
+    (*reader->unknown_keyword_free_func) (reader->unknown_keyword_data);
   }
   free(reader);
 }
@@ -644,6 +658,23 @@ void ihm_reader_unknown_category_callback_set(struct ihm_reader *reader,
   reader->unknown_category_free_func = free_func;
 }
 
+/* Set a callback for unknown keywords.
+   The given callback is called whenever a keyword is encountered in the
+   file that is not handled (within a category that is handled by
+   ihm_category_new).
+ */
+void ihm_reader_unknown_keyword_callback_set(struct ihm_reader *reader,
+                                     ihm_unknown_keyword_callback callback,
+                                     void *data, ihm_free_callback free_func)
+{
+  if (reader->unknown_keyword_free_func) {
+    (*reader->unknown_keyword_free_func) (reader->unknown_keyword_data);
+  }
+  reader->unknown_keyword_callback = callback;
+  reader->unknown_keyword_data = data;
+  reader->unknown_keyword_free_func = free_func;
+}
+
 /* Remove all categories from the reader. */
 void ihm_reader_remove_all_categories(struct ihm_reader *reader)
 {
@@ -654,6 +685,13 @@ void ihm_reader_remove_all_categories(struct ihm_reader *reader)
   reader->unknown_category_callback = NULL;
   reader->unknown_category_data = NULL;
   reader->unknown_category_free_func = NULL;
+
+  if (reader->unknown_keyword_free_func) {
+    (*reader->unknown_keyword_free_func) (reader->unknown_keyword_data);
+  }
+  reader->unknown_keyword_callback = NULL;
+  reader->unknown_keyword_data = NULL;
+  reader->unknown_keyword_free_func = NULL;
 }
 
 /* Given the start of a quoted string, find the end and add a token for it */
@@ -884,6 +922,10 @@ static void read_value(struct ihm_reader *reader,
                       "No valid value found for %s.%s in file, line %d",
                       category->name, key->name, reader->linenum);
       }
+    } else if (reader->unknown_keyword_callback) {
+      (*reader->unknown_keyword_callback)(reader, category_name, keyword_name,
+                                          reader->linenum,
+                                          reader->unknown_keyword_data, err);
     }
   } else if (reader->unknown_category_callback) {
     (*reader->unknown_category_callback)(reader, category_name,
@@ -932,6 +974,13 @@ static struct ihm_keyword *handle_loop_index(struct ihm_reader *reader,
                                                    keyword_name);
     if (key) {
       return key;
+    } else if (reader->unknown_keyword_callback) {
+      (*reader->unknown_keyword_callback)(reader, category_name, keyword_name,
+                                          reader->linenum,
+                                          reader->unknown_keyword_data, err);
+      if (*err) {
+        return NULL;
+      }
     }
   }
   return NULL;
