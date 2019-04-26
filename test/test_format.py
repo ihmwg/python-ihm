@@ -638,7 +638,7 @@ _foo.baz
 x y
 """, False, {'_cat1':h}, unknown_category_handler=ch)
         self.assertEqual(h.data, [{'foo':'baz'}])
-        self.assertEqual(ch.warns, [('_cat2', 3), ('_foo', 8)])
+        self.assertEqual(ch.warns, [('_cat2', 3), ('_foo', 6)])
 
 if __name__ == '__main__':
     unittest.main()

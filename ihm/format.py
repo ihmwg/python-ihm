@@ -438,11 +438,13 @@ class CifReader(_Reader):
         """Read the set of keywords for a loop_ construct"""
         category = None
         keywords = []
+        first_line = None
         while True:
             token = self._get_token()
             if isinstance(token, _VariableToken):
                 if category is None:
                     category = token.category
+                    first_line = self._linenum
                 elif category != token.category:
                     raise CifParserError("mmCIF files cannot contain multiple "
                                 "categories within a single loop at line %d"
@@ -451,7 +453,7 @@ class CifReader(_Reader):
             elif isinstance(token, _ValueToken):
                 # OK, end of keywords; proceed on to values
                 self._unget_token()
-                return category, keywords
+                return category, keywords, first_line
             else:
                 raise CifParserError("Was expecting a keyword or value for "
                                      "loop at line %d" % self._linenum)
@@ -482,7 +484,7 @@ class CifReader(_Reader):
 
     def _read_loop(self):
         """Handle a loop_ construct"""
-        category, keywords = self._read_loop_keywords()
+        category, keywords, first_line = self._read_loop_keywords()
         # Skip data if we don't have a handler for it
         if category in self.category_handler:
             ch = self.category_handler[category]
@@ -492,7 +494,7 @@ class CifReader(_Reader):
             indices = [wanted_key_index.get(k, -1) for k in keywords]
             self._read_loop_data(ch, len(ch._keys), indices)
         elif self.unknown_category_handler is not None:
-            self.unknown_category_handler(category, self._linenum)
+            self.unknown_category_handler(category, first_line)
 
     def read_file(self):
         """Read the file and extract data.
@@ -553,6 +555,9 @@ class CifReader(_Reader):
             func = getattr(handler, '_add_c_handler', None) \
                         or _format.add_category_handler
             func(self._c_format, category, handler._keys, handler)
+        if self.unknown_category_handler is not None:
+            _format.add_unknown_category_handler(self._c_format,
+                                                 self.unknown_category_handler)
         try:
             eof, more_data = _format.ihm_read_file(self._c_format)
         except _format.FileFormatError as exc:

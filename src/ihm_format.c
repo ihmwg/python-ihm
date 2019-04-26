@@ -370,6 +370,13 @@ struct ihm_reader {
   unsigned token_index;
   /* All categories that we want to extract from the file */
   struct ihm_mapping *category_map;
+
+  /* Handler for unknown categories */
+  ihm_unknown_category_callback unknown_category_callback;
+  /* Data passed to unknown category callback */
+  void *unknown_category_data;
+  /* Function to release unknown category data */
+  ihm_free_callback unknown_category_free_func;
 };
 
 typedef enum {
@@ -601,6 +608,10 @@ struct ihm_reader *ihm_reader_new(struct ihm_file *fh)
   reader->tokens = ihm_array_new(sizeof(struct ihm_token));
   reader->token_index = 0;
   reader->category_map = ihm_mapping_new(ihm_category_free);
+
+  reader->unknown_category_callback = NULL;
+  reader->unknown_category_data = NULL;
+  reader->unknown_category_free_func = NULL;
   return reader;
 }
 
@@ -611,13 +622,38 @@ void ihm_reader_free(struct ihm_reader *reader)
   ihm_array_free(reader->tokens);
   ihm_mapping_free(reader->category_map);
   ihm_file_free(reader->fh);
+  if (reader->unknown_category_free_func) {
+    (*reader->unknown_category_free_func) (reader->unknown_category_data);
+  }
   free(reader);
+}
+
+/* Set a callback for unknown categories.
+   The given callback is called whenever a category is encountered in the
+   file that is not handled (by ihm_category_new).
+ */
+void ihm_reader_unknown_category_callback_set(struct ihm_reader *reader,
+                                     ihm_unknown_category_callback callback,
+                                     void *data, ihm_free_callback free_func)
+{
+  if (reader->unknown_category_free_func) {
+    (*reader->unknown_category_free_func) (reader->unknown_category_data);
+  }
+  reader->unknown_category_callback = callback;
+  reader->unknown_category_data = data;
+  reader->unknown_category_free_func = free_func;
 }
 
 /* Remove all categories from the reader. */
 void ihm_reader_remove_all_categories(struct ihm_reader *reader)
 {
   ihm_mapping_remove_all(reader->category_map);
+  if (reader->unknown_category_free_func) {
+    (*reader->unknown_category_free_func) (reader->unknown_category_data);
+  }
+  reader->unknown_category_callback = NULL;
+  reader->unknown_category_data = NULL;
+  reader->unknown_category_free_func = NULL;
 }
 
 /* Given the start of a quoted string, find the end and add a token for it */
@@ -849,6 +885,10 @@ static void read_value(struct ihm_reader *reader,
                       category->name, key->name, reader->linenum);
       }
     }
+  } else if (reader->unknown_category_callback) {
+    (*reader->unknown_category_callback)(reader, category_name,
+                                         reader->linenum,
+                                         reader->unknown_category_data, err);
   }
 }
 
@@ -872,6 +912,14 @@ static struct ihm_keyword *handle_loop_index(struct ihm_reader *reader,
                                                        category_name);
   if (first_loop) {
     *catpt = category;
+    if (!category && reader->unknown_category_callback) {
+      (*reader->unknown_category_callback)(reader, category_name,
+                                           reader->linenum,
+                                           reader->unknown_category_data, err);
+      if (*err) {
+        return NULL;
+      }
+    }
   } else if (*catpt != category) {
     ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
                   "mmCIF files cannot contain multiple categories "
