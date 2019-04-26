@@ -457,9 +457,21 @@ class SystemReader(object):
                                    ihm.restraint.DerivedDistanceRestraint,
                                    *(None,)*4)
 
-        #: Mapping from ID to :class:`ihm.restraint.RestraintGroup` objects
+        #: Mapping from ID to :class:`ihm.restraint.PredictedContactRestraint`
+        #: objects
+        self.pred_cont_restraints = IDMapper(self.system.restraints,
+                                   ihm.restraint.PredictedContactRestraint,
+                                   *(None,)*5)
+
+        #: Mapping from ID to :class:`ihm.restraint.RestraintGroup` of
+        #: :class:`ihm.restraint.DerivedDistanceRestraint` objects
         self.dist_restraint_groups = IDMapper(self.system.restraint_groups,
                                    ihm.restraint.RestraintGroup)
+
+        #: Mapping from ID to :class:`ihm.restraint.RestraintGroup` of
+        #: :class:`ihm.restraint.PredictedContactRestraint` objects
+        self.pred_cont_restraint_groups = IDMapper(self.system.restraint_groups,
+                                          ihm.restraint.RestraintGroup)
 
         #: Mapping from ID to :class:`ihm.geometry.GeometricObject` objects
         self.geometries = _GeometryIDMapper(
@@ -1516,6 +1528,37 @@ class _DerivedDistanceRestraintHandler(Handler):
         r.probability = self.get_float(probability)
 
 
+class _PredictedContactRestraintHandler(Handler):
+    category = '_ihm_predicted_contact_restraint'
+
+
+    def _get_resatom(self, asym_id, seq_id, atom_id):
+        asym = self.sysr.asym_units.get_by_id(asym_id)
+        seq_id = self.get_int(seq_id)
+        resatom = asym.residue(seq_id)
+        if atom_id:
+            resatom = resatom.atom(atom_id)
+        return resatom
+
+    def __call__(self, id, group_id, dataset_list_id, asym_id_1,
+                 seq_id_1, rep_atom_1, asym_id_2, seq_id_2, rep_atom_2,
+                 restraint_type, probability, distance_lower_limit,
+                 distance_upper_limit, model_granularity, software_id):
+        r = self.sysr.pred_cont_restraints.get_by_id(id)
+        if group_id is not None:
+            rg = self.sysr.pred_cont_restraint_groups.get_by_id(group_id)
+            rg.append(r)
+        r.dataset = self.sysr.datasets.get_by_id_or_none(dataset_list_id)
+        r.resatom1 = self._get_resatom(asym_id_1, seq_id_1, rep_atom_1)
+        r.resatom2 = self._get_resatom(asym_id_2, seq_id_2, rep_atom_2)
+        r.distance = _handle_distance[restraint_type](distance_lower_limit,
+                                                      distance_upper_limit,
+                                                      self.get_float)
+        r.by_residue = self.get_lower(model_granularity) == 'by-residue'
+        r.probability = self.get_float(probability)
+        r.software = self.sysr.software.get_by_id_or_none(software_id)
+
+
 class _CenterHandler(Handler):
     category = '_ihm_geometric_object_center'
 
@@ -1907,7 +1950,8 @@ def read(fh, model_class=ihm.model.Model, format='mmCIF', handlers=[]):
               _SphereObjSiteHandler(s), _AtomSiteHandler(s),
               _PolyResidueFeatureHandler(s), _PolyAtomFeatureHandler(s),
               _NonPolyFeatureHandler(s), _PseudoSiteFeatureHandler(s),
-              _DerivedDistanceRestraintHandler(s), _CenterHandler(s),
+              _DerivedDistanceRestraintHandler(s),
+              _PredictedContactRestraintHandler(s), _CenterHandler(s),
               _TransformationHandler(s), _GeometricObjectHandler(s),
               _SphereHandler(s), _TorusHandler(s), _HalfTorusHandler(s),
               _AxisHandler(s), _PlaneHandler(s), _GeometricRestraintHandler(s),

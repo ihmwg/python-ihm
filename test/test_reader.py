@@ -2278,6 +2278,64 @@ _ihm_ordered_ensemble.model_group_id_end
         s, = ihm.reader.read(f)
         f.close()
 
+    def test_predicted_contact_restraint_handler(self):
+        """Test PredictedContactRestraintHandler"""
+        fh = StringIO("""
+loop_
+_ihm_predicted_contact_restraint.id
+_ihm_predicted_contact_restraint.group_id
+_ihm_predicted_contact_restraint.entity_id_1
+_ihm_predicted_contact_restraint.asym_id_1
+_ihm_predicted_contact_restraint.comp_id_1
+_ihm_predicted_contact_restraint.seq_id_1
+_ihm_predicted_contact_restraint.rep_atom_1
+_ihm_predicted_contact_restraint.entity_id_2
+_ihm_predicted_contact_restraint.asym_id_2
+_ihm_predicted_contact_restraint.comp_id_2
+_ihm_predicted_contact_restraint.seq_id_2
+_ihm_predicted_contact_restraint.rep_atom_2
+_ihm_predicted_contact_restraint.restraint_type
+_ihm_predicted_contact_restraint.distance_lower_limit
+_ihm_predicted_contact_restraint.distance_upper_limit
+_ihm_predicted_contact_restraint.probability
+_ihm_predicted_contact_restraint.model_granularity
+_ihm_predicted_contact_restraint.dataset_list_id
+_ihm_predicted_contact_restraint.software_id
+1 . 1 A ALA 1 . 2 B TRP 2 . 'lower bound' 25.000 . 0.800 by-residue 97 34
+2 1 1 A ALA 1 CA 2 B TRP 2 CB 'lower bound' 25.000 . 0.400 by-residue 97 .
+3 1 1 A ALA 1 . 2 B TRP 2 . 'upper bound' . 14.000 0.600 by-feature 97 .
+""")
+        s, = ihm.reader.read(fh)
+        r1, r2, r3 = s.restraints
+        rg1, = s.restraint_groups
+        self.assertEqual([r for r in rg1], [r2, r3])
+        self.assertEqual(r1.dataset._id, '97')
+        self.assertTrue(isinstance(r1.resatom1, ihm.Residue))
+        self.assertEqual(r1.resatom1.seq_id, 1)
+        self.assertEqual(r1.resatom1.asym._id, 'A')
+        self.assertTrue(isinstance(r1.resatom2, ihm.Residue))
+        self.assertEqual(r1.resatom2.seq_id, 2)
+        self.assertEqual(r1.resatom2.asym._id, 'B')
+        self.assertTrue(isinstance(r1.distance,
+                                 ihm.restraint.LowerBoundDistanceRestraint))
+        self.assertAlmostEqual(r1.distance.distance, 25.000, places=1)
+        self.assertAlmostEqual(r1.probability, 0.8000, places=1)
+        self.assertEqual(r1.by_residue, True)
+        self.assertEqual(r1.software._id, '34')
+
+        self.assertTrue(isinstance(r2.resatom1, ihm.Atom))
+        self.assertEqual(r2.resatom1.seq_id, 1)
+        self.assertEqual(r2.resatom1.asym._id, 'A')
+        self.assertEqual(r2.resatom1.id, 'CA')
+        self.assertTrue(isinstance(r2.resatom2, ihm.Atom))
+        self.assertEqual(r2.resatom2.seq_id, 2)
+        self.assertEqual(r2.resatom2.asym._id, 'B')
+        self.assertEqual(r2.resatom2.id, 'CB')
+        self.assertTrue(isinstance(r3.distance,
+                                 ihm.restraint.UpperBoundDistanceRestraint))
+        self.assertAlmostEqual(r3.distance.distance, 14.000, places=1)
+        self.assertEqual(r3.software, None)
+
 
 if __name__ == '__main__':
     unittest.main()
