@@ -640,5 +640,25 @@ x y
         self.assertEqual(h.data, [{'foo':'baz'}])
         self.assertEqual(ch.warns, [('_cat2', 3), ('_foo', 6)])
 
+    @skipIf(_format is None, "No C tokenizer")
+    def test_multiple_set_unknown_handler(self):
+        """Test setting unknown handler multiple times"""
+        class Handler(object):
+            def __call__(self):
+                pass
+        uc = Handler()
+        fh = StringIO()
+        c_file = _format.ihm_file_new_from_python(fh)
+        reader = _format.ihm_reader_new(c_file)
+        # Handler must be a callable object
+        self.assertRaises(ValueError, _format.add_unknown_category_handler,
+                          reader, None)
+        _format.add_unknown_category_handler(reader, uc)
+        _format.add_unknown_category_handler(reader, uc)
+        _format.ihm_reader_remove_all_categories(reader)
+        _format.ihm_reader_remove_all_categories(reader)
+        _format.ihm_reader_free(reader)
+        fh.close()
+
 if __name__ == '__main__':
     unittest.main()
