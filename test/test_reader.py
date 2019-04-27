@@ -2225,6 +2225,10 @@ loop_
 _struct_asym.id
 _struct_asym.bar
 1 y
+loop_
+_audit_author.pdbx_ordinal
+_audit_author.name
+1 "Smith J"
 """
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
@@ -2232,6 +2236,8 @@ _struct_asym.bar
             s, = ihm.reader.read(StringIO(cif))
             self.assertEqual(len(w), 0)
             s, = ihm.reader.read(StringIO(cif), warn_unknown_keyword=True)
+            # pdbx_ordinal is explicitly ignored, so should not trigger
+            # a warning
             self.assertEqual(len(w), 2)
             self.assertEqual(w[0].category, ihm.reader.UnknownKeywordWarning)
             self.assertTrue('keyword _struct.unknown encountered on line 3'

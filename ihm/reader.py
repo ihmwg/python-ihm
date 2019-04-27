@@ -519,6 +519,11 @@ class Handler(object):
     #: Value passed to `__call__` for data marked as unknown ('?') in the file
     unknown = '?'
 
+    #: Keywords which are explicitly ignored (read() will not warn about their
+    #: presence in the file). These are usually things like ordinal fields
+    #: which we don't use.
+    ignored_keywords = []
+
     def __init__(self, sysr):
         #: Utility class to map IDs to Python objects.
         self.sysr = sysr
@@ -612,6 +617,7 @@ class _CitationHandler(Handler):
 
 class _AuditAuthorHandler(Handler):
     category = '_audit_author'
+    ignored_keywords = ['pdbx_ordinal']
 
     def __call__(self, name):
         self.system.authors.append(name)
@@ -628,6 +634,7 @@ class _GrantHandler(Handler):
 
 class _CitationAuthorHandler(Handler):
     category = '_citation_author'
+    ignored_keywords = ['ordinal']
 
     def __call__(self, citation_id, name):
         s = self.sysr.citations.get_by_id(citation_id)
@@ -780,6 +787,7 @@ class _AssemblyDetailsHandler(Handler):
 class _AssemblyHandler(Handler):
     # todo: figure out how to populate System.complete_assembly
     category = '_ihm_struct_assembly'
+    ignored_keywords = ['ordinal_id', 'entity_description']
 
     def __call__(self, assembly_id, parent_assembly_id, seq_id_begin,
                  seq_id_end, asym_id, entity_id):
@@ -896,6 +904,7 @@ class _DatasetListHandler(Handler):
 
 class _DatasetGroupHandler(Handler):
     category = '_ihm_dataset_group'
+    ignored_keywords = ['ordinal_id']
 
     def __call__(self, group_id, dataset_list_id):
         g = self.sysr.dataset_groups.get_by_id(group_id)
@@ -939,6 +948,7 @@ class _DatasetDBRefHandler(Handler):
 
 class _RelatedDatasetsHandler(Handler):
     category = '_ihm_related_datasets'
+    ignored_keywords = ['ordinal_id']
 
     def __call__(self, dataset_list_id_derived, dataset_list_id_primary):
         derived = self.sysr.datasets.get_by_id(dataset_list_id_derived)
@@ -967,6 +977,7 @@ def _make_feature_segment(asym, rigid, primitive, count, smodel):
 
 class _ModelRepresentationHandler(Handler):
     category = '_ihm_model_representation'
+    ignored_keywords = ['entity_description']
 
     _rigid_map = {'rigid': True, 'flexible': False, None: None}
     _segment_factory = {'by-atom': _make_atom_segment,
@@ -996,6 +1007,7 @@ class _ModelRepresentationHandler(Handler):
 # todo: support user subclass of StartingModel, pass it coordinates, seqdif
 class _StartingModelDetailsHandler(Handler):
     category = '_ihm_starting_model_details'
+    ignored_keywords = ['entity_description']
 
     def __call__(self, starting_model_id, asym_id, seq_id_begin, seq_id_end,
                  dataset_list_id, starting_model_auth_asym_id,
@@ -1026,6 +1038,7 @@ class _StartingComputationalModelsHandler(Handler):
 
 class _StartingComparativeModelsHandler(Handler):
     category = '_ihm_starting_comparative_models'
+    ignored_keywords = ['ordinal_id']
 
     def __call__(self, starting_model_id, template_dataset_list_id,
                  alignment_file_id, template_auth_asym_id,
@@ -1051,6 +1064,7 @@ class _StartingComparativeModelsHandler(Handler):
 
 class _ProtocolHandler(Handler):
     category = '_ihm_modeling_protocol'
+    ignored_keywords = ['ordinal_id', 'struct_assembly_description']
 
     def __call__(self, protocol_id, step_id, protocol_name, num_models_begin,
                  num_models_end, multi_scale_flag, multi_state_flag,
@@ -1307,6 +1321,7 @@ class _SASRestraintHandler(Handler):
 
 class _SphereObjSiteHandler(Handler):
     category = '_ihm_sphere_obj_site'
+    ignored_keywords = ['ordinal_id']
 
     def __call__(self, model_id, asym_id, rmsf, seq_id_begin, seq_id_end,
                  cartn_x, cartn_y, cartn_z, object_radius):
@@ -1693,6 +1708,8 @@ class _NonPolySchemeHandler(Handler):
 
 class _CrossLinkListHandler(Handler):
     category = '_ihm_cross_link_list'
+    ignored_keywords = ['entity_description_1', 'entity_description_2',
+                        'comp_id_1', 'comp_id_2']
     _linkers_by_name = None
 
     def __init__(self, *args):
@@ -1785,6 +1802,7 @@ class _CrossLinkRestraintHandler(Handler):
 
 class _CrossLinkResultHandler(Handler):
     category = '_ihm_cross_link_result_parameters'
+    ignored_keywords = ['ordinal_id']
 
     def __call__(self, restraint_id, model_id, psi, sigma_1, sigma_2):
         xl = self.sysr.cross_links.get_by_id(restraint_id)
@@ -1849,7 +1867,14 @@ class _UnknownCategoryHandler(object):
 
 
 class _UnknownKeywordHandler(object):
+    def add_category_handlers(self, handlers):
+        self._ignored_keywords = dict((h.category,
+                                       frozenset(h.ignored_keywords))
+                                      for h in handlers)
+
     def __call__(self, catname, keyname, line):
+        if keyname in self._ignored_keywords[catname]:
+            return
         warnings.warn("Unknown keyword %s.%s encountered%s - will be ignored"
                       % (catname, keyname,
                          " on line %d" % line if line else ""),
@@ -1940,6 +1965,8 @@ def read(fh, model_class=ihm.model.Model, format='mmCIF', handlers=[],
               _OrderedEnsembleHandler(s)] + [h(s) for h in handlers]
         if uchandler:
             uchandler.reset()
+        if ukhandler:
+            ukhandler.add_category_handlers(hs)
         r.category_handler = dict((h.category, h) for h in hs)
         more_data = r.read_file()
         for h in hs:
