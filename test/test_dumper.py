@@ -218,7 +218,7 @@ _citation_author.ordinal
         c1.page_range = 'e1637'
         dumper = ihm.dumper._CitationDumper()
         out = _get_dumper_output(dumper, system)
-        self.assertTrue("'Mol Cell Proteomics' 13 e1637 . 2014 " in out)
+        self.assertIn("'Mol Cell Proteomics' 13 e1637 . 2014 ", out)
 
     def test_audit_author_empty(self):
         """Test AuditAuthorDumper with empty list"""

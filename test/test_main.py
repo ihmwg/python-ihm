@@ -103,8 +103,8 @@ class Tests(unittest.TestCase):
         self.assertAlmostEqual(a._comps['M'].formula_weight, 149.211, places=2)
 
         a = ihm.LPeptideAlphabet()
-        self.assertTrue('MSE' in a)
-        self.assertFalse('DG' in a)
+        self.assertIn('MSE', a)
+        self.assertNotIn('DG', a)
         self.assertEqual(len(a.keys), 22)
         self.assertEqual(len(a.values), 22)
         self.assertEqual(sorted(a.keys)[0], 'A')

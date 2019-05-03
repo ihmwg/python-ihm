@@ -594,7 +594,7 @@ _ihm_struct_assembly.seq_id_end
             self.assertEqual(a1.parent, None)
             self.assertEqual(len(a1), 3)
             # AsymUnitRange
-            self.assertTrue(isinstance(a1[0], ihm.AsymUnitRange))
+            self.assertIsInstance(a1[0], ihm.AsymUnitRange)
             self.assertEqual(a1[0]._id, 'A')
             self.assertEqual(a1[0].seq_id_range, (1,726))
             self.assertEqual(a1[1]._id, 'B')
@@ -603,19 +603,19 @@ _ihm_struct_assembly.seq_id_end
             self.assertEqual(a2._id, '2')
             self.assertEqual(a2.parent, a1)
             # AsymUnit
-            self.assertTrue(isinstance(a1[2], ihm.AsymUnit))
+            self.assertIsInstance(a1[2], ihm.AsymUnit)
             # EntityRange
             self.assertEqual(len(a2), 2)
-            self.assertTrue(isinstance(a2[0], ihm.EntityRange))
+            self.assertIsInstance(a2[0], ihm.EntityRange)
             self.assertEqual(a2[0]._id, '2')
             self.assertEqual(a2[0].seq_id_range, (1,50))
             # Entity
-            self.assertTrue(isinstance(a2[1], ihm.Entity))
+            self.assertIsInstance(a2[1], ihm.Entity)
 
             # Assembly with no ranges given
             self.assertEqual(len(a3), 2)
-            self.assertTrue(isinstance(a3[0], ihm.AsymUnit))
-            self.assertTrue(isinstance(a3[1], ihm.Entity))
+            self.assertIsInstance(a3[0], ihm.AsymUnit)
+            self.assertIsInstance(a3[1], ihm.Entity)
 
     def test_external_file_handler(self):
         """Test ExtRef and ExtFileHandler"""
@@ -1505,36 +1505,36 @@ _ihm_derived_distance_restraint.dataset_list_id
             rg1, = s.restraint_groups
             self.assertEqual([r for r in rg1], [r3, r4])
             self.assertEqual(r1.dataset._id, '97')
-            self.assertTrue(isinstance(r1.feature1,
-                                       ihm.restraint.AtomFeature))
+            self.assertIsInstance(r1.feature1,
+                                  ihm.restraint.AtomFeature)
             self.assertEqual(len(r1.feature1.atoms), 1)
             self.assertEqual(r1.feature1.atoms[0].id, 'CA')
             self.assertEqual(r1.feature1.atoms[0].residue.seq_id, 1)
-            self.assertTrue(isinstance(r1.feature2,
-                                       ihm.restraint.ResidueFeature))
+            self.assertIsInstance(r1.feature2,
+                                  ihm.restraint.ResidueFeature)
             self.assertEqual(len(r1.feature2.ranges), 1)
             self.assertEqual(r1.feature2.ranges[0].seq_id_range, (2,3))
-            self.assertTrue(isinstance(r1.distance,
-                                 ihm.restraint.LowerBoundDistanceRestraint))
+            self.assertIsInstance(r1.distance,
+                                  ihm.restraint.LowerBoundDistanceRestraint)
             self.assertAlmostEqual(r1.distance.distance, 25.000, places=1)
             self.assertAlmostEqual(r1.probability, 0.8000, places=1)
             self.assertEqual(r1.restrain_all, None)
             self.assertEqual(r2.restrain_all, True)
             self.assertEqual(r3.restrain_all, False)
-            self.assertTrue(isinstance(r2.feature2,
-                                       ihm.restraint.NonPolyFeature))
+            self.assertIsInstance(r2.feature2,
+                                  ihm.restraint.NonPolyFeature)
             self.assertEqual(len(r2.feature2.asyms), 1)
             self.assertEqual(r2.feature2.asyms[0]._id, 'C')
-            self.assertTrue(isinstance(r2.distance,
-                                 ihm.restraint.UpperBoundDistanceRestraint))
-            self.assertTrue(isinstance(r3.distance,
-                             ihm.restraint.LowerUpperBoundDistanceRestraint))
-            self.assertTrue(isinstance(r4.distance,
-                                 ihm.restraint.HarmonicDistanceRestraint))
-            self.assertTrue(isinstance(r4.feature2,
-                                       ihm.restraint.AtomFeature))
-            self.assertTrue(isinstance(r4.feature1,
-                                       ihm.restraint.PseudoSiteFeature))
+            self.assertIsInstance(r2.distance,
+                                  ihm.restraint.UpperBoundDistanceRestraint)
+            self.assertIsInstance(r3.distance,
+                             ihm.restraint.LowerUpperBoundDistanceRestraint)
+            self.assertIsInstance(r4.distance,
+                                 ihm.restraint.HarmonicDistanceRestraint)
+            self.assertIsInstance(r4.feature2,
+                                  ihm.restraint.AtomFeature)
+            self.assertIsInstance(r4.feature1,
+                                  ihm.restraint.PseudoSiteFeature)
             self.assertAlmostEqual(r4.feature1.x, 10.0, places=1)
             self.assertAlmostEqual(r4.feature1.y, 20.0, places=1)
             self.assertAlmostEqual(r4.feature1.z, 30.0, places=1)
@@ -1566,8 +1566,8 @@ _ihm_geometric_object_sphere.radius_r
             fh = StringIO(text)
             s, = ihm.reader.read(fh)
             s1, s2 = s.orphan_geometric_objects
-            self.assertTrue(isinstance(s1, ihm.geometry.Sphere))
-            self.assertTrue(isinstance(s2, ihm.geometry.Sphere))
+            self.assertIsInstance(s1, ihm.geometry.Sphere)
+            self.assertIsInstance(s2, ihm.geometry.Sphere)
             self.assertEqual(s1.name, 'my sphere')
             self.assertEqual(s1.description, 'a test sphere')
             self.assertEqual(s1.details, 'some details')
@@ -1606,8 +1606,8 @@ _ihm_geometric_object_torus.minor_radius_r
             fh = StringIO(text)
             s, = ihm.reader.read(fh)
             t1, t2 = s.orphan_geometric_objects
-            self.assertTrue(isinstance(t1, ihm.geometry.Torus))
-            self.assertTrue(isinstance(t2, ihm.geometry.Torus))
+            self.assertIsInstance(t1, ihm.geometry.Torus)
+            self.assertIsInstance(t2, ihm.geometry.Torus)
             self.assertAlmostEqual(t1.center.x, 1.000, places=1)
             self.assertAlmostEqual(t1.transformation.tr_vector[1], 2.000,
                                    places=1)
@@ -1656,9 +1656,9 @@ _ihm_geometric_object_half_torus.section
             fh = StringIO(text)
             s, = ihm.reader.read(fh)
             t1, t2, t3 = s.orphan_geometric_objects
-            self.assertTrue(isinstance(t1, ihm.geometry.HalfTorus))
-            self.assertTrue(isinstance(t2, ihm.geometry.HalfTorus))
-            self.assertTrue(isinstance(t3, ihm.geometry.HalfTorus))
+            self.assertIsInstance(t1, ihm.geometry.HalfTorus)
+            self.assertIsInstance(t2, ihm.geometry.HalfTorus)
+            self.assertIsInstance(t3, ihm.geometry.HalfTorus)
             self.assertAlmostEqual(t1.center.x, 1.000, places=1)
             self.assertAlmostEqual(t1.transformation.tr_vector[1], 2.000,
                                    places=1)
@@ -1696,8 +1696,8 @@ _ihm_geometric_object_axis.transformation_id
             fh = StringIO(text)
             s, = ihm.reader.read(fh)
             a1, a2 = s.orphan_geometric_objects
-            self.assertTrue(isinstance(a1, ihm.geometry.XAxis))
-            self.assertTrue(isinstance(a2, ihm.geometry.YAxis))
+            self.assertIsInstance(a1, ihm.geometry.XAxis)
+            self.assertIsInstance(a2, ihm.geometry.YAxis)
             self.assertAlmostEqual(a1.transformation.tr_vector[1], 2.000,
                                    places=1)
             self.assertEqual(a2.transformation, None)
@@ -1727,8 +1727,8 @@ _ihm_geometric_object_plane.transformation_id
             fh = StringIO(text)
             s, = ihm.reader.read(fh)
             p1, p2 = s.orphan_geometric_objects
-            self.assertTrue(isinstance(p1, ihm.geometry.XYPlane))
-            self.assertTrue(isinstance(p2, ihm.geometry.YZPlane))
+            self.assertIsInstance(p1, ihm.geometry.XYPlane)
+            self.assertIsInstance(p2, ihm.geometry.YZPlane)
             self.assertAlmostEqual(p1.transformation.tr_vector[1], 2.000,
                                    places=1)
             self.assertEqual(p2.transformation, None)
@@ -1755,32 +1755,28 @@ _ihm_geometric_object_distance_restraint.dataset_list_id
 """)
         s, = ihm.reader.read(fh)
         r1, r2, r3, r4 = s.restraints
-        self.assertTrue(isinstance(r1,
-                             ihm.restraint.GeometricRestraint))
+        self.assertIsInstance(r1, ihm.restraint.GeometricRestraint)
         self.assertEqual(r1.dataset._id, '97')
         self.assertEqual(r1.geometric_object._id, '23')
         self.assertEqual(r1.feature._id, '44')
-        self.assertTrue(isinstance(r1.distance,
-                             ihm.restraint.UpperBoundDistanceRestraint))
+        self.assertIsInstance(r1.distance,
+                              ihm.restraint.UpperBoundDistanceRestraint)
         self.assertAlmostEqual(r1.distance.distance, 25.000, places=1)
         self.assertAlmostEqual(r1.harmonic_force_constant, 2.000, places=1)
         self.assertEqual(r1.restrain_all, False)
         self.assertEqual(r2.restrain_all, True)
         self.assertEqual(r3.restrain_all, None)
 
-        self.assertTrue(isinstance(r2,
-                             ihm.restraint.CenterGeometricRestraint))
-        self.assertTrue(isinstance(r3,
-                             ihm.restraint.InnerSurfaceGeometricRestraint))
-        self.assertTrue(isinstance(r4,
-                             ihm.restraint.OuterSurfaceGeometricRestraint))
+        self.assertIsInstance(r2, ihm.restraint.CenterGeometricRestraint)
+        self.assertIsInstance(r3, ihm.restraint.InnerSurfaceGeometricRestraint)
+        self.assertIsInstance(r4, ihm.restraint.OuterSurfaceGeometricRestraint)
 
-        self.assertTrue(isinstance(r2.distance,
-                             ihm.restraint.LowerBoundDistanceRestraint))
-        self.assertTrue(isinstance(r3.distance,
-                             ihm.restraint.LowerUpperBoundDistanceRestraint))
-        self.assertTrue(isinstance(r4.distance,
-                             ihm.restraint.HarmonicDistanceRestraint))
+        self.assertIsInstance(r2.distance,
+                              ihm.restraint.LowerBoundDistanceRestraint)
+        self.assertIsInstance(r3.distance,
+                              ihm.restraint.LowerUpperBoundDistanceRestraint)
+        self.assertIsInstance(r4.distance,
+                              ihm.restraint.HarmonicDistanceRestraint)
 
     def test_poly_seq_scheme_handler_offset(self):
         """Test PolySeqSchemeHandler with constant offset"""
@@ -2045,23 +2041,23 @@ _ihm_cross_link_restraint.sigma_2
             s, = ihm.reader.read(fh)
             r, = s.restraints
             xl1, xl2 = r.cross_links
-            self.assertTrue(isinstance(xl1, ihm.restraint.ResidueCrossLink))
+            self.assertIsInstance(xl1, ihm.restraint.ResidueCrossLink)
             self.assertEqual(xl1.experimental_cross_link.residue1.seq_id, 2)
             self.assertEqual(xl1.experimental_cross_link.residue2.seq_id, 3)
             self.assertEqual(xl1.fits, {})
             self.assertEqual(xl1.asym1._id, 'A')
             self.assertEqual(xl1.asym2._id, 'B')
-            self.assertTrue(isinstance(xl1.distance,
-                                 ihm.restraint.UpperBoundDistanceRestraint))
+            self.assertIsInstance(xl1.distance,
+                                  ihm.restraint.UpperBoundDistanceRestraint)
             self.assertAlmostEqual(xl1.distance.distance, 25.000, places=1)
             self.assertAlmostEqual(xl1.psi, 0.500, places=1)
             self.assertAlmostEqual(xl1.sigma1, 1.000, places=1)
             self.assertAlmostEqual(xl1.sigma2, 2.000, places=1)
 
-            self.assertTrue(isinstance(xl2, ihm.restraint.AtomCrossLink))
+            self.assertIsInstance(xl2, ihm.restraint.AtomCrossLink)
             self.assertEqual(xl2.fits, {})
-            self.assertTrue(isinstance(xl2.distance,
-                                 ihm.restraint.LowerBoundDistanceRestraint))
+            self.assertIsInstance(xl2.distance,
+                                  ihm.restraint.LowerBoundDistanceRestraint)
             self.assertTrue(xl2.atom1, 'C')
             self.assertTrue(xl2.atom2, 'N')
             self.assertAlmostEqual(xl2.distance.distance, 34.000, places=1)
@@ -2278,29 +2274,29 @@ _ihm_predicted_contact_restraint.software_id
         rg1, = s.restraint_groups
         self.assertEqual([r for r in rg1], [r2, r3])
         self.assertEqual(r1.dataset._id, '97')
-        self.assertTrue(isinstance(r1.resatom1, ihm.Residue))
+        self.assertIsInstance(r1.resatom1, ihm.Residue)
         self.assertEqual(r1.resatom1.seq_id, 1)
         self.assertEqual(r1.resatom1.asym._id, 'A')
-        self.assertTrue(isinstance(r1.resatom2, ihm.Residue))
+        self.assertIsInstance(r1.resatom2, ihm.Residue)
         self.assertEqual(r1.resatom2.seq_id, 2)
         self.assertEqual(r1.resatom2.asym._id, 'B')
-        self.assertTrue(isinstance(r1.distance,
-                                 ihm.restraint.LowerBoundDistanceRestraint))
+        self.assertIsInstance(r1.distance,
+                              ihm.restraint.LowerBoundDistanceRestraint)
         self.assertAlmostEqual(r1.distance.distance, 25.000, places=1)
         self.assertAlmostEqual(r1.probability, 0.8000, places=1)
         self.assertEqual(r1.by_residue, True)
         self.assertEqual(r1.software._id, '34')
 
-        self.assertTrue(isinstance(r2.resatom1, ihm.Atom))
+        self.assertIsInstance(r2.resatom1, ihm.Atom)
         self.assertEqual(r2.resatom1.seq_id, 1)
         self.assertEqual(r2.resatom1.asym._id, 'A')
         self.assertEqual(r2.resatom1.id, 'CA')
-        self.assertTrue(isinstance(r2.resatom2, ihm.Atom))
+        self.assertIsInstance(r2.resatom2, ihm.Atom)
         self.assertEqual(r2.resatom2.seq_id, 2)
         self.assertEqual(r2.resatom2.asym._id, 'B')
         self.assertEqual(r2.resatom2.id, 'CB')
-        self.assertTrue(isinstance(r3.distance,
-                                 ihm.restraint.UpperBoundDistanceRestraint))
+        self.assertIsInstance(r3.distance,
+                              ihm.restraint.UpperBoundDistanceRestraint)
         self.assertAlmostEqual(r3.distance.distance, 14.000, places=1)
         self.assertEqual(r3.software, None)
 
