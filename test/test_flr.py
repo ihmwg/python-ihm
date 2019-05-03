@@ -427,7 +427,7 @@ class Tests(unittest.TestCase):
                                   calibration_parameters = 'this_calibration_parameters',
                                   method_name = 'this_method_name',
                                   chi_square_reduced = 'this_chi_square_reduced',
-                                  dataset_list_id = 'this_dataset_list_id',
+                                  dataset='this_dataset_list_id',
                                   external_file = 'this_external_file',
                                   software = 'this_software')
         self.assertEqual(f.experiment, 'this_experiment')
@@ -437,7 +437,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(f.calibration_parameters, 'this_calibration_parameters')
         self.assertEqual(f.method_name, 'this_method_name')
         self.assertEqual(f.chi_square_reduced, 'this_chi_square_reduced')
-        self.assertEqual(f.dataset_list_id, 'this_dataset_list_id')
+        self.assertEqual(f.dataset, 'this_dataset_list_id')
         self.assertEqual(f.external_file, 'this_external_file')
         self.assertEqual(f.software, 'this_software')
 
@@ -450,7 +450,7 @@ class Tests(unittest.TestCase):
                                   calibration_parameters = 'this_calibration_parameters',
                                   method_name = 'this_method_name',
                                   chi_square_reduced = 'this_chi_square_reduced',
-                                  dataset_list_id = 'this_dataset_list_id',
+                                  dataset='this_dataset_list_id',
                                   external_file = 'this_external_file',
                                   software = 'this_software')
         f_equal = ihm.flr.FRETAnalysis(experiment = 'this_experiment',
@@ -460,7 +460,7 @@ class Tests(unittest.TestCase):
                                   calibration_parameters = 'this_calibration_parameters',
                                   method_name = 'this_method_name',
                                   chi_square_reduced = 'this_chi_square_reduced',
-                                  dataset_list_id = 'this_dataset_list_id',
+                                  dataset='this_dataset_list_id',
                                   external_file = 'this_external_file',
                                   software = 'this_software')
         f_unequal = ihm.flr.FRETAnalysis(experiment='this_experiment',
@@ -470,7 +470,7 @@ class Tests(unittest.TestCase):
                               calibration_parameters='this_calibration_parameters',
                               method_name='this_method_name',
                               chi_square_reduced='this_chi_square_reduced',
-                              dataset_list_id='this_dataset_list_id',
+                              dataset='this_dataset_list_id',
                               external_file='this_external_file',
                               software='this_software')
         self.assertTrue(f_ref == f_equal)
@@ -666,32 +666,32 @@ class Tests(unittest.TestCase):
 
     def test_fret_model_quality_init(self):
         """ Test initialization of FRETModelQuality. """
-        f = ihm.flr.FRETModelQuality(model_id = 'this_model_id',
-                                       chi_square_reduced = 'this_chi_square_reduced',
-                                       dataset_group_id = 'this_dataset_group_id',
+        f = ihm.flr.FRETModelQuality(model = 'this_model_id',
+                                     chi_square_reduced = 'this_chi_square_reduced',
+                                       dataset_group = 'this_dataset_group_id',
                                        method = 'this_method',
                                        details = 'this_details')
-        self.assertEqual(f.model_id, 'this_model_id')
+        self.assertEqual(f.model, 'this_model_id')
         self.assertEqual(f.chi_square_reduced, 'this_chi_square_reduced')
-        self.assertEqual(f.dataset_group_id, 'this_dataset_group_id')
+        self.assertEqual(f.dataset_group, 'this_dataset_group_id')
         self.assertEqual(f.method, 'this_method')
         self.assertEqual(f.details, 'this_details')
 
     def test_fret_model_quality_eq(self):
         """ Test equality and inequality of FRETModelQuality objects. """
-        f_ref = ihm.flr.FRETModelQuality(model_id = 'this_model_id',
+        f_ref = ihm.flr.FRETModelQuality(model='this_model_id',
                                        chi_square_reduced = 'this_chi_square_reduced',
-                                       dataset_group_id = 'this_dataset_group_id',
+                                       dataset_group='this_dataset_group_id',
                                        method = 'this_method',
                                        details = 'this_details')
-        f_equal = ihm.flr.FRETModelQuality(model_id = 'this_model_id',
+        f_equal = ihm.flr.FRETModelQuality(model='this_model_id',
                                        chi_square_reduced = 'this_chi_square_reduced',
-                                       dataset_group_id = 'this_dataset_group_id',
+                                       dataset_group='this_dataset_group_id',
                                        method = 'this_method',
                                        details = 'this_details')
-        f_unequal = ihm.flr.FRETModelQuality(model_id = 'foo',
+        f_unequal = ihm.flr.FRETModelQuality(model='foo',
                                        chi_square_reduced = 'this_chi_square_reduced',
-                                       dataset_group_id = 'this_dataset_group_id',
+                                       dataset_group='this_dataset_group_id',
                                        method = 'this_method',
                                        details = 'this_details')
         self.assertTrue(f_ref == f_equal)
@@ -702,22 +702,19 @@ class Tests(unittest.TestCase):
         """ Test initialization of FRETModelDistance.
             Also test the implicit calculation of the distance deviation"""
         ## Initialization with explicit setting of distance deviation
-        f1 = ihm.flr.FRETModelDistance(restraint_id = 'foo',
-                                        model_id = 'bar',
-                                        distance = 50,
-                                        distance_deviation = 4.0)
-        self.assertEqual(f1.restraint_id, 'foo')
-        self.assertEqual(f1.model_id, 'bar')
+        f1 = ihm.flr.FRETModelDistance(restraint='foo', model='bar',
+                                       distance=50, distance_deviation=4.0)
+        self.assertEqual(f1.restraint, 'foo')
+        self.assertEqual(f1.model, 'bar')
         self.assertEqual(f1.distance, 50)
         self.assertEqual(f1.distance_deviation, 4.0)
         ## Initialization with calculation of distance deviation
         class Dummy_Restraint():
             def __init__(self,distance):
                 self.distance = distance
-        f2 = ihm.flr.FRETModelDistance(restraint_id = Dummy_Restraint(40),
-                                         model_id = 'bar2',
-                                         distance = 30)
-        self.assertEqual(f2.model_id, 'bar2')
+        f2 = ihm.flr.FRETModelDistance(restraint=Dummy_Restraint(40),
+                                       model='bar2', distance=30)
+        self.assertEqual(f2.model, 'bar2')
         self.assertEqual(f2.distance, 30)
         self.assertEqual(f2.distance_deviation, 10.0)
 
@@ -725,9 +722,8 @@ class Tests(unittest.TestCase):
         class Dummy_Restraint():
             def __init__(self,distance):
                 self.distance = distance
-        f1 = ihm.flr.FRETModelDistance(restraint_id = Dummy_Restraint(40),
-                                         model_id = 'foo',
-                                         distance = 30)
+        f1 = ihm.flr.FRETModelDistance(restraint=Dummy_Restraint(40),
+                                       model='foo', distance=30)
         self.assertEqual(f1.distance_deviation, 10.0)
         ## Directly changing the distance should not change the deviation
         f1.distance = 25
@@ -738,18 +734,15 @@ class Tests(unittest.TestCase):
 
     def test_fret_model_distance_eq(self):
         """ Test equality and inequality of FRETModelDistance objects. """
-        f_ref = ihm.flr.FRETModelDistance(restraint_id = 'foo',
-                                        model_id = 'bar',
-                                        distance = 50,
-                                        distance_deviation = 4.0)
-        f_equal = ihm.flr.FRETModelDistance(restraint_id = 'foo',
-                                        model_id = 'bar',
-                                        distance = 50,
-                                        distance_deviation = 4.0)
-        f_unequal = ihm.flr.FRETModelDistance(restraint_id = 'foo2',
-                                        model_id = 'bar',
-                                        distance = 50,
-                                        distance_deviation = 4.0)
+        f_ref = ihm.flr.FRETModelDistance(restraint='foo', model='bar',
+                                          distance=50,
+                                          distance_deviation=4.0)
+        f_equal = ihm.flr.FRETModelDistance(restraint='foo', model='bar',
+                                            distance=50,
+                                            distance_deviation=4.0)
+        f_unequal = ihm.flr.FRETModelDistance(restraint='foo2',
+                                              model='bar', distance=50,
+                                              distance_deviation=4.0)
         self.assertTrue(f_ref == f_equal)
         self.assertFalse(f_ref == f_unequal)
         self.assertTrue(f_ref != f_unequal)
@@ -783,34 +776,32 @@ class Tests(unittest.TestCase):
 
     def test_fps_modeling_init(self):
         """ Test initialization of FPSModeling. """
-        f = ihm.flr.FPSModeling(ihm_modeling_protocol_ordinal_id = 'foo',
-                                 restraint_group_id = 'bar',
-                                 global_parameter_id = 'foo2',
-                                 probe_modeling_method = 'foo3',
-                                 details = 'bar2')
-        self.assertEqual(f.ihm_modeling_protocol_ordinal_id, 'foo')
-        self.assertEqual(f.restraint_group_id, 'bar')
-        self.assertEqual(f.global_parameter_id, 'foo2')
+        f = ihm.flr.FPSModeling(protocol='foo',
+                                restraint_group='bar',
+                                global_parameter='foo2',
+                                probe_modeling_method='foo3',
+                                details='bar2')
+        self.assertEqual(f.protocol, 'foo')
+        self.assertEqual(f.restraint_group, 'bar')
+        self.assertEqual(f.global_parameter, 'foo2')
         self.assertEqual(f.probe_modeling_method, 'foo3')
         self.assertEqual(f.details, 'bar2')
 
     def test_fps_modeling_eq(self):
         """ Test equality and inequality of FPSModeling objects. """
-        f_ref = ihm.flr.FPSModeling(ihm_modeling_protocol_ordinal_id = 'foo',
-                                 restraint_group_id = 'bar',
-                                 global_parameter_id = 'foo2',
-                                 probe_modeling_method = 'foo3',
-                                 details = 'bar2')
-        f_equal = ihm.flr.FPSModeling(ihm_modeling_protocol_ordinal_id = 'foo',
-                                 restraint_group_id = 'bar',
-                                 global_parameter_id = 'foo2',
-                                 probe_modeling_method = 'foo3',
-                                 details = 'bar2')
-        f_unequal = ihm.flr.FPSModeling(ihm_modeling_protocol_ordinal_id = 'foo',
-                                 restraint_group_id = 'foobar',
-                                 global_parameter_id = 'foo2',
-                                 probe_modeling_method = 'foo3',
-                                 details = 'bar2')
+        f_ref = ihm.flr.FPSModeling(protocol='foo', restraint_group='bar',
+                                    global_parameter='foo2',
+                                    probe_modeling_method='foo3',
+                                    details='bar2')
+        f_equal = ihm.flr.FPSModeling(protocol='foo', restraint_group='bar',
+                                      global_parameter='foo2',
+                                      probe_modeling_method='foo3',
+                                      details='bar2')
+        f_unequal = ihm.flr.FPSModeling(protocol='foo',
+                                        restraint_group='foobar',
+                                        global_parameter='foo2',
+                                        probe_modeling_method='foo3',
+                                        details='bar2')
         self.assertTrue(f_ref == f_equal)
         self.assertFalse(f_ref == f_unequal)
         self.assertTrue(f_ref != f_unequal)
@@ -931,24 +922,24 @@ class Tests(unittest.TestCase):
 
     def test_fps_av_modeling_init(self):
         """ Test initialization of FPSAVModeling. """
-        f = ihm.flr.FPSAVModeling(FPS_modeling_id = 'foo',
-                                    sample_probe_id = 'bar',
-                                    parameter_id = 'foobar')
-        self.assertEqual(f.FPS_modeling_id, 'foo')
-        self.assertEqual(f.sample_probe_id, 'bar')
-        self.assertEqual(f.parameter_id, 'foobar')
+        f = ihm.flr.FPSAVModeling(fps_modeling='foo',
+                                  sample_probe='bar',
+                                  parameter='foobar')
+        self.assertEqual(f.fps_modeling, 'foo')
+        self.assertEqual(f.sample_probe, 'bar')
+        self.assertEqual(f.parameter, 'foobar')
 
     def test_fps_av_modeling_eq(self):
-        """ Test equality and inequality of FPSAVModeling objects. """
-        f_ref = ihm.flr.FPSAVModeling(FPS_modeling_id = 'foo',
-                                    sample_probe_id = 'bar',
-                                    parameter_id = 'foobar')
-        f_equal = ihm.flr.FPSAVModeling(FPS_modeling_id = 'foo',
-                                    sample_probe_id = 'bar',
-                                    parameter_id = 'foobar')
-        f_unequal = ihm.flr.FPSAVModeling(FPS_modeling_id = 'foo',
-                                    sample_probe_id = 'bar2',
-                                    parameter_id = 'foobar')
+        """Test equality and inequality of FPSAVModeling objects."""
+        f_ref = ihm.flr.FPSAVModeling(fps_modeling='foo',
+                                      sample_probe='bar',
+                                      parameter='foobar')
+        f_equal = ihm.flr.FPSAVModeling(fps_modeling='foo',
+                                        sample_probe='bar',
+                                        parameter='foobar')
+        f_unequal = ihm.flr.FPSAVModeling(fps_modeling='foo',
+                                          sample_probe='bar2',
+                                          parameter='foobar')
         self.assertTrue(f_ref == f_equal)
         self.assertFalse(f_ref == f_unequal)
         self.assertTrue(f_ref != f_unequal)
@@ -990,64 +981,59 @@ class Tests(unittest.TestCase):
                                       linker_length = 'this_linker_length_1',
                                       linker_width = 'this_linker_width_1',
                                       probe_radius_1 = 'this_probe_radius_1_1')
-        f_unequal = ihm.flr.FPSAVParameter(num_linker_atoms = 'this_num_linker_atoms_1',
-                                      linker_length = 'foo',
-                                      linker_width = 'this_linker_width_1',
-                                      probe_radius_1 = 'this_probe_radius_1_1')
+        f_unequal = ihm.flr.FPSAVParameter(
+                               num_linker_atoms='this_num_linker_atoms_1',
+                               linker_length='foo',
+                               linker_width='this_linker_width_1',
+                               probe_radius_1='this_probe_radius_1_1')
         self.assertTrue(f_ref == f_equal)
         self.assertFalse(f_ref == f_unequal)
         self.assertTrue(f_ref != f_unequal)
 
     def test_fps_mpp_modeling_init(self):
-        """ Test initialization of FPSMPPModeling. """
-        f = ihm.flr.FPSMPPModeling(FPS_modeling_id = 'foo',
-                                     mpp_id = 'bar',
-                                     mpp_atom_position_group_id = 'foobar')
-        self.assertEqual(f.FPS_modeling_id, 'foo')
-        self.assertEqual(f.mpp_id, 'bar')
-        self.assertEqual(f.mpp_atom_position_group_id, 'foobar')
+        """Test initialization of FPSMPPModeling."""
+        f = ihm.flr.FPSMPPModeling(fps_modeling='foo', mpp='bar',
+                                   mpp_atom_position_group='foobar')
+        self.assertEqual(f.fps_modeling, 'foo')
+        self.assertEqual(f.mpp, 'bar')
+        self.assertEqual(f.mpp_atom_position_group, 'foobar')
 
     def test_fps_mpp_modeling_eq(self):
-        """ Test equality and inequality of FPSMPPModeling objects. """
-        f_ref = ihm.flr.FPSMPPModeling(FPS_modeling_id = 'foo',
-                                     mpp_id = 'bar',
-                                     mpp_atom_position_group_id = 'foobar')
-        f_equal = ihm.flr.FPSMPPModeling(FPS_modeling_id = 'foo',
-                                     mpp_id = 'bar',
-                                     mpp_atom_position_group_id = 'foobar')
-        f_unequal = ihm.flr.FPSMPPModeling(FPS_modeling_id = 'foo2',
-                                     mpp_id = 'bar',
-                                     mpp_atom_position_group_id = 'foobar')
+        """Test equality and inequality of FPSMPPModeling objects."""
+        f_ref = ihm.flr.FPSMPPModeling(fps_modeling='foo', mpp='bar',
+                                       mpp_atom_position_group='foobar')
+        f_equal = ihm.flr.FPSMPPModeling(fps_modeling='foo', mpp='bar',
+                                         mpp_atom_position_group='foobar')
+        f_unequal = ihm.flr.FPSMPPModeling(fps_modeling='foo2', mpp='bar',
+                                           mpp_atom_position_group='foobar')
 
         self.assertTrue(f_ref == f_equal)
         self.assertFalse(f_ref == f_unequal)
         self.assertTrue(f_ref != f_unequal)
 
     def test_fps_mean_probe_position_init(self):
-        """ Test initialization of FPSMeanProbePosition. """
-        f = ihm.flr.FPSMeanProbePosition(sample_probe_id = 'foo',
-                                            mpp_xcoord = 'bar',
-                                            mpp_ycoord = 'bar2',
-                                            mpp_zcoord = 'bar3')
-        self.assertEqual(f.sample_probe_id, 'foo')
+        """Test initialization of FPSMeanProbePosition."""
+        f = ihm.flr.FPSMeanProbePosition(sample_probe='foo', mpp_xcoord='bar',
+                                         mpp_ycoord='bar2', mpp_zcoord='bar3')
+        self.assertEqual(f.sample_probe, 'foo')
         self.assertEqual(f.mpp_xcoord, 'bar')
         self.assertEqual(f.mpp_ycoord, 'bar2')
         self.assertEqual(f.mpp_zcoord, 'bar3')
 
     def test_fps_mean_probe_position_eq(self):
-        """ Test equality and inequality of FPSMeanProbePosition objects. """
-        f_ref = ihm.flr.FPSMeanProbePosition(sample_probe_id = 'foo',
-                                            mpp_xcoord = 'bar',
-                                            mpp_ycoord = 'bar2',
-                                            mpp_zcoord = 'bar3')
-        f_equal = ihm.flr.FPSMeanProbePosition(sample_probe_id = 'foo',
-                                            mpp_xcoord = 'bar',
-                                            mpp_ycoord = 'bar2',
-                                            mpp_zcoord = 'bar3')
-        f_unequal = ihm.flr.FPSMeanProbePosition(sample_probe_id = 'foobar',
-                                            mpp_xcoord = 'bar',
-                                            mpp_ycoord = 'bar2',
-                                            mpp_zcoord = 'bar3')
+        """Test equality and inequality of FPSMeanProbePosition objects."""
+        f_ref = ihm.flr.FPSMeanProbePosition(sample_probe='foo',
+                                             mpp_xcoord='bar',
+                                             mpp_ycoord='bar2',
+                                             mpp_zcoord='bar3')
+        f_equal = ihm.flr.FPSMeanProbePosition(sample_probe='foo',
+                                               mpp_xcoord='bar',
+                                               mpp_ycoord='bar2',
+                                               mpp_zcoord='bar3')
+        f_unequal = ihm.flr.FPSMeanProbePosition(sample_probe='foobar',
+                                                 mpp_xcoord='bar',
+                                                 mpp_ycoord='bar2',
+                                                 mpp_zcoord='bar3')
         self.assertTrue(f_ref == f_equal)
         self.assertFalse(f_ref == f_unequal)
         self.assertTrue(f_ref != f_unequal)

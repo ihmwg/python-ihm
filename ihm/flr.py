@@ -372,7 +372,8 @@ class FRETAnalysis(object):
        :param method_name: The method used for the analysis.
        :param chi_square_reduced: The chi-square reduced as a quality
               measure for the fit.
-       :param dataset_list_id: The dataset used.
+       :param dataset: The dataset used.
+       :type dataset: :class:`ihm.dataset.Dataset`
        :param external_file: The external file that contains (results of)
               the analysis.
        :param software: The software used for the analysis.
@@ -381,7 +382,7 @@ class FRETAnalysis(object):
 
     def __init__(self, experiment, sample_probe_1, sample_probe_2,
                  forster_radius, calibration_parameters, method_name=None,
-                 chi_square_reduced=None, dataset_list_id=None,
+                 chi_square_reduced=None, dataset=None,
                  external_file=None, software=None):
         self.experiment = experiment
         self.sample_probe_1 = sample_probe_1
@@ -390,7 +391,7 @@ class FRETAnalysis(object):
         self.calibration_parameters = calibration_parameters
         self.method_name = method_name
         self.chi_square_reduced = chi_square_reduced
-        self.dataset_list_id = dataset_list_id
+        self.dataset = dataset
         self.external_file = external_file
         self.software = software
 
@@ -535,23 +536,23 @@ class PeakAssignment(object):
 class FRETModelQuality(object):
     """The quality measure for a Model based on FRET data.
 
-       :param model_id: The model ID.
-       :type model_id: :class:`ihm.Model`
+       :param model: The model being described.
+       :type model: :class:`ihm.model.Model`
        :param chi_square_reduced: The quality of the model in terms of
               chi_square_reduced based on the Distance restraints used
               for the modeling.
-       :param dataset_group_id: The dataset group data was used for the
+       :param dataset_group: The group of datasets that was used for the
               quality estimation.
-       :type dataset_group_id: :class:`ihm.DatasetGroup`
+       :type dataset_group: :class:`ihm.dataset.DatasetGroup`
        :param method: The method used for judging the model quality.
        :param str details: Details on the model quality.
     """
 
-    def __init__(self, model_id, chi_square_reduced, dataset_group_id,
+    def __init__(self, model, chi_square_reduced, dataset_group,
                  method, details=None):
-        self.model_id = model_id
+        self.model = model
         self.chi_square_reduced = chi_square_reduced
-        self.dataset_group_id = dataset_group_id
+        self.dataset_group = dataset_group
         self.method = method
         self.details = details
 
@@ -562,34 +563,34 @@ class FRETModelQuality(object):
 class FRETModelDistance(object):
     """The distance in a model for a certain distance restraint.
 
-       :param restraint_id: The Distance restraint ID.
-       :type restraint_id: :class:`FRETDistanceRestraint`
-       :param model_id: The model ID.
-       :type model_id: :class:`ihm.Model`
+       :param restraint: The Distance restraint.
+       :type restraint: :class:`FRETDistanceRestraint`
+       :param model: The model the distance applies to.
+       :type model: :class:`ihm.model.Model`
        :param distance: The distance obtained for the distance restraint
               in the current model.
        :param distance_deviation: The deviation of the distance in the
               model compared to the value of the distance restraint.
     """
 
-    def __init__(self, restraint_id, model_id, distance,
+    def __init__(self, restraint, model, distance,
                  distance_deviation=None):
-        self.restraint_id=restraint_id
-        self.model_id = model_id
+        self.restraint = restraint
+        self.model = model
         self.distance = distance
         self.distance_deviation = distance_deviation
-        if self.distance_deviation is None and self.restraint_id is not None:
+        if self.distance_deviation is None and self.restraint is not None:
             self.calculate_deviation()
 
     def calculate_deviation(self):
-        if self.distance_deviation is None and self.restraint_id is not None:
+        if self.distance_deviation is None and self.restraint is not None:
             self.distance_deviation = \
-                       float(self.restraint_id.distance) - float(self.distance)
+                       float(self.restraint.distance) - float(self.distance)
 
     def update_deviation(self):
-        if self.restraint_id is not None:
+        if self.restraint is not None:
             self.distance_deviation = \
-                       float(self.restraint_id.distance) - float(self.distance)
+                       float(self.restraint.distance) - float(self.distance)
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
@@ -622,21 +623,21 @@ class FPSModeling(object):
        e.g. Docking, Refinement, or Error estimation.
        Members of this class automatically get assigned an id.
 
-       :param ihm_modeling_protocol_ordinal_id: The Modeling protocol ID
-              to which the FPS modeling step belongs.
-       :type ihm_modeling_protocol_ordinal_id: :class:`ihm.Protocol`
-       :param restraint_group_id: The restraint group used for the modeling.
-       :param global_parameter_id: The global FPS parameters used.
-       :type global_parameter_id: :class:`FPSGlobalParameters`
-       :param probe_modeling_method: either "AV" or "MPP".
+       :param protocol: The modeling protocol to which the FPS modeling
+              step belongs.
+       :type protocol: :class:`ihm.protocol.Protocol`
+       :param restraint_group: The restraint group used for the modeling.
+       :param global_parameter: The global FPS parameters used.
+       :type global_parameter: :class:`FPSGlobalParameters`
+       :param str probe_modeling_method: either "AV" or "MPP".
        :param str details: Details on the FPS modeling.
     """
 
-    def __init__(self, ihm_modeling_protocol_ordinal_id, restraint_group_id,
-                 global_parameter_id, probe_modeling_method, details=None):
-        self.ihm_modeling_protocol_ordinal_id = ihm_modeling_protocol_ordinal_id
-        self.restraint_group_id = restraint_group_id
-        self.global_parameter_id = global_parameter_id
+    def __init__(self, protocol, restraint_group,
+                 global_parameter, probe_modeling_method, details=None):
+        self.protocol = protocol
+        self.restraint_group = restraint_group
+        self.global_parameter = global_parameter
         self.probe_modeling_method = probe_modeling_method
         self.details = details
 
@@ -714,21 +715,21 @@ class FPSAVModeling(object):
        This object connects the FPS_modeling step, the sample_probe and
        the respective AV parameters.
 
-       :param FPS_modeling_id: The FPS modeling ID.
-       :type FPS_modeling_id: :class:`FPSModeling`
-       :param sample_probe_id: The Sample probe ID.
-       :type sample_probe_id: :class:`SampleProbeDetails`
-       :param parameter_id: The FPS AV parameters used.
-       :type parameter_id: :class:`FPSAVParameter`
+       :param fps_modeling: The FPS modeling ID.
+       :type fps_modeling: :class:`FPSModeling`
+       :param sample_probe: The Sample probe ID.
+       :type sample_probe: :class:`SampleProbeDetails`
+       :param parameter: The FPS AV parameters used.
+       :type parameter: :class:`FPSAVParameter`
     """
 
-    def __init__(self, FPS_modeling_id,sample_probe_id, parameter_id):
-        # FPS_modeling_id is the object containing information on the
+    def __init__(self, fps_modeling, sample_probe, parameter):
+        # fps_modeling is the object containing information on the
         # ihm modeling protocol, the restraint group and the global
         # FPS parameters
-        self.FPS_modeling_id = FPS_modeling_id
-        self.sample_probe_id = sample_probe_id
-        self.parameter_id = parameter_id
+        self.fps_modeling = fps_modeling
+        self.sample_probe = sample_probe
+        self.parameter = parameter
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
@@ -759,24 +760,24 @@ class FPSAVParameter(object):
 
 
 class FPSMPPModeling(object):
-    """Maps the FPS_modeling_id to a mean probe position and connects it
+    """Maps the FPSModeling object to a mean probe position and connects it
        to the reference coordinate system.
 
-       :param FPS_modeling_id: The FPS modeling ID.
-       :type FPS_modeling_id: :class:`FPSModeling`
-       :param mpp_id: The ID of the mean probe position.
-       :type mpp_id: :class:`FPSMeanProbePosition`
-       :param mpp_atom_position_group_id:
-       :type mpp_atom_position_group_id: :class:`FPSMPPAtomPositionGroup`
+       :param fps_modeling: The FPS modeling object.
+       :type fps_modeling: :class:`FPSModeling`
+       :param mpp: The ID of the mean probe position.
+       :type mpp: :class:`FPSMeanProbePosition`
+       :param mpp_atom_position_group:
+       :type mpp_atom_position_group: :class:`FPSMPPAtomPositionGroup`
     """
 
-    def __init__(self, FPS_modeling_id, mpp_id, mpp_atom_position_group_id):
-        # FPS_modeling_id is the object containing information on the
+    def __init__(self, fps_modeling, mpp, mpp_atom_position_group):
+        # fps_modeling is the object containing information on the
         # ihm modeling protocol, the restraint group and the global
         # FPS parameters
-        self.FPS_modeling_id = FPS_modeling_id
-        self.mpp_id = mpp_id
-        self.mpp_atom_position_group_id = mpp_atom_position_group_id
+        self.fps_modeling = fps_modeling
+        self.mpp = mpp
+        self.mpp_atom_position_group = mpp_atom_position_group
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
@@ -789,15 +790,15 @@ class FPSMeanProbePosition(object):
        The coordinates are with respect to a reference coordinate system
        defined by :class:`FPSMPPAtomPositionGroup`.
 
-       :param sample_probe_id: The Sample probe ID.
-       :type sample_probe_id: :class:`SampleProbeDetails`
+       :param sample_probe: The Sample probe.
+       :type sample_probe: :class:`SampleProbeDetails`
        :param mpp_xcoord: The x-coordinate of the mean probe position.
        :param mpp_ycoord: The y-coordinate of the mean probe position.
        :param mpp_zcoord: The z-coordinate of the mean probe position.
     """
 
-    def __init__(self, sample_probe_id, mpp_xcoord, mpp_ycoord, mpp_zcoord):
-        self.sample_probe_id = sample_probe_id
+    def __init__(self, sample_probe, mpp_xcoord, mpp_ycoord, mpp_zcoord):
+        self.sample_probe = sample_probe
         self.mpp_xcoord = mpp_xcoord
         self.mpp_ycoord = mpp_ycoord
         self.mpp_zcoord = mpp_zcoord
