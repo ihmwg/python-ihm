@@ -795,7 +795,7 @@ class _StartingModelDumper(Dumper):
                       "starting_model_sequence_offset",
                       "dataset_list_id"]) as l:
              for sm in system._all_starting_models():
-                seq_id_range = sm.get_seq_id_range_all_templates()
+                seq_id_range = sm._get_seq_id_range_all_templates()
                 l.write(starting_model_id=sm._id,
                         entity_id=sm.asym_unit.entity._id,
                         entity_description=sm.asym_unit.entity.description,

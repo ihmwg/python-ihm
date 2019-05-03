@@ -142,7 +142,7 @@ class StartingModel(object):
         """
         return []
 
-    def get_seq_id_range_all_templates(self):
+    def _get_seq_id_range_all_templates(self):
         """Get the seq_id range covered by all templates in this starting
            model. Where there are multiple templates, consolidate
            them; template info is given in starting_comparative_models."""
