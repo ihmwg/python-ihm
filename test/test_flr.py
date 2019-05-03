@@ -8,31 +8,31 @@ utils.set_search_paths(TOPDIR)
 import ihm.flr
 
 class Tests(unittest.TestCase):
-    
+
     def test_Probe_Init(self):
         """ Test initialization of probe_list_entry and probe_descriptor. """
         p = ihm.flr.Probe(probe_list_entry='foo',probe_descriptor='bar')
         self.assertEqual(p.probe_list_entry, 'foo')
         self.assertEqual(p.probe_descriptor, 'bar')
-        
+
     def test_Probe_Add_probe_list_entry(self):
-        """ Test adding probe_list_entry after creation of Probe. 
+        """ Test adding probe_list_entry after creation of Probe.
             And test subsequent changing of the value. """
         p = ihm.flr.Probe()
         p.add_probe_list_entry('foo')
         self.assertEqual(p.probe_list_entry,'foo')
         p.add_probe_list_entry('foo2')
         self.assertEqual(p.probe_list_entry,'foo2')
-    
+
     def test_Probe_Add_probe_descriptor(self):
-        """ Test adding probe_descriptor after creation of Probe. 
+        """ Test adding probe_descriptor after creation of Probe.
             And test subsequent changing of the value. """
         p = ihm.flr.Probe()
         p.add_probe_descriptor('foo')
         self.assertEqual(p.probe_descriptor,'foo')
         p.add_probe_descriptor('foo2')
         self.assertEqual(p.probe_descriptor,'foo2')
-    
+
     def test_Probe_Eq(self):
         """ Test euqality and inequality of Probe objects """
         p_ref = ihm.flr.Probe(probe_list_entry='foo',probe_descriptor='bar')
@@ -50,7 +50,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(p.reactive_probe_chem_descriptor, 'foo')
         self.assertEqual(p.chromophore_chem_descriptor, 'bar')
         self.assertEqual(p.chromophore_center_atom,'foo2')
-        
+
     def test_probe_descriptor_eq(self):
         """ Test equality and inequality of ProbeDescriptor objects. """
         p_ref = ihm.flr.ProbeDescriptor(reactive_probe_chem_descriptor='foo',
@@ -61,14 +61,14 @@ class Tests(unittest.TestCase):
                                          chromophore_center_atom='foo2')
         p_unequal = ihm.flr.ProbeDescriptor(reactive_probe_chem_descriptor='foo',
                                          chromophore_chem_descriptor='bar2',
-                                         chromophore_center_atom='foo2')        
+                                         chromophore_center_atom='foo2')
         self.assertTrue(p_ref == p_equal)
         self.assertFalse(p_ref == p_unequal)
         self.assertTrue(p_ref != p_unequal)
 
     def test_probe_list_init(self):
         """ Test initialization of ProbeList. """
-        p = ihm.flr.ProbeList(chromophore_name='foo', 
+        p = ihm.flr.ProbeList(chromophore_name='foo',
                                reactive_probe_flag=False,
                                reactive_probe_name='bar',
                                probe_origin='foo2',
@@ -81,25 +81,25 @@ class Tests(unittest.TestCase):
 
     def test_probe_list_eq(self):
         """ Test equality and inequality of ProbeList objects. """
-        p_ref = ihm.flr.ProbeList(chromophore_name = 'foo', 
-                                   reactive_probe_flag = False, 
+        p_ref = ihm.flr.ProbeList(chromophore_name = 'foo',
+                                   reactive_probe_flag = False,
                                    reactive_probe_name='bar',
                                    probe_origin='foo2',
                                    probe_link_type = 'bar2')
-        p_equal = ihm.flr.ProbeList(chromophore_name = 'foo', 
-                                   reactive_probe_flag = False, 
+        p_equal = ihm.flr.ProbeList(chromophore_name = 'foo',
+                                   reactive_probe_flag = False,
                                    reactive_probe_name='bar',
                                    probe_origin='foo2',
                                    probe_link_type = 'bar2')
-        p_unequal = ihm.flr.ProbeList(chromophore_name = 'foo2', 
-                                   reactive_probe_flag = True, 
+        p_unequal = ihm.flr.ProbeList(chromophore_name = 'foo2',
+                                   reactive_probe_flag = True,
                                    reactive_probe_name='bar',
                                    probe_origin='foo2',
                                    probe_link_type = 'bar2')
         self.assertTrue(p_ref == p_equal)
         self.assertFalse(p_ref == p_unequal)
         self.assertTrue(p_ref != p_unequal)
-    
+
     def test_sample_probe_details_init(self):
         """ Test initialization of SampleProbeDetails. """
         s = ihm.flr.SampleProbeDetails(sample = 'foo',
@@ -111,8 +111,8 @@ class Tests(unittest.TestCase):
         self.assertEqual(s.fluorophore_type,'unspecified')
         self.assertEqual(s.description, 'foo2')
         self.assertEqual(s.poly_probe_position, 'bar2')
-        
-    
+
+
     def test_sample_probe_details_eq(self):
         """ Test equality and inequality of SampleProbeDetails objects. """
         s_ref = ihm.flr.SampleProbeDetails(sample = 'foo', probe = 'bar',
@@ -121,11 +121,11 @@ class Tests(unittest.TestCase):
                                              description = 'foo2', poly_probe_position = 'bar2')
         s_unequal = ihm.flr.SampleProbeDetails(sample = 'foo', probe = 'bar3',
                                              description = 'foo2', poly_probe_position = 'bar2')
-        
+
         self.assertTrue(s_ref == s_equal)
         self.assertFalse(s_ref == s_unequal)
         self.assertTrue(s_ref != s_unequal)
-        
+
     def test_poly_probe_conjugate_init(self):
         """ Test initialization of PolyProbeConjugate. """
         p = ihm.flr.PolyProbeConjugate(sample_probe = 'foo',
@@ -136,7 +136,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(p.chem_descriptor, 'bar')
         self.assertEqual(p.ambiguous_stoichiometry,True)
         self.assertEqual(p.probe_stoichiometry,0.5)
-    
+
     def test_poly_probe_conjugate_eq(self):
         """ Test equality and inequality of PolyProbeConjugate objects. """
         p_ref = ihm.flr.PolyProbeConjugate(sample_probe='foo',
@@ -153,7 +153,7 @@ class Tests(unittest.TestCase):
                                          probe_stoichiometry = 0.5)
         self.assertTrue(p_ref == p_equal)
         self.assertFalse(p_ref == p_unequal)
-        self.assertTrue(p_ref != p_unequal)        
+        self.assertTrue(p_ref != p_unequal)
 
     def test_poly_probe_position_init(self):
         """ Test initialization of PolyProbePosition. """
@@ -177,7 +177,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(p.auth_name, 'foo3')
         self.assertEqual(p.mutated_chem_descriptor, 'foobar')
         self.assertEqual(p.modified_chem_descriptor, 'foobar2')
-    
+
     def test_poly_probe_position_eq(self):
         """ Test equality and inequality of PolyProbePosition objects. """
         p_ref = ihm.flr.PolyProbePosition(entity ='foo',
@@ -199,7 +199,7 @@ class Tests(unittest.TestCase):
                                             modification_flag = True,
                                             auth_name = 'foo3',
                                             mutated_chem_descriptor = 'foobar',
-                                            modified_chem_descriptor='foobar2')        
+                                            modified_chem_descriptor='foobar2')
         p_unequal = ihm.flr.PolyProbePosition(entity ='foo',
                                         entity_description = 'foo2',
                                         seq_id ='bar5',
@@ -209,13 +209,13 @@ class Tests(unittest.TestCase):
                                         modification_flag = True,
                                         auth_name = 'foo3',
                                         mutated_chem_descriptor = 'foobar',
-                                        modified_chem_descriptor = 'foobar2')        
+                                        modified_chem_descriptor = 'foobar2')
 
         self.assertTrue(p_ref == p_equal)
         self.assertFalse(p_ref == p_unequal)
-        self.assertTrue(p_ref != p_unequal)        
+        self.assertTrue(p_ref != p_unequal)
 
-    
+
     def test_Sample_Init(self):
         """ Test initialization of Sample. """
         s = ihm.flr.Sample(entity_assembly = 'foo',
@@ -230,7 +230,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(s.sample_description, 'foo3')
         self.assertEqual(s.sample_details, 'foo4')
         self.assertEqual(s.solvent_phase, 'foobar')
-    
+
     def test_Sample_Eq(self):
         """ Test equality and inequality of Sample objects. """
         s_ref = ihm.flr.Sample(entity_assembly = 'foo',
@@ -253,8 +253,8 @@ class Tests(unittest.TestCase):
                            solvent_phase = 'bar6')
         self.assertTrue(s_ref == s_equal)
         self.assertFalse(s_ref == s_unequal)
-        self.assertTrue(s_ref != s_unequal)  
-    
+        self.assertTrue(s_ref != s_unequal)
+
     def test_entity_assembly_init(self):
         """ Test initialization of EntityAssembly. """
         e = ihm.flr.EntityAssembly(entity = 'foo',
@@ -264,16 +264,16 @@ class Tests(unittest.TestCase):
         self.assertEqual(e.entity_list[0], 'foo')
         self.assertEqual(e.num_copies_list[0],1)
         self.assertEqual(e.entity_description_list[0],'bar')
-    
+
     def test_entity_assembly_add_entity(self):
         """ Test addition of entities to the assembly. """
         e = ihm.flr.EntityAssembly(entity = 'foo', num_copies=1, entity_description= 'bar')
-        e.add_entity(entity = 'foo2', num_copies = 2, entity_description = 'bar2')     
+        e.add_entity(entity = 'foo2', num_copies = 2, entity_description = 'bar2')
         self.assertEqual(len(e.entity_list), 2)
         self.assertEqual(e.entity_list, ['foo','foo2'])
         self.assertEqual(e.num_copies_list, [1,2])
         self.assertEqual(e.entity_description_list, ['bar','bar2'])
-    
+
     def test_entity_assembly_eq(self):
         """ Test equality and inequality of EntityAssembly objects. """
         e_ref = ihm.flr.EntityAssembly(entity = 'foo', num_copies=1, entity_description= 'bar')
@@ -281,13 +281,13 @@ class Tests(unittest.TestCase):
         e_unequal = ihm.flr.EntityAssembly(entity = 'foo2', num_copies=1, entity_description= 'bar')
         self.assertTrue(e_ref == e_equal)
         self.assertFalse(e_ref == e_unequal)
-        self.assertTrue(e_ref != e_unequal)  
+        self.assertTrue(e_ref != e_unequal)
 
     def test_sample_condition_init(self):
         """ Test initialization of SampleCondition. """
         s = ihm.flr.SampleCondition(details = 'foo')
         self.assertEqual(s.details, 'foo')
-    
+
     def test_sample_condition_eq(self):
         """ Test equality and inequality of SampleCondition objects. """
         s_ref = ihm.flr.SampleCondition(details = 'foo')
@@ -296,7 +296,7 @@ class Tests(unittest.TestCase):
         self.assertTrue(s_ref == s_equal)
         self.assertFalse(s_ref == s_unequal)
         self.assertTrue(s_ref != s_unequal)
-    
+
     def test_Experiment_Init(self):
         """ Test initialization of Experiment. """
         ## Initialization with only one parameter given should not add an entry
@@ -304,8 +304,8 @@ class Tests(unittest.TestCase):
         self.assertEqual(len(e1.instrument_list), 0)
         self.assertEqual(len(e1.exp_setting_list),0)
         self.assertEqual(len(e1.sample_list),0)
-        
-        ## Correct initialization should fill the lists        
+
+        ## Correct initialization should fill the lists
         e2 = ihm.flr.Experiment(instrument = 'foo',
                                exp_setting = 'bar',
                                sample = 'foo2',
@@ -315,15 +315,15 @@ class Tests(unittest.TestCase):
         self.assertEqual(e2.exp_setting_list[0], 'bar')
         self.assertEqual(e2.sample_list[0], 'foo2')
         self.assertEqual(e2.details_list[0], 'bar2')
-        
+
         ## Initialization without details given should still have an entry in the list
         e3 = ihm.flr.Experiment(instrument = 'foo',
                                 exp_setting = 'bar',
                                 sample = 'foo2')
         self.assertEqual(len(e3.details_list),1)
         self.assertEqual(e3.details_list[0], None)
-        
-    
+
+
     def test_Experiment_Add_entry(self):
         """ Test addition of an entry to the experiment. """
         ## Adding to an empty Experiment
@@ -336,7 +336,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(e1.exp_setting_list[0], 'bar')
         self.assertEqual(e1.sample_list[0],'foo2')
         self.assertEqual(e1.details_list[0], 'bar2')
-        
+
         ## adding to an existing Experiment
         e2 = ihm.flr.Experiment(instrument = 'foo',
                                exp_setting = 'foo2',
@@ -350,7 +350,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(e2.exp_setting_list, ['foo2','bar2'])
         self.assertEqual(e2.sample_list, ['foo3','bar3'])
         self.assertEqual(e2.details_list, ['foo4','bar4'])
-    
+
     def test_Experiment_Get_entry_by_index(self):
         """ Test access to entries by index. """
         e = ihm.flr.Experiment()
@@ -363,7 +363,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(return_value_index0, ('foo','foo2','foo3','foo4'))
         self.assertEqual(return_value_index1, ('bar','bar2','bar3','bar4'))
         self.assertEqual(return_value_index2, ('foobar','foobar2','foobar3','foobar4'))
-   
+
     def test_Experiment_Contains(self):
         """ Test whether experiment contains a combination of instrument, exp_setting, and sample. """
         ## An empty experiment should not contain anything
@@ -376,7 +376,7 @@ class Tests(unittest.TestCase):
         ## If one of the entries is not contained, then False
         self.assertFalse(e1.contains('foo2','foo2','foo4'))
         self.assertFalse(e1.contains('foobar','foobar2','foobar3'))
-            
+
     def test_Experiment_Eq(self):
         """ Test equality and inequality of Experiment objects. """
         e_ref = ihm.flr.Experiment()
@@ -387,14 +387,14 @@ class Tests(unittest.TestCase):
         e_unequal.add_entry(instrument = 'bar', exp_setting='bar2',sample = 'bar3')
         self.assertTrue(e_ref == e_equal)
         self.assertFalse(e_ref == e_unequal)
-        self.assertTrue(e_ref != e_unequal)  
-        
-   
+        self.assertTrue(e_ref != e_unequal)
+
+
     def test_Instrument_Init(self):
         """ Test initialization of Instrument. """
         i = ihm.flr.Instrument(details = 'foo')
         self.assertEqual(i.details, 'foo')
-    
+
     def test_Instrument_Eq(self):
         """ Test equality and inequality of Instrument objects. """
         i_ref = ihm.flr.Instrument(details = 'foo')
@@ -402,13 +402,13 @@ class Tests(unittest.TestCase):
         i_unequal = ihm.flr.Instrument(details = 'bar')
         self.assertTrue(i_ref == i_equal)
         self.assertFalse(i_ref == i_unequal)
-        self.assertTrue(i_ref != i_unequal)  
-        
+        self.assertTrue(i_ref != i_unequal)
+
     def test_exp_setting_init(self):
         """ Test initialization of ExpSetting."""
         e = ihm.flr.ExpSetting(details = 'foo')
         self.assertEqual(e.details, 'foo')
-    
+
     def test_exp_setting_eq(self):
         """ Test equality and inequality of ExpSetting objects."""
         e_ref = ihm.flr.ExpSetting(details = 'foo')
@@ -440,7 +440,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(f.dataset_list_id, 'this_dataset_list_id')
         self.assertEqual(f.external_file, 'this_external_file')
         self.assertEqual(f.software, 'this_software')
-            
+
     def test_fret_analysis_eq(self):
         """ Test equality and inequality of FRETAnalysis objects. """
         f_ref = ihm.flr.FRETAnalysis(experiment = 'this_experiment',
@@ -481,14 +481,14 @@ class Tests(unittest.TestCase):
         """ Test initialization of FRETDistanceRestraintGroup. """
         f = ihm.flr.FRETDistanceRestraintGroup()
         self.assertEqual(f.distance_restraint_list, [])
-    
+
     def test_fret_distance_restraint_group_add_distance_restraint(self):
         """ Test the addition of a Fret_distance restraint to the group. """
         f = ihm.flr.FRETDistanceRestraintGroup()
         f.add_distance_restraint('foo')
         f.add_distance_restraint('bar')
         self.assertEqual(f.distance_restraint_list, ['foo','bar'])
-    
+
     def test_fret_distance_restraint_group_get_info(self):
         """ Test the retrieval of the distance_restraint_list. """
         f = ihm.flr.FRETDistanceRestraintGroup()
@@ -496,7 +496,7 @@ class Tests(unittest.TestCase):
         f.add_distance_restraint('bar')
         return_value = f.get_info()
         self.assertEqual(return_value, ['foo','bar'])
-    
+
     def test_fret_distance_restraint_group_eq(self):
         """ Test equality and inequality of FRETDistanceRestraintGroup objects. """
         f_ref = ihm.flr.FRETDistanceRestraintGroup()
@@ -531,7 +531,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(f.distance_type, 'this_distance_type')
         self.assertEqual(f.population_fraction, 'this_population_fraction')
         self.assertEqual(f.peak_assignment, 'this_peak_assignment')
-           
+
     def test_fret_distance_restraint_eq(self):
         """ Test equality and inequality of FRETDistanceRestraint objects. """
         f_ref = ihm.flr.FRETDistanceRestraint(sample_probe_1 = 'this_sample_probe_1',
@@ -581,7 +581,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(f.acceptor_probe, 'bar')
         self.assertEqual(f.forster_radius, 'foo2')
         self.assertEqual(f.reduced_forster_radius, 'bar2')
-    
+
     def test_fret_forster_radius_eq(self):
         """ Test equality and inequality of FRETForsterRadius objects. """
         f_ref = ihm.flr.FRETForsterRadius(donor_probe='foo',
@@ -618,7 +618,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(f.gamma, 'this_gamma')
         self.assertEqual(f.delta, 'this_delta')
         self.assertEqual(f.a_b, 'this_a_b')
-           
+
     def test_fret_calibration_parameters_eq(self):
         """ Test equality and inequality of FRETCalibrationParameters objects. """
         f_ref = ihm.flr.FRETCalibrationParameters(phi_acceptor = 'this_phi_acceptor',
@@ -654,7 +654,7 @@ class Tests(unittest.TestCase):
         p = ihm.flr.PeakAssignment(method_name = 'foo', details = 'bar')
         self.assertEqual(p.method_name, 'foo')
         self.assertEqual(p.details, 'bar')
-    
+
     def test_peak_assignment_eq(self):
         """ Test equality and inequality of PeakAssignment objects. """
         p_ref = ihm.flr.PeakAssignment(method_name = 'foo', details = 'bar')
@@ -666,7 +666,7 @@ class Tests(unittest.TestCase):
 
     def test_fret_model_quality_init(self):
         """ Test initialization of FRETModelQuality. """
-        f = ihm.flr.FRETModelQuality(model_id = 'this_model_id', 
+        f = ihm.flr.FRETModelQuality(model_id = 'this_model_id',
                                        chi_square_reduced = 'this_chi_square_reduced',
                                        dataset_group_id = 'this_dataset_group_id',
                                        method = 'this_method',
@@ -676,7 +676,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(f.dataset_group_id, 'this_dataset_group_id')
         self.assertEqual(f.method, 'this_method')
         self.assertEqual(f.details, 'this_details')
-            
+
     def test_fret_model_quality_eq(self):
         """ Test equality and inequality of FRETModelQuality objects. """
         f_ref = ihm.flr.FRETModelQuality(model_id = 'this_model_id',
@@ -699,7 +699,7 @@ class Tests(unittest.TestCase):
         self.assertTrue(f_ref != f_unequal)
 
     def test_fret_model_distance_init(self):
-        """ Test initialization of FRETModelDistance. 
+        """ Test initialization of FRETModelDistance.
             Also test the implicit calculation of the distance deviation"""
         ## Initialization with explicit setting of distance deviation
         f1 = ihm.flr.FRETModelDistance(restraint_id = 'foo',
@@ -759,7 +759,7 @@ class Tests(unittest.TestCase):
         m = ihm.flr.ModelingCollection()
         self.assertEqual(m.flr_modeling_list, [])
         self.assertEqual(m.flr_modeling_method_list, [])
-    
+
     def test_modeling_collection_add_modeling(self):
         """ Test the addition of an entry to the ModelingCollection. """
         m = ihm.flr.ModelingCollection()
@@ -767,7 +767,7 @@ class Tests(unittest.TestCase):
         m.add_modeling(modeling = 'foo2', modeling_method = 'bar2')
         self.assertEqual(m.flr_modeling_list, ['foo','foo2'])
         self.assertEqual(m.flr_modeling_method_list, ['bar','bar2'])
-    
+
     def test_modeling_collection_eq(self):
         """ Test equality and inequality of ModelingCollection objects. """
         m_ref = ihm.flr.ModelingCollection()
@@ -793,7 +793,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(f.global_parameter_id, 'foo2')
         self.assertEqual(f.probe_modeling_method, 'foo3')
         self.assertEqual(f.details, 'bar2')
-    
+
     def test_fps_modeling_eq(self):
         """ Test equality and inequality of FPSModeling objects. """
         f_ref = ihm.flr.FPSModeling(ihm_modeling_protocol_ordinal_id = 'foo',
@@ -838,7 +838,7 @@ class Tests(unittest.TestCase):
                 convergence_F = 'this_convergence_F',
                 convergence_T = 'this_convergence_T',
                 optimized_distances = 'this_optimized_distances')
-        
+
         self.assertEqual(f.forster_radius, 'this_forster_radius')
         self.assertEqual(f.conversion_function_polynom_order, 'this_conversion_function_polynom_order')
         self.assertEqual(f.repetition, 'this_repetition')
@@ -853,7 +853,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(f.sim_max_force, 'this_sim_max_force')
         self.assertEqual(f.sim_clash_tolerance_A,'this_sim_clash_tolerance_A')
         self.assertEqual(f.sim_reciprocal_kT, 'this_sim_reciprocal_kT')
-        self.assertEqual(f.sim_clash_potential,'this_sim_clash_potential')        
+        self.assertEqual(f.sim_clash_potential,'this_sim_clash_potential')
         self.assertEqual(f.convergence_E, 'this_convergence_E')
         self.assertEqual(f.convergence_K, 'this_convergence_K')
         self.assertEqual(f.convergence_F, 'this_convergence_F')
@@ -937,7 +937,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(f.FPS_modeling_id, 'foo')
         self.assertEqual(f.sample_probe_id, 'bar')
         self.assertEqual(f.parameter_id, 'foobar')
-    
+
     def test_fps_av_modeling_eq(self):
         """ Test equality and inequality of FPSAVModeling objects. """
         f_ref = ihm.flr.FPSAVModeling(FPS_modeling_id = 'foo',
@@ -959,7 +959,7 @@ class Tests(unittest.TestCase):
         f1 = ihm.flr.FPSAVParameter(num_linker_atoms = 'this_num_linker_atoms_1',
                                       linker_length = 'this_linker_length_1',
                                       linker_width = 'this_linker_width_1',
-                                      probe_radius_1 = 'this_probe_radius_1_1')       
+                                      probe_radius_1 = 'this_probe_radius_1_1')
         self.assertEqual(f1.num_linker_atoms, 'this_num_linker_atoms_1')
         self.assertEqual(f1.linker_length, 'this_linker_length_1')
         self.assertEqual(f1.linker_width, 'this_linker_width_1')
@@ -972,14 +972,14 @@ class Tests(unittest.TestCase):
                                       linker_width = 'this_linker_width_2',
                                       probe_radius_1 = 'this_probe_radius_1_2',
                                       probe_radius_2 = 'this_probe_radius_2_2',
-                                      probe_radius_3 = 'this_probe_radius_3_2')       
+                                      probe_radius_3 = 'this_probe_radius_3_2')
         self.assertEqual(f2.num_linker_atoms, 'this_num_linker_atoms_2')
         self.assertEqual(f2.linker_length, 'this_linker_length_2')
         self.assertEqual(f2.linker_width, 'this_linker_width_2')
         self.assertEqual(f2.probe_radius_1, 'this_probe_radius_1_2')
         self.assertEqual(f2.probe_radius_2, 'this_probe_radius_2_2')
         self.assertEqual(f2.probe_radius_3, 'this_probe_radius_3_2')
-    
+
     def test_fps_av_parameter_eq(self):
         """ Test equality and inequality of FPSAVParameter objects. """
         f_ref = ihm.flr.FPSAVParameter(num_linker_atoms = 'this_num_linker_atoms_1',
@@ -1001,12 +1001,12 @@ class Tests(unittest.TestCase):
     def test_fps_mpp_modeling_init(self):
         """ Test initialization of FPSMPPModeling. """
         f = ihm.flr.FPSMPPModeling(FPS_modeling_id = 'foo',
-                                     mpp_id = 'bar', 
+                                     mpp_id = 'bar',
                                      mpp_atom_position_group_id = 'foobar')
         self.assertEqual(f.FPS_modeling_id, 'foo')
         self.assertEqual(f.mpp_id, 'bar')
         self.assertEqual(f.mpp_atom_position_group_id, 'foobar')
-    
+
     def test_fps_mpp_modeling_eq(self):
         """ Test equality and inequality of FPSMPPModeling objects. """
         f_ref = ihm.flr.FPSMPPModeling(FPS_modeling_id = 'foo',
@@ -1033,7 +1033,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(f.mpp_xcoord, 'bar')
         self.assertEqual(f.mpp_ycoord, 'bar2')
         self.assertEqual(f.mpp_zcoord, 'bar3')
-    
+
     def test_fps_mean_probe_position_eq(self):
         """ Test equality and inequality of FPSMeanProbePosition objects. """
         f_ref = ihm.flr.FPSMeanProbePosition(sample_probe_id = 'foo',
@@ -1063,7 +1063,7 @@ class Tests(unittest.TestCase):
         f.add_atom_position('foo')
         f.add_atom_position('bar')
         self.assertEqual(f.mpp_atom_position_list, ['foo','bar'])
-    
+
     def test_fps_mpp_atom_position_group_eq(self):
         """ Test equality and inequality of FPSMPPAtomPositionGroup objects. """
         f_ref = ihm.flr.FPSMPPAtomPositionGroup()
@@ -1095,8 +1095,8 @@ class Tests(unittest.TestCase):
         self.assertEqual(f.xcoord, 'this_xcoord')
         self.assertEqual(f.ycoord, 'this_ycoord')
         self.assertEqual(f.zcoord, 'this_zcoord')
-        
-    
+
+
     def test_fps_mpp_atom_position_Eq(self):
         """ Test equality and inequality of FPSMPPAtomPosition objects. """
         f_ref = ihm.flr.FPSMPPAtomPosition(entity = 'this_entity',
@@ -1137,7 +1137,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(f.fret_model_distance_list, [])
         self.assertEqual(f.flr_FPS_modeling_collection_list, [])
         self.assertEqual(f.flr_chemical_descriptors_list, [])
-    
+
     def test_flr_data_add_distance_restraint_group(self):
         """ Test addition of a distance restraint group. """
         f = ihm.flr.FLRData()

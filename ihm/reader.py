@@ -221,8 +221,8 @@ class _GeometryIDMapper(IDMapper):
         super(_GeometryIDMapper, self)._update_old_object(obj, newcls)
         # Add missing members if the base class was originally instantianted
         for member in self._members.get(newcls, ()):
-           if not hasattr(obj, member):
-               setattr(obj, member, None)
+            if not hasattr(obj, member):
+                setattr(obj, member, None)
 
 
 class _CrossLinkIDMapper(IDMapper):
@@ -1961,8 +1961,8 @@ class _FLRChemDescriptorHandler(Handler):
 
 class _FLRExperimentHandler(Handler):
     category = '_flr_experiment'
-	
-    def __call__(self, ordinal_id, id, instrument_id, 
+
+    def __call__(self, ordinal_id, id, instrument_id,
                  exp_setting_id, sample_id, details):
         ## Get the object or create the object
         cur_experiment = self.sysr.flr_experiments.get_by_id(id)
@@ -2441,7 +2441,7 @@ class _FLRFPSMPPModelingHandler(Handler):
             cur_flr_data.add_flr_FPS_modeling(cur_modeling_collection)
 
 
-					  
+
 def read(fh, model_class=ihm.model.Model, format='mmCIF', handlers=[],
          warn_unknown_category=False, warn_unknown_keyword=False):
     """Read data from the mmCIF file handle `fh`.

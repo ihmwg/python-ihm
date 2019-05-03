@@ -427,7 +427,7 @@ class CifReader(_Reader):
                     if vartoken.category not in self._category_data:
                         self._category_data[vartoken.category] = {}
                     if valtoken.txt == '.':
-                     val = ch.omitted
+                        val = ch.omitted
                     elif valtoken.txt == '?':
                         val = ch.unknown
                     else:

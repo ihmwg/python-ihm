@@ -212,11 +212,11 @@ class _EntityDumper(Dumper):
                           "details"]) as l:
             for entity in system.entities:
                 l.write(id=entity._id, type=entity.type,
-			src_method=entity.src_method,
+                        src_method=entity.src_method,
                         pdbx_description=entity.description,
                         formula_weight=entity.formula_weight,
                         pdbx_number_of_molecules=entity.number_of_molecules,
-			details=entity.details)
+                        details=entity.details)
 
 
 def _assign_src_ids(system, srccls):
@@ -795,7 +795,7 @@ class _StartingModelDumper(Dumper):
                       "starting_model_auth_asym_id",
                       "starting_model_sequence_offset",
                       "dataset_list_id"]) as l:
-             for sm in system._all_starting_models():
+            for sm in system._all_starting_models():
                 seq_id_range = sm._get_seq_id_range_all_templates()
                 l.write(starting_model_id=sm._id,
                         entity_id=sm.asym_unit.entity._id,
@@ -1957,12 +1957,12 @@ class _SASDumper(Dumper):
                             chi_value=fit.chi_value,
                             details=r.details)
                     ordinal += 1
-class _FLRDumper(Dumper): 
+class _FLRDumper(Dumper):
     ## TODO: Treat empty entries.
     def finalize(self,system):
         if system.flr_data == []:
             return
-        ## collects all objects and assigns ids  
+        ## collects all objects and assigns ids
         self._list_fret_distance_restraint_group = []
         self._list_fret_distance_restraint = []
         self._list_sample_probe_details = []
@@ -1995,7 +1995,7 @@ class _FLRDumper(Dumper):
         self._list_FPS_mean_probe_position = []
         self._list_FPS_MPP_atom_position_group_id = []
         self._list_FPS_MPP_atom_position = []
-        
+
         ## always the same scheme: we check whether the object is already in the list; if not, we add it to the list and give it an ID
         fret_distance_restraint_group_ID = 1
         fret_distance_restraint_ID = 1
@@ -2024,7 +2024,7 @@ class _FLRDumper(Dumper):
         FPS_mean_probe_position_ID = 1
         FPS_MPP_atom_position_group_ID = 1
         FPS_MPP_atom_position_ID = 1
-        
+
         ## fret_distance_restraint_group => FLR_data
         for this_flr_data in system.flr_data:
             for this_fret_distance_restraint_group in this_flr_data.distance_restraint_group_list:
@@ -2146,64 +2146,64 @@ class _FLRDumper(Dumper):
                 for index_i in range(len(this_FPS_modeling_collection.flr_modeling_list)):
                     ## FPS_AV_modeling => FPS_modeling
                     if 'FPS_AV' in this_FPS_modeling_collection.flr_modeling_method_list[index_i]:
-                            this_FPS_AV_modeling = this_FPS_modeling_collection.flr_modeling_list[index_i]
-                            if this_FPS_AV_modeling not in self._list_FPS_AV_modeling:
-                                this_FPS_AV_modeling._id = FPS_AV_modeling_ID
-                                self._list_FPS_AV_modeling.append(this_FPS_AV_modeling)
-                                FPS_AV_modeling_ID += 1
-                                ## FPS_AV_parameter => FPS_AV_modeling
-                                this_FPS_AV_parameter = this_FPS_AV_modeling.parameter_id
-                                if this_FPS_AV_parameter not in self._list_FPS_AV_parameter:
-                                    this_FPS_AV_parameter._id = FPS_AV_parameter_ID
-                                    self._list_FPS_AV_parameter.append(this_FPS_AV_parameter)
-                                    FPS_AV_parameter_ID += 1
-                            this_FPS_modeling = this_FPS_AV_modeling.FPS_modeling_id
-                            if this_FPS_modeling not in self._list_FPS_modeling:
-                                this_FPS_modeling._id = FPS_modeling_ID
-                                self._list_FPS_modeling.append(this_FPS_modeling)
-                                FPS_modeling_ID += 1
-                                ## FPS_global_parameters
-                                this_FPS_global_parameters = this_FPS_modeling.global_parameter_id
-                                if this_FPS_global_parameters not in self._list_FPS_global_parameters:
-                                    this_FPS_global_parameters._id = FPS_global_parameters_ID
-                                    self._list_FPS_global_parameters.append(this_FPS_global_parameters)
-                                    FPS_global_parameters_ID += 1
+                        this_FPS_AV_modeling = this_FPS_modeling_collection.flr_modeling_list[index_i]
+                        if this_FPS_AV_modeling not in self._list_FPS_AV_modeling:
+                            this_FPS_AV_modeling._id = FPS_AV_modeling_ID
+                            self._list_FPS_AV_modeling.append(this_FPS_AV_modeling)
+                            FPS_AV_modeling_ID += 1
+                            ## FPS_AV_parameter => FPS_AV_modeling
+                            this_FPS_AV_parameter = this_FPS_AV_modeling.parameter_id
+                            if this_FPS_AV_parameter not in self._list_FPS_AV_parameter:
+                                this_FPS_AV_parameter._id = FPS_AV_parameter_ID
+                                self._list_FPS_AV_parameter.append(this_FPS_AV_parameter)
+                                FPS_AV_parameter_ID += 1
+                        this_FPS_modeling = this_FPS_AV_modeling.FPS_modeling_id
+                        if this_FPS_modeling not in self._list_FPS_modeling:
+                            this_FPS_modeling._id = FPS_modeling_ID
+                            self._list_FPS_modeling.append(this_FPS_modeling)
+                            FPS_modeling_ID += 1
+                            ## FPS_global_parameters
+                            this_FPS_global_parameters = this_FPS_modeling.global_parameter_id
+                            if this_FPS_global_parameters not in self._list_FPS_global_parameters:
+                                this_FPS_global_parameters._id = FPS_global_parameters_ID
+                                self._list_FPS_global_parameters.append(this_FPS_global_parameters)
+                                FPS_global_parameters_ID += 1
                     ## FPS_MPP_modeling => FPS_modeling
                     if 'FPS_MPP' in this_FPS_modeling_collection.flr_modeling_method_list[index_i]:
-                            this_FPS_MPP_modeling = this_FPS_modeling_collection.flr_modeling_list[index_i]
-                            if this_FPS_MPP_modeling not in self._list_FPS_MPP_modeling:
-                                this_FPS_MPP_modeling._id = FPS_MPP_modeling_ID
-                                self._list_FPS_MPP_modeling.append(this_FPS_MPP_modeling)
-                                FPS_MPP_modeling_ID += 1
-                                ## FPS_mean_probe_position => FPS_MPP_modeling
-                                this_FPS_mean_probe_position = this_FPS_MPP_modeling.mpp_id
-                                if this_FPS_mean_probe_position not in self._list_FPS_mean_probe_position:
-                                    this_FPS_mean_probe_position._id = FPS_mean_probe_position_ID
-                                    self._list_FPS_mean_probe_position.append(this_FPS_mean_probe_position)
-                                    FPS_mean_probe_position_ID += 1
-                                ## FPS_MPP_atom_position_group => FPS_MPP_modeling
-                                this_FPS_MPP_atom_position_group_id = this_FPS_MPP_modeling.mpp_atom_position_group_id
-                                if this_FPS_MPP_atom_position_group_id not in self._list_FPS_MPP_atom_position_group_id:
-                                    this_FPS_MPP_atom_position_group_id._id = FPS_MPP_atom_position_group_ID
-                                    self._list_FPS_MPP_atom_position_group_id.append(this_FPS_MPP_atom_position_group_id)
-                                    FPS_MPP_atom_position_group_ID += 1
-                                    ## FPS_MPP_atom_position => FPS_MPP_atom_position_group
-                                    for this_FPS_MPP_atom_position in this_FPS_MPP_atom_position_group_id.mpp_atom_position_list:
-                                        if this_FPS_MPP_atom_position not in self._list_FPS_MPP_atom_position:
-                                            this_FPS_MPP_atom_position._id = FPS_MPP_atom_position_ID
-                                            self._list_FPS_MPP_atom_position.append(this_FPS_MPP_atom_position)
-                                            FPS_MPP_atom_position_ID += 1
-                            this_FPS_modeling = this_FPS_MPP_modeling.FPS_modeling_id
-                            if this_FPS_modeling not in self._list_FPS_modeling:
-                                this_FPS_modeling._id = FPS_modeling_ID
-                                self._list_FPS_modeling.append(this_FPS_modeling)
-                                FPS_modeling_ID += 1
-                                ## FPS_global_parameters
-                                this_FPS_global_parameters = this_FPS_modeling.global_parameter_id
-                                if this_FPS_global_parameters not in self._list_FPS_global_parameters:
-                                    this_FPS_global_parameters._id = FPS_global_parameters_ID
-                                    self._list_FPS_global_parameters.append(this_FPS_global_parameters)
-                                    FPS_global_parameters_ID += 1
+                        this_FPS_MPP_modeling = this_FPS_modeling_collection.flr_modeling_list[index_i]
+                        if this_FPS_MPP_modeling not in self._list_FPS_MPP_modeling:
+                            this_FPS_MPP_modeling._id = FPS_MPP_modeling_ID
+                            self._list_FPS_MPP_modeling.append(this_FPS_MPP_modeling)
+                            FPS_MPP_modeling_ID += 1
+                            ## FPS_mean_probe_position => FPS_MPP_modeling
+                            this_FPS_mean_probe_position = this_FPS_MPP_modeling.mpp_id
+                            if this_FPS_mean_probe_position not in self._list_FPS_mean_probe_position:
+                                this_FPS_mean_probe_position._id = FPS_mean_probe_position_ID
+                                self._list_FPS_mean_probe_position.append(this_FPS_mean_probe_position)
+                                FPS_mean_probe_position_ID += 1
+                            ## FPS_MPP_atom_position_group => FPS_MPP_modeling
+                            this_FPS_MPP_atom_position_group_id = this_FPS_MPP_modeling.mpp_atom_position_group_id
+                            if this_FPS_MPP_atom_position_group_id not in self._list_FPS_MPP_atom_position_group_id:
+                                this_FPS_MPP_atom_position_group_id._id = FPS_MPP_atom_position_group_ID
+                                self._list_FPS_MPP_atom_position_group_id.append(this_FPS_MPP_atom_position_group_id)
+                                FPS_MPP_atom_position_group_ID += 1
+                                ## FPS_MPP_atom_position => FPS_MPP_atom_position_group
+                                for this_FPS_MPP_atom_position in this_FPS_MPP_atom_position_group_id.mpp_atom_position_list:
+                                    if this_FPS_MPP_atom_position not in self._list_FPS_MPP_atom_position:
+                                        this_FPS_MPP_atom_position._id = FPS_MPP_atom_position_ID
+                                        self._list_FPS_MPP_atom_position.append(this_FPS_MPP_atom_position)
+                                        FPS_MPP_atom_position_ID += 1
+                        this_FPS_modeling = this_FPS_MPP_modeling.FPS_modeling_id
+                        if this_FPS_modeling not in self._list_FPS_modeling:
+                            this_FPS_modeling._id = FPS_modeling_ID
+                            self._list_FPS_modeling.append(this_FPS_modeling)
+                            FPS_modeling_ID += 1
+                            ## FPS_global_parameters
+                            this_FPS_global_parameters = this_FPS_modeling.global_parameter_id
+                            if this_FPS_global_parameters not in self._list_FPS_global_parameters:
+                                this_FPS_global_parameters._id = FPS_global_parameters_ID
+                                self._list_FPS_global_parameters.append(this_FPS_global_parameters)
+                                FPS_global_parameters_ID += 1
 
 
     def dump(self,system,writer):
@@ -2219,7 +2219,7 @@ class _FLRDumper(Dumper):
             for x in self._list_experiment:
                 ordinal = 1
                 for i in range(len(x.sample_list)):
-                    l.write(ordinal_id=ordinal, 
+                    l.write(ordinal_id=ordinal,
                              id=x._id,
                              instrument_id=x.instrument_list[i]._id,
                              exp_setting_id=x.exp_setting_list[i]._id,
@@ -2364,7 +2364,7 @@ class _FLRDumper(Dumper):
                          beta=x.beta,
                          gamma=x.gamma,
                          delta=x.delta,
-                         a_b=x.a_b)        
+                         a_b=x.a_b)
         ## fret_analysis
         with writer.loop('_flr_fret_analysis',
                            ['id','experiment_id','sample_probe_id_1',
@@ -2436,13 +2436,13 @@ class _FLRDumper(Dumper):
                          model_id=x.model_id._id,
                          distance=x.distance,
                          distance_deviation=x.distance_deviation)
-        
+
         ## FPS_modeling
         with writer.loop('_flr_FPS_modeling',
                    ['id','ihm_modeling_protocol_ordinal_id','restraint_group_id',
                     'global_parameter_id','probe_modeling_method','details']) as l:
             for x in self._list_FPS_modeling:
-                l.write(id=x._id, 
+                l.write(id=x._id,
                         ihm_modeling_protocol_ordinal_id = x.ihm_modeling_protocol_ordinal_id._id,
                         restraint_group_id = x.restraint_group_id._id,
                         global_parameter_id = x.global_parameter_id._id,
@@ -2451,8 +2451,8 @@ class _FLRDumper(Dumper):
         ## FPS_global_parameter
         with writer.loop('_flr_FPS_global_parameter',
                    ['id', 'forster_radius_value',
-                    'conversion_function_polynom_order', 'repetition', 
-                    'AV_grid_rel', 'AV_min_grid_A', 'AV_allowed_sphere', 
+                    'conversion_function_polynom_order', 'repetition',
+                    'AV_grid_rel', 'AV_min_grid_A', 'AV_allowed_sphere',
                     'AV_search_nodes', 'AV_E_samples_k',
                     'sim_viscosity_adjustment', 'sim_dt_adjustment',
                     'sim_max_iter_k', 'sim_max_force', 'sim_clash_tolerance_A',
@@ -2460,7 +2460,7 @@ class _FLRDumper(Dumper):
                     'convergence_E', 'convergence_K', 'convergence_F', 'convergence_T']) as l:
             for x in self._list_FPS_global_parameters:
                 l.write(id=x._id,
-                        forster_radius_value=x.forster_radius, 
+                        forster_radius_value=x.forster_radius,
                         conversion_function_polynom_order=x.conversion_function_polynom_order,
                         repetition=x.repetition,
                         AV_grid_rel=x.AV_grid_rel,
@@ -2475,7 +2475,7 @@ class _FLRDumper(Dumper):
                         sim_clash_tolerance_A=x.sim_clash_tolerance_A,
                         sim_reciprocal_kT=x.sim_reciprocal_kT,
                         sim_clash_potential=x.sim_clash_potential,
-                        convergence_E=x.convergence_E, 
+                        convergence_E=x.convergence_E,
                         convergence_K=x.convergence_K,
                         convergence_F=x.convergence_F,
                         convergence_T=x.convergence_T)
@@ -2499,8 +2499,8 @@ class _FLRDumper(Dumper):
                         sample_probe_id=x.sample_probe_id._id,
                         FPS_modeling_id=x.FPS_modeling_id._id,
                         parameter_id=x.parameter_id._id)
-            
-        
+
+
         ## FPS_mean_probe_position
         with writer.loop('_flr_FPS_mean_probe_position',
                    ['id','sample_probe_id','mpp_xcoord','mpp_ycoord','mpp_zcoord']) as l:
@@ -2510,7 +2510,7 @@ class _FLRDumper(Dumper):
                         mpp_xcoord=x.mpp_xcoord,
                         mpp_ycoord=x.mpp_ycoord,
                         mpp_zcoord=x.mpp_zcoord)
-                
+
         ## FPS_MPP_atom_position
         with writer.loop('_flr_FPS_MPP_atom_position',
                    ['id','entity_id','seq_id','comp_id','atom_id','asym_id','xcoord','ycoord','zcoord','group_id']) as l:
