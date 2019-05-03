@@ -3,6 +3,23 @@ import sys
 import tempfile
 import contextlib
 import shutil
+import unittest
+
+# If we're using Python 2.6, add in more modern unittest convenience methods
+if not hasattr(unittest.TestCase, 'assertIn'):
+    def assertIn(self, member, container, msg=None):
+        return self.assertTrue(member in container,
+                        msg or '%s not found in %s' % (member, container))
+    def assertNotIn(self, member, container, msg=None):
+        return self.assertTrue(member not in container,
+                        msg or '%s unexpectedly found in %s'
+                        % (member, container))
+    def assertIsInstance(self, obj, cls, msg=None):
+        return self.assertTrue(isinstance(obj, cls),
+                        msg or '%s is not an instance of %s' % (obj, cls))
+    unittest.TestCase.assertIn = assertIn
+    unittest.TestCase.assertNotIn = assertNotIn
+    unittest.TestCase.assertIsInstance = assertIsInstance
 
 def set_search_paths(topdir):
     """Set search paths so that we can import Python modules"""
