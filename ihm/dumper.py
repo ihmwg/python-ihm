@@ -1957,6 +1957,8 @@ class _SASDumper(Dumper):
                             chi_value=fit.chi_value,
                             details=r.details)
                     ordinal += 1
+
+
 class _FLRDumper(Dumper):
     ## TODO: Treat empty entries.
     def finalize(self,system):
@@ -1996,7 +1998,8 @@ class _FLRDumper(Dumper):
         self._list_FPS_MPP_atom_position_group_id = []
         self._list_FPS_MPP_atom_position = []
 
-        ## always the same scheme: we check whether the object is already in the list; if not, we add it to the list and give it an ID
+        # always the same scheme: we check whether the object is already
+        # in the list; if not, we add it to the list and give it an ID
         fret_distance_restraint_group_ID = 1
         fret_distance_restraint_ID = 1
         sample_probe_ID = 1
@@ -2026,23 +2029,24 @@ class _FLRDumper(Dumper):
         FPS_MPP_atom_position_ID = 1
 
         ## fret_distance_restraint_group => FLR_data
-        for this_flr_data in system.flr_data:
-            for this_fret_distance_restraint_group in this_flr_data.distance_restraint_group_list:
-                if this_fret_distance_restraint_group not in self._list_fret_distance_restraint_group:
+        for flr_data in system.flr_data:
+            for rg in flr_data.distance_restraint_group_list:
+                if rg not in self._list_fret_distance_restraint_group:
                     ## assign the ID
-                    this_fret_distance_restraint_group._id = fret_distance_restraint_group_ID
+                    rg._id = fret_distance_restraint_group_ID
                     ## add the object to the list
-                    self._list_fret_distance_restraint_group.append(this_fret_distance_restraint_group)
+                    self._list_fret_distance_restraint_group.append(rg)
                     ## and increase the ID
                     fret_distance_restraint_group_ID += 1
-                ## for each fret_distance_restraint => fret_distance_restraint_group
-                for this_fret_distance_restraint in this_fret_distance_restraint_group.distance_restraint_list:
-                    if this_fret_distance_restraint not in self._list_fret_distance_restraint:
-                        this_fret_distance_restraint._id = fret_distance_restraint_ID
-                        self._list_fret_distance_restraint.append(this_fret_distance_restraint)
+                ## for each
+                ## fret_distance_restraint => fret_distance_restraint_group
+                for fdr in rg.distance_restraint_list:
+                    if fdr not in self._list_fret_distance_restraint:
+                        fdr._id = fret_distance_restraint_ID
+                        self._list_fret_distance_restraint.append(fdr)
                         fret_distance_restraint_ID += 1
                     ## sample_probe_details => fret_distance_restraint (for both sample_probe_ids)
-                    for this_sample_probe in [this_fret_distance_restraint.sample_probe_1, this_fret_distance_restraint.sample_probe_2]:
+                    for this_sample_probe in [fdr.sample_probe_1, fdr.sample_probe_2]:
                         if this_sample_probe not in self._list_sample_probe_details:
                             this_sample_probe._id = sample_probe_ID
                             self._list_sample_probe_details.append(this_sample_probe)
@@ -2080,13 +2084,13 @@ class _FLRDumper(Dumper):
                             self._list_poly_probe_position.append(this_poly_probe_position)
                             poly_probe_position_ID += 1
                     ## fret_analysis => fret_distance_restraint
-                    this_fret_analysis = this_fret_distance_restraint.analysis
+                    this_fret_analysis = fdr.analysis
                     if this_fret_analysis not in self._list_fret_analysis:
                         this_fret_analysis._id = fret_analysis_ID
                         self._list_fret_analysis.append(this_fret_analysis)
                         fret_analysis_ID += 1
                     ## peak assignment => fret_distance_restraint
-                    this_peak_assignment = this_fret_distance_restraint.peak_assignment
+                    this_peak_assignment = fdr.peak_assignment
                     if this_peak_assignment not in self._list_peak_assignment:
                         this_peak_assignment._id = peak_assignment_ID
                         self._list_peak_assignment.append(this_peak_assignment)
@@ -2124,25 +2128,25 @@ class _FLRDumper(Dumper):
                         self._list_fret_calibration_parameters.append(this_fret_calibration_parameters)
                         fret_calibration_parameters_ID += 1
             ## poly_probe_conjugate => FLR_data
-            for this_poly_probe_conjugate in this_flr_data.poly_probe_conjugate_list:
+            for this_poly_probe_conjugate in flr_data.poly_probe_conjugate_list:
                 if this_poly_probe_conjugate not in self._list_poly_probe_conjugate:
                     this_poly_probe_conjugate._id = poly_probe_conjugate_ID
                     self._list_poly_probe_conjugate.append(this_poly_probe_conjugate)
                     poly_probe_conjugate_ID += 1
             ## model_quality => FLR_data
-            for this_model_quality in this_flr_data.fret_model_quality_list:
+            for this_model_quality in flr_data.fret_model_quality_list:
                 if this_model_quality not in self._list_model_quality:
                     this_model_quality._id = model_quality_ID
                     self._list_model_quality.append(this_model_quality)
                     model_quality_ID += 1
             ## model_distance => FLR_data
-            for this_model_distance in this_flr_data.fret_model_distance_list:
+            for this_model_distance in flr_data.fret_model_distance_list:
                 if this_model_distance not in self._list_model_distance:
                     this_model_distance._id = model_distance_ID
                     self._list_model_distance.append(this_model_distance)
                     model_distance_ID += 1
             ## Modeling_group => FLR_data
-            for this_FPS_modeling_collection in this_flr_data.flr_FPS_modeling_collection_list:
+            for this_FPS_modeling_collection in flr_data.flr_FPS_modeling_collection_list:
                 for index_i in range(len(this_FPS_modeling_collection.flr_modeling_list)):
                     ## FPS_AV_modeling => FPS_modeling
                     if 'FPS_AV' in this_FPS_modeling_collection.flr_modeling_method_list[index_i]:
@@ -2271,12 +2275,13 @@ class _FLRDumper(Dumper):
                             'reactive_probe_name','probe_origin',
                             'probe_link_type']) as l:
             for x in self._list_probe:
+                entry = x.probe_list_entry
                 l.write(probe_id=x._id,
-                         chromophore_name=x.probe_list_entry.chromophore_name,
-                         reactive_probe_flag=x.probe_list_entry.reactive_probe_flag,
-                         reactive_probe_name=x.probe_list_entry.reactive_probe_name,
-                         probe_origin=x.probe_list_entry.probe_origin,
-                         probe_link_type=x.probe_list_entry.probe_link_type)
+                         chromophore_name=entry.chromophore_name,
+                         reactive_probe_flag=entry.reactive_probe_flag,
+                         reactive_probe_name=entry.reactive_probe_name,
+                         probe_origin=entry.probe_origin,
+                         probe_link_type=entry.probe_link_type)
         ## sample_probe_details
         with writer.loop('_flr_sample_probe_details',
                            ['sample_probe_id','sample_id','probe_id',
@@ -2295,36 +2300,41 @@ class _FLRDumper(Dumper):
                            'chromophore_chem_descriptor_id',
                            'chromophore_center_atom']) as l:
             for x in self._list_probe:
+                reactive = x.probe_descriptor.reactive_probe_chem_descriptor
+                chrom = x.probe_descriptor.chromophore_chem_descriptor
                 l.write(probe_id=x._id,
-                         reactive_probe_chem_descriptor_id=None if (x.probe_descriptor.reactive_probe_chem_descriptor is None) else x.probe_descriptor.reactive_probe_chem_descriptor._id,
-                         chromophore_chem_descriptor_id=None if (x.probe_descriptor.chromophore_chem_descriptor is None) else x.probe_descriptor.chromophore_chem_descriptor._id,
-                         chromophore_center_atom=x.probe_descriptor.chromophore_center_atom)
+                        reactive_probe_chem_descriptor_id=
+                                  None if reactive is None else reactive._id,
+                         chromophore_chem_descriptor_id=
+                                  None if chrom is None else chrom._id,
+                         chromophore_center_atom=
+                                   x.probe_descriptor.chromophore_center_atom)
         ## poly_probe_position
         with writer.loop('_flr_poly_probe_position',
-                           ['id','entity_id','entity_description',
-                           'seq_id','comp_id','atom_id',
-                           'mutation_flag','modification_flag','auth_name']) as l:
+                         ['id', 'entity_id', 'entity_description',
+                          'seq_id', 'comp_id', 'atom_id',
+                          'mutation_flag', 'modification_flag',
+                          'auth_name']) as l:
             for x in self._list_poly_probe_position:
-                l.write(id=x._id,
-                         entity_id=x.entity._id,
-                         entity_description=x.entity_description,
-                         seq_id=x.seq_id,
-                         comp_id=x.comp_id,
-                         atom_id=x.atom_id,
-                         mutation_flag=x.mutation_flag,
-                         modification_flag=x.modification_flag,
-                         auth_name=x.auth_name)
+                l.write(id=x._id, entity_id=x.entity._id,
+                        entity_description=x.entity_description,
+                        seq_id=x.seq_id,
+                        comp_id=x.comp_id,
+                        atom_id=x.atom_id,
+                        mutation_flag=x.mutation_flag,
+                        modification_flag=x.modification_flag,
+                        auth_name=x.auth_name)
         ## poly_probe_position_mutated
         with writer.loop('_flr_poly_probe_position_mutated',
-                           ['id','chem_descriptor_id','atom_id']) as l:
+                         ['id','chem_descriptor_id','atom_id']) as l:
             for x in self._list_poly_probe_position:
                 if x.mutation_flag == True:
                     l.write(id=x._id,
-                             chem_descriptor_id=x.mutated_chem_descriptor._id,
-                             atom_id=x.atom_id)
+                            chem_descriptor_id=x.mutated_chem_descriptor._id,
+                            atom_id=x.atom_id)
         ## poly_probe_position_mutated
         with writer.loop('_flr_poly_probe_position_modified',
-                           ['id','chem_descriptor_id','atom_id']) as l:
+                         ['id', 'chem_descriptor_id', 'atom_id']) as l:
             for x in self._list_poly_probe_position:
                 if x.modification_flag == True:
                     l.write(id=x._id,
@@ -2332,136 +2342,138 @@ class _FLRDumper(Dumper):
                              atom_id=x.atom_id)
         ## poly_probe_conjugate
         with writer.loop('_flr_poly_probe_conjugate',
-                           ['id','sample_probe_id','chem_descriptor_id',
-                            'ambiguous_stoichiometry_flag',
-                            'probe_stoichiometry']) as l:
+                         ['id', 'sample_probe_id','chem_descriptor_id',
+                          'ambiguous_stoichiometry_flag',
+                          'probe_stoichiometry']) as l:
             for x in self._list_poly_probe_conjugate:
                 l.write(id=x._id,
-                         sample_probe_id=x.sample_probe._id,
-                         chem_descriptor_id=x.chem_descriptor._id,
-                         ambiguous_stoichiometry_flag=x.ambiguous_stoichiometry,
-                         probe_stoichiometry=x.probe_stoichiometry)
+                        sample_probe_id=x.sample_probe._id,
+                        chem_descriptor_id=x.chem_descriptor._id,
+                        ambiguous_stoichiometry_flag=x.ambiguous_stoichiometry,
+                        probe_stoichiometry=x.probe_stoichiometry)
         ## fret_forster_radius
         with writer.loop('_flr_fret_forster_radius',
-                           ['id','donor_probe_id','acceptor_probe_id',
-                            'forster_radius','reduced_forster_radius']) as l:
+                         ['id', 'donor_probe_id', 'acceptor_probe_id',
+                          'forster_radius', 'reduced_forster_radius']) as l:
             for x in self._list_fret_forster_radius:
                 l.write(id=x._id,
-                         donor_probe_id=x.donor_probe._id,
-                         acceptor_probe_id=x.acceptor_probe._id,
-                         forster_radius=x.forster_radius,
-                         reduced_forster_radius=x.reduced_forster_radius)
+                        donor_probe_id=x.donor_probe._id,
+                        acceptor_probe_id=x.acceptor_probe._id,
+                        forster_radius=x.forster_radius,
+                        reduced_forster_radius=x.reduced_forster_radius)
         ## fret_calibration_parameters
         with writer.loop('_flr_fret_calibration_parameters',
-                           ['id','phi_acceptor','alpha','alpha_sd',
-                            'gG_gR_ratio','beta','gamma','delta','a_b']) as l:
+                         ['id', 'phi_acceptor', 'alpha', 'alpha_sd',
+                          'gG_gR_ratio', 'beta', 'gamma', 'delta', 'a_b']) as l:
             for x in self._list_fret_calibration_parameters:
-                l.write(id=x._id,
-                         phi_acceptor=x.phi_acceptor,
-                         alpha=x.alpha,
-                         alpha_sd=x.alpha_sd,
-                         gG_gR_ratio=x.gG_gR_ratio,
-                         beta=x.beta,
-                         gamma=x.gamma,
-                         delta=x.delta,
-                         a_b=x.a_b)
+                l.write(id=x._id, phi_acceptor=x.phi_acceptor,
+                        alpha=x.alpha, alpha_sd=x.alpha_sd,
+                        gG_gR_ratio=x.gG_gR_ratio, beta=x.beta,
+                        gamma=x.gamma, delta=x.delta, a_b=x.a_b)
         ## fret_analysis
         with writer.loop('_flr_fret_analysis',
-                           ['id','experiment_id','sample_probe_id_1',
-                            'sample_probe_id_2','forster_radius_id',
-                            'calibration_parameters_id','method_name',
-                            'chi_square_reduced','dataset_list_id',
-                            'external_file_id','software_id']) as l:
+                         ['id', 'experiment_id', 'sample_probe_id_1',
+                          'sample_probe_id_2', 'forster_radius_id',
+                          'calibration_parameters_id', 'method_name',
+                          'chi_square_reduced', 'dataset_list_id',
+                          'external_file_id', 'software_id']) as l:
             for x in self._list_fret_analysis:
                 l.write(id=x._id,
-                         experiment_id=x.experiment._id,
-                         sample_probe_id_1=x.sample_probe_1._id,
-                         sample_probe_id_2=x.sample_probe_2._id,
-                         forster_radius_id=x.forster_radius._id,
-                         calibration_parameters_id=x.calibration_parameters._id,
-                         method_name=x.method_name,
-                         chi_square_reduced=x.chi_square_reduced,
-                         dataset_list_id=x.dataset_list_id._id,
-                         external_file_id=None if (x.external_file is None) else x.external_file._id ,
-                         software_id=None if (x.software is None) else x.software._id)
+                        experiment_id=x.experiment._id,
+                        sample_probe_id_1=x.sample_probe_1._id,
+                        sample_probe_id_2=x.sample_probe_2._id,
+                        forster_radius_id=x.forster_radius._id,
+                        calibration_parameters_id=x.calibration_parameters._id,
+                        method_name=x.method_name,
+                        chi_square_reduced=x.chi_square_reduced,
+                        dataset_list_id=x.dataset_list_id._id,
+                        external_file_id=None if x.external_file is None
+                                              else x.external_file._id,
+                        software_id=None if x.software is None
+                                         else x.software._id)
         ## peak_assignment
         with writer.loop('_flr_peak_assignment',
-                           ['id','method_name','details']) as l:
+                         ['id', 'method_name', 'details']) as l:
             for x in self._list_peak_assignment:
-                l.write(id=x._id,
-                         method_name=x.method_name,
+                l.write(id=x._id, method_name=x.method_name,
                          details=x.details)
         ## fret_distance_restraint
         with writer.loop('_flr_fret_distance_restraint',
-                           ['ordinal_id','id','group_id','sample_probe_id_1',
-                            'sample_probe_id_2','state_id','analysis_id',
-                            'distance','distance_error_plus',
-                            'distance_error_minus','distance_type',
-                            'population_fraction','peak_assignment_id']) as l:
+                         ['ordinal_id', 'id', 'group_id', 'sample_probe_id_1',
+                          'sample_probe_id_2', 'state_id', 'analysis_id',
+                          'distance', 'distance_error_plus',
+                          'distance_error_minus', 'distance_type',
+                          'population_fraction', 'peak_assignment_id']) as l:
             ordinal=1
             for x in self._list_fret_distance_restraint_group:
                 for this_dist_rest in x.distance_restraint_list:
-                    l.write(ordinal_id=ordinal,
-                             id=this_dist_rest._id,
-                             group_id=x._id,
-                             sample_probe_id_1=this_dist_rest.sample_probe_1._id,
-                             sample_probe_id_2=this_dist_rest.sample_probe_2._id,
-                             state_id=None if (this_dist_rest.state is None) else this_dist_rest.state._id,
+                    l.write(ordinal_id=ordinal, id=this_dist_rest._id,
+                            group_id=x._id,
+                            sample_probe_id_1=this_dist_rest.sample_probe_1._id,
+                            sample_probe_id_2=this_dist_rest.sample_probe_2._id,
+                            state_id=None if this_dist_rest.state is None
+                                          else this_dist_rest.state._id,
                              analysis_id=this_dist_rest.analysis._id,
                              distance=this_dist_rest.distance,
-                             distance_error_plus=this_dist_rest.distance_error_plus,
-                             distance_error_minus=this_dist_rest.distance_error_minus,
+                             distance_error_plus=
+                                        this_dist_rest.distance_error_plus,
+                             distance_error_minus=
+                                        this_dist_rest.distance_error_minus,
                              distance_type=this_dist_rest.distance_type,
-                             population_fraction=this_dist_rest.population_fraction,
-                             peak_assignment_id=this_dist_rest.peak_assignment._id )
+                             population_fraction=
+                                        this_dist_rest.population_fraction,
+                             peak_assignment_id=
+                                        this_dist_rest.peak_assignment._id)
                     ordinal += 1
         ## fret_model_quality
         with writer.loop('_flr_fret_model_quality',
-                           ['model_id','chi_square_reduced','dataset_group_id',
-                            'method','details']) as l:
+                         ['model_id', 'chi_square_reduced', 'dataset_group_id',
+                          'method', 'details']) as l:
             ## ??? dataset_group_id => is there a dataset_group in IHM or PDBx?
             for x in self._list_model_quality:
                 l.write(model_id=x._id,
-                         chi_square_reduced=x.chi_square_reduced,
-                         dataset_group_id=x.dataset_group_id._id,
-                         method=x.method,
-                         details=x.details)
+                        chi_square_reduced=x.chi_square_reduced,
+                        dataset_group_id=x.dataset_group_id._id,
+                        method=x.method, details=x.details)
         ## fret_model_distance
         with writer.loop('_flr_fret_model_distance',
-                           ['id','restraint_id','model_id','distance',
-                           'distance_deviation']) as l:
+                         ['id', 'restraint_id', 'model_id', 'distance',
+                          'distance_deviation']) as l:
             for x in self._list_model_distance:
-                l.write(id=x._id,
-                         restraint_id=x.restraint_id._id,
-                         model_id=x.model_id._id,
-                         distance=x.distance,
-                         distance_deviation=x.distance_deviation)
+                l.write(id=x._id, restraint_id=x.restraint_id._id,
+                        model_id=x.model_id._id, distance=x.distance,
+                        distance_deviation=x.distance_deviation)
 
         ## FPS_modeling
         with writer.loop('_flr_FPS_modeling',
-                   ['id','ihm_modeling_protocol_ordinal_id','restraint_group_id',
-                    'global_parameter_id','probe_modeling_method','details']) as l:
+                         ['id', 'ihm_modeling_protocol_ordinal_id',
+                          'restraint_group_id', 'global_parameter_id',
+                          'probe_modeling_method', 'details']) as l:
             for x in self._list_FPS_modeling:
                 l.write(id=x._id,
-                        ihm_modeling_protocol_ordinal_id = x.ihm_modeling_protocol_ordinal_id._id,
-                        restraint_group_id = x.restraint_group_id._id,
-                        global_parameter_id = x.global_parameter_id._id,
-                        probe_modeling_method = x.probe_modeling_method,
-                        details = x.details)
+                        ihm_modeling_protocol_ordinal_id=
+                                  x.ihm_modeling_protocol_ordinal_id._id,
+                        restraint_group_id=x.restraint_group_id._id,
+                        global_parameter_id=x.global_parameter_id._id,
+                        probe_modeling_method=x.probe_modeling_method,
+                        details=x.details)
         ## FPS_global_parameter
         with writer.loop('_flr_FPS_global_parameter',
-                   ['id', 'forster_radius_value',
-                    'conversion_function_polynom_order', 'repetition',
-                    'AV_grid_rel', 'AV_min_grid_A', 'AV_allowed_sphere',
-                    'AV_search_nodes', 'AV_E_samples_k',
-                    'sim_viscosity_adjustment', 'sim_dt_adjustment',
-                    'sim_max_iter_k', 'sim_max_force', 'sim_clash_tolerance_A',
-                    'sim_reciprocal_kT', 'sim_clash_potential',
-                    'convergence_E', 'convergence_K', 'convergence_F', 'convergence_T']) as l:
+                         ['id', 'forster_radius_value',
+                          'conversion_function_polynom_order', 'repetition',
+                          'AV_grid_rel', 'AV_min_grid_A', 'AV_allowed_sphere',
+                          'AV_search_nodes', 'AV_E_samples_k',
+                          'sim_viscosity_adjustment', 'sim_dt_adjustment',
+                          'sim_max_iter_k', 'sim_max_force',
+                          'sim_clash_tolerance_A', 'sim_reciprocal_kT',
+                          'sim_clash_potential', 'convergence_E',
+                          'convergence_K', 'convergence_F',
+                          'convergence_T']) as l:
             for x in self._list_FPS_global_parameters:
                 l.write(id=x._id,
                         forster_radius_value=x.forster_radius,
-                        conversion_function_polynom_order=x.conversion_function_polynom_order,
+                        conversion_function_polynom_order
+                                   =x.conversion_function_polynom_order,
                         repetition=x.repetition,
                         AV_grid_rel=x.AV_grid_rel,
                         AV_min_grid_A=x.AV_min_grid_A,
@@ -2481,7 +2493,9 @@ class _FLRDumper(Dumper):
                         convergence_T=x.convergence_T)
         ## FPS_AV_parameter
         with writer.loop('_flr_FPS_AV_parameter',
-                   ['id','num_linker_atoms','linker_length','linker_width','probe_radius_1','probe_radius_2','probe_radius_3']) as l:
+                         ['id', 'num_linker_atoms', 'linker_length',
+                          'linker_width', 'probe_radius_1', 'probe_radius_2',
+                          'probe_radius_3']) as l:
             for x in self._list_FPS_AV_parameter:
                 l.write(id=x._id,
                         num_linker_atoms=x.num_linker_atoms,
@@ -2493,17 +2507,18 @@ class _FLRDumper(Dumper):
 
         ## FPS_AV_modeling
         with writer.loop('_flr_FPS_AV_modeling',
-                   ['id', 'sample_probe_id','FPS_modeling_id','parameter_id']) as l:
+                         ['id', 'sample_probe_id', 'FPS_modeling_id',
+                          'parameter_id']) as l:
             for x in self._list_FPS_AV_modeling:
                 l.write(id=x._id,
                         sample_probe_id=x.sample_probe_id._id,
                         FPS_modeling_id=x.FPS_modeling_id._id,
                         parameter_id=x.parameter_id._id)
 
-
         ## FPS_mean_probe_position
         with writer.loop('_flr_FPS_mean_probe_position',
-                   ['id','sample_probe_id','mpp_xcoord','mpp_ycoord','mpp_zcoord']) as l:
+                         ['id', 'sample_probe_id', 'mpp_xcoord', 'mpp_ycoord',
+                          'mpp_zcoord']) as l:
             for x in self._list_FPS_mean_probe_position:
                 l.write(id=x._id,
                         sample_probe_id=x.sample_probe_id._id,
@@ -2513,9 +2528,11 @@ class _FLRDumper(Dumper):
 
         ## FPS_MPP_atom_position
         with writer.loop('_flr_FPS_MPP_atom_position',
-                   ['id','entity_id','seq_id','comp_id','atom_id','asym_id','xcoord','ycoord','zcoord','group_id']) as l:
-            for this_fps_mpp_atom_position_group in self._list_FPS_MPP_atom_position_group_id:
-                for x in this_fps_mpp_atom_position_group.mpp_atom_position_list:
+                         ['id', 'entity_id', 'seq_id', 'comp_id', 'atom_id',
+                          'asym_id', 'xcoord', 'ycoord', 'zcoord',
+                          'group_id']) as l:
+            for group in self._list_FPS_MPP_atom_position_group_id:
+                for x in group.mpp_atom_position_list:
                     l.write(id=x._id,
                             entity_id=x.entity._id,
                             seq_id=x.seq_id,
@@ -2525,18 +2542,21 @@ class _FLRDumper(Dumper):
                             xcoord=x.xcoord,
                             ycoord=x.ycoord,
                             zcoord=x.zcoord,
-                            group_id=this_fps_mpp_atom_position_group._id)
+                            group_id=group._id)
 
         ## FPS_FPS_MPP_modeling
         cur_ordinal_id = 1
         with writer.loop('_flr_FPS_MPP_modeling',
-                   ['ordinal_id','FPS_modeling_id','mpp_id','mpp_atom_position_group_id']) as l:
+                         ['ordinal_id', 'FPS_modeling_id', 'mpp_id',
+                          'mpp_atom_position_group_id']) as l:
             for x in self._list_FPS_MPP_modeling:
                 l.write(ordinal_id=cur_ordinal_id,
                         FPS_modeling_id=x.FPS_modeling_id._id,
                         mpp_id=x.mpp_id._id,
-                        mpp_atom_position_group_id=x.mpp_atom_position_group_id._id)
+                        mpp_atom_position_group_id=
+                                 x.mpp_atom_position_group_id._id)
                 cur_ordinal_id += 1
+
 
 def _init_restraint_groups(system):
     """Initialize all RestraintGroups by removing any assigned ID"""
