@@ -158,7 +158,6 @@ class Tests(unittest.TestCase):
     def test_poly_probe_position_init(self):
         """ Test initialization of PolyProbePosition. """
         p = ihm.flr.PolyProbePosition(entity ='foo',
-                                      entity_description = 'foo2',
                                       seq_id ='bar',
                                       comp_id = 'bar2',
                                       atom_id = 'bar3',
@@ -168,7 +167,6 @@ class Tests(unittest.TestCase):
                                       mutated_chem_descriptor = 'foobar',
                                       modified_chem_descriptor = 'foobar2')
         self.assertEqual(p.entity, 'foo')
-        self.assertEqual(p.entity_description, 'foo2')
         self.assertEqual(p.seq_id, 'bar')
         self.assertEqual(p.comp_id, 'bar2')
         self.assertEqual(p.atom_id, 'bar3')
@@ -181,7 +179,6 @@ class Tests(unittest.TestCase):
     def test_poly_probe_position_eq(self):
         """ Test equality and inequality of PolyProbePosition objects. """
         p_ref = ihm.flr.PolyProbePosition(entity ='foo',
-                                          entity_description = 'foo2',
                                           seq_id ='bar',
                                           comp_id = 'bar2',
                                           atom_id = 'bar3',
@@ -191,7 +188,6 @@ class Tests(unittest.TestCase):
                                           mutated_chem_descriptor = 'foobar',
                                           modified_chem_descriptor = 'foobar2')
         p_equal = ihm.flr.PolyProbePosition(entity ='foo',
-                                            entity_description = 'foo2',
                                             seq_id ='bar',
                                             comp_id = 'bar2',
                                             atom_id = 'bar3',
@@ -201,7 +197,6 @@ class Tests(unittest.TestCase):
                                             mutated_chem_descriptor = 'foobar',
                                             modified_chem_descriptor='foobar2')
         p_unequal = ihm.flr.PolyProbePosition(entity ='foo',
-                                        entity_description = 'foo2',
                                         seq_id ='bar5',
                                         comp_id = 'bar2',
                                         atom_id = 'bar3',
@@ -257,28 +252,24 @@ class Tests(unittest.TestCase):
 
     def test_entity_assembly_init(self):
         """ Test initialization of EntityAssembly. """
-        e = ihm.flr.EntityAssembly(entity = 'foo',
-                                    num_copies = 1,
-                                    entity_description = 'bar')
+        e = ihm.flr.EntityAssembly(entity='foo', num_copies=1)
         self.assertEqual(len(e.entity_list),1)
         self.assertEqual(e.entity_list[0], 'foo')
         self.assertEqual(e.num_copies_list[0],1)
-        self.assertEqual(e.entity_description_list[0],'bar')
 
     def test_entity_assembly_add_entity(self):
         """ Test addition of entities to the assembly. """
-        e = ihm.flr.EntityAssembly(entity = 'foo', num_copies=1, entity_description= 'bar')
-        e.add_entity(entity = 'foo2', num_copies = 2, entity_description = 'bar2')
+        e = ihm.flr.EntityAssembly(entity='foo', num_copies=1)
+        e.add_entity(entity='foo2', num_copies=2)
         self.assertEqual(len(e.entity_list), 2)
         self.assertEqual(e.entity_list, ['foo','foo2'])
         self.assertEqual(e.num_copies_list, [1,2])
-        self.assertEqual(e.entity_description_list, ['bar','bar2'])
 
     def test_entity_assembly_eq(self):
         """ Test equality and inequality of EntityAssembly objects. """
-        e_ref = ihm.flr.EntityAssembly(entity = 'foo', num_copies=1, entity_description= 'bar')
-        e_equal = ihm.flr.EntityAssembly(entity = 'foo', num_copies=1, entity_description= 'bar')
-        e_unequal = ihm.flr.EntityAssembly(entity = 'foo2', num_copies=1, entity_description= 'bar')
+        e_ref = ihm.flr.EntityAssembly(entity='foo', num_copies=1)
+        e_equal = ihm.flr.EntityAssembly(entity='foo', num_copies=1)
+        e_unequal = ihm.flr.EntityAssembly(entity='foo2', num_copies=1)
         self.assertTrue(e_ref == e_equal)
         self.assertFalse(e_ref == e_unequal)
         self.assertTrue(e_ref != e_unequal)

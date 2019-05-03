@@ -143,9 +143,8 @@ class PolyProbePosition(object):
        This class combines Poly_probe_position, Poly_probe_position_modified,
        and Poly_probe_position_mutated from the FLR dictionary.
 
-       :param entity:
+       :param entity: The entity the probe is attached to.
        :type entity: :class:`ihm.Entity`
-       :param entity_description: The description of the entity.
        :param seq_id: The sequence number of the residue that was used
               to attach the probe.
        :param atom_id: The atom ID identifies the atom at which the probe
@@ -166,12 +165,11 @@ class PolyProbePosition(object):
        :type modified_chem_descriptor: :class:`ihm.ChemDescriptor`
     """
 
-    def __init__(self, entity, seq_id, atom_id, entity_description=None,
+    def __init__(self, entity, seq_id, atom_id,
                  comp_id=None, mutation_flag=False, modification_flag=False,
                  auth_name=None, mutated_chem_descriptor=None,
                  modified_chem_descriptor=None):
         self.entity = entity
-        self.entity_description = entity_description
         self.seq_id = seq_id
         self.comp_id = comp_id
         ## The atom_id identifies the atom at which the probe is attached
@@ -222,25 +220,19 @@ class EntityAssembly(object):
        :param entity: The entity to add.
        :type entity: :class:`Entity`
        :param num_copies: The number of copies for the entity in the assembly.
-       :param entity_description: The description of the entity.
     """
 
-    def __init__(self, entity=None, num_copies=0, entity_description=None):
+    def __init__(self, entity=None, num_copies=0):
         self.entity_list = []
         self.num_copies_list = []
-        self.entity_description_list = []
         if entity != None and num_copies != 0:
-            self.add_entity(entity,num_copies,entity_description)
+            self.add_entity(entity, num_copies)
 
-    def add_entity(self, entity, num_copies, entity_description=None):
+    def add_entity(self, entity, num_copies):
         if num_copies < 0:
             print('Error in EntityAssembly: Number of copies for Entity must be larger than zero.')
         self.entity_list.append(entity)
         self.num_copies_list.append(num_copies)
-        if entity_description is not None:
-            self.entity_description_list.append(entity_description)
-        else:
-            self.entity_description_list.append(entity.description)
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__

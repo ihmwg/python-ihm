@@ -2247,7 +2247,7 @@ class _FLRDumper(Dumper):
                              assembly_id=x._id,
                              entity_id=x.entity_list[i]._id,
                              num_copies=x.num_copies_list[i],
-                             entity_description=x.entity_description_list[i])
+                             entity_description=x.entity_list[i].description)
                     ordinal += 1
         ## sample_condition
         with writer.loop('_flr_sample_condition',['id','details']) as l:
@@ -2314,7 +2314,7 @@ class _FLRDumper(Dumper):
                           'auth_name']) as l:
             for x in self._list_poly_probe_position:
                 l.write(id=x._id, entity_id=x.entity._id,
-                        entity_description=x.entity_description,
+                        entity_description=x.entity.description,
                         seq_id=x.seq_id,
                         comp_id=x.comp_id,
                         atom_id=x.atom_id,

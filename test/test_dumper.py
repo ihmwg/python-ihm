@@ -2725,7 +2725,7 @@ _ihm_predicted_contact_restraint.software_id
         ## Fill the system
         cur_flr_data = ihm.flr.FLRData()
 
-        cur_entity_1 = ihm.Entity("A",description='Entity_1')
+        cur_entity_1 = ihm.Entity("A", description='Entity_1')
         cur_entity_2 = ihm.Entity("AA", description='Entity_2')
 
         system.entities.extend([cur_entity_1, cur_entity_2])
@@ -2803,20 +2803,22 @@ _ihm_predicted_contact_restraint.software_id
 
         cur_chem_descriptor_modified_residue._id = 4
         ## Poly_probe_position
-        cur_poly_probe_position_1 = ihm.flr.PolyProbePosition(entity=cur_entity_1,seq_id=1,atom_id='CB',
-                                                                entity_description='Entity_1',comp_id="foo",
-                                                                mutation_flag=False, modification_flag=True,
-                                                                auth_name='Position_1',
-                                                                modified_chem_descriptor=cur_chem_descriptor_modified_residue)
-        cur_poly_probe_position_2 = ihm.flr.PolyProbePosition(entity=cur_entity_1,seq_id=2,atom_id='CB',
-                                                                entity_description='Entity_1',comp_id="foobar",
-                                                                mutation_flag=False, modification_flag=False,
-                                                                auth_name='Position_2')
-        cur_poly_probe_position_3 = ihm.flr.PolyProbePosition(entity=cur_entity_2,seq_id=10,atom_id='CB',
-                                                                entity_description='Entity_2',comp_id="bar",
-                                                                mutation_flag=False, modification_flag=True,
-                                                                auth_name='Position_3',
-                                                                modified_chem_descriptor=cur_chem_descriptor_modified_residue)
+        cur_poly_probe_position_1 = ihm.flr.PolyProbePosition(
+                      entity=cur_entity_1, seq_id=1, atom_id='CB',
+                      comp_id="foo", mutation_flag=False,
+                      modification_flag=True, auth_name='Position_1',
+                      modified_chem_descriptor=
+                                cur_chem_descriptor_modified_residue)
+        cur_poly_probe_position_2 = ihm.flr.PolyProbePosition(
+                      entity=cur_entity_1, seq_id=2, atom_id='CB',
+                      comp_id="foobar", mutation_flag=False,
+                      modification_flag=False, auth_name='Position_2')
+        cur_poly_probe_position_3 = ihm.flr.PolyProbePosition(
+                      entity=cur_entity_2, seq_id=10, atom_id='CB',
+                      comp_id="bar", mutation_flag=False,
+                      modification_flag=True, auth_name='Position_3',
+                      modified_chem_descriptor=
+                                 cur_chem_descriptor_modified_residue)
         ## Sample_probe_details
         cur_sample_probe_details_1 = ihm.flr.SampleProbeDetails(sample=cur_sample_1,
                                                                   probe=cur_probe_1,
