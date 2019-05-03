@@ -171,6 +171,12 @@ class System(object):
         #: See :class:`~ihm.restraint.Feature`.
         self.orphan_features = []
 
+        #: Contains the fluorescence (FLR) part.
+        #: See :class:`~ihm.flr.FLR_data`.
+        self.flr_data = []		
+		
+		
+		
     def update_locations_in_repositories(self, repos):
         """Update all :class:`Location` objects in the system that lie within
            a checked-out :class:`Repository` to point to that repository.
@@ -215,7 +221,8 @@ class System(object):
         return itertools.chain(self.orphan_chem_descriptors,
                       (restraint.linker for restraint in self.restraints
                                         if hasattr(restraint, 'linker')
-                                        and restraint.linker))
+                                        and restraint.linker),
+                      (list(itertools.chain.from_iterable([entry._all_flr_chemical_descriptors() for entry in self.flr_data])) if self.flr_data != [] else []))
 
     def _all_model_groups(self, only_in_states=True):
         """Iterate over all ModelGroups in the system.
