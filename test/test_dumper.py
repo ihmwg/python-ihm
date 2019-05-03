@@ -2723,7 +2723,7 @@ _ihm_predicted_contact_restraint.software_id
 
         system = ihm.System()
         ## Fill the system
-        cur_flr_data = ihm.flr.FLR_data()
+        cur_flr_data = ihm.flr.FLRData()
 
         cur_entity_1 = ihm.Entity("A",description='Entity_1')
         cur_entity_2 = ihm.Entity("AA", description='Entity_2')
@@ -2731,16 +2731,16 @@ _ihm_predicted_contact_restraint.software_id
         system.entities.extend([cur_entity_1, cur_entity_2])
 
         ## FLR
-        cur_entity_assembly = ihm.flr.Entity_assembly()
+        cur_entity_assembly = ihm.flr.EntityAssembly()
         cur_entity_assembly.add_entity(entity=cur_entity_1, num_copies=1)
         cur_entity_assembly.add_entity(entity=cur_entity_2, num_copies=2)
 
         cur_instrument = ihm.flr.Instrument(details='My_Instrument')
-        cur_exp_setting_1 = ihm.flr.Exp_setting(details='My_Exp_setting_1')
-        cur_exp_setting_2 = ihm.flr.Exp_setting(details='My_Exp_setting_2')
+        cur_exp_setting_1 = ihm.flr.ExpSetting(details='My_Exp_setting_1')
+        cur_exp_setting_2 = ihm.flr.ExpSetting(details='My_Exp_setting_2')
 
-        cur_sample_condition_1 = ihm.flr.Sample_condition(details='My_Sample_condition_1')
-        cur_sample_condition_2 = ihm.flr.Sample_condition(details='My_Sample_condition_2')
+        cur_sample_condition_1 = ihm.flr.SampleCondition(details='My_Sample_condition_1')
+        cur_sample_condition_2 = ihm.flr.SampleCondition(details='My_Sample_condition_2')
 
         cur_sample_1 = ihm.flr.Sample(entity_assembly=cur_entity_assembly,
                                       num_of_probes=2,
@@ -2764,11 +2764,11 @@ _ihm_predicted_contact_restraint.software_id
         ## Probes
         cur_probe_1 = ihm.flr.Probe()
         cur_probe_2 = ihm.flr.Probe()
-        cur_probe_list_1 = ihm.flr.Probe_list(chromophore_name='Donor1',
+        cur_probe_list_1 = ihm.flr.ProbeList(chromophore_name='Donor1',
                                               reactive_probe_flag=False,
                                               probe_origin='extrinsic',
                                               probe_link_type='covalent')
-        cur_probe_list_2 = ihm.flr.Probe_list(chromophore_name='Acceptor2',
+        cur_probe_list_2 = ihm.flr.ProbeList(chromophore_name='Acceptor2',
                                               reactive_probe_flag=True,
                                               reactive_probe_name='Acceptor1 reactive',
                                               probe_origin='extrinsic',
@@ -2785,10 +2785,10 @@ _ihm_predicted_contact_restraint.software_id
         cur_chem_descriptor_probe_2_reactive = ihm.ChemDescriptor(auth_name='Donor1_reactive_chem_desc',
                                                                   chem_comp_id=None, common_name=None, smiles='R1')
         cur_chem_descriptor_probe_2_reactive._id = 3
-        cur_probe_descriptor_1 = ihm.flr.Probe_descriptor(reactive_probe_chem_descriptor=None,
+        cur_probe_descriptor_1 = ihm.flr.ProbeDescriptor(reactive_probe_chem_descriptor=None,
                                                           chromophore_chem_descriptor=cur_chem_descriptor_probe_1_chromophore,
                                                           chromophore_center_atom='CB')
-        cur_probe_descriptor_2 = ihm.flr.Probe_descriptor(reactive_probe_chem_descriptor=cur_chem_descriptor_probe_2_reactive,
+        cur_probe_descriptor_2 = ihm.flr.ProbeDescriptor(reactive_probe_chem_descriptor=cur_chem_descriptor_probe_2_reactive,
                                                           chromophore_chem_descriptor=cur_chem_descriptor_probe_2_chromophore,
                                                           chromophore_center_atom='CB')
         cur_probe_1.add_probe_descriptor(cur_probe_descriptor_1)
@@ -2803,37 +2803,37 @@ _ihm_predicted_contact_restraint.software_id
 
         cur_chem_descriptor_modified_residue._id = 4
         ## Poly_probe_position
-        cur_poly_probe_position_1 = ihm.flr.Poly_probe_position(entity=cur_entity_1,seq_id=1,atom_id='CB',
+        cur_poly_probe_position_1 = ihm.flr.PolyProbePosition(entity=cur_entity_1,seq_id=1,atom_id='CB',
                                                                 entity_description='Entity_1',comp_id="foo",
                                                                 mutation_flag=False, modification_flag=True,
                                                                 auth_name='Position_1',
                                                                 modified_chem_descriptor=cur_chem_descriptor_modified_residue)
-        cur_poly_probe_position_2 = ihm.flr.Poly_probe_position(entity=cur_entity_1,seq_id=2,atom_id='CB',
+        cur_poly_probe_position_2 = ihm.flr.PolyProbePosition(entity=cur_entity_1,seq_id=2,atom_id='CB',
                                                                 entity_description='Entity_1',comp_id="foobar",
                                                                 mutation_flag=False, modification_flag=False,
                                                                 auth_name='Position_2')
-        cur_poly_probe_position_3 = ihm.flr.Poly_probe_position(entity=cur_entity_2,seq_id=10,atom_id='CB',
+        cur_poly_probe_position_3 = ihm.flr.PolyProbePosition(entity=cur_entity_2,seq_id=10,atom_id='CB',
                                                                 entity_description='Entity_2',comp_id="bar",
                                                                 mutation_flag=False, modification_flag=True,
                                                                 auth_name='Position_3',
                                                                 modified_chem_descriptor=cur_chem_descriptor_modified_residue)
         ## Sample_probe_details
-        cur_sample_probe_details_1 = ihm.flr.Sample_probe_details(sample=cur_sample_1,
+        cur_sample_probe_details_1 = ihm.flr.SampleProbeDetails(sample=cur_sample_1,
                                                                   probe=cur_probe_1,
                                                                   fluorophore_type='donor',
                                                                   poly_probe_position=cur_poly_probe_position_1,
                                                                   description='Donor in position1-position3')
-        cur_sample_probe_details_2 = ihm.flr.Sample_probe_details(sample=cur_sample_1,
+        cur_sample_probe_details_2 = ihm.flr.SampleProbeDetails(sample=cur_sample_1,
                                                                   probe=cur_probe_2,
                                                                   fluorophore_type='acceptor',
                                                                   poly_probe_position=cur_poly_probe_position_3,
                                                                   description='Acceptor in position1-position3')
-        cur_sample_probe_details_3 = ihm.flr.Sample_probe_details(sample=cur_sample_2,
+        cur_sample_probe_details_3 = ihm.flr.SampleProbeDetails(sample=cur_sample_2,
                                                                   probe=cur_probe_1,
                                                                   fluorophore_type='donor',
                                                                   poly_probe_position=cur_poly_probe_position_2,
                                                                   description='Donor in position2-position3')
-        cur_sample_probe_details_4 = ihm.flr.Sample_probe_details(sample=cur_sample_2,
+        cur_sample_probe_details_4 = ihm.flr.SampleProbeDetails(sample=cur_sample_2,
                                                                   probe=cur_probe_2,
                                                                   fluorophore_type='acceptor',
                                                                   poly_probe_position=cur_poly_probe_position_3,
@@ -2843,16 +2843,16 @@ _ihm_predicted_contact_restraint.software_id
         cur_poly_probe_conjugate_chem_descriptor = ihm.ChemDescriptor(auth_name='Conjugate',
                                                                       smiles='Conj1')
         cur_poly_probe_conjugate_chem_descriptor._id = 5
-        cur_poly_probe_conjugate_1 = ihm.flr.Poly_probe_conjugate(sample_probe=cur_sample_probe_details_1,
+        cur_poly_probe_conjugate_1 = ihm.flr.PolyProbeConjugate(sample_probe=cur_sample_probe_details_1,
                                                                   chem_descriptor=cur_poly_probe_conjugate_chem_descriptor,
                                                                   ambiguous_stoichiometry=False)
-        cur_poly_probe_conjugate_2 = ihm.flr.Poly_probe_conjugate(sample_probe=cur_sample_probe_details_2,
+        cur_poly_probe_conjugate_2 = ihm.flr.PolyProbeConjugate(sample_probe=cur_sample_probe_details_2,
                                                                   chem_descriptor=cur_poly_probe_conjugate_chem_descriptor,
                                                                   ambiguous_stoichiometry=False)
-        cur_poly_probe_conjugate_3 = ihm.flr.Poly_probe_conjugate(sample_probe=cur_sample_probe_details_3,
+        cur_poly_probe_conjugate_3 = ihm.flr.PolyProbeConjugate(sample_probe=cur_sample_probe_details_3,
                                                                   chem_descriptor=cur_poly_probe_conjugate_chem_descriptor,
                                                                   ambiguous_stoichiometry=False)
-        cur_poly_probe_conjugate_4 = ihm.flr.Poly_probe_conjugate(sample_probe=cur_sample_probe_details_4,
+        cur_poly_probe_conjugate_4 = ihm.flr.PolyProbeConjugate(sample_probe=cur_sample_probe_details_4,
                                                                   chem_descriptor=cur_poly_probe_conjugate_chem_descriptor,
                                                                   ambiguous_stoichiometry=False)
         cur_flr_data.add_poly_probe_conjugate(cur_poly_probe_conjugate_1)
@@ -2861,22 +2861,22 @@ _ihm_predicted_contact_restraint.software_id
         cur_flr_data.add_poly_probe_conjugate(cur_poly_probe_conjugate_4)
 
         ## Forster_radius
-        cur_forster_radius = ihm.flr.Fret_forster_radius(donor_probe=cur_probe_1,
+        cur_forster_radius = ihm.flr.FRETForsterRadius(donor_probe=cur_probe_1,
                                                          acceptor_probe=cur_probe_2,
                                                          forster_radius=52.0,
                                                          reduced_forster_radius=53.2)
 
         ## Fret_calibration_parameters
-        cur_fret_calibration_parameters_1 = ihm.flr.Fret_calibration_parameters(phi_acceptor=0.35,
+        cur_fret_calibration_parameters_1 = ihm.flr.FRETCalibrationParameters(phi_acceptor=0.35,
                                                                                 alpha=2.4,
                                                                                 gG_gR_ratio=0.4,
                                                                                 a_b=0.8)
-        cur_fret_calibration_parameters_2 = ihm.flr.Fret_calibration_parameters(phi_acceptor=0.35,
+        cur_fret_calibration_parameters_2 = ihm.flr.FRETCalibrationParameters(phi_acceptor=0.35,
                                                                                 alpha=2.4,
                                                                                 gG_gR_ratio=0.38,
                                                                                 a_b=0.8)
         ## Fret_analysis
-        cur_fret_analysis_1 = ihm.flr.Fret_analysis(experiment=cur_experiment,
+        cur_fret_analysis_1 = ihm.flr.FRETAnalysis(experiment=cur_experiment,
                                                     sample_probe_1=cur_sample_probe_details_1,
                                                     sample_probe_2=cur_sample_probe_details_2,
                                                     forster_radius=cur_forster_radius,
@@ -2884,7 +2884,7 @@ _ihm_predicted_contact_restraint.software_id
                                                     method_name='PDA',
                                                     chi_square_reduced=1.5,
                                                     dataset_list_id=dataset_1)
-        cur_fret_analysis_2 = ihm.flr.Fret_analysis(experiment=cur_experiment,
+        cur_fret_analysis_2 = ihm.flr.FRETAnalysis(experiment=cur_experiment,
                                                     sample_probe_1=cur_sample_probe_details_3,
                                                     sample_probe_2=cur_sample_probe_details_4,
                                                     forster_radius=cur_forster_radius,
@@ -2893,10 +2893,10 @@ _ihm_predicted_contact_restraint.software_id
                                                     chi_square_reduced=1.8,
                                                     dataset_list_id = dataset_1)
         ## Peak_assignment
-        cur_peak_assignment = ihm.flr.Peak_assignment(method_name='Population', details='Peaks were assigned by population fractions.')
+        cur_peak_assignment = ihm.flr.PeakAssignment(method_name='Population', details='Peaks were assigned by population fractions.')
 
         ## Fret_distance_restraints
-        cur_fret_distance_restraint_1 = ihm.flr.Fret_distance_restraint(sample_probe_1=cur_sample_probe_details_1,
+        cur_fret_distance_restraint_1 = ihm.flr.FRETDistanceRestraint(sample_probe_1=cur_sample_probe_details_1,
                                                                         sample_probe_2=cur_sample_probe_details_2,
                                                                         analysis=cur_fret_analysis_1,
                                                                         distance=53.5,
@@ -2906,7 +2906,7 @@ _ihm_predicted_contact_restraint.software_id
                                                                         state=cur_state,
                                                                         population_fraction=0.80,
                                                                         peak_assignment=cur_peak_assignment)
-        cur_fret_distance_restraint_2 = ihm.flr.Fret_distance_restraint(sample_probe_1=cur_sample_probe_details_3,
+        cur_fret_distance_restraint_2 = ihm.flr.FRETDistanceRestraint(sample_probe_1=cur_sample_probe_details_3,
                                                                         sample_probe_2=cur_sample_probe_details_4,
                                                                         analysis=cur_fret_analysis_2,
                                                                         distance=49.0,
@@ -2917,34 +2917,34 @@ _ihm_predicted_contact_restraint.software_id
                                                                         population_fraction=0.80,
                                                                         peak_assignment=cur_peak_assignment)
 
-        cur_fret_distance_restraint_group = ihm.flr.Fret_distance_restraint_group()
+        cur_fret_distance_restraint_group = ihm.flr.FRETDistanceRestraintGroup()
         cur_fret_distance_restraint_group.add_distance_restraint(cur_fret_distance_restraint_1)
         cur_fret_distance_restraint_group.add_distance_restraint(cur_fret_distance_restraint_2)
 
         cur_flr_data.add_distance_restraint_group(cur_fret_distance_restraint_group)
 
         ## fret_model_quality
-        cur_fret_model_quality_1 = ihm.flr.Fret_model_quality(model_id=cur_model_1,
+        cur_fret_model_quality_1 = ihm.flr.FRETModelQuality(model_id=cur_model_1,
                                                               chi_square_reduced=1.3,
                                                               dataset_group_id=dataset_group_1,
                                                               method=None)
-        cur_fret_model_quality_2 = ihm.flr.Fret_model_quality(model_id=cur_model_2,
+        cur_fret_model_quality_2 = ihm.flr.FRETModelQuality(model_id=cur_model_2,
                                                               chi_square_reduced=1.9,
                                                               dataset_group_id=dataset_group_1,
                                                               method=None)
         cur_flr_data.add_fret_model_quality(cur_fret_model_quality_1)
         cur_flr_data.add_fret_model_quality(cur_fret_model_quality_2)
         ## fret_model_distance
-        cur_fret_model_distance_1_1 = ihm.flr.Fret_model_distance(restraint_id=cur_fret_distance_restraint_1,
+        cur_fret_model_distance_1_1 = ihm.flr.FRETModelDistance(restraint_id=cur_fret_distance_restraint_1,
                                                                   model_id=cur_model_1,
                                                                   distance=52.0)
-        cur_fret_model_distance_1_2 = ihm.flr.Fret_model_distance(restraint_id=cur_fret_distance_restraint_2,
+        cur_fret_model_distance_1_2 = ihm.flr.FRETModelDistance(restraint_id=cur_fret_distance_restraint_2,
                                                                   model_id=cur_model_1,
                                                                   distance=50.0)
-        cur_fret_model_distance_2_1 = ihm.flr.Fret_model_distance(restraint_id=cur_fret_distance_restraint_1,
+        cur_fret_model_distance_2_1 = ihm.flr.FRETModelDistance(restraint_id=cur_fret_distance_restraint_1,
                                                                   model_id=cur_model_2,
                                                                   distance=53.8)
-        cur_fret_model_distance_2_2 = ihm.flr.Fret_model_distance(restraint_id=cur_fret_distance_restraint_2,
+        cur_fret_model_distance_2_2 = ihm.flr.FRETModelDistance(restraint_id=cur_fret_distance_restraint_2,
                                                                   model_id=cur_model_2,
                                                                   distance=49.4)
         cur_flr_data.add_fret_model_distance(cur_fret_model_distance_1_1)
@@ -2953,8 +2953,8 @@ _ihm_predicted_contact_restraint.software_id
         cur_flr_data.add_fret_model_distance(cur_fret_model_distance_2_2)
 
         ## FPS modeling
-        cur_FPS_modeling_collection = ihm.flr.Modeling_collection()
-        cur_FPS_global_parameters = ihm.flr.FPS_global_parameters(forster_radius=52,conversion_function_polynom_order=3,
+        cur_FPS_modeling_collection = ihm.flr.ModelingCollection()
+        cur_FPS_global_parameters = ihm.flr.FPSGlobalParameters(forster_radius=52,conversion_function_polynom_order=3,
                                                                   repetition=1000, AV_grid_rel=0.2, AV_min_grid_A=0.4,
                                                                   AV_allowed_sphere=0.5, AV_search_nodes=3,
                                                                   AV_E_samples_k=200, sim_viscosity_adjustment= 1,
@@ -2964,51 +2964,51 @@ _ihm_predicted_contact_restraint.software_id
                                                                   convergence_E=100, convergence_K=0.001,
                                                                   convergence_F=0.001, convergence_T=0.002)
 
-        cur_FPS_modeling_1 = ihm.flr.FPS_modeling(ihm_modeling_protocol_ordinal_id=cur_ihm_modeling_protocol,
+        cur_FPS_modeling_1 = ihm.flr.FPSModeling(ihm_modeling_protocol_ordinal_id=cur_ihm_modeling_protocol,
                                                   restraint_group_id=cur_fret_distance_restraint_group,
                                                   global_parameter_id= cur_FPS_global_parameters,
                                                   probe_modeling_method="AV3")
-        cur_FPS_modeling_2 = ihm.flr.FPS_modeling(ihm_modeling_protocol_ordinal_id=cur_ihm_modeling_protocol,
+        cur_FPS_modeling_2 = ihm.flr.FPSModeling(ihm_modeling_protocol_ordinal_id=cur_ihm_modeling_protocol,
                                                   restraint_group_id=cur_fret_distance_restraint_group,
                                                   global_parameter_id=cur_FPS_global_parameters,
                                                   probe_modeling_method="MPP")
         ## Modeling by AV
-        cur_FPS_AV_parameters_1 = ihm.flr.FPS_AV_parameter(num_linker_atoms=15,linker_length=20.0,linker_width=3.5,
+        cur_FPS_AV_parameters_1 = ihm.flr.FPSAVParameter(num_linker_atoms=15,linker_length=20.0,linker_width=3.5,
                                                            probe_radius_1=10.0,probe_radius_2=5.0,probe_radius_3=3.5)
 
-        cur_FPS_AV_modeling_1 = ihm.flr.FPS_AV_modeling(FPS_modeling_id=cur_FPS_modeling_1,
+        cur_FPS_AV_modeling_1 = ihm.flr.FPSAVModeling(FPS_modeling_id=cur_FPS_modeling_1,
                                                       sample_probe_id=cur_sample_probe_details_1,
                                                         parameter_id=cur_FPS_AV_parameters_1)
-        cur_FPS_AV_modeling_3 = ihm.flr.FPS_AV_modeling(FPS_modeling_id=cur_FPS_modeling_1,
+        cur_FPS_AV_modeling_3 = ihm.flr.FPSAVModeling(FPS_modeling_id=cur_FPS_modeling_1,
                                                       sample_probe_id=cur_sample_probe_details_3,
                                                         parameter_id=cur_FPS_AV_parameters_1)
         cur_FPS_modeling_collection.add_modeling(cur_FPS_AV_modeling_1,'FPS_AV')
         cur_FPS_modeling_collection.add_modeling(cur_FPS_AV_modeling_3, 'FPS_AV')
 
         ## Modeling by mean probe position
-        cur_mpp_atom_position_1 = ihm.flr.FPS_MPP_atom_position(entity=cur_entity_1,
+        cur_mpp_atom_position_1 = ihm.flr.FPSMPPAtomPosition(entity=cur_entity_1,
                                                                 seq_id=2,
                                                                 comp_id='foo',
                                                                 atom_id='CA',
                                                                 asym_id='A',
                                                                 xcoord=1.0,ycoord=1.0,zcoord=1.0)
-        cur_mpp_atom_position_2 = ihm.flr.FPS_MPP_atom_position(entity=cur_entity_1,
+        cur_mpp_atom_position_2 = ihm.flr.FPSMPPAtomPosition(entity=cur_entity_1,
                                                                 seq_id=3,
                                                                 comp_id='foo',
                                                                 atom_id='CA',
                                                                 asym_id='A',
                                                                 xcoord=2.0,ycoord=2.0,zcoord=2.0)
-        cur_mpp_atom_position_group = ihm.flr.FPS_MPP_atom_position_group()
+        cur_mpp_atom_position_group = ihm.flr.FPSMPPAtomPositionGroup()
         cur_mpp_atom_position_group.add_atom_position(cur_mpp_atom_position_1)
         cur_mpp_atom_position_group.add_atom_position(cur_mpp_atom_position_2)
-        cur_mean_probe_position_2 = ihm.flr.FPS_mean_probe_position(sample_probe_id=cur_sample_probe_details_2,
+        cur_mean_probe_position_2 = ihm.flr.FPSMeanProbePosition(sample_probe_id=cur_sample_probe_details_2,
                                                                     mpp_xcoord=1.0,mpp_ycoord=2.0,mpp_zcoord=3.0)
-        cur_mean_probe_position_4 = ihm.flr.FPS_mean_probe_position(sample_probe_id=cur_sample_probe_details_4,
+        cur_mean_probe_position_4 = ihm.flr.FPSMeanProbePosition(sample_probe_id=cur_sample_probe_details_4,
                                                                     mpp_xcoord=1.0,mpp_ycoord=2.0,mpp_zcoord=3.0)
-        cur_FPS_MPP_modeling_2 = ihm.flr.FPS_MPP_modeling(FPS_modeling_id=cur_FPS_modeling_2,
+        cur_FPS_MPP_modeling_2 = ihm.flr.FPSMPPModeling(FPS_modeling_id=cur_FPS_modeling_2,
                                                         mpp_id=cur_mean_probe_position_2,
                                                         mpp_atom_position_group_id=cur_mpp_atom_position_group)
-        cur_FPS_MPP_modeling_4 = ihm.flr.FPS_MPP_modeling(FPS_modeling_id=cur_FPS_modeling_2,
+        cur_FPS_MPP_modeling_4 = ihm.flr.FPSMPPModeling(FPS_modeling_id=cur_FPS_modeling_2,
                                                         mpp_id=cur_mean_probe_position_4,
                                                         mpp_atom_position_group_id=cur_mpp_atom_position_group)
         cur_FPS_modeling_collection.add_modeling(cur_FPS_MPP_modeling_2, 'FPS_MPP')

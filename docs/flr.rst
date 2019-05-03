@@ -10,28 +10,28 @@ The :mod:`ihm.flr` Python module
 .. autoclass:: Probe
    :members:
 
-.. autoclass:: Probe_descriptor
+.. autoclass:: ProbeDescriptor
    :members:
 
-.. autoclass:: Probe_list
+.. autoclass:: ProbeList
    :members:
 
-.. autoclass:: Sample_probe_details
+.. autoclass:: SampleProbeDetails
    :members:
 
-.. autoclass:: Poly_probe_conjugate
+.. autoclass:: PolyProbeConjugate
    :members:
 
-.. autoclass:: Poly_probe_position
+.. autoclass:: PolyProbePosition
    :members:
 
 .. autoclass:: Sample
    :members:
 
-.. autoclass:: Entity_assembly
+.. autoclass:: EntityAssembly
    :members:
 
-.. autoclass:: Sample_condition
+.. autoclass:: SampleCondition
    :members:
 
 .. autoclass:: Experiment
@@ -40,59 +40,59 @@ The :mod:`ihm.flr` Python module
 .. autoclass:: Instrument
    :members:
 
-.. autoclass:: Exp_setting
+.. autoclass:: ExpSetting
    :members:
 
-.. autoclass:: Fret_analysis
+.. autoclass:: FRETAnalysis
    :members:
 
-.. autoclass:: Fret_distance_restraint_group
+.. autoclass:: FRETDistanceRestraintGroup
    :members:
 
-.. autoclass:: Fret_distance_restraint
+.. autoclass:: FRETDistanceRestraint
    :members:
 
-.. autoclass:: Fret_forster_radius
+.. autoclass:: FRETForsterRadius
    :members:
 
-.. autoclass:: Fret_calibration_parameters
+.. autoclass:: FRETCalibrationParameters
    :members:
 
-.. autoclass:: Peak_assignment
+.. autoclass:: PeakAssignment
    :members:
 
-.. autoclass:: Fret_model_quality
+.. autoclass:: FRETModelQuality
    :members:
 
-.. autoclass:: Fret_model_distance
+.. autoclass:: FRETModelDistance
    :members:
 
-.. autoclass:: Modeling_collection
+.. autoclass:: ModelingCollection
    :members:
 
-.. autoclass:: FPS_modeling
+.. autoclass:: FPSModeling
    :members:
 
-.. autoclass:: FPS_global_parameters
+.. autoclass:: FPSGlobalParameters
    :members:
 
-.. autoclass:: FPS_AV_modeling
+.. autoclass:: FPSAVModeling
    :members:
 
-.. autoclass:: FPS_AV_parameter
+.. autoclass:: FPSAVParameter
    :members:
 
-.. autoclass:: FPS_MPP_modeling
+.. autoclass:: FPSMPPModeling
    :members:
 
-.. autoclass:: FPS_mean_probe_position
+.. autoclass:: FPSMeanProbePosition
    :members:
 
-.. autoclass:: FPS_MPP_atom_position_group
+.. autoclass:: FPSMPPAtomPositionGroup
    :members:
 
-.. autoclass:: FPS_MPP_atom_position
+.. autoclass:: FPSMPPAtomPosition
    :members:
 
-.. autoclass:: FLR_data
+.. autoclass:: FLRData
    :members:

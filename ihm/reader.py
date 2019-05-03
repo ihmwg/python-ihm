@@ -480,68 +480,67 @@ class SystemReader(object):
         self.ordered_steps = IDMapper(None, ihm.model.ProcessStep)
 
         ## FLR part
-        #: Mapping from ID to :class:`ihm.flr.FLR_data` objects
-        self.flr_data = IDMapper(self.system.flr_data, ihm.flr.FLR_data)
-        #: Mapping from ID to :class:`ihm.flr.Exp_setting` objects
-        self.flr_exp_settings = IDMapper(None, ihm.flr.Exp_setting)
+        #: Mapping from ID to :class:`ihm.flr.FLRData` objects
+        self.flr_data = IDMapper(self.system.flr_data, ihm.flr.FLRData)
+        #: Mapping from ID to :class:`ihm.flr.ExpSetting` objects
+        self.flr_exp_settings = IDMapper(None, ihm.flr.ExpSetting)
         #: Mapping from ID to :class:`ihm.flr.Instrument` objects
         self.flr_instruments = IDMapper(None, ihm.flr.Instrument)
-        #: Mapping from ID to :class:`ihm.flr.Entity_assembly` objects
-        self.flr_entity_assemblies = IDMapper(None, ihm.flr.Entity_assembly)
-        #: Mapping from ID to :class:`ihm.flr.Sample_condition` objects
-        self.flr_sample_conditions = IDMapper(None, ihm.flr.Sample_condition)
+        #: Mapping from ID to :class:`ihm.flr.EntityAssembly` objects
+        self.flr_entity_assemblies = IDMapper(None, ihm.flr.EntityAssembly)
+        #: Mapping from ID to :class:`ihm.flr.SampleCondition` objects
+        self.flr_sample_conditions = IDMapper(None, ihm.flr.SampleCondition)
         #: Mapping from ID to :class:`ihm.flr.Sample` objects
         self.flr_samples = IDMapper(None, ihm.flr.Sample,*(None,)*6)
         #: Mapping from ID to :class:`ihm.flr.Experiment` objects
         self.flr_experiments = IDMapper(None, ihm.flr.Experiment)
-        #: Mapping from ID to :class:`ihm.flr.Probe_descriptor` objects
-        self.flr_probe_descriptors = IDMapper(None, ihm.flr.Probe_descriptor,*(None,)*3)
-        #: Mapping from ID to :class:`ihm.flr.Probe_list` objects
-        self.flr_probe_lists = IDMapper(None, ihm.flr.Probe_list, *(None,) * 5)
+        #: Mapping from ID to :class:`ihm.flr.ProbeDescriptor` objects
+        self.flr_probe_descriptors = IDMapper(None, ihm.flr.ProbeDescriptor,*(None,)*3)
+        #: Mapping from ID to :class:`ihm.flr.ProbeList` objects
+        self.flr_probe_lists = IDMapper(None, ihm.flr.ProbeList, *(None,) * 5)
         #: Mapping from ID to :class:`ihm.flr.Probe` objects
         self.flr_probes = IDMapper(None, ihm.flr.Probe)
-        #: Mapping from ID to :class:`ihm.flr.Poly_probe_position` objects
-        self.flr_poly_probe_positions = IDMapper(None, ihm.flr.Poly_probe_position, *(None,)*10)
-        #: Mapping from ID to :class:`ihm.flr.Sample_probe_details` objects
-        self.flr_sample_probe_details = IDMapper(None, ihm.flr.Sample_probe_details, *(None,)*5)
-        #: Mapping from ID to :class:`ihm.flr.Poly_probe_conjugate` objects
-        self.flr_poly_probe_conjugates = IDMapper(None, ihm.flr.Poly_probe_conjugate, *(None,)*4)
-        #: Mapping from ID to :class:`ihm.flr.Fret_forster_radius` objects
-        self.flr_fret_forster_radius = IDMapper(None, ihm.flr.Fret_forster_radius, *(None,)*4)
-        #: Mapping from ID to :class:`ihm.flr.Fret_calibration_parameters` objects
-        self.flr_fret_calibration_parameters = IDMapper(None, ihm.flr.Fret_calibration_parameters, *(None,)*8)
-        #: Mapping from ID to :class:`ihm.flr.Fret_analysis` objects
-        self.flr_fret_analyses = IDMapper(None, ihm.flr.Fret_analysis, *(None,)*10)
-        #: Mapping from ID to :class:`ihm.flr.Peak_assignment` objects
-        self.flr_peak_assignments = IDMapper(None, ihm.flr.Peak_assignment, *(None,)*2)
-        #: Mapping from ID to :class:`ihm.flr.Fret_distance_restraint` objects
-        self.flr_fret_distance_restraints = IDMapper(None, ihm.flr.Fret_distance_restraint, *(None,)*10)
-        #: Mapping from ID to :class:`ihm.flr.Fret_distance_restraint_group` objects
-        self.flr_fret_distance_restraint_groups = IDMapper(None, ihm.flr.Fret_distance_restraint_group)
-        #: Mapping from ID to :class:`ihm.flr.Fret_model_quality` objects
-        self.flr_fret_model_qualities = IDMapper(None, ihm.flr.Fret_model_quality, *(None,)*5)
-        #: Mapping from ID to :class:`ihm.flr.Fret_model_distance` objects
-        self.flr_fret_model_distances = IDMapper(None, ihm.flr.Fret_model_distance, *(None,)*4)
-        #: Mapping from ID to :class:`ihm.flr.Modeling_collection` objects
-        self.flr_modeling_collection = IDMapper(None,ihm.flr.Modeling_collection)
-        #: Mapping from ID to :class:`ihm.flr.FPS_modeling` objects
-        self.flr_fps_modeling = IDMapper(None,ihm.flr.FPS_modeling, *(None,)*5)
-        #: Mapping from ID to :class:`ihm.flr.FPS_global_parameters` objects
-        self.flr_fps_global_parameters = IDMapper(None, ihm.flr.FPS_global_parameters, *(None,)*20)
-        #: Mapping from ID to :class:`ihm.flr.FPS_AV_parameter` objects
-        self.flr_fps_av_parameters = IDMapper(None, ihm.flr.FPS_AV_parameter, *(None,)*6)
-        #: Mapping from ID to :class:`ihm.flr.FPS_AV_modeling` objects
-        self.flr_fps_av_modeling = IDMapper(None, ihm.flr.FPS_AV_modeling, *(None,)*3)
-        #: Mapping from ID to :class:`ihm.flr.FPS_mean_probe_position` objects
-        self.flr_fps_mean_probe_positions = IDMapper(None, ihm.flr.FPS_mean_probe_position, *(None,)*4)
-        #: Mapping from ID to :class:`ihm.flr.FPS_MPP_atom_position_group` objects
-        self.flr_fps_mpp_atom_position_groups = IDMapper(None, ihm.flr.FPS_MPP_atom_position_group)
-        #: Mapping from ID to :class:`ihm.flr.FPS_MPP_atom_position` objects
-        self.flr_fps_mpp_atom_positions = IDMapper(None, ihm.flr.FPS_MPP_atom_position, *(None,)*8)
-        #: Mapping from ID to :class:`ihm.flr.FPS_MPP_modeling` objects
-        self.flr_fps_mpp_modeling = IDMapper(None, ihm.flr.FPS_MPP_modeling, *(None,)*3)
-		
-		
+        #: Mapping from ID to :class:`ihm.flr.PolyProbePosition` objects
+        self.flr_poly_probe_positions = IDMapper(None, ihm.flr.PolyProbePosition, *(None,)*10)
+        #: Mapping from ID to :class:`ihm.flr.SampleProbeDetails` objects
+        self.flr_sample_probe_details = IDMapper(None, ihm.flr.SampleProbeDetails, *(None,)*5)
+        #: Mapping from ID to :class:`ihm.flr.PolyProbeConjugate` objects
+        self.flr_poly_probe_conjugates = IDMapper(None, ihm.flr.PolyProbeConjugate, *(None,)*4)
+        #: Mapping from ID to :class:`ihm.flr.FRETForsterRadius` objects
+        self.flr_fret_forster_radius = IDMapper(None, ihm.flr.FRETForsterRadius, *(None,)*4)
+        #: Mapping from ID to :class:`ihm.flr.FRETCalibrationParameters` objects
+        self.flr_fret_calibration_parameters = IDMapper(None, ihm.flr.FRETCalibrationParameters, *(None,)*8)
+        #: Mapping from ID to :class:`ihm.flr.FRETAnalysis` objects
+        self.flr_fret_analyses = IDMapper(None, ihm.flr.FRETAnalysis, *(None,)*10)
+        #: Mapping from ID to :class:`ihm.flr.PeakAssignment` objects
+        self.flr_peak_assignments = IDMapper(None, ihm.flr.PeakAssignment, *(None,)*2)
+        #: Mapping from ID to :class:`ihm.flr.FRETDistanceRestraint` objects
+        self.flr_fret_distance_restraints = IDMapper(None, ihm.flr.FRETDistanceRestraint, *(None,)*10)
+        #: Mapping from ID to :class:`ihm.flr.FRETDistanceRestraintGroup` objects
+        self.flr_fret_distance_restraint_groups = IDMapper(None, ihm.flr.FRETDistanceRestraintGroup)
+        #: Mapping from ID to :class:`ihm.flr.FRETModelQuality` objects
+        self.flr_fret_model_qualities = IDMapper(None, ihm.flr.FRETModelQuality, *(None,)*5)
+        #: Mapping from ID to :class:`ihm.flr.FRETModelDistance` objects
+        self.flr_fret_model_distances = IDMapper(None, ihm.flr.FRETModelDistance, *(None,)*4)
+        #: Mapping from ID to :class:`ihm.flr.ModelingCollection` objects
+        self.flr_modeling_collection = IDMapper(None,ihm.flr.ModelingCollection)
+        #: Mapping from ID to :class:`ihm.flr.FPSModeling` objects
+        self.flr_fps_modeling = IDMapper(None,ihm.flr.FPSModeling, *(None,)*5)
+        #: Mapping from ID to :class:`ihm.flr.FPSGlobalParameters` objects
+        self.flr_fps_global_parameters = IDMapper(None, ihm.flr.FPSGlobalParameters, *(None,)*20)
+        #: Mapping from ID to :class:`ihm.flr.FPSAVParameter` objects
+        self.flr_fps_av_parameters = IDMapper(None, ihm.flr.FPSAVParameter, *(None,)*6)
+        #: Mapping from ID to :class:`ihm.flr.FPSAVModeling` objects
+        self.flr_fps_av_modeling = IDMapper(None, ihm.flr.FPSAVModeling, *(None,)*3)
+        #: Mapping from ID to :class:`ihm.flr.FPSMeanProbePosition` objects
+        self.flr_fps_mean_probe_positions = IDMapper(None, ihm.flr.FPSMeanProbePosition, *(None,)*4)
+        #: Mapping from ID to :class:`ihm.flr.FPSMPPAtomPositionGroup` objects
+        self.flr_fps_mpp_atom_position_groups = IDMapper(None, ihm.flr.FPSMPPAtomPositionGroup)
+        #: Mapping from ID to :class:`ihm.flr.FPSMPPAtomPosition` objects
+        self.flr_fps_mpp_atom_positions = IDMapper(None, ihm.flr.FPSMPPAtomPosition, *(None,)*8)
+        #: Mapping from ID to :class:`ihm.flr.FPSMPPModeling` objects
+        self.flr_fps_mpp_modeling = IDMapper(None, ihm.flr.FPSMPPModeling, *(None,)*3)
+
     def finalize(self):
         # make sequence immutable (see also _make_new_entity)
         for e in self.system.entities:

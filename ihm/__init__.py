@@ -172,11 +172,9 @@ class System(object):
         self.orphan_features = []
 
         #: Contains the fluorescence (FLR) part.
-        #: See :class:`~ihm.flr.FLR_data`.
-        self.flr_data = []		
-		
-		
-		
+        #: See :class:`~ihm.flr.FLRData`.
+        self.flr_data = []
+
     def update_locations_in_repositories(self, repos):
         """Update all :class:`Location` objects in the system that lie within
            a checked-out :class:`Repository` to point to that repository.
