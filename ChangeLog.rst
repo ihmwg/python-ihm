@@ -5,6 +5,9 @@ HEAD
    know about (and will ignore).
  - Predicted contacts (:class:`ihm.restraint.PredictedContactRestraint`)
    are now supported.
+ - The new :mod:`ihm.flr` module allows for information from
+   Fluorescence / FRET experiments to be stored. This follows the definitions
+   in the [FLR dictionary](https://github.com/ihmwg/FLR-dictionary/).
 
 0.7 - 2019-04-24
 ================

@@ -1,5 +1,8 @@
 """Classes to handle fluorescence data.
-   The classes roughly correspond to categories in the FLR dictionary.
+   The classes roughly correspond to categories in the
+   [FLR dictionary](https://github.com/ihmwg/FLR-dictionary/).
+
+   See the top level :class:`FLRData` class for more information.
 """
 
 class Probe(object):
@@ -854,6 +857,9 @@ class FPSMPPAtomPosition(object):
 
 class FLRData(object):
     """A collection of the fluorescence data to be added to the system.
+
+       Instances of this class are generally added to
+       :attr:`~ihm.System.flr_data`.
     """
     def __init__(self):
         self.distance_restraint_group_list = []
@@ -913,7 +919,6 @@ class FLRData(object):
             if curobject.__dict__ == entry.__dict__:
                 return True
         return False
-
 
     def _all_flr_chemical_descriptors(self):
         """Collect the chemical descriptors from the flr part.
