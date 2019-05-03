@@ -1,6 +1,6 @@
 """ Classes to handle fluorescence data. The classes roughly correspond to categories in the FLR dictionary."""
 
-class Probe():
+class Probe(object):
     """ 
     Defines a fluorescent probe.
     This class is not in the FLR dictionary, but it collects all the information connected by the probe_ids.
@@ -27,7 +27,7 @@ class Probe():
         return self.__dict__ == other.__dict__
 
 	
-class Probe_descriptor():
+class Probe_descriptor(object):
     """ Collects the chemical descriptors for a fluorescent probe. This includes the chemical descriptor of the reactive probe and the chromophore. 
 	
         :param reactive_probe_chem_descriptor: The chemical descriptor for the reactive probe.
@@ -45,7 +45,7 @@ class Probe_descriptor():
         return self.__dict__ == other.__dict__
 
 
-class Probe_list():
+class Probe_list(object):
     """ Probe list stores the chromophore name, whether there is a reactive probe available, the origin of the probe and the type of linkage of the probe. 
 
         :param chromophore_name: The name of the chromophore.
@@ -65,7 +65,7 @@ class Probe_list():
         return self.__dict__ == other.__dict__
 
 
-class Sample_probe_details():
+class Sample_probe_details(object):
     """Connects a probe to a sample. 
 
         :param sample: The sample. 
@@ -89,7 +89,7 @@ class Sample_probe_details():
         return self.__dict__ == other.__dict__
 	
 
-class Poly_probe_conjugate():
+class Poly_probe_conjugate(object):
     """ Describes the conjugate of polymer residue and probe (inclulding possible linker)
 
         :param sample_probe: The Sample_probe object to which the conjugate is related.
@@ -109,7 +109,7 @@ class Poly_probe_conjugate():
         return self.__dict__ == other.__dict__
 
 	
-class Poly_probe_position():
+class Poly_probe_position(object):
     """ 
     Desribes a position on the polymer used for attaching the probe.
     This class combines Poly_probe_position, Poly_probe_position_modified, and Poly_probe_position_mutated from the FLR dictionary.
@@ -148,7 +148,8 @@ class Poly_probe_position():
     def __eq__(self, other): 
         return self.__dict__ == other.__dict__
 
-class Sample():
+
+class Sample(object):
     """Sample corresponds to a measurement.
 	
         :param entity_assembly: The assembly of the entities that was measured. 
@@ -173,7 +174,7 @@ class Sample():
         return self.__dict__ == other.__dict__
 
 
-class Entity_assembly():
+class Entity_assembly(object):
     """The assembly of the entities that are in the system.
     
         :param entity: The entity to add.
@@ -203,7 +204,7 @@ class Entity_assembly():
         return self.__dict__ == other.__dict__
             
 
-class Sample_condition():
+class Sample_condition(object):
     """Description of the sample conditions. *Currently this is only text, but will be extended in the future.*
 
         :param details: Description of the sample conditions.
@@ -216,7 +217,7 @@ class Sample_condition():
         return self.__dict__ == other.__dict__
 
 
-class Experiment():
+class Experiment(object):
     """The Experiment collects combinations of instrument, experimental settings and sample.
 
         :param instrument: The instrument.
@@ -265,7 +266,7 @@ class Experiment():
         return False
 
 
-class Instrument():
+class Instrument(object):
     """Description of the Instrument used for the measurements. *Currently this is only text, but will be extended in the future.*
 
         :param details: Description of the instrument used for the measurements.
@@ -276,7 +277,8 @@ class Instrument():
     def __eq__(self, other): 
         return self.__dict__ == other.__dict__
 
-class Exp_setting():
+
+class Exp_setting(object):
     """Description of the experimental settings. *Currently this is only text, but will be extended in the future.*
 
         :param details: Description of the experimental settings used for the measurement (e.g. temperature, or size of observation volume in case of confocal measurements).
@@ -288,7 +290,7 @@ class Exp_setting():
         return self.__dict__ == other.__dict__
 
 
-class Fret_analysis():
+class Fret_analysis(object):
     """An analysis of FRET data that was performed.
 	
         :param experiment: The Experiment object for this Fret analysis.
@@ -326,7 +328,7 @@ class Fret_analysis():
         return self.__dict__ == other.__dict__
 
      
-class Fret_distance_restraint_group():
+class Fret_distance_restraint_group(object):
     """ Fret_distance_restraint_group. This class serves as a collection of distance_restraints that are used together.
     """
     def __init__(self):
@@ -343,7 +345,7 @@ class Fret_distance_restraint_group():
         return self.__dict__ == other.__dict__
 
 
-class Fret_distance_restraint():
+class Fret_distance_restraint(object):
     """A distance restraint from FRET.
 	
         :param sample_probe_1: The combination of sample and probe for the first probe.
@@ -380,7 +382,8 @@ class Fret_distance_restraint():
     def __eq__(self, other): 
         return self.__dict__ == other.__dict__
 
-class Fret_forster_radius():
+
+class Fret_forster_radius(object):
     """The FRET Forster radius between two probes.
 
         :param donor_probe: The donor probe.
@@ -401,7 +404,7 @@ class Fret_forster_radius():
         return self.__dict__ == other.__dict__
 
         
-class Fret_calibration_parameters():
+class Fret_calibration_parameters(object):
     """The calibration parameter from the FRET measurements. For the definitions of the parameters see Hellenkamp et al. Nat. Methods 2018.
 	
         :param phi_acceptor: The quantum yield of the acceptor.
@@ -427,7 +430,7 @@ class Fret_calibration_parameters():
         return self.__dict__ == other.__dict__
 
 
-class Peak_assignment():
+class Peak_assignment(object):
     """The method of peak assignment in case of multiple peaks, e.g. by population.
 	
         :param method_name: 
@@ -441,7 +444,7 @@ class Peak_assignment():
         return self.__dict__ == other.__dict__
 
 
-class Fret_model_quality():
+class Fret_model_quality(object):
     """The quality measure for a Model based on FRET data.
 	
         :param model_id: The model ID.
@@ -464,7 +467,7 @@ class Fret_model_quality():
         return self.__dict__ == other.__dict__
 
 
-class Fret_model_distance():
+class Fret_model_distance(object):
     """The distance in a model for a certain distance restraint.
 	
         :param restraint_id: The Distance restraint ID.
@@ -496,7 +499,7 @@ class Fret_model_distance():
         return self.__dict__ == other.__dict__
 
 
-class Modeling_collection():
+class Modeling_collection(object):
     """ Not part of the flr dictionary. 
         * In case of FPS, flr_modeling_list contains entries of FPS_AV_modeling or FPS_MPP_modeling 
         and flr_modeling_method_list contains "FPS_AV" or "FPS_MPP"*
@@ -516,7 +519,7 @@ class Modeling_collection():
         return self.__dict__ == other.__dict__
 
 
-class FPS_modeling():
+class FPS_modeling(object):
     """
         FPS_modeling collects the modeling parameters for different steps of FPS, e.g. Docking, Refinement, or Error estimation
         Members of this class automatically get assigned an id. 
@@ -540,7 +543,7 @@ class FPS_modeling():
         return self.__dict__ == other.__dict__
 
 		
-class FPS_global_parameters():
+class FPS_global_parameters(object):
     """The global parameters in the FPS program. *For a description of the parameters, see also the FPS manual.*
 
         :param forster_radius: The Forster radius used in the FPS program.
@@ -594,7 +597,7 @@ class FPS_global_parameters():
         return self.__dict__ == other.__dict__
 
 
-class FPS_AV_modeling():
+class FPS_AV_modeling(object):
     """FPS modeling using AV. This object connects the FPS_modeling step, the sample_probe and the respective AV parameters.
 	
         :param FPS_modeling_id: The FPS modeling ID.
@@ -614,7 +617,7 @@ class FPS_AV_modeling():
         return self.__dict__ == other.__dict__
 
 	
-class FPS_AV_parameter():
+class FPS_AV_parameter(object):
     """The AV parameters used for the modeling using FPS.
 	
         :param num_linker_atoms: The number of atoms in the linker.
@@ -637,7 +640,7 @@ class FPS_AV_parameter():
         return self.__dict__ == other.__dict__
 
 		
-class FPS_MPP_modeling():
+class FPS_MPP_modeling(object):
     """Maps the FPS_modeling_id to a mean probe position and connects it to the reference coordinate system.
 	
         :param FPS_modeling_id: The FPS modeling ID.
@@ -657,7 +660,7 @@ class FPS_MPP_modeling():
         return self.__dict__ == other.__dict__
 
 		
-class FPS_mean_probe_position():
+class FPS_mean_probe_position(object):
     """ The mean probe position of an AV, which can be used instead of an AV. 
         *It is usually not recommended to use this. Use AVs instead.*
         The coordinates are with respect to a reference coordinate system defined by :class:`FPS_MPP_atom_position_group`.
@@ -678,7 +681,7 @@ class FPS_mean_probe_position():
         return self.__dict__ == other.__dict__
 
 
-class FPS_MPP_atom_position_group():
+class FPS_MPP_atom_position_group(object):
     """A group of atom positions used to define the coordinate system of a mean probe position. 
     *Not part of the FLR dictionary.*
     """
@@ -692,7 +695,7 @@ class FPS_MPP_atom_position_group():
         return self.__dict__ == other.__dict__
 
 
-class FPS_MPP_atom_position():
+class FPS_MPP_atom_position(object):
     """An atom used to describe the coordinate system for a mean probe position
 	
     :param entity: The Entity to which the atom belongs.
@@ -720,7 +723,7 @@ class FPS_MPP_atom_position():
         return self.__dict__ == other.__dict__
 
 		
-class FLR_data():
+class FLR_data(object):
     """ A collection of the fluorescence data to be added to the system. 
     """
     def __init__(self):
