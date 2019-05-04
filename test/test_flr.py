@@ -157,19 +157,13 @@ class Tests(unittest.TestCase):
 
     def test_poly_probe_position_init(self):
         """ Test initialization of PolyProbePosition. """
-        p = ihm.flr.PolyProbePosition(entity ='foo',
-                                      seq_id ='bar',
-                                      comp_id = 'bar2',
-                                      atom_id = 'bar3',
+        p = ihm.flr.PolyProbePosition(resatom='foo',
                                       mutation_flag = True,
                                       modification_flag = True,
                                       auth_name = 'foo3',
                                       mutated_chem_descriptor = 'foobar',
                                       modified_chem_descriptor = 'foobar2')
-        self.assertEqual(p.entity, 'foo')
-        self.assertEqual(p.seq_id, 'bar')
-        self.assertEqual(p.comp_id, 'bar2')
-        self.assertEqual(p.atom_id, 'bar3')
+        self.assertEqual(p.resatom, 'foo')
         self.assertEqual(p.mutation_flag, True)
         self.assertEqual(p.modification_flag, True)
         self.assertEqual(p.auth_name, 'foo3')
@@ -178,28 +172,19 @@ class Tests(unittest.TestCase):
 
     def test_poly_probe_position_eq(self):
         """ Test equality and inequality of PolyProbePosition objects. """
-        p_ref = ihm.flr.PolyProbePosition(entity ='foo',
-                                          seq_id ='bar',
-                                          comp_id = 'bar2',
-                                          atom_id = 'bar3',
+        p_ref = ihm.flr.PolyProbePosition(resatom='foo',
                                           mutation_flag = True,
                                           modification_flag = True,
                                           auth_name = 'foo3',
                                           mutated_chem_descriptor = 'foobar',
                                           modified_chem_descriptor = 'foobar2')
-        p_equal = ihm.flr.PolyProbePosition(entity ='foo',
-                                            seq_id ='bar',
-                                            comp_id = 'bar2',
-                                            atom_id = 'bar3',
+        p_equal = ihm.flr.PolyProbePosition(resatom='foo',
                                             mutation_flag = True,
                                             modification_flag = True,
                                             auth_name = 'foo3',
                                             mutated_chem_descriptor = 'foobar',
                                             modified_chem_descriptor='foobar2')
-        p_unequal = ihm.flr.PolyProbePosition(entity ='foo',
-                                        seq_id ='bar5',
-                                        comp_id = 'bar2',
-                                        atom_id = 'bar3',
+        p_unequal = ihm.flr.PolyProbePosition(resatom='bar',
                                         mutation_flag = True,
                                         modification_flag = True,
                                         auth_name = 'foo3',
@@ -1179,23 +1164,17 @@ class Tests(unittest.TestCase):
         this_probe_2 = ihm.flr.Probe(probe_list_entry='foo', probe_descriptor=this_probe_descriptor_2)
         this_probe_3 = ihm.flr.Probe(probe_list_entry='foo', probe_descriptor=this_probe_descriptor_3)
         ## Define poly probe positions
-        this_poly_probe_position_1 = ihm.flr.PolyProbePosition(entity='foo',
-                                                                 seq_id=1,
-                                                                 atom_id='CB',
-                                                                 mutation_flag=True,
-                                                                 mutated_chem_descriptor='Mutated_Chem_descriptor_1',
-                                                                 modification_flag= False)
-        this_poly_probe_position_2 = ihm.flr.PolyProbePosition(entity='foo',
-                                                                 seq_id=1,
-                                                                 atom_id='CB',
-                                                                 mutation_flag=False,
-                                                                 modification_flag= True,
-                                                                 modified_chem_descriptor='Modified_Chem_descriptor_1')
-        this_poly_probe_position_3 = ihm.flr.PolyProbePosition(entity='foo',
-                                                                 seq_id=1,
-                                                                 atom_id='CB',
-                                                                 mutation_flag=False,
-                                                                 modification_flag=False)
+        this_poly_probe_position_1 = ihm.flr.PolyProbePosition(
+                            resatom='foo', mutation_flag=True,
+                            mutated_chem_descriptor='Mutated_Chem_descriptor_1',
+                            modification_flag= False)
+        this_poly_probe_position_2 = ihm.flr.PolyProbePosition(
+                         resatom='foo', mutation_flag=False,
+                         modification_flag=True,
+                         modified_chem_descriptor='Modified_Chem_descriptor_1')
+        this_poly_probe_position_3 = ihm.flr.PolyProbePosition(
+                         resatom='foo', mutation_flag=False,
+                         modification_flag=False)
         this_sample_probe_1 = ihm.flr.SampleProbeDetails(sample = 'foo', probe = this_probe_1, fluorophore_type='donor',poly_probe_position = this_poly_probe_position_1)
         this_sample_probe_2 = ihm.flr.SampleProbeDetails(sample = 'foo2', probe = this_probe_2, fluorophore_type='donor',poly_probe_position = this_poly_probe_position_2)
         this_sample_probe_3 = ihm.flr.SampleProbeDetails(sample='foo3', probe=this_probe_3, fluorophore_type='donor', poly_probe_position=this_poly_probe_position_3)

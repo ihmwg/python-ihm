@@ -2313,11 +2313,14 @@ class _FLRDumper(Dumper):
                           'mutation_flag', 'modification_flag',
                           'auth_name']) as l:
             for x in self._list_poly_probe_position:
-                l.write(id=x._id, entity_id=x.entity._id,
-                        entity_description=x.entity.description,
-                        seq_id=x.seq_id,
-                        comp_id=x.comp_id,
-                        atom_id=x.atom_id,
+                comp = x.resatom.entity.sequence[x.resatom.seq_id-1].id
+                atom = None
+                if isinstance(x.resatom, ihm.Atom):
+                    atom = x.resatom.id
+                l.write(id=x._id, entity_id=x.resatom.entity._id,
+                        entity_description=x.resatom.entity.description,
+                        seq_id=x.resatom.seq_id,
+                        comp_id=comp, atom_id=atom,
                         mutation_flag=x.mutation_flag,
                         modification_flag=x.modification_flag,
                         auth_name=x.auth_name)
@@ -2326,17 +2329,23 @@ class _FLRDumper(Dumper):
                          ['id','chem_descriptor_id','atom_id']) as l:
             for x in self._list_poly_probe_position:
                 if x.mutation_flag == True:
+                    atom = None
+                    if isinstance(x.resatom, ihm.Atom):
+                        atom = x.resatom.id
                     l.write(id=x._id,
                             chem_descriptor_id=x.mutated_chem_descriptor._id,
-                            atom_id=x.atom_id)
+                            atom_id=atom)
         ## poly_probe_position_mutated
         with writer.loop('_flr_poly_probe_position_modified',
                          ['id', 'chem_descriptor_id', 'atom_id']) as l:
             for x in self._list_poly_probe_position:
                 if x.modification_flag == True:
+                    atom = None
+                    if isinstance(x.resatom, ihm.Atom):
+                        atom = x.resatom.id
                     l.write(id=x._id,
-                             chem_descriptor_id=x.modified_chem_descriptor._id,
-                             atom_id=x.atom_id)
+                            chem_descriptor_id=x.modified_chem_descriptor._id,
+                            atom_id=atom)
         ## poly_probe_conjugate
         with writer.loop('_flr_poly_probe_conjugate',
                          ['id', 'sample_probe_id','chem_descriptor_id',

@@ -142,14 +142,8 @@ class PolyProbePosition(object):
        This class combines Poly_probe_position, Poly_probe_position_modified,
        and Poly_probe_position_mutated from the FLR dictionary.
 
-       :param entity: The entity the probe is attached to.
-       :type entity: :class:`ihm.Entity`
-       :param seq_id: The sequence number of the residue that was used
-              to attach the probe.
-       :param atom_id: The atom ID identifies the atom at which the probe
-              was attached.
-       :param comp_id: The chemical component id of the residue that was
-              used to attach the probe.
+       :param resatom: The residue or atom that the probe is attached to.
+       :type resatom: :class:`ihm.Residue` or :class:`ihm.Atom`
        :param mutation_flag: Flag whether the residue was mutated
               (e.g. a Cys mutation).
        :param bool modification_flag: Flag whether the residue was modified
@@ -164,15 +158,10 @@ class PolyProbePosition(object):
        :type modified_chem_descriptor: :class:`ihm.ChemDescriptor`
     """
 
-    def __init__(self, entity, seq_id, atom_id,
-                 comp_id=None, mutation_flag=False, modification_flag=False,
+    def __init__(self, resatom, mutation_flag=False, modification_flag=False,
                  auth_name=None, mutated_chem_descriptor=None,
                  modified_chem_descriptor=None):
-        self.entity = entity
-        self.seq_id = seq_id
-        self.comp_id = comp_id
-        ## The atom_id identifies the atom at which the probe is attached
-        self.atom_id = atom_id
+        self.resatom = resatom
         self.mutation_flag = mutation_flag
         self.modification_flag = modification_flag
         self.auth_name = auth_name
