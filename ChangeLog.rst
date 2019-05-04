@@ -7,7 +7,7 @@ HEAD
    are now supported.
  - The new :mod:`ihm.flr` module allows for information from
    Fluorescence / FRET experiments to be stored. This follows the definitions
-   in the [FLR dictionary](https://github.com/ihmwg/FLR-dictionary/).
+   in the `FLR dictionary <https://github.com/ihmwg/FLR-dictionary/>`_.
 
 0.7 - 2019-04-24
 ================
@@ -16,7 +16,7 @@ HEAD
    output, the set of all citation authors is used instead, as before.)
  - Any grants that supported the modeling can now be listed in
    :attr:`ihm.System.grants`.
- - A copy of [SWIG](http://www.swig.org/) is no longer needed to install
+ - A copy of `SWIG <http://www.swig.org/>`_ is no longer needed to install
    releases of python-ihm via `pip` as pre-generated SWIG outputs are
    included in the PyPI package. SWIG is still needed to build directly
    from source code though.

@@ -1,7 +1,6 @@
 """Classes to handle fluorescence data.
    The classes roughly correspond to categories in the
-   [FLR dictionary](https://github.com/ihmwg/FLR-dictionary/).
-
+   `FLR dictionary <https://github.com/ihmwg/FLR-dictionary/>`_.
    See the top level :class:`FLRData` class for more information.
 """
 
