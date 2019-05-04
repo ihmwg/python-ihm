@@ -1042,51 +1042,25 @@ class Tests(unittest.TestCase):
         self.assertTrue(f_ref != f_unequal)
 
     def test_fps_mpp_atom_position_init(self):
-        """ Test initialization of FPSMPPAtomPosition. """
-        f = ihm.flr.FPSMPPAtomPosition(entity = 'this_entity',
-                                          seq_id = 'this_seq_id',
-                                          comp_id = 'this_comp_id',
-                                          atom_id = 'this_atom_id',
-                                          asym_id = 'this_asym_id',
-                                          xcoord = 'this_xcoord',
-                                          ycoord = 'this_ycoord',
-                                          zcoord = 'this_zcoord')
-        self.assertEqual(f.entity, 'this_entity')
-        self.assertEqual(f.seq_id, 'this_seq_id')
-        self.assertEqual(f.comp_id, 'this_comp_id')
-        self.assertEqual(f.atom_id, 'this_atom_id')
-        self.assertEqual(f.asym_id, 'this_asym_id')
-        self.assertEqual(f.xcoord, 'this_xcoord')
-        self.assertEqual(f.ycoord, 'this_ycoord')
-        self.assertEqual(f.zcoord, 'this_zcoord')
+        """Test initialization of FPSMPPAtomPosition."""
+        f = ihm.flr.FPSMPPAtomPosition(atom='this_atom_id', x='this_xcoord',
+                                       y='this_ycoord', z='this_zcoord')
+        self.assertEqual(f.atom, 'this_atom_id')
+        self.assertEqual(f.x, 'this_xcoord')
+        self.assertEqual(f.y, 'this_ycoord')
+        self.assertEqual(f.z, 'this_zcoord')
 
-
-    def test_fps_mpp_atom_position_Eq(self):
-        """ Test equality and inequality of FPSMPPAtomPosition objects. """
-        f_ref = ihm.flr.FPSMPPAtomPosition(entity = 'this_entity',
-                                          seq_id = 'this_seq_id',
-                                          comp_id = 'this_comp_id',
-                                          atom_id = 'this_atom_id',
-                                          asym_id = 'this_asym_id',
-                                          xcoord = 'this_xcoord',
-                                          ycoord = 'this_ycoord',
-                                          zcoord = 'this_zcoord')
-        f_equal = ihm.flr.FPSMPPAtomPosition(entity = 'this_entity',
-                                          seq_id = 'this_seq_id',
-                                          comp_id = 'this_comp_id',
-                                          atom_id = 'this_atom_id',
-                                          asym_id = 'this_asym_id',
-                                          xcoord = 'this_xcoord',
-                                          ycoord = 'this_ycoord',
-                                          zcoord = 'this_zcoord')
-        f_unequal = ihm.flr.FPSMPPAtomPosition(entity = 'this_entity',
-                                          seq_id = 'foo',
-                                          comp_id = 'this_comp_id',
-                                          atom_id = 'this_atom_id',
-                                          asym_id = 'this_asym_id',
-                                          xcoord = 'this_xcoord',
-                                          ycoord = 'this_ycoord',
-                                          zcoord = 'this_zcoord')
+    def test_fps_mpp_atom_position_eq(self):
+        """Test equality and inequality of FPSMPPAtomPosition objects."""
+        f_ref = ihm.flr.FPSMPPAtomPosition(atom='this_atom_id',
+                                           x='this_xcoord', y='this_ycoord',
+                                           z='this_zcoord')
+        f_equal = ihm.flr.FPSMPPAtomPosition(atom='this_atom_id',
+                                             x='this_xcoord', y='this_ycoord',
+                                             z='this_zcoord')
+        f_unequal = ihm.flr.FPSMPPAtomPosition(atom='other_atom_id',
+                                               x='this_xcoord', y='this_ycoord',
+                                               z='this_zcoord')
 
         self.assertTrue(f_ref == f_equal)
         self.assertFalse(f_ref == f_unequal)

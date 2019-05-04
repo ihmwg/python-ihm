@@ -2538,15 +2538,11 @@ class _FLRDumper(Dumper):
                           'group_id']) as l:
             for group in self._list_FPS_MPP_atom_position_group_id:
                 for x in group.mpp_atom_position_list:
-                    l.write(id=x._id,
-                            entity_id=x.entity._id,
-                            seq_id=x.seq_id,
-                            comp_id=x.comp_id,
-                            atom_id=x.atom_id,
-                            asym_id=x.asym_id,
-                            xcoord=x.xcoord,
-                            ycoord=x.ycoord,
-                            zcoord=x.zcoord,
+                    comp = x.atom.asym.entity.sequence[x.atom.seq_id-1].id
+                    l.write(id=x._id, entity_id=x.atom.asym.entity._id,
+                            seq_id=x.atom.seq_id, comp_id=comp,
+                            atom_id=x.atom.id, asym_id=x.atom.asym._id,
+                            xcoord=x.x, ycoord=x.y, zcoord=x.z,
                             group_id=group._id)
 
         ## FPS_FPS_MPP_modeling

@@ -2730,6 +2730,9 @@ _ihm_predicted_contact_restraint.software_id
 
         system.entities.extend([cur_entity_1, cur_entity_2])
 
+        asym1 = ihm.AsymUnit(cur_entity_1)
+        system.asym_units.append(asym1)
+
         ## FLR
         cur_entity_assembly = ihm.flr.EntityAssembly()
         cur_entity_assembly.add_entity(entity=cur_entity_1, num_copies=1)
@@ -2988,18 +2991,12 @@ _ihm_predicted_contact_restraint.software_id
         cur_FPS_modeling_collection.add_modeling(cur_FPS_AV_modeling_3, 'FPS_AV')
 
         ## Modeling by mean probe position
-        cur_mpp_atom_position_1 = ihm.flr.FPSMPPAtomPosition(entity=cur_entity_1,
-                                                                seq_id=2,
-                                                                comp_id='foo',
-                                                                atom_id='CA',
-                                                                asym_id='A',
-                                                                xcoord=1.0,ycoord=1.0,zcoord=1.0)
-        cur_mpp_atom_position_2 = ihm.flr.FPSMPPAtomPosition(entity=cur_entity_1,
-                                                                seq_id=3,
-                                                                comp_id='foo',
-                                                                atom_id='CA',
-                                                                asym_id='A',
-                                                                xcoord=2.0,ycoord=2.0,zcoord=2.0)
+        cur_mpp_atom_position_1 = ihm.flr.FPSMPPAtomPosition(
+                                        atom=asym1.residue(1).atom('CA'),
+                                        x=1.0, y=1.0, z=1.0)
+        cur_mpp_atom_position_2 = ihm.flr.FPSMPPAtomPosition(
+                                        atom=asym1.residue(2).atom('CA'),
+                                        x=2.0, y=2.0, z=2.0)
         cur_mpp_atom_position_group = ihm.flr.FPSMPPAtomPositionGroup()
         cur_mpp_atom_position_group.add_atom_position(cur_mpp_atom_position_1)
         cur_mpp_atom_position_group.add_atom_position(cur_mpp_atom_position_2)
@@ -3023,6 +3020,7 @@ _ihm_predicted_contact_restraint.software_id
         system.flr_data = [cur_flr_data]
 
         ihm.dumper._EntityDumper().finalize(system) # assign entity IDs
+        ihm.dumper._StructAsymDumper().finalize(system) # assign asym IDs
         dumper = ihm.dumper._FLRDumper()
         dumper.finalize(system) # assign IDs
         out = _get_dumper_output(dumper, system)
@@ -3310,8 +3308,8 @@ _flr_FPS_MPP_atom_position.xcoord
 _flr_FPS_MPP_atom_position.ycoord
 _flr_FPS_MPP_atom_position.zcoord
 _flr_FPS_MPP_atom_position.group_id
-1 1 2 foo CA A 1.000 1.000 1.000 1
-2 1 3 foo CA A 2.000 2.000 2.000 1
+1 1 1 ALA CA A 1.000 1.000 1.000 1
+2 1 2 GLY CA A 2.000 2.000 2.000 1
 #
 #
 loop_

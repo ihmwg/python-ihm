@@ -809,28 +809,16 @@ class FPSMPPAtomPositionGroup(object):
 class FPSMPPAtomPosition(object):
     """An atom used to describe the coordinate system for a mean probe position
 
-       :param entity: The Entity to which the atom belongs.
-       :type entity: :class:`ihm.Entity`
-       :param seq_id: The sequence id of the residue.
-       :param comp_id: The chemical component id of the residue.
-       :param atom_id: The atom id of the atom.
-       :param asym_id: The asym id of the residue.
-       :param xcoord: The x-coordinate of the atom.
-       :param ycoord: The y-coordinate of the atom.
-       :param zcoord: The z-coordinate of the atom.
+       :param atom: The atom being described.
+       :type atom: :class:`ihm.Atom`
+       :param x: The x-coordinate of the atom.
+       :param y: The y-coordinate of the atom.
+       :param z: The z-coordinate of the atom.
     """
 
     ## atoms describing the coordinate system for a mean probe position
-    def __init__(self, entity, seq_id, comp_id, atom_id, asym_id,
-                 xcoord, ycoord, zcoord):
-        self.entity = entity
-        self.seq_id = seq_id
-        self.comp_id = comp_id
-        self.atom_id = atom_id
-        self.asym_id = asym_id
-        self.xcoord = xcoord
-        self.ycoord = ycoord
-        self.zcoord = zcoord
+    def __init__(self, atom, x, y, z):
+        self.atom, self.x, self.y, self.z = atom, x, y, z
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
