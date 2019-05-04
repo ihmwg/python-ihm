@@ -230,7 +230,8 @@ class EntityAssembly(object):
 
     def add_entity(self, entity, num_copies):
         if num_copies < 0:
-            print('Error in EntityAssembly: Number of copies for Entity must be larger than zero.')
+            raise ValueError("Number of copies for Entity must be "
+                             "larger than zero.")
         self.entity_list.append(entity)
         self.num_copies_list.append(num_copies)
 

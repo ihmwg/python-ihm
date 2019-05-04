@@ -258,9 +258,11 @@ class Tests(unittest.TestCase):
         self.assertEqual(e.num_copies_list[0],1)
 
     def test_entity_assembly_add_entity(self):
-        """ Test addition of entities to the assembly. """
+        """Test addition of entities to the assembly."""
         e = ihm.flr.EntityAssembly(entity='foo', num_copies=1)
         e.add_entity(entity='foo2', num_copies=2)
+        self.assertRaises(ValueError, e.add_entity,
+                          entity='foo2', num_copies=-1)
         self.assertEqual(len(e.entity_list), 2)
         self.assertEqual(e.entity_list, ['foo','foo2'])
         self.assertEqual(e.num_copies_list, [1,2])
