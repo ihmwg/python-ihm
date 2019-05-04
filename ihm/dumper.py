@@ -2525,11 +2525,8 @@ class _FLRDumper(Dumper):
                          ['id', 'sample_probe_id', 'mpp_xcoord', 'mpp_ycoord',
                           'mpp_zcoord']) as l:
             for x in self._list_FPS_mean_probe_position:
-                l.write(id=x._id,
-                        sample_probe_id=x.sample_probe._id,
-                        mpp_xcoord=x.mpp_xcoord,
-                        mpp_ycoord=x.mpp_ycoord,
-                        mpp_zcoord=x.mpp_zcoord)
+                l.write(id=x._id, sample_probe_id=x.sample_probe._id,
+                        mpp_xcoord=x.x, mpp_ycoord=x.y, mpp_zcoord=x.z)
 
         ## FPS_MPP_atom_position
         with writer.loop('_flr_FPS_MPP_atom_position',

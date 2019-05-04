@@ -991,27 +991,21 @@ class Tests(unittest.TestCase):
 
     def test_fps_mean_probe_position_init(self):
         """Test initialization of FPSMeanProbePosition."""
-        f = ihm.flr.FPSMeanProbePosition(sample_probe='foo', mpp_xcoord='bar',
-                                         mpp_ycoord='bar2', mpp_zcoord='bar3')
+        f = ihm.flr.FPSMeanProbePosition(sample_probe='foo', x='bar',
+                                         y='bar2', z='bar3')
         self.assertEqual(f.sample_probe, 'foo')
-        self.assertEqual(f.mpp_xcoord, 'bar')
-        self.assertEqual(f.mpp_ycoord, 'bar2')
-        self.assertEqual(f.mpp_zcoord, 'bar3')
+        self.assertEqual(f.x, 'bar')
+        self.assertEqual(f.y, 'bar2')
+        self.assertEqual(f.z, 'bar3')
 
     def test_fps_mean_probe_position_eq(self):
         """Test equality and inequality of FPSMeanProbePosition objects."""
-        f_ref = ihm.flr.FPSMeanProbePosition(sample_probe='foo',
-                                             mpp_xcoord='bar',
-                                             mpp_ycoord='bar2',
-                                             mpp_zcoord='bar3')
-        f_equal = ihm.flr.FPSMeanProbePosition(sample_probe='foo',
-                                               mpp_xcoord='bar',
-                                               mpp_ycoord='bar2',
-                                               mpp_zcoord='bar3')
-        f_unequal = ihm.flr.FPSMeanProbePosition(sample_probe='foobar',
-                                                 mpp_xcoord='bar',
-                                                 mpp_ycoord='bar2',
-                                                 mpp_zcoord='bar3')
+        f_ref = ihm.flr.FPSMeanProbePosition(sample_probe='foo', x='bar',
+                                             y='bar2', z='bar3')
+        f_equal = ihm.flr.FPSMeanProbePosition(sample_probe='foo', x='bar',
+                                               y='bar2', z='bar3')
+        f_unequal = ihm.flr.FPSMeanProbePosition(sample_probe='foobar', x='bar',
+                                                 y='bar2', z='bar3')
         self.assertTrue(f_ref == f_equal)
         self.assertFalse(f_ref == f_unequal)
         self.assertTrue(f_ref != f_unequal)

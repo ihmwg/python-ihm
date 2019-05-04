@@ -776,16 +776,14 @@ class FPSMeanProbePosition(object):
 
        :param sample_probe: The Sample probe.
        :type sample_probe: :class:`SampleProbeDetails`
-       :param mpp_xcoord: The x-coordinate of the mean probe position.
-       :param mpp_ycoord: The y-coordinate of the mean probe position.
-       :param mpp_zcoord: The z-coordinate of the mean probe position.
+       :param float x: The x-coordinate of the mean probe position.
+       :param float y: The y-coordinate of the mean probe position.
+       :param float z: The z-coordinate of the mean probe position.
     """
 
-    def __init__(self, sample_probe, mpp_xcoord, mpp_ycoord, mpp_zcoord):
+    def __init__(self, sample_probe, x, y, z):
         self.sample_probe = sample_probe
-        self.mpp_xcoord = mpp_xcoord
-        self.mpp_ycoord = mpp_ycoord
-        self.mpp_zcoord = mpp_zcoord
+        self.x, self.y, self.z = x, y, z
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
@@ -811,9 +809,9 @@ class FPSMPPAtomPosition(object):
 
        :param atom: The atom being described.
        :type atom: :class:`ihm.Atom`
-       :param x: The x-coordinate of the atom.
-       :param y: The y-coordinate of the atom.
-       :param z: The z-coordinate of the atom.
+       :param float x: The x-coordinate of the atom.
+       :param float y: The y-coordinate of the atom.
+       :param float z: The z-coordinate of the atom.
     """
 
     ## atoms describing the coordinate system for a mean probe position

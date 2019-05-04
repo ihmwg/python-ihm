@@ -3001,11 +3001,11 @@ _ihm_predicted_contact_restraint.software_id
         cur_mpp_atom_position_group.add_atom_position(cur_mpp_atom_position_1)
         cur_mpp_atom_position_group.add_atom_position(cur_mpp_atom_position_2)
         cur_mean_probe_position_2 = ihm.flr.FPSMeanProbePosition(
-                          sample_probe=cur_sample_probe_details_2,
-                          mpp_xcoord=1.0, mpp_ycoord=2.0, mpp_zcoord=3.0)
+                                       sample_probe=cur_sample_probe_details_2,
+                                       x=1.0, y=2.0, z=3.0)
         cur_mean_probe_position_4 = ihm.flr.FPSMeanProbePosition(
-                          sample_probe=cur_sample_probe_details_4,
-                          mpp_xcoord=1.0, mpp_ycoord=2.0, mpp_zcoord=3.0)
+                                       sample_probe=cur_sample_probe_details_4,
+                                       x=1.0, y=2.0, z=3.0)
         cur_FPS_MPP_modeling_2 = ihm.flr.FPSMPPModeling(fps_modeling=cur_FPS_modeling_2,
                                                         mpp=cur_mean_probe_position_2,
                                                         mpp_atom_position_group=cur_mpp_atom_position_group)
