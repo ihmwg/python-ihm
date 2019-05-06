@@ -2426,6 +2426,26 @@ _flr_exp_setting.details
         self.assertIsInstance(es2, ihm.flr.ExpSetting)
         self.assertEqual(es2.details, None)
 
+    def test_flr_instrument_handler(self):
+        """Test FLRInstrumentHandler"""
+        fh = StringIO("""
+loop_
+_flr_instrument.id
+_flr_instrument.details
+1 test
+2 .
+""")
+        s, = ihm.reader.read(fh)
+        flr, = s.flr_data
+        self.assertEqual(sorted(flr._collection_flr_instrument.keys()),
+                         ['1', '2'])
+        i1 = flr._collection_flr_instrument['1']
+        self.assertIsInstance(i1, ihm.flr.Instrument)
+        self.assertEqual(i1.details, 'test')
+        i2 = flr._collection_flr_instrument['2']
+        self.assertIsInstance(i2, ihm.flr.Instrument)
+        self.assertEqual(i2.details, None)
+
 
 if __name__ == '__main__':
     unittest.main()

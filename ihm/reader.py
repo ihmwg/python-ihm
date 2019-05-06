@@ -2013,16 +2013,17 @@ class _FLRExpSettingHandler(Handler):
         d = self.sysr.flr_data.get_by_id(1)
         d._collection_flr_exp_setting[id] = cur_exp_setting
 
+
 class _FLRInstrumentHandler(Handler):
     category = '_flr_instrument'
 
     def __call__(self, id, details):
-        ## Get the object or create the object
+        # Get the object or create the object
         cur_instrument = self.sysr.flr_instruments.get_by_id(id)
-        ## Set the variables
-        self.copy_if_present(cur_instrument, locals(),
-                keys=('id', 'details'))
-        self.sysr.flr_data.get_by_id(1)._collection_flr_instrument[id] = cur_instrument
+        # Set the variables
+        self.copy_if_present(cur_instrument, locals(), keys=('details',))
+        d = self.sysr.flr_data.get_by_id(1)
+        d._collection_flr_instrument[id] = cur_instrument
 
 class _FLREntityAssemblyHandler(Handler):
     category = '_flr_entity_assembly'

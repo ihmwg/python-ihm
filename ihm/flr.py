@@ -313,7 +313,7 @@ class Instrument(object):
 
        :param details: Description of the instrument used for the measurements.
     """
-    def __init__(self, details = None):
+    def __init__(self, details=None):
         self.details = details
 
     def __eq__(self, other):
@@ -330,7 +330,7 @@ class ExpSetting(object):
               volume in case of confocal measurements).
     """
 
-    def __init__(self, details = None):
+    def __init__(self, details=None):
         self.details = details
 
     def __eq__(self, other):
