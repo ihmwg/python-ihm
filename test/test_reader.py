@@ -350,29 +350,30 @@ _pdbx_entity_nonpoly.comp_id
 
     def test_chem_descriptor_handler(self):
         """Test ChemDescriptorHandler"""
-        cif = """
+        for cat in ("ihm_chemical_descriptor", "flr_chemical_descriptor"):
+            cif = """
 loop_
-_ihm_chemical_descriptor.id
-_ihm_chemical_descriptor.auth_name
-_ihm_chemical_descriptor.chem_comp_id
-_ihm_chemical_descriptor.chemical_name
-_ihm_chemical_descriptor.common_name
-_ihm_chemical_descriptor.smiles
-_ihm_chemical_descriptor.smiles_canonical
-_ihm_chemical_descriptor.inchi
-_ihm_chemical_descriptor.inchi_key
+_%(cat)s.id
+_%(cat)s.auth_name
+_%(cat)s.chem_comp_id
+_%(cat)s.chemical_name
+_%(cat)s.common_name
+_%(cat)s.smiles
+_%(cat)s.smiles_canonical
+_%(cat)s.inchi
+_%(cat)s.inchi_key
 1 EDC UNK "test-chem-EDC" . "CCN=C=NCCCN(C)C" . test-inchi test-inchi-key
-"""
-        for fh in cif_file_handles(cif):
-            s, = ihm.reader.read(fh)
-            d1, = s.orphan_chem_descriptors
-            self.assertEqual(d1.auth_name, 'EDC')
-            self.assertEqual(d1.chem_comp_id, 'UNK')
-            self.assertEqual(d1.chemical_name, 'test-chem-EDC')
-            self.assertEqual(d1.smiles, 'CCN=C=NCCCN(C)C')
-            self.assertEqual(d1.smiles_canonical, None)
-            self.assertEqual(d1.inchi, 'test-inchi')
-            self.assertEqual(d1.inchi_key, 'test-inchi-key')
+""" % {'cat': cat}
+            for fh in cif_file_handles(cif):
+                s, = ihm.reader.read(fh)
+                d1, = s.orphan_chem_descriptors
+                self.assertEqual(d1.auth_name, 'EDC')
+                self.assertEqual(d1.chem_comp_id, 'UNK')
+                self.assertEqual(d1.chemical_name, 'test-chem-EDC')
+                self.assertEqual(d1.smiles, 'CCN=C=NCCCN(C)C')
+                self.assertEqual(d1.smiles_canonical, None)
+                self.assertEqual(d1.inchi, 'test-inchi')
+                self.assertEqual(d1.inchi_key, 'test-inchi-key')
 
     def test_entity_handler(self):
         """Test EntityHandler"""

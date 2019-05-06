@@ -1979,18 +1979,10 @@ class _UnknownKeywordHandler(object):
 
 
 ## FLR part
-## Note: This Handler is only here, because the category is officially still in the flr dictionary.
-##       It is just a copy of the ChemDescriptorHandler
-class _FLRChemDescriptorHandler(Handler):
+# Note: This Handler is only here, because the category is officially
+# still in the flr dictionary.
+class _FLRChemDescriptorHandler(_ChemDescriptorHandler):
     category = '_flr_chemical_descriptor'
-
-    def __call__(self, id, auth_name, chem_comp_id, chemical_name, common_name,
-                 smiles, smiles_canonical, inchi, inchi_key):
-        d = self.sysr.chem_descriptors.get_by_id(id)
-        self.copy_if_present(d, locals(),
-                keys=('auth_name', 'chem_comp_id', 'chemical_name',
-                      'common_name', 'smiles', 'smiles_canonical', 'inchi',
-                      'inchi_key'))
 
 
 class _FLRExperimentHandler(Handler):
@@ -2566,7 +2558,7 @@ def read(fh, model_class=ihm.model.Model, format='mmCIF', handlers=[],
               _PolySeqSchemeHandler(s), _NonPolySchemeHandler(s),
               _CrossLinkListHandler(s), _CrossLinkRestraintHandler(s),
               _CrossLinkResultHandler(s), _StartingModelSeqDifHandler(s),
-              _OrderedEnsembleHandler(s),
+              _OrderedEnsembleHandler(s), _FLRChemDescriptorHandler(s),
               _FLRExpSettingHandler(s),
               _FLRInstrumentHandler(s),
               _FLRSampleConditionHandler(s),
