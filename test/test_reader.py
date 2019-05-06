@@ -2377,6 +2377,35 @@ _ihm_starting_model_seq_dif.details
         self.assertEqual(sd1.db_comp_id, "MSE")
         self.assertEqual(sd1.details, "Mutation of MSE to LEU")
 
+    def test_flr_experiment_handler(self):
+        """Test FLRExperimentHandler"""
+        fh = StringIO("""
+loop_
+_flr_experiment.ordinal_id
+_flr_experiment.id
+_flr_experiment.instrument_id
+_flr_experiment.exp_setting_id
+_flr_experiment.sample_id
+_flr_experiment.details
+1 1 1 22 42 "exp 1"
+2 1 1 2 2 .
+""")
+        s, = ihm.reader.read(fh)
+        flr, = s.flr_data
+        experiment, = list(flr._collection_flr_experiment.values())
+        self.assertIsInstance(experiment, ihm.flr.Experiment)
+        self.assertIsInstance(experiment.instrument_list[0], ihm.flr.Instrument)
+        self.assertIsInstance(experiment.exp_setting_list[0],
+                              ihm.flr.ExpSetting)
+        self.assertIsInstance(experiment.sample_list[0], ihm.flr.Sample)
+        self.assertEqual([i._id for i in experiment.instrument_list],
+                         ['1', '1'])
+        self.assertEqual([i._id for i in experiment.exp_setting_list],
+                         ['22', '2'])
+        self.assertEqual([i._id for i in experiment.sample_list],
+                         ['42', '2'])
+        self.assertEqual(experiment.details_list, ["exp 1", None])
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -1990,17 +1990,16 @@ class _FLRExperimentHandler(Handler):
 
     def __call__(self, ordinal_id, id, instrument_id,
                  exp_setting_id, sample_id, details):
-        ## Get the object or create the object
-        cur_experiment = self.sysr.flr_experiments.get_by_id(id)
-        ## Fill the object
-        cur_instrument = self.sysr.flr_instruments.get_by_id(instrument_id)
-        cur_exp_setting = self.sysr.flr_exp_settings.get_by_id(exp_setting_id)
-        cur_sample = self.sysr.flr_samples.get_by_id(sample_id)
-        cur_experiment.add_entry(instrument = cur_instrument,
-                  exp_setting = cur_exp_setting,
-                  sample = cur_sample,
-                  details = details)
-        self.sysr.flr_data.get_by_id(1)._collection_flr_experiment[id] = cur_experiment
+        # Get the object or create the object
+        experiment = self.sysr.flr_experiments.get_by_id(id)
+        # Fill the object
+        instrument = self.sysr.flr_instruments.get_by_id(instrument_id)
+        exp_setting = self.sysr.flr_exp_settings.get_by_id(exp_setting_id)
+        sample = self.sysr.flr_samples.get_by_id(sample_id)
+        experiment.add_entry(instrument=instrument, exp_setting=exp_setting,
+                             sample=sample, details=details)
+        d = self.sysr.flr_data.get_by_id(1)
+        d._collection_flr_experiment[id] = experiment
 
 
 class _FLRExpSettingHandler(Handler):
