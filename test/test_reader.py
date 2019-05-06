@@ -2489,6 +2489,33 @@ _flr_sample_condition.details
         self.assertIsInstance(s2, ihm.flr.SampleCondition)
         self.assertEqual(s2.details, None)
 
+    def test_flr_sample_handler(self):
+        """Test FLRSampleHandler"""
+        fh = StringIO("""
+loop_
+_flr_sample.id
+_flr_sample.entity_assembly_id
+_flr_sample.num_of_probes
+_flr_sample.sample_condition_id
+_flr_sample.sample_description
+_flr_sample.sample_details
+_flr_sample.solvent_phase
+1 1 2 1 Sample_1 'Details sample 1' liquid
+2 1 4 2 Sample_2 'Details sample 2' vitrified
+""")
+        s, = ihm.reader.read(fh)
+        flr, = s.flr_data
+        self.assertEqual(sorted(flr._collection_flr_sample.keys()),
+                         ['1', '2'])
+        s1 = flr._collection_flr_sample['1']
+        self.assertIsInstance(s1, ihm.flr.Sample)
+        self.assertEqual(s1.entity_assembly._id, '1')
+        self.assertEqual(s1.num_of_probes, 2)
+        self.assertEqual(s1.condition._id, '1')
+        self.assertEqual(s1.description, 'Sample_1')
+        self.assertEqual(s1.details, 'Details sample 1')
+        self.assertEqual(s1.solvent_phase, 'liquid')
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -2055,19 +2055,21 @@ class _FLRSampleConditionHandler(Handler):
 class _FLRSampleHandler(Handler):
     category = '_flr_sample'
 
-    def __call__(self, id, entity_assembly_id, num_of_probes, sample_condition_id, sample_description, sample_details, solvent_phase):
-        entity_assembly = self.sysr.flr_entity_assemblies.get_by_id(entity_assembly_id)
-        sample_condition = self.sysr.flr_sample_conditions.get_by_id(sample_condition_id)
-        cur_sample = self.sysr.flr_samples.get_by_id(id)
-        ## There was 6 times placeholders in the IDMapper, which can now be filled.
-        self.copy_if_present(cur_sample, locals(),
-                             keys = ('entity_assembly',
-                                     'num_of_probes',
-                                     'sample_condition',
-                                     'sample_description',
-                                     'sample_details',
-                                     'solvent_phase'))
-        self.sysr.flr_data.get_by_id(1)._collection_flr_sample[id] = cur_sample
+    def __call__(self, id, entity_assembly_id, num_of_probes,
+                 sample_condition_id, sample_description, sample_details,
+                 solvent_phase):
+        sample = self.sysr.flr_samples.get_by_id(id)
+        sample.entity_assembly \
+              = self.sysr.flr_entity_assemblies.get_by_id(entity_assembly_id)
+        sample.num_of_probes = self.get_int(num_of_probes)
+        sample.condition = cond \
+             = self.sysr.flr_sample_conditions.get_by_id(sample_condition_id)
+        self.copy_if_present(sample, locals(), keys=('solvent_phase',),
+                             mapkeys={'sample_description': 'description',
+                                      'sample_details': 'details'})
+        d = self.sysr.flr_data.get_by_id(1)
+        d._collection_flr_sample[id] = sample
+
 
 class _FLRProbeListHandler(Handler):
     category = '_flr_probe_list'
