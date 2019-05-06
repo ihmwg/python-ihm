@@ -2025,17 +2025,20 @@ class _FLRInstrumentHandler(Handler):
         d = self.sysr.flr_data.get_by_id(1)
         d._collection_flr_instrument[id] = cur_instrument
 
+
 class _FLREntityAssemblyHandler(Handler):
     category = '_flr_entity_assembly'
 
-    def __call__(self, ordinal_id, assembly_id, entity_id, num_copies, entity_description):
-        ## Get the object or create the object
-        cur_entity_assembly = self.sysr.flr_entity_assemblies.get_by_id(assembly_id)
-        ## Get the current entity
-        cur_entity = self.sysr.entities.get_by_id(entity_id)
-        ## Add the entity to the entity assembly
-        cur_entity_assembly.add_entity(entity = cur_entity, num_copies = self.get_int(num_copies), entity_description = entity_description if (cur_entity.description is None) else cur_entity.description)
-        self.sysr.flr_data.get_by_id(1)._collection_flr_entity_assembly[assembly_id] = cur_entity_assembly
+    def __call__(self, ordinal_id, assembly_id, entity_id, num_copies):
+        # Get the object or create the object
+        a = self.sysr.flr_entity_assemblies.get_by_id(assembly_id)
+        # Get the entity
+        entity = self.sysr.entities.get_by_id(entity_id)
+        # Add the entity to the entity assembly
+        a.add_entity(entity=entity, num_copies=self.get_int(num_copies))
+        d = self.sysr.flr_data.get_by_id(1)
+        d._collection_flr_entity_assembly[assembly_id] = a
+
 
 class _FLRSampleConditionHandler(Handler):
     category = '_flr_sample_condition'

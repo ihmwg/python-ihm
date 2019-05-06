@@ -2446,6 +2446,28 @@ _flr_instrument.details
         self.assertIsInstance(i2, ihm.flr.Instrument)
         self.assertEqual(i2.details, None)
 
+    def test_flr_entity_assembly_handler(self):
+        """Test FLREntityAssemblyHandler"""
+        fh = StringIO("""
+loop_
+_flr_entity_assembly.ordinal_id
+_flr_entity_assembly.assembly_id
+_flr_entity_assembly.entity_id
+_flr_entity_assembly.num_copies
+_flr_entity_assembly.entity_description
+1 1 1 1 Entity_1
+2 1 2 4 Entity_2
+""")
+        s, = ihm.reader.read(fh)
+        self.assertEqual(len(s.entities), 2)
+        flr, = s.flr_data
+        self.assertEqual(sorted(flr._collection_flr_entity_assembly.keys()),
+                         ['1'])
+        a1 = flr._collection_flr_entity_assembly['1']
+        self.assertIsInstance(a1, ihm.flr.EntityAssembly)
+        self.assertEqual([x._id for x in a1.entity_list], ['1', '2'])
+        self.assertEqual(a1.num_copies_list, [1, 4])
+
 
 if __name__ == '__main__':
     unittest.main()
