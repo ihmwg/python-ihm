@@ -73,6 +73,26 @@ class Tests(unittest.TestCase):
         self.assertEqual(sd.details,
                          'Conversion of modified residue MSE to MET')
 
+    def test_add_atom(self):
+        """Test StartingModel.add_atom()"""
+        atoms = ['atom1', 'atom2']
+        e1 = ihm.Entity('AAAA')
+        asym = ihm.AsymUnit(e1)
+        s = ihm.startmodel.StartingModel(asym, 'mock_dataset', 'A', offset=10)
+        s.add_atom(atoms[0])
+        s.add_atom(atoms[1])
+        self.assertEqual(s._atoms, atoms)
+
+    def test_add_seq_dif(self):
+        """Test StartingModel.add_seq_dif()"""
+        seq_difs = ['sd1', 'sd2']
+        e1 = ihm.Entity('AAAA')
+        asym = ihm.AsymUnit(e1)
+        s = ihm.startmodel.StartingModel(asym, 'mock_dataset', 'A', offset=10)
+        s.add_seq_dif(seq_difs[0])
+        s.add_seq_dif(seq_difs[1])
+        self.assertEqual(s._seq_difs, seq_difs)
+
 
 if __name__ == '__main__':
     unittest.main()
