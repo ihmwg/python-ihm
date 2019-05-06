@@ -2468,6 +2468,27 @@ _flr_entity_assembly.entity_description
         self.assertEqual([x._id for x in a1.entity_list], ['1', '2'])
         self.assertEqual(a1.num_copies_list, [1, 4])
 
+    def test_flr_sample_condition_handler(self):
+        """Test FLRSampleConditionHandler"""
+        fh = StringIO("""
+loop_
+_flr_sample_condition.id
+_flr_sample_condition.details
+1 test
+2 .
+#
+""")
+        s, = ihm.reader.read(fh)
+        flr, = s.flr_data
+        self.assertEqual(sorted(flr._collection_flr_sample_condition.keys()),
+                         ['1', '2'])
+        s1 = flr._collection_flr_sample_condition['1']
+        self.assertIsInstance(s1, ihm.flr.SampleCondition)
+        self.assertEqual(s1.details, 'test')
+        s2 = flr._collection_flr_sample_condition['2']
+        self.assertIsInstance(s2, ihm.flr.SampleCondition)
+        self.assertEqual(s2.details, None)
+
 
 if __name__ == '__main__':
     unittest.main()

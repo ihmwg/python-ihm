@@ -2044,12 +2044,13 @@ class _FLRSampleConditionHandler(Handler):
     category = '_flr_sample_condition'
 
     def __call__(self, id, details):
-        ## Get the object or create the object
+        # Get the object or create the object
         cur_sample_condition = self.sysr.flr_sample_conditions.get_by_id(id)
-        ## Set the variables
-        self.copy_if_present(cur_sample_condition, locals(),
-                keys=('id', 'details'))
-        self.sysr.flr_data.get_by_id(1)._collection_flr_sample_condition[id] = cur_sample_condition
+        # Set the variables
+        self.copy_if_present(cur_sample_condition, locals(), keys=('details',))
+        d = self.sysr.flr_data.get_by_id(1)
+        d._collection_flr_sample_condition[id] = cur_sample_condition
+
 
 class _FLRSampleHandler(Handler):
     category = '_flr_sample'
