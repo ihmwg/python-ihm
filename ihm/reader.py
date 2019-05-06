@@ -2006,12 +2006,12 @@ class _FLRExpSettingHandler(Handler):
     category = '_flr_exp_setting'
 
     def __call__(self, id, details):
-        ## Get the object or create the object
+        # Get the object or create the object
         cur_exp_setting = self.sysr.flr_exp_settings.get_by_id(id)
-        ## Set the variables
-        self.copy_if_present(cur_exp_setting, locals(),
-                keys=('id', 'details'))
-        self.sysr.flr_data.get_by_id(1)._collection_flr_exp_setting[id] = cur_exp_setting
+        # Set the variables
+        self.copy_if_present(cur_exp_setting, locals(), keys=('details',))
+        d = self.sysr.flr_data.get_by_id(1)
+        d._collection_flr_exp_setting[id] = cur_exp_setting
 
 class _FLRInstrumentHandler(Handler):
     category = '_flr_instrument'

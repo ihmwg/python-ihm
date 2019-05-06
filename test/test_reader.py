@@ -2406,6 +2406,26 @@ _flr_experiment.details
                          ['42', '2'])
         self.assertEqual(experiment.details_list, ["exp 1", None])
 
+    def test_flr_exp_setting_handler(self):
+        """Test FLRExpSettingHandler"""
+        fh = StringIO("""
+loop_
+_flr_exp_setting.id
+_flr_exp_setting.details
+1 My_Exp_setting_1
+2 .
+""")
+        s, = ihm.reader.read(fh)
+        flr, = s.flr_data
+        self.assertEqual(sorted(flr._collection_flr_exp_setting.keys()),
+                         ['1', '2'])
+        es1 = flr._collection_flr_exp_setting['1']
+        self.assertIsInstance(es1, ihm.flr.ExpSetting)
+        self.assertEqual(es1.details, 'My_Exp_setting_1')
+        es2 = flr._collection_flr_exp_setting['2']
+        self.assertIsInstance(es2, ihm.flr.ExpSetting)
+        self.assertEqual(es2.details, None)
+
 
 if __name__ == '__main__':
     unittest.main()
