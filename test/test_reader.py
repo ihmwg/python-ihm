@@ -96,7 +96,8 @@ class Tests(unittest.TestCase):
 
     def test_system_reader(self):
         """Test SystemReader class"""
-        s = ihm.reader.SystemReader(ihm.model.Model)
+        s = ihm.reader.SystemReader(ihm.model.Model,
+                                    ihm.startmodel.StartingModel)
 
     def test_id_mapper(self):
         """Test IDMapper class"""
@@ -2299,6 +2300,81 @@ _ihm_predicted_contact_restraint.software_id
                               ihm.restraint.UpperBoundDistanceRestraint)
         self.assertAlmostEqual(r3.distance.distance, 14.000, places=1)
         self.assertEqual(r3.software, None)
+
+    def get_starting_model_coord(self):
+        return """
+loop_
+_ihm_starting_model_coord.starting_model_id
+_ihm_starting_model_coord.group_PDB
+_ihm_starting_model_coord.id
+_ihm_starting_model_coord.type_symbol
+_ihm_starting_model_coord.atom_id
+_ihm_starting_model_coord.comp_id
+_ihm_starting_model_coord.entity_id
+_ihm_starting_model_coord.asym_id
+_ihm_starting_model_coord.seq_id
+_ihm_starting_model_coord.Cartn_x
+_ihm_starting_model_coord.Cartn_y
+_ihm_starting_model_coord.Cartn_z
+_ihm_starting_model_coord.B_iso_or_equiv
+_ihm_starting_model_coord.ordinal_id
+1 ATOM 1 N N TYR 1 A 7 8.436 112.871 97.789 . 1
+1 HETATM 2 C CA TYR 1 B . 7.951 111.565 97.289 91.820 2
+"""
+
+    def test_starting_model_coord_handler(self):
+        """Test StartingModelCoordHandler"""
+        fh = StringIO(self.get_starting_model_coord())
+        s, = ihm.reader.read(fh)
+        sm, = s.orphan_starting_models
+        a1, a2 = sm._atoms
+        self.assertEqual(a1.asym_unit._id, 'A')
+        self.assertEqual(a1.seq_id, 7)
+        self.assertEqual(a1.atom_id, 'N')
+        self.assertEqual(a1.type_symbol, 'N')
+        self.assertAlmostEqual(a1.x, 8.436, places=2)
+        self.assertAlmostEqual(a1.y, 112.871, places=2)
+        self.assertAlmostEqual(a1.z, 97.789, places=2)
+        self.assertEqual(a1.het, False)
+        self.assertEqual(a1.biso, None)
+
+        self.assertEqual(a2.asym_unit._id, 'B')
+        self.assertEqual(a2.seq_id, None)
+        self.assertEqual(a2.atom_id, 'CA')
+        self.assertEqual(a2.type_symbol, 'C')
+        self.assertEqual(a2.het, True)
+        self.assertAlmostEqual(a2.biso, 91.820, places=1)
+
+    def test_starting_model_coord_ignored(self):
+        """Test read, ignoring starting model coordinates"""
+        fh = StringIO(self.get_starting_model_coord())
+        s, = ihm.reader.read(fh, read_starting_model_coord=False)
+        self.assertEqual(len(s.orphan_starting_models), 0)
+
+    def test_starting_model_seq_dif_handler(self):
+        """Test StartingModelSeqDifHandler"""
+        fh = StringIO("""
+loop_
+_ihm_starting_model_seq_dif.ordinal_id
+_ihm_starting_model_seq_dif.entity_id
+_ihm_starting_model_seq_dif.asym_id
+_ihm_starting_model_seq_dif.seq_id
+_ihm_starting_model_seq_dif.comp_id
+_ihm_starting_model_seq_dif.starting_model_id
+_ihm_starting_model_seq_dif.db_asym_id
+_ihm_starting_model_seq_dif.db_seq_id
+_ihm_starting_model_seq_dif.db_comp_id
+_ihm_starting_model_seq_dif.details
+1 7 G 11 LEU 9 D 12 MSE 'Mutation of MSE to LEU'
+2 7 G 17 LEU 9 D 18 MSE 'Mutation of MSE to LEU'
+""")
+        s, = ihm.reader.read(fh)
+        sm, = s.orphan_starting_models
+        sd1, sd2 = sm._seq_difs
+        self.assertEqual(sd1.seq_id, 11)
+        self.assertEqual(sd1.db_seq_id, 12)
+        self.assertEqual(sd1.db_comp_id, "MSE")
+        self.assertEqual(sd1.details, "Mutation of MSE to LEU")
 
 
 if __name__ == '__main__':

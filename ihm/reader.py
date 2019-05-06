@@ -300,7 +300,7 @@ class SystemReader(object):
        being read from a file, such as the mapping from IDs to objects
        (as :class:`IDMapper` objects). This can be used by :class:`Handler`
        subclasses."""
-    def __init__(self, model_class):
+    def __init__(self, model_class, starting_model_class):
         #: The :class:`ihm.System` object being read in
         self.system = ihm.System()
 
@@ -359,7 +359,7 @@ class SystemReader(object):
 
         #: Mapping from ID to :class:`ihm.startmodel.StartingModel` objects
         self.starting_models = IDMapper(self.system.orphan_starting_models,
-                                  ihm.startmodel.StartingModel, *(None,)*3)
+                                  starting_model_class, *(None,)*3)
 
         #: Mapping from ID to :class:`ihm.representation.Representation` objects
         self.representations = IDMapper(self.system.orphan_representations,
@@ -1430,6 +1430,40 @@ class _AtomSiteHandler(Handler):
             asym.auth_seq_id_map[seq_id] = auth_seq_id
 
 
+class _StartingModelCoordHandler(Handler):
+    category = '_ihm_starting_model_coord'
+
+    def __call__(self, starting_model_id, group_pdb, type_symbol, atom_id,
+                 asym_id, seq_id, cartn_x, cartn_y, cartn_z, b_iso_or_equiv):
+        model = self.sysr.starting_models.get_by_id(starting_model_id)
+        asym = self.sysr.asym_units.get_by_id(asym_id)
+        biso = self.get_float(b_iso_or_equiv)
+        # seq_id can be None for non-polymers (HETATM)
+        seq_id = self.get_int(seq_id)
+        group = 'ATOM' if group_pdb is None else group_pdb
+        a = ihm.model.Atom(asym_unit=asym,
+                seq_id=seq_id,
+                atom_id=atom_id,
+                type_symbol=type_symbol,
+                x=float(cartn_x), y=float(cartn_y),
+                z=float(cartn_z), het=group != 'ATOM',
+                biso=biso)
+        model.add_atom(a)
+
+
+class _StartingModelSeqDifHandler(Handler):
+    category = '_ihm_starting_model_seq_dif'
+
+    def __call__(self, starting_model_id, db_seq_id, seq_id, db_comp_id,
+                 details):
+        model = self.sysr.starting_models.get_by_id(starting_model_id)
+        sd = ihm.startmodel.SeqDif(db_seq_id=self.get_int(db_seq_id),
+                                   seq_id=self.get_int(seq_id),
+                                   db_comp_id=db_comp_id,
+                                   details=details)
+        model.add_seq_dif(sd)
+
+
 class _PolyResidueFeatureHandler(Handler):
     category = '_ihm_poly_residue_feature'
 
@@ -2443,7 +2477,9 @@ class _FLRFPSMPPModelingHandler(Handler):
 
 
 def read(fh, model_class=ihm.model.Model, format='mmCIF', handlers=[],
-         warn_unknown_category=False, warn_unknown_keyword=False):
+         warn_unknown_category=False, warn_unknown_keyword=False,
+         read_starting_model_coord=True,
+         starting_model_class=ihm.startmodel.StartingModel):
     """Read data from the mmCIF file handle `fh`.
 
        Note that the reader currently expects to see an mmCIF file compliant
@@ -2462,9 +2498,9 @@ def read(fh, model_class=ihm.model.Model, format='mmCIF', handlers=[],
        module to function.
 
        :param file fh: The file handle to read from.
-       :param model_class: The class to use to store model coordinates.
-              For use with other software, it is recommended to subclass
-              :class:`ihm.model.Model` and override
+       :param model_class: The class to use to store model information (such
+              as coordinates). For use with other software, it is recommended
+              to subclass :class:`ihm.model.Model` and override
               :meth:`~ihm.model.Model.add_sphere` and/or
               :meth:`~ihm.model.Model.add_atom`, and provide that subclass
               here. See :meth:`ihm.model.Model.get_spheres` for more
@@ -2480,6 +2516,13 @@ def read(fh, model_class=ihm.model.Model, format='mmCIF', handlers=[],
        :param bool warn_unknown_keyword: if set, emit an
               :exc:`UnknownKeywordWarning` for each unknown keyword
               (within an otherwise-handled category) encountered in the file.
+       :param bool read_starting_model_coord: if set, read coordinates for
+              starting models, if provided in the file.
+       :param starting_model_class: The class to use to store starting model
+              information. If `read_starting_model_coord` is also set, it
+              is recommended to subclass :class:`ihm.startmodel.StartingModel`
+              and override :meth:`~ihm.startmodel.StartingModel.add_atom`
+              and/or :meth:`~ihm.startmodel.StartingModel.add_seq_dif`.
        :return: A list of :class:`ihm.System` objects.
     """
     systems = []
@@ -2492,7 +2535,7 @@ def read(fh, model_class=ihm.model.Model, format='mmCIF', handlers=[],
     r = reader_map[format](fh, {}, unknown_category_handler=uchandler,
                            unknown_keyword_handler=ukhandler)
     while True:
-        s = SystemReader(model_class)
+        s = SystemReader(model_class, starting_model_class)
         hs = [_StructHandler(s), _SoftwareHandler(s), _CitationHandler(s),
               _AuditAuthorHandler(s), _GrantHandler(s),
               _CitationAuthorHandler(s), _ChemCompHandler(s),
@@ -2522,7 +2565,7 @@ def read(fh, model_class=ihm.model.Model, format='mmCIF', handlers=[],
               _AxisHandler(s), _PlaneHandler(s), _GeometricRestraintHandler(s),
               _PolySeqSchemeHandler(s), _NonPolySchemeHandler(s),
               _CrossLinkListHandler(s), _CrossLinkRestraintHandler(s),
-              _CrossLinkResultHandler(s),
+              _CrossLinkResultHandler(s), _StartingModelSeqDifHandler(s),
               _OrderedEnsembleHandler(s),
               _FLRExpSettingHandler(s),
               _FLRInstrumentHandler(s),
@@ -2551,6 +2594,8 @@ def read(fh, model_class=ihm.model.Model, format='mmCIF', handlers=[],
               _FLRFPSMPPHandler(s),
               _FLRFPSMPPAtomPositionHandler(s),
               _FLRFPSMPPModelingHandler(s)] + [h(s) for h in handlers]
+        if read_starting_model_coord:
+            hs.append(_StartingModelCoordHandler(s))
         if uchandler:
             uchandler.reset()
         if ukhandler:

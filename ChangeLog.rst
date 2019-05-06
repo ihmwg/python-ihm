@@ -5,6 +5,11 @@ HEAD
    know about (and will ignore).
  - Predicted contacts (:class:`ihm.restraint.PredictedContactRestraint`)
    are now supported.
+ - :func:`ihm.reader.read` will now read starting model coordinates and
+   sequence difference information into the
+   :class:`ihm.startmodel.StartingModel` class. Applications that don't require
+   coordinates can instruct the reader to ignore them with the new
+   `read_starting_model_coord` flag.
  - The new :mod:`ihm.flr` module allows for information from
    Fluorescence / FRET experiments to be stored. This follows the definitions
    in the `FLR dictionary <https://github.com/ihmwg/FLR-dictionary/>`_.
