@@ -2742,20 +2742,22 @@ _ihm_predicted_contact_restraint.software_id
         cur_exp_setting_1 = ihm.flr.ExpSetting(details='My_Exp_setting_1')
         cur_exp_setting_2 = ihm.flr.ExpSetting(details='My_Exp_setting_2')
 
-        cur_sample_condition_1 = ihm.flr.SampleCondition(details='My_Sample_condition_1')
-        cur_sample_condition_2 = ihm.flr.SampleCondition(details='My_Sample_condition_2')
+        cur_sample_condition_1 = ihm.flr.SampleCondition(
+                                     details='My_Sample_condition_1')
+        cur_sample_condition_2 = ihm.flr.SampleCondition(
+                                     details='My_Sample_condition_2')
 
         cur_sample_1 = ihm.flr.Sample(entity_assembly=cur_entity_assembly,
                                       num_of_probes=2,
-                                      sample_condition=cur_sample_condition_1,
-                                      sample_description='Sample_1',
-                                      sample_details='Details sample 1',
+                                      condition=cur_sample_condition_1,
+                                      description='Sample_1',
+                                      details='Details sample 1',
                                       solvent_phase='liquid')
         cur_sample_2 = ihm.flr.Sample(entity_assembly=cur_entity_assembly,
                                       num_of_probes=2,
-                                      sample_condition=cur_sample_condition_2,
-                                      sample_description='Sample_2',
-                                      sample_details='Details sample 2',
+                                      condition=cur_sample_condition_2,
+                                      description='Sample_2',
+                                      details='Details sample 2',
                                       solvent_phase='liquid')
         cur_experiment = ihm.flr.Experiment()
         cur_experiment.add_entry(instrument=cur_instrument,

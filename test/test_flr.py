@@ -195,42 +195,29 @@ class Tests(unittest.TestCase):
         self.assertFalse(p_ref == p_unequal)
         self.assertTrue(p_ref != p_unequal)
 
-
-    def test_Sample_Init(self):
-        """ Test initialization of Sample. """
-        s = ihm.flr.Sample(entity_assembly = 'foo',
-                           num_of_probes = 'bar',
-                           sample_condition = 'foo2',
-                           sample_description = 'foo3',
-                           sample_details = 'foo4',
-                           solvent_phase = 'foobar')
+    def test_sample_init(self):
+        """Test initialization of Sample."""
+        s = ihm.flr.Sample(entity_assembly='foo', num_of_probes='bar',
+                           condition='foo2', description='foo3',
+                           details='foo4', solvent_phase='foobar')
         self.assertEqual(s.entity_assembly, 'foo')
         self.assertEqual(s.num_of_probes, 'bar')
-        self.assertEqual(s.sample_condition, 'foo2')
-        self.assertEqual(s.sample_description, 'foo3')
-        self.assertEqual(s.sample_details, 'foo4')
+        self.assertEqual(s.condition, 'foo2')
+        self.assertEqual(s.description, 'foo3')
+        self.assertEqual(s.details, 'foo4')
         self.assertEqual(s.solvent_phase, 'foobar')
 
-    def test_Sample_Eq(self):
-        """ Test equality and inequality of Sample objects. """
-        s_ref = ihm.flr.Sample(entity_assembly = 'foo',
-                           num_of_probes = 'foo2',
-                           sample_condition = 'foo3',
-                           sample_description = 'foo4',
-                           sample_details = 'foo5',
-                           solvent_phase = 'foo6')
-        s_equal = ihm.flr.Sample(entity_assembly = 'foo',
-                           num_of_probes = 'foo2',
-                           sample_condition = 'foo3',
-                           sample_description = 'foo4',
-                           sample_details = 'foo5',
-                           solvent_phase = 'foo6')
-        s_unequal = ihm.flr.Sample(entity_assembly = 'bar',
-                           num_of_probes = 'bar2',
-                           sample_condition = 'bar3',
-                           sample_description = 'bar4',
-                           sample_details = 'bar5',
-                           solvent_phase = 'bar6')
+    def test_sample_eq(self):
+        """Test equality and inequality of Sample objects."""
+        s_ref = ihm.flr.Sample(entity_assembly='foo', num_of_probes='foo2',
+                               condition='foo3', description='foo4',
+                               details='foo5', solvent_phase='foo6')
+        s_equal = ihm.flr.Sample(entity_assembly='foo', num_of_probes='foo2',
+                                 condition='foo3', description='foo4',
+                                 details='foo5', solvent_phase='foo6')
+        s_unequal = ihm.flr.Sample(entity_assembly='bar', num_of_probes='bar2',
+                                   condition='bar3', description='bar4',
+                                   details='bar5', solvent_phase='bar6')
         self.assertTrue(s_ref == s_equal)
         self.assertFalse(s_ref == s_unequal)
         self.assertTrue(s_ref != s_unequal)

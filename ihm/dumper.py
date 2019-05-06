@@ -2062,7 +2062,7 @@ class _FLRDumper(Dumper):
                             entity_assembly_ID += 1
                             ## entities come from the normal PDBx/mmcif or IHM dictionary
                         ## sample_condition => sample
-                        this_sample_condition = this_sample.sample_condition
+                        this_sample_condition = this_sample.condition
                         if this_sample_condition not in self._list_sample_condition:
                             this_sample_condition._id = sample_condition_ID
                             self._list_sample_condition.append(this_sample_condition)
@@ -2259,13 +2259,11 @@ class _FLRDumper(Dumper):
                             'sample_condition_id','sample_description',
                             'sample_details','solvent_phase']) as l:
             for x in self._list_sample:
-                l.write(id=x._id,
-                         entity_assembly_id=x.entity_assembly._id,
-                         num_of_probes=x.num_of_probes,
-                         sample_condition_id=x.sample_condition._id,
-                         sample_description=x.sample_description,
-                         sample_details=x.sample_details,
-                         solvent_phase=x.solvent_phase)
+                l.write(id=x._id, entity_assembly_id=x.entity_assembly._id,
+                        num_of_probes=x.num_of_probes,
+                        sample_condition_id=x.condition._id,
+                        sample_description=x.description,
+                        sample_details=x.details, solvent_phase=x.solvent_phase)
         ## probe_list
         with writer.loop('_flr_probe_list',
                            ['probe_id','chromophore_name','reactive_probe_flag',

@@ -179,23 +179,22 @@ class Sample(object):
 
        :param entity_assembly: The assembly of the entities that was measured.
        :type entity_assembly: :class:`EntityAssembly`
-       :param num_of_probes: The number of probes in the sample.
-       :param sample_condition: The sample conditions for the Sample.
-       :type sample_condition: :class:`SampleCondition`
-       :param str sample_description: A description of the sample.
-       :param str sample_details: Details about the sample.
+       :param int num_of_probes: The number of probes in the sample.
+       :param condition: The sample conditions for the Sample.
+       :type condition: :class:`SampleCondition`
+       :param str description: A description of the sample.
+       :param str details: Details about the sample.
        :param solvent_phase: The solvent phase of the sample (liquid,
               vitrified, or other).
     """
 
-    def __init__(self, entity_assembly, num_of_probes, sample_condition,
-                 sample_description=None, sample_details=None,
-                 solvent_phase=None):
+    def __init__(self, entity_assembly, num_of_probes, condition,
+                 description=None, details=None, solvent_phase=None):
         self.entity_assembly = entity_assembly
         self.num_of_probes = num_of_probes
-        self.sample_condition = sample_condition
-        self.sample_description= sample_description
-        self.sample_details = sample_details
+        self.condition = condition
+        self.description = description
+        self.details = details
         self.solvent_phase = solvent_phase
 
     def __eq__(self, other):
