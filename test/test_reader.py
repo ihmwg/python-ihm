@@ -2610,6 +2610,40 @@ _flr_sample_probe_details.poly_probe_position_id
         self.assertIsInstance(p1.poly_probe_position, ihm.flr.PolyProbePosition)
         self.assertEqual(p1.poly_probe_position._id, '34')
 
+    def test_flr_poly_probe_position_handler(self):
+        """Test FLRPolyProbePositionHandler"""
+        fh = StringIO("""
+loop_
+_flr_poly_probe_position.id
+_flr_poly_probe_position.entity_id
+_flr_poly_probe_position.entity_description
+_flr_poly_probe_position.seq_id
+_flr_poly_probe_position.comp_id
+_flr_poly_probe_position.atom_id
+_flr_poly_probe_position.mutation_flag
+_flr_poly_probe_position.modification_flag
+_flr_poly_probe_position.auth_name
+1 1 Entity_1 1 ALA . NO YES Position_1
+2 2 Entity_2 10 CYS CB NO YES Position_3
+""")
+        s, = ihm.reader.read(fh)
+        flr, = s.flr_data
+        self.assertEqual(len(s.entities), 2)
+        self.assertEqual(sorted(flr._collection_flr_poly_probe_position.keys()),
+                         ['1', '2'])
+        p1 = flr._collection_flr_poly_probe_position['1']
+        self.assertIsInstance(p1, ihm.flr.PolyProbePosition)
+        self.assertIsInstance(p1.resatom, ihm.Residue)
+        self.assertEqual(p1.resatom.seq_id, 1)
+        self.assertEqual(p1.resatom.entity._id, '1')
+
+        p2 = flr._collection_flr_poly_probe_position['2']
+        self.assertIsInstance(p2, ihm.flr.PolyProbePosition)
+        self.assertIsInstance(p2.resatom, ihm.Atom)
+        self.assertEqual(p2.resatom.id, 'CB')
+        self.assertEqual(p2.resatom.seq_id, 10)
+        self.assertEqual(p2.resatom.entity._id, '2')
+
 
 if __name__ == '__main__':
     unittest.main()

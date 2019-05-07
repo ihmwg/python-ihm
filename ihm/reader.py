@@ -2125,20 +2125,25 @@ class _FLRProbeDescriptorHandler(Handler):
 class _FLRPolyProbePositionHandler(Handler):
     category = '_flr_poly_probe_position'
 
-    def __call__(self, id, entity_id, entity_description, seq_id, comp_id, atom_id, mutation_flag, modification_flag, auth_name):
-        cur_poly_probe_position = self.sysr.flr_poly_probe_positions.get_by_id(id)
-        cur_entity = self.sysr.entities.get_by_id(entity_id)
-        cur_mutation_flag = self.get_bool(mutation_flag)
-        cur_modification_flag = self.get_bool(modification_flag)
-        self.copy_if_present(cur_poly_probe_position, locals(),
-                             keys = ('entity', 'seq_id', 'atom_id',
-                                     'entity_description', 'comp_id',
-                                     'mutation_flag', 'modification_flag',
-                                     'auth_name'),
-                             mapkeys = {'cur_entity':'entity',
-                                        'cur_mutation_flag':'mutation_flag',
-                                        'cur_modification_flag':'modification_flag'})
-        self.sysr.flr_data.get_by_id(1)._collection_flr_poly_probe_position[id] = cur_poly_probe_position
+    def _get_resatom(self, entity_id, seq_id, atom_id):
+        entity = self.sysr.entities.get_by_id(entity_id)
+        seq_id = self.get_int(seq_id)
+        resatom = entity.residue(seq_id)
+        if atom_id:
+            resatom = resatom.atom(atom_id)
+        return resatom
+
+    def __call__(self, id, entity_id, seq_id, atom_id, mutation_flag,
+                 modification_flag, auth_name):
+        ppos = self.sysr.flr_poly_probe_positions.get_by_id(id)
+        ppos.resatom = self._get_resatom(entity_id, seq_id, atom_id)
+        ppos.mutation_flag = self.get_bool(mutation_flag)
+        ppos.modification_flag = self.get_bool(modification_flag)
+        ppos.auth_name = auth_name
+
+        d = self.sysr.flr_data.get_by_id(1)
+        d._collection_flr_poly_probe_position[id] = ppos
+
 
 class _FLRPolyProbePositionModifiedHandler(Handler):
     category = '_flr_poly_probe_position_modified'
