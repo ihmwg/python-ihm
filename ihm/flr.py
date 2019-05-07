@@ -114,8 +114,10 @@ class PolyProbeConjugate(object):
        :param chem_descriptor: The chemical descriptor of the conjugate
               of polymer residue and probe.
        :type chem_descriptor: :class:`ihm.ChemDescriptor`
-       :param ambiguous_stoichiometry: Flag whether the labeling is ambiguous.
-       :param probe_stoichiometry: The stoichiometry of the ambiguous labeling.
+       :param bool ambiguous_stoichiometry: Flag whether the labeling
+              is ambiguous.
+       :param float probe_stoichiometry: The stoichiometry of the
+              ambiguous labeling.
     """
 
     def __init__(self, sample_probe, chem_descriptor,

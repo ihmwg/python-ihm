@@ -2692,6 +2692,40 @@ _flr_poly_probe_position_mutated.atom_id
                               ihm.ChemDescriptor)
         self.assertEqual(p2.mutated_chem_descriptor._id, '4')
 
+    def test_flr_poly_probe_conjugate_handler(self):
+        """Test FLRPolyProbeConjugateHandler"""
+        fh = StringIO("""
+loop_
+_flr_poly_probe_conjugate.id
+_flr_poly_probe_conjugate.sample_probe_id
+_flr_poly_probe_conjugate.chem_descriptor_id
+_flr_poly_probe_conjugate.ambiguous_stoichiometry_flag
+_flr_poly_probe_conjugate.probe_stoichiometry
+1 1 5 NO .
+2 2 5 YES 2
+""")
+        s, = ihm.reader.read(fh)
+        flr, = s.flr_data
+        self.assertEqual(sorted(
+                            flr._collection_flr_poly_probe_conjugate.keys()),
+                         ['1', '2'])
+        p1, p2 = s.flr_data[0].poly_probe_conjugate_list
+        self.assertIsInstance(p1.sample_probe,
+                              ihm.flr.SampleProbeDetails)
+        self.assertEqual(p1.sample_probe._id, '1')
+        self.assertIsInstance(p1.chem_descriptor, ihm.ChemDescriptor)
+        self.assertEqual(p1.chem_descriptor._id, '5')
+        self.assertEqual(p1.ambiguous_stoichiometry, False)
+        self.assertEqual(p1.probe_stoichiometry, None)
+
+        self.assertIsInstance(p2.sample_probe,
+                              ihm.flr.SampleProbeDetails)
+        self.assertEqual(p2.sample_probe._id, '2')
+        self.assertIsInstance(p2.chem_descriptor, ihm.ChemDescriptor)
+        self.assertEqual(p2.chem_descriptor._id, '5')
+        self.assertEqual(p2.ambiguous_stoichiometry, True)
+        self.assertAlmostEqual(p2.probe_stoichiometry, 2.0, places=0)
+
 
 if __name__ == '__main__':
     unittest.main()

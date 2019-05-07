@@ -2170,22 +2170,23 @@ class _FLRPolyProbePositionMutatedHandler(Handler):
 class _FLRPolyProbeConjugateHandler(Handler):
     category = '_flr_poly_probe_conjugate'
 
-    def __call__(self, id, sample_probe_id, chem_descriptor_id, ambiguous_stoichiometry_flag, probe_stoichiometry):
-        cur_poly_probe_conjugate = self.sysr.flr_poly_probe_conjugates.get_by_id(id)
-        cur_sample_probe = self.sysr.flr_sample_probe_details.get_by_id(sample_probe_id)
-        cur_chem_descriptor = self.sysr.chem_descriptors.get_by_id(chem_descriptor_id)
-        cur_ambiguous_stoichiometry = self.get_bool(ambiguous_stoichiometry_flag)
-        self.copy_if_present(cur_poly_probe_conjugate, locals(),
-                             keys = ('sample_probe', 'chem_descriptor', 'ambiguous_stoichiometry','probe_stoichiometry'),
-                             mapkeys = {'cur_sample_probe':'sample_probe',
-                                        'cur_chem_descriptor':'chem_descriptor',
-                                        'cur_ambiguous_stoichiometry':'ambiguous_stoichiometry'})
+    def __call__(self, id, sample_probe_id, chem_descriptor_id,
+                 ambiguous_stoichiometry_flag, probe_stoichiometry):
+        ppc = self.sysr.flr_poly_probe_conjugates.get_by_id(id)
+        ppc.sample_probe = self.sysr.flr_sample_probe_details.get_by_id(
+                                                     sample_probe_id)
+        ppc.chem_descriptor = self.sysr.chem_descriptors.get_by_id(
+                                                     chem_descriptor_id)
+        ppc.ambiguous_stoichiometry = self.get_bool(
+                                           ambiguous_stoichiometry_flag)
+        ppc.probe_stoichiometry = self.get_float(probe_stoichiometry)
 
+        d = self.sysr.flr_data.get_by_id(1)
         ## add it to the FLR_data if it is not there yet
-        cur_flr_data = self.sysr.flr_data.get_by_id(1)
-        if cur_poly_probe_conjugate not in cur_flr_data.poly_probe_conjugate_list:
-            cur_flr_data.add_poly_probe_conjugate(cur_poly_probe_conjugate)
-        cur_flr_data._collection_flr_poly_probe_conjugate[id] = cur_poly_probe_conjugate
+        if ppc not in d.poly_probe_conjugate_list:
+            d.add_poly_probe_conjugate(ppc)
+        d._collection_flr_poly_probe_conjugate[id] = ppc
+
 
 class _FLRFretForsterRadiusHandler(Handler):
     category = '_flr_fret_forster_radius'
