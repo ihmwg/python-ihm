@@ -2372,7 +2372,7 @@ class _FLRDumper(Dumper):
             for x in self._list_fret_calibration_parameters:
                 l.write(id=x._id, phi_acceptor=x.phi_acceptor,
                         alpha=x.alpha, alpha_sd=x.alpha_sd,
-                        gG_gR_ratio=x.gG_gR_ratio, beta=x.beta,
+                        gG_gR_ratio=x.gg_gr_ratio, beta=x.beta,
                         gamma=x.gamma, delta=x.delta, a_b=x.a_b)
         ## fret_analysis
         with writer.loop('_flr_fret_analysis',

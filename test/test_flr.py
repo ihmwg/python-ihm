@@ -548,50 +548,44 @@ class Tests(unittest.TestCase):
         self.assertTrue(f_ref != f_unequal)
 
     def test_fret_calibration_parameters_init(self):
-        """ Test initialization of FRETCalibrationParameters. """
-        f = ihm.flr.FRETCalibrationParameters(phi_acceptor = 'this_phi_acceptor',
-                                                alpha = 'this_alpha',
-                                                alpha_sd = 'this_alpha_sd',
-                                                gG_gR_ratio = 'this_gG_gR_ratio',
-                                                beta = 'this_beta',
-                                                gamma = 'this_gamma',
-                                                delta = 'this_delta',
-                                                a_b = 'this_a_b')
+        """Test initialization of FRETCalibrationParameters."""
+        f = ihm.flr.FRETCalibrationParameters(phi_acceptor='this_phi_acceptor',
+                                              alpha='this_alpha',
+                                              alpha_sd='this_alpha_sd',
+                                              gg_gr_ratio='this_gG_gR_ratio',
+                                              beta='this_beta',
+                                              gamma='this_gamma',
+                                              delta='this_delta',
+                                              a_b='this_a_b')
         self.assertEqual(f.phi_acceptor, 'this_phi_acceptor')
         self.assertEqual(f.alpha, 'this_alpha')
         self.assertEqual(f.alpha_sd, 'this_alpha_sd')
-        self.assertEqual(f.gG_gR_ratio, 'this_gG_gR_ratio')
+        self.assertEqual(f.gg_gr_ratio, 'this_gG_gR_ratio')
         self.assertEqual(f.beta, 'this_beta')
         self.assertEqual(f.gamma, 'this_gamma')
         self.assertEqual(f.delta, 'this_delta')
         self.assertEqual(f.a_b, 'this_a_b')
 
     def test_fret_calibration_parameters_eq(self):
-        """ Test equality and inequality of FRETCalibrationParameters objects. """
-        f_ref = ihm.flr.FRETCalibrationParameters(phi_acceptor = 'this_phi_acceptor',
-                                                alpha = 'this_alpha',
-                                                alpha_sd = 'this_alpha_sd',
-                                                gG_gR_ratio = 'this_gG_gR_ratio',
-                                                beta = 'this_beta',
-                                                gamma = 'this_gamma',
-                                                delta = 'this_delta',
-                                                a_b = 'this_a_b')
-        f_equal = ihm.flr.FRETCalibrationParameters(phi_acceptor = 'this_phi_acceptor',
-                                                alpha = 'this_alpha',
-                                                alpha_sd = 'this_alpha_sd',
-                                                gG_gR_ratio = 'this_gG_gR_ratio',
-                                                beta = 'this_beta',
-                                                gamma = 'this_gamma',
-                                                delta = 'this_delta',
-                                                a_b = 'this_a_b')
-        f_unequal = ihm.flr.FRETCalibrationParameters(phi_acceptor = 'foo',
-                                                alpha = 'this_alpha',
-                                                alpha_sd = 'this_alpha_sd',
-                                                gG_gR_ratio = 'this_gG_gR_ratio',
-                                                beta = 'this_beta',
-                                                gamma = 'this_gamma',
-                                                delta = 'this_delta',
-                                                a_b = 'this_a_b')
+        """Test equality and inequality of FRETCalibrationParameters objects."""
+        f_ref = ihm.flr.FRETCalibrationParameters(
+                          phi_acceptor='this_phi_acceptor',
+                          alpha='this_alpha', alpha_sd='this_alpha_sd',
+                          gg_gr_ratio='this_gG_gR_ratio', beta='this_beta',
+                          gamma='this_gamma', delta='this_delta',
+                          a_b='this_a_b')
+        f_equal = ihm.flr.FRETCalibrationParameters(
+                          phi_acceptor='this_phi_acceptor',
+                          alpha='this_alpha', alpha_sd='this_alpha_sd',
+                          gg_gr_ratio='this_gG_gR_ratio', beta='this_beta',
+                          gamma='this_gamma', delta='this_delta',
+                          a_b='this_a_b')
+        f_unequal = ihm.flr.FRETCalibrationParameters(
+                          phi_acceptor='foo', alpha='this_alpha',
+                          alpha_sd='this_alpha_sd',
+                          gg_gr_ratio='this_gG_gR_ratio', beta='this_beta',
+                          gamma='this_gamma', delta='this_delta',
+                          a_b='this_a_b')
         self.assertTrue(f_ref == f_equal)
         self.assertFalse(f_ref == f_unequal)
         self.assertTrue(f_ref != f_unequal)

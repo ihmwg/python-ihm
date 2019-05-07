@@ -470,23 +470,23 @@ class FRETCalibrationParameters(object):
         For the definitions of the parameters see
         Hellenkamp et al. Nat. Methods 2018.
 
-        :param phi_acceptor: The quantum yield of the acceptor.
-        :param alpha: The alpha parameter.
-        :param alpha_sd: The standard deviation of the alpha parameter.
-        :param gG_gR_ratio: The ratio between of the green and red detection
+        :param float phi_acceptor: The quantum yield of the acceptor.
+        :param float alpha: The alpha parameter.
+        :param float alpha_sd: The standard deviation of the alpha parameter.
+        :param float gg_gr_ratio: The ratio of the green and red detection
                efficiencies.
-        :param beta: The beta parameter.
-        :param gamma: The gamma parameter.
-        :param delta: The delta parameter.
-        :param a_b: The fraction of bright molecules.
+        :param float beta: The beta parameter.
+        :param float gamma: The gamma parameter.
+        :param float delta: The delta parameter.
+        :param float a_b: The fraction of bright molecules.
     """
 
     def __init__(self, phi_acceptor=None, alpha=None, alpha_sd=None,
-                 gG_gR_ratio=None, beta=None, gamma=None, delta=None, a_b=None):
+                 gg_gr_ratio=None, beta=None, gamma=None, delta=None, a_b=None):
         self.phi_acceptor = phi_acceptor
         self.alpha = alpha
         self.alpha_sd = alpha_sd
-        self.gG_gR_ratio = gG_gR_ratio
+        self.gg_gr_ratio = gg_gr_ratio
         self.beta = beta
         self.gamma = gamma
         self.delta = delta

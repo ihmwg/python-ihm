@@ -2874,14 +2874,10 @@ _ihm_predicted_contact_restraint.software_id
                                                          reduced_forster_radius=53.2)
 
         ## Fret_calibration_parameters
-        cur_fret_calibration_parameters_1 = ihm.flr.FRETCalibrationParameters(phi_acceptor=0.35,
-                                                                                alpha=2.4,
-                                                                                gG_gR_ratio=0.4,
-                                                                                a_b=0.8)
-        cur_fret_calibration_parameters_2 = ihm.flr.FRETCalibrationParameters(phi_acceptor=0.35,
-                                                                                alpha=2.4,
-                                                                                gG_gR_ratio=0.38,
-                                                                                a_b=0.8)
+        cur_fret_calibration_parameters_1 = ihm.flr.FRETCalibrationParameters(
+                        phi_acceptor=0.35, alpha=2.4, gg_gr_ratio=0.4, a_b=0.8)
+        cur_fret_calibration_parameters_2 = ihm.flr.FRETCalibrationParameters(
+                        phi_acceptor=0.35, alpha=2.4, gg_gr_ratio=0.38, a_b=0.8)
         ## Fret_analysis
         cur_fret_analysis_1 = ihm.flr.FRETAnalysis(experiment=cur_experiment,
                                                     sample_probe_1=cur_sample_probe_details_1,
