@@ -2148,24 +2148,24 @@ class _FLRPolyProbePositionHandler(Handler):
 class _FLRPolyProbePositionModifiedHandler(Handler):
     category = '_flr_poly_probe_position_modified'
 
-    def __call__(self, id, chem_descriptor_id, atom_id):
-        cur_poly_probe_position = self.sysr.flr_poly_probe_positions.get_by_id(id)
-        cur_chem_descriptor = self.sysr.chem_descriptors.get_by_id_or_none(chem_descriptor_id)
-        self.copy_if_present(cur_poly_probe_position, locals(),
-                             keys= ('modified_chem_descriptor', 'atom_id'),
-                             mapkeys = {'cur_chem_descriptor':'modified_chem_descriptor'})
-        self.sysr.flr_data.get_by_id(1)._collection_flr_poly_probe_position_modified[id] = cur_poly_probe_position
+    def __call__(self, id, chem_descriptor_id):
+        ppos = self.sysr.flr_poly_probe_positions.get_by_id(id)
+        ppos.modified_chem_descriptor = \
+                self.sysr.chem_descriptors.get_by_id_or_none(chem_descriptor_id)
+        d = self.sysr.flr_data.get_by_id(1)
+        d._collection_flr_poly_probe_position[id] = ppos
+
 
 class _FLRPolyProbePositionMutatedHandler(Handler):
     category = '_flr_poly_probe_position_mutated'
 
     def __call__(self, id, chem_descriptor_id, atom_id):
-        cur_poly_probe_position = self.sysr.flr_poly_probe_positions.get_by_id(id)
-        cur_chem_descriptor = self.sysr.chem_descriptors.get_by_id_or_none(chem_descriptor_id)
-        self.copy_if_present(cur_poly_probe_position, locals(),
-                            keys=('mutated_chem_descriptor', 'atom_id'),
-                            mapkeys = {'cur_chem_descriptor':'mutated_chem_descriptor'})
-        self.sysr.flr_data.get_by_id(1)._collection_flr_poly_probe_position_mutated[id] = cur_poly_probe_position
+        ppos = self.sysr.flr_poly_probe_positions.get_by_id(id)
+        ppos.mutated_chem_descriptor = \
+                self.sysr.chem_descriptors.get_by_id_or_none(chem_descriptor_id)
+        d = self.sysr.flr_data.get_by_id(1)
+        d._collection_flr_poly_probe_position[id] = ppos
+
 
 class _FLRPolyProbeConjugateHandler(Handler):
     category = '_flr_poly_probe_conjugate'
