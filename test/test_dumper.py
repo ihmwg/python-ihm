@@ -247,6 +247,23 @@ auth4 4
 #
 """)
 
+    def test_omitted_unknown(self):
+        """Test that Dumpers handle omitted/unknown values correctly"""
+        system = ihm.System()
+        system.authors.extend((None, ihm.unknown, '.', '?'))
+        dumper = ihm.dumper._AuditAuthorDumper()
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_audit_author.name
+_audit_author.pdbx_ordinal
+. 1
+? 2
+'.' 3
+'?' 4
+#
+""")
+
     def test_audit_author(self):
         """Test AuditAuthorDumper"""
         system = ihm.System()

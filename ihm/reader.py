@@ -29,15 +29,20 @@ def _make_new_entity():
     return e
 
 def _get_vector3(d, key):
-    """Return a 3D vector (as a list) from d[key+[1..3]] or None"""
-    if d[key+'1'] is not None:
+    """Return a 3D vector (as a list) from d[key+[1..3]]
+       or leave as is if None or ihm.unknown"""
+    if d[key+'1'] in (None, ihm.unknown):
+        return d[key+'1']
+    else:
         # Assume if one element is present, all are
         return [float(d[key+"%d" % k]) for k in (1,2,3)]
 
 def _get_matrix33(d, key):
     """Return a 3x3 matrix (as a list of lists) from d[key+[1..3][1..3]]]
-       or None"""
-    if d[key+'11'] is not None:
+       or leave as is if None or ihm.unknown"""
+    if d[key+'11'] in (None, ihm.unknown):
+        return d[key+'11']
+    else:
         # Assume if one element is present, all are
         return [[float(d[key+"%d%d" % (i,j)]) for j in (1,2,3)]
                 for i in (1,2,3)]
@@ -577,7 +582,7 @@ class Handler(object):
     omitted = None
 
     #: Value passed to `__call__` for data marked as unknown ('?') in the file
-    unknown = '?'
+    unknown = ihm.unknown
 
     #: Keywords which are explicitly ignored (read() will not warn about their
     #: presence in the file). These are usually things like ordinal fields
@@ -589,27 +594,32 @@ class Handler(object):
         self.sysr = sysr
 
     def get_int(self, val):
-        """Return int(val) or None if val is None"""
-        return int(val) if val is not None else None
+        """Return int(val) or leave as is if None or ihm.unknown"""
+        return int(val) if val is not None and val is not ihm.unknown else val
 
     def get_int_or_string(self, val):
         """Return val as an int or str as appropriate,
-           or None if val is None"""
-        if val is not None:
+           or leave as is if None or ihm.unknown"""
+        if val is None or val is ihm.unknown:
+            return val
+        else:
             return int(val) if isinstance(val, int) or val.isdigit() else val
 
     def get_float(self, val):
-        """Return float(val) or None if val is None"""
-        return float(val) if val is not None else None
+        """Return float(val) or leave as is if None or ihm.unknown"""
+        return float(val) if val is not None and val is not ihm.unknown else val
 
     _boolmap = {'YES':True, 'NO':False}
     def get_bool(self, val):
-        """Convert val to bool and return, or None if val is None"""
-        return self._boolmap.get(val.upper(), None) if val is not None else None
+        """Convert val to bool and return, or leave as is if None
+           or ihm.unknown"""
+        return(self._boolmap.get(val.upper(), None)
+               if val is not None and val is not ihm.unknown else val)
 
     def get_lower(self, val):
-        """Return lowercase string val or None if val is None"""
-        return val.lower() if val is not None else None
+        """Return lowercase string val or leave as is if None or ihm.unknown"""
+        return(val.lower()
+               if val is not None and val is not ihm.unknown else val)
 
     def finalize(self):
         """Called at the end of each data block."""

@@ -1179,29 +1179,70 @@ _ihm_3dem_restraint.cross_correlation_coefficient
         self.assertAlmostEqual(fits[1][1].cross_correlation_coefficient,
                                0.9, places=1)
 
+    def test_get_int(self):
+        """Test _get_int method"""
+        h = ihm.reader.Handler(None)
+        self.assertEqual(h.get_int('45'), 45)
+        self.assertEqual(h.get_int(None), None)
+        self.assertEqual(h.get_int(ihm.unknown), ihm.unknown)
+        self.assertRaises(ValueError, h.get_int, ".")
+        self.assertRaises(ValueError, h.get_int, "?")
+
     def test_get_int_or_string(self):
         """Test _get_int_or_string method"""
         h = ihm.reader.Handler(None)
         self.assertEqual(h.get_int_or_string('45A'), '45A')
         self.assertEqual(h.get_int_or_string('45'), 45)
         self.assertEqual(h.get_int_or_string(None), None)
+        self.assertEqual(h.get_int_or_string(ihm.unknown), ihm.unknown)
+        self.assertEqual(h.get_int_or_string('.'), '.')
+        self.assertEqual(h.get_int_or_string('?'), '?')
         self.assertEqual(h.get_int_or_string(45), 45)
+
+    def test_get_float(self):
+        """Test _get_float method"""
+        h = ihm.reader.Handler(None)
+        self.assertAlmostEqual(h.get_float('45.3'), 45.3, places=1)
+        self.assertEqual(h.get_float(None), None)
+        self.assertEqual(h.get_float(ihm.unknown), ihm.unknown)
+        self.assertRaises(ValueError, h.get_float, ".")
+        self.assertRaises(ValueError, h.get_float, "?")
+
+    def test_get_bool(self):
+        """Test _get_bool method"""
+        h = ihm.reader.Handler(None)
+        self.assertEqual(h.get_bool('YES'), True)
+        self.assertEqual(h.get_bool('NO'), False)
+        self.assertEqual(h.get_bool('something else'), None)
+        self.assertEqual(h.get_bool(None), None)
+        self.assertEqual(h.get_bool(ihm.unknown), ihm.unknown)
+
+    def test_get_lower(self):
+        """Test _get_lower method"""
+        h = ihm.reader.Handler(None)
+        self.assertEqual(h.get_lower('Test String'), 'test string')
+        self.assertEqual(h.get_lower(None), None)
+        self.assertEqual(h.get_lower(ihm.unknown), ihm.unknown)
+        self.assertEqual(h.get_lower('.'), '.')
+        self.assertEqual(h.get_lower('?'), '?')
 
     def test_get_vector3(self):
         """Test _get_vector3 function"""
         d = {'tr_vector1':4.0, 'tr_vector2':6.0, 'tr_vector3':9.0,
-             'not_there1':None}
+             'omitted1': None, 'unknown1':ihm.unknown}
         r = ihm.reader._get_vector3(d, 'tr_vector')
         # Coerce to int so we can compare exactly
         self.assertEqual([int(x) for x in r], [4,6,9])
 
-        self.assertEqual(ihm.reader._get_vector3(d, 'not_there'), None)
+        self.assertEqual(ihm.reader._get_vector3(d, 'omitted'), None)
+        self.assertEqual(ihm.reader._get_vector3(d, 'unknown'), ihm.unknown)
 
     def test_get_matrix33(self):
         """Test _get_matrix33 function"""
         d = {'m11':4.0, 'm12':6.0, 'm13':9.0,
              'm21':1.0, 'm22':2.0, 'm23':3.0,
-             'm31':8.0, 'm32':1.0, 'm33':7.0, 'not_there11':None}
+             'm31':8.0, 'm32':1.0, 'm33':7.0,
+             'omitted11':None, 'unknown11':ihm.unknown}
         r = ihm.reader._get_matrix33(d, 'm')
         # Coerce to int so we can compare exactly
         self.assertEqual([[int(x) for x in row] for row in r],
@@ -1209,7 +1250,23 @@ _ihm_3dem_restraint.cross_correlation_coefficient
                           [1,2,3],
                           [8,1,7]])
 
-        self.assertEqual(ihm.reader._get_matrix33(d, 'not_there'), None)
+        self.assertEqual(ihm.reader._get_matrix33(d, 'omitted'), None)
+        self.assertEqual(ihm.reader._get_matrix33(d, 'unknown'), ihm.unknown)
+
+    def test_unknown_omitted(self):
+        """Test that Handlers handle unknown/omitted values correctly"""
+        fh = StringIO("""
+loop_
+_audit_author.name
+_audit_author.pdbx_ordinal
+. 1
+? 2
+'.' 3
+'?' 4
+#
+""")
+        s, = ihm.reader.read(fh)
+        self.assertEqual(s.authors, [None, ihm.unknown, '.', '?'])
 
     def test_em2d_restraint_handler(self):
         """Test EM2DRestraintHandler"""
