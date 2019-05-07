@@ -137,7 +137,7 @@ class PolyProbePosition(object):
 
        :param resatom: The residue or atom that the probe is attached to.
        :type resatom: :class:`ihm.Residue` or :class:`ihm.Atom`
-       :param mutation_flag: Flag whether the residue was mutated
+       :param bool mutation_flag: Flag whether the residue was mutated
               (e.g. a Cys mutation).
        :param bool modification_flag: Flag whether the residue was modified
               (e.g. replacement of a residue with a labeled residue in
