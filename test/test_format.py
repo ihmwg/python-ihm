@@ -32,7 +32,7 @@ class GenericHandler(object):
     """Capture mmCIF data as a simple list of dicts"""
     not_in_file = None
     omitted = None
-    unknown = "?"
+    unknown = ihm.unknown
 
     _keys = ('method', 'foo', 'bar', 'baz', 'pdbx_keywords', 'var1',
              'var2', 'var3')

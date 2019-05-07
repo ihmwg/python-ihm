@@ -12,6 +12,7 @@
 import itertools
 import re
 from .format import CifWriter
+import ihm.util
 import sys
 # Handle different naming of urllib in Python 2/3
 try:
@@ -24,7 +25,7 @@ __version__ = '0.7'
 
 #: A value that isn't known. Note that this is distinct from a value that
 #: is deliberately omitted, which is represented by Python None.
-unknown = CifWriter.unknown
+unknown = ihm.util._unknown
 
 def _remove_identical(gen):
     """Return only unique objects from `gen`.
