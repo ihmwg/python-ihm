@@ -17,9 +17,17 @@ if not hasattr(unittest.TestCase, 'assertIn'):
     def assertIsInstance(self, obj, cls, msg=None):
         return self.assertTrue(isinstance(obj, cls),
                         msg or '%s is not an instance of %s' % (obj, cls))
+    def assertLessEqual(self, a, b, msg=None):
+        return self.assertTrue(a <= b,
+                        msg or '%s not less than or equal to %s' % (a, b))
+    def assertGreaterEqual(self, a, b, msg=None):
+        return self.assertTrue(a >= b,
+                        msg or '%s not greater than or equal to %s' % (a, b))
     unittest.TestCase.assertIn = assertIn
     unittest.TestCase.assertNotIn = assertNotIn
     unittest.TestCase.assertIsInstance = assertIsInstance
+    unittest.TestCase.assertLessEqual = assertLessEqual
+    unittest.TestCase.assertGreaterEqual = assertGreaterEqual
 
 def set_search_paths(topdir):
     """Set search paths so that we can import Python modules"""
