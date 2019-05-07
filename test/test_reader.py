@@ -2581,6 +2581,35 @@ _flr_probe_descriptor.chromophore_center_atom
         self.assertEqual(p2.chromophore_chem_descriptor._id, '2')
         self.assertEqual(p2.chromophore_center_atom, 'CB')
 
+    def test_flr_sample_probe_details_handler(self):
+        """Test FLRSampleProbeDetailsHandler"""
+        fh = StringIO("""
+loop_
+_flr_sample_probe_details.sample_probe_id
+_flr_sample_probe_details.sample_id
+_flr_sample_probe_details.probe_id
+_flr_sample_probe_details.fluorophore_type
+_flr_sample_probe_details.description
+_flr_sample_probe_details.poly_probe_position_id
+1 42 99 donor 'Donor in position1-position3' 34
+2 1 2 acceptor 'Acceptor in position1-position3' 2
+""")
+        s, = ihm.reader.read(fh)
+        flr, = s.flr_data
+        self.assertEqual(sorted(
+                            flr._collection_flr_sample_probe_details.keys()),
+                         ['1', '2'])
+        p1 = flr._collection_flr_sample_probe_details['1']
+        self.assertIsInstance(p1, ihm.flr.SampleProbeDetails)
+        self.assertIsInstance(p1.sample, ihm.flr.Sample)
+        self.assertEqual(p1.sample._id, '42')
+        self.assertIsInstance(p1.probe, ihm.flr.Probe)
+        self.assertEqual(p1.probe._id, '99')
+        self.assertEqual(p1.fluorophore_type, 'donor')
+        self.assertEqual(p1.description, 'Donor in position1-position3')
+        self.assertIsInstance(p1.poly_probe_position, ihm.flr.PolyProbePosition)
+        self.assertEqual(p1.poly_probe_position._id, '34')
+
 
 if __name__ == '__main__':
     unittest.main()

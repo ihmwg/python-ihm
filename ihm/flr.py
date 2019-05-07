@@ -84,12 +84,12 @@ class SampleProbeDetails(object):
        :type sample: :class:`Sample`
        :param probe: A probe that is attached to the sample.
        :type probe: :class:`Probe`
-       :param fluorophore_type: The type of the fluorophore (donor,
+       :param str fluorophore_type: The type of the fluorophore (donor,
               acceptor, or unspecified).
        :param poly_probe_position: The position on the polymer where
               the dye is attached to.
        :type poly_probe_position: :class:`PolyProbePosition`
-       :param description: A description of the sample-probe-connection.
+       :param str description: A description of the sample-probe-connection.
     """
 
     def __init__(self, sample, probe, fluorophore_type='unspecified',

@@ -497,7 +497,8 @@ class SystemReader(object):
         #: Mapping from ID to :class:`ihm.flr.Probe` objects
         self.flr_probes = IDMapper(None, ihm.flr.Probe)
         #: Mapping from ID to :class:`ihm.flr.PolyProbePosition` objects
-        self.flr_poly_probe_positions = IDMapper(None, ihm.flr.PolyProbePosition, *(None,)*10)
+        self.flr_poly_probe_positions = IDMapper(None,
+                                ihm.flr.PolyProbePosition, None)
         #: Mapping from ID to :class:`ihm.flr.SampleProbeDetails` objects
         self.flr_sample_probe_details = IDMapper(None, ihm.flr.SampleProbeDetails, *(None,)*5)
         #: Mapping from ID to :class:`ihm.flr.PolyProbeConjugate` objects
@@ -2088,21 +2089,18 @@ class _FLRProbeListHandler(Handler):
 class _FLRSampleProbeDetailsHandler(Handler):
     category = '_flr_sample_probe_details'
 
-    def __call__(self, sample_probe_id, sample_id, probe_id, fluorophore_type, description, poly_probe_position_id):
-        cur_sample_probe_details = self.sysr.flr_sample_probe_details.get_by_id(sample_probe_id)
-        cur_sample = self.sysr.flr_samples.get_by_id(sample_id)
-        cur_probe = self.sysr.flr_probes.get_by_id(probe_id)
-        cur_poly_probe_position = self.sysr.flr_poly_probe_positions.get_by_id(poly_probe_position_id)
-        self.copy_if_present(cur_sample_probe_details, locals(),
-                             keys = ('sample',
-                                     'probe',
-                                     'fluorophore_type',
-                                     'poly_probe_position',
-                                     'description'),
-                             mapkeys = {'cur_sample':'sample',
-                                        'cur_probe':'probe',
-                                        'cur_poly_probe_position':'poly_probe_position'})
-        self.sysr.flr_data.get_by_id(1)._collection_flr_sample_probe_details[sample_probe_id] = cur_sample_probe_details
+    def __call__(self, sample_probe_id, sample_id, probe_id, fluorophore_type,
+                 description, poly_probe_position_id):
+        spd = self.sysr.flr_sample_probe_details.get_by_id(sample_probe_id)
+        spd.sample = self.sysr.flr_samples.get_by_id(sample_id)
+        spd.probe = self.sysr.flr_probes.get_by_id(probe_id)
+        spd.poly_probe_position = self.sysr.flr_poly_probe_positions.get_by_id(
+                                      poly_probe_position_id)
+        spd.fluorophore_type = fluorophore_type
+        spd.description = description
+
+        d = self.sysr.flr_data.get_by_id(1)
+        d._collection_flr_sample_probe_details[sample_probe_id] = spd
 
 
 class _FLRProbeDescriptorHandler(Handler):
