@@ -2206,13 +2206,21 @@ class _FLRFretForsterRadiusHandler(Handler):
 class _FLRFretCalibrationParametersHandler(Handler):
     category = '_flr_fret_calibration_parameters'
 
-    def __call__(self, id, phi_acceptor, alpha, alpha_sd, gg_gr_ratio, beta, gamma, delta, a_b):
-        cur_fret_calibration_parameters = self.sysr.flr_fret_calibration_parameters.get_by_id(id)
-        self.copy_if_present(cur_fret_calibration_parameters, locals(),
-                             keys = ('phi_acceptor', 'alpha', 'alpha_sd','gG_gR_ratio',
-                                     'beta','gamma','delta','a_b'),
-                             mapkeys = {'gg_gr_ratio':'gG_gR_ratio'})
-        self.sysr.flr_data.get_by_id(1)._collection_flr_fret_calibration_parameters[id] = cur_fret_calibration_parameters
+    def __call__(self, id, phi_acceptor, alpha, alpha_sd, gg_gr_ratio, beta,
+                 gamma, delta, a_b):
+        p = self.sysr.flr_fret_calibration_parameters.get_by_id(id)
+        p.phi_acceptor = self.get_float(phi_acceptor)
+        p.alpha = self.get_float(alpha)
+        p.alpha_sd = self.get_float(alpha_sd)
+        p.gg_gr_ratio = self.get_float(gg_gr_ratio)
+        p.beta = self.get_float(beta)
+        p.gamma = self.get_float(gamma)
+        p.delta = self.get_float(delta)
+        p.a_b = self.get_float(a_b)
+
+        d = self.sysr.flr_data.get_by_id(1)
+        d._collection_flr_fret_calibration_parameters[id] = p
+
 
 class _FLRFretAnalysisHandler(Handler):
     category = '_flr_fret_analysis'

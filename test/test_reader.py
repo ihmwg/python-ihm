@@ -2753,6 +2753,33 @@ _flr_fret_forster_radius.reduced_forster_radius
         r2 = flr._collection_flr_fret_forster_radius['2']
         self.assertEqual(r2.reduced_forster_radius, None)
 
+    def test_flr_fret_calibration_parameters_handler(self):
+        """Test FLRFretCalibrationParametersHandler"""
+        fh = StringIO("""
+loop_
+_flr_fret_calibration_parameters.id
+_flr_fret_calibration_parameters.phi_acceptor
+_flr_fret_calibration_parameters.alpha
+_flr_fret_calibration_parameters.alpha_sd
+_flr_fret_calibration_parameters.gG_gR_ratio
+_flr_fret_calibration_parameters.beta
+_flr_fret_calibration_parameters.gamma
+_flr_fret_calibration_parameters.delta
+_flr_fret_calibration_parameters.a_b
+1 0.350 2.400 0.1 0.400 1.0 2.0 3.0 0.800
+""")
+        s, = ihm.reader.read(fh)
+        flr, = s.flr_data
+        p1 = flr._collection_flr_fret_calibration_parameters['1']
+        self.assertAlmostEqual(p1.phi_acceptor, 0.350, places=1)
+        self.assertAlmostEqual(p1.alpha, 2.400, places=1)
+        self.assertAlmostEqual(p1.alpha_sd, 0.1, places=1)
+        self.assertAlmostEqual(p1.gg_gr_ratio, 0.4, places=1)
+        self.assertAlmostEqual(p1.beta, 1.0, places=1)
+        self.assertAlmostEqual(p1.gamma, 2.0, places=1)
+        self.assertAlmostEqual(p1.delta, 3.0, places=1)
+        self.assertAlmostEqual(p1.a_b, 0.8, places=1)
+
 
 if __name__ == '__main__':
     unittest.main()
