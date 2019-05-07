@@ -3,6 +3,23 @@
 import string
 import os
 
+class __UnknownValue(object):
+    # Represent the mmCIF 'unknown' special value
+
+    def __str__(self):
+        return '?'
+    __repr__ = __str__
+
+    # Unknown value is a singleton and should only compare equal to itself
+    def __eq__(self, other):
+        return self is other
+    def __lt__(self, other):
+        return False
+    __gt__ = __lt__
+    __le__ = __ge__ = __eq__
+
+_unknown = __UnknownValue()
+
 class _AsymIDs(object):
     """Map indices to multi-character asym (chain) IDs.
        We label the first 26 chains A-Z, then we move to two-letter

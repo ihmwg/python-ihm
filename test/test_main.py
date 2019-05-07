@@ -836,6 +836,18 @@ class Tests(unittest.TestCase):
         r = ihm.location.Repository(doi='foo', root='..')
         s.update_locations_in_repositories([r])
 
+    def test_unknown(self):
+        """Test the 'unknown' special object"""
+        u = ihm.unknown
+        self.assertEqual(str(u), '?')
+        self.assertEqual(repr(u), '?')
+        # Should only be equal to itself
+        self.assertEqual(u, u)
+        self.assertLessEqual(u, u)
+        self.assertGreaterEqual(u, u)
+        self.assertNotEqual(u, '?')
+        self.assertNotEqual(u, None)
+
 
 if __name__ == '__main__':
     unittest.main()
