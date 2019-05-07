@@ -2796,10 +2796,10 @@ _ihm_predicted_contact_restraint.software_id
         cur_probe_descriptor_2 = ihm.flr.ProbeDescriptor(reactive_probe_chem_descriptor=cur_chem_descriptor_probe_2_reactive,
                                                           chromophore_chem_descriptor=cur_chem_descriptor_probe_2_chromophore,
                                                           chromophore_center_atom='CB')
-        cur_probe_1.add_probe_descriptor(cur_probe_descriptor_1)
-        cur_probe_1.add_probe_list_entry(cur_probe_list_1)
-        cur_probe_2.add_probe_descriptor(cur_probe_descriptor_2)
-        cur_probe_2.add_probe_list_entry(cur_probe_list_2)
+        cur_probe_1.probe_descriptor = cur_probe_descriptor_1
+        cur_probe_1.probe_list_entry = cur_probe_list_1
+        cur_probe_2.probe_descriptor = cur_probe_descriptor_2
+        cur_probe_2.probe_list_entry = cur_probe_list_2
 
         ## Modified residue
         ## Chem descriptor ID 4

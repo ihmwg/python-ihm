@@ -16,16 +16,8 @@ class Probe(object):
        :type probe_descriptor: :class:`ProbeDescriptor`
     """
 
-    def __init__(self, probe_list_entry=None,probe_descriptor=None):
+    def __init__(self, probe_list_entry=None, probe_descriptor=None):
         self.probe_list_entry = probe_list_entry
-        self.probe_descriptor = probe_descriptor
-
-    ## Set the probe_list entry of the probe
-    def add_probe_list_entry(self,probe_list_entry):
-        self.probe_list_entry = probe_list_entry
-
-    ## set the probe_descriptor of the probe
-    def add_probe_descriptor(self,probe_descriptor):
         self.probe_descriptor = probe_descriptor
 
     def __eq__(self, other):
@@ -62,12 +54,13 @@ class ProbeList(object):
     """Store the chromophore name, whether there is a reactive probe
        available, the origin of the probe and the type of linkage of the probe.
 
-       :param chromophore_name: The name of the chromophore.
-       :param reactive_probe_flag: Flag to indicate whether a reactive
+       :param str chromophore_name: The name of the chromophore.
+       :param bool reactive_probe_flag: Flag to indicate whether a reactive
               probe is given.
-       :param reactive_probe_name: The name of the reactive probe.
-       :param probe_origin: The origin of the probe (intrinsic or extrinsic).
-       :param probe_link_type: The type of linkage for the probe (covalent
+       :param str reactive_probe_name: The name of the reactive probe.
+       :param str probe_origin: The origin of the probe (intrinsic
+              or extrinsic).
+       :param str probe_link_type: The type of linkage for the probe (covalent
               or ligand).
     """
 
@@ -841,9 +834,7 @@ class FLRData(object):
         self._collection_flr_entity_assembly = {}
         self._collection_flr_sample_condition = {}
         self._collection_flr_sample = {}
-        self._collection_flr_probe_list = {}
         self._collection_flr_sample_probe_details = {}
-        self._collection_flr_probe_descriptor = {}
         self._collection_flr_probe = {}
         self._collection_flr_poly_probe_position = {}
         self._collection_flr_poly_probe_position_modified = {}

@@ -2516,6 +2516,71 @@ _flr_sample.solvent_phase
         self.assertEqual(s1.details, 'Details sample 1')
         self.assertEqual(s1.solvent_phase, 'liquid')
 
+    def test_flr_probe_list_handler(self):
+        """Test FLRProbeListHandler"""
+        fh = StringIO("""
+loop_
+_flr_probe_list.probe_id
+_flr_probe_list.chromophore_name
+_flr_probe_list.reactive_probe_flag
+_flr_probe_list.reactive_probe_name
+_flr_probe_list.probe_origin
+_flr_probe_list.probe_link_type
+1 Donor1 NO . extrinsic covalent
+2 Acceptor2 YES 'Acceptor1 reactive' extrinsic covalent
+""")
+        s, = ihm.reader.read(fh)
+        flr, = s.flr_data
+        self.assertEqual(sorted(flr._collection_flr_probe.keys()),
+                         ['1', '2'])
+        p1 = flr._collection_flr_probe['1'].probe_list_entry
+        self.assertIsInstance(p1, ihm.flr.ProbeList)
+        self.assertEqual(p1.chromophore_name, 'Donor1')
+        self.assertEqual(p1.reactive_probe_flag, False)
+        self.assertEqual(p1.reactive_probe_name, None)
+        self.assertEqual(p1.probe_origin, 'extrinsic')
+        self.assertEqual(p1.probe_link_type, 'covalent')
+        p2 = flr._collection_flr_probe['2'].probe_list_entry
+        self.assertIsInstance(p2, ihm.flr.ProbeList)
+        self.assertEqual(p2.chromophore_name, 'Acceptor2')
+        self.assertEqual(p2.reactive_probe_flag, True)
+        self.assertEqual(p2.reactive_probe_name, 'Acceptor1 reactive')
+        self.assertEqual(p2.probe_origin, 'extrinsic')
+        self.assertEqual(p2.probe_link_type, 'covalent')
+
+    def test_flr_probe_descriptor_handler(self):
+        """Test FLRProbeDescriptorHandler"""
+        fh = StringIO("""
+loop_
+_flr_probe_descriptor.probe_id
+_flr_probe_descriptor.reactive_probe_chem_descriptor_id
+_flr_probe_descriptor.chromophore_chem_descriptor_id
+_flr_probe_descriptor.chromophore_center_atom
+1 . 1 CB
+2 3 2 CB
+""")
+        s, = ihm.reader.read(fh)
+        flr, = s.flr_data
+        self.assertEqual(sorted(flr._collection_flr_probe.keys()),
+                         ['1', '2'])
+        p1 = flr._collection_flr_probe['1'].probe_descriptor
+        self.assertIsInstance(p1, ihm.flr.ProbeDescriptor)
+        self.assertEqual(p1.reactive_probe_chem_descriptor, None)
+        self.assertIsInstance(p1.chromophore_chem_descriptor,
+                              ihm.ChemDescriptor)
+        self.assertEqual(p1.chromophore_chem_descriptor._id, '1')
+        self.assertEqual(p1.chromophore_center_atom, 'CB')
+
+        p2 = flr._collection_flr_probe['2'].probe_descriptor
+        self.assertIsInstance(p2, ihm.flr.ProbeDescriptor)
+        self.assertIsInstance(p2.reactive_probe_chem_descriptor,
+                              ihm.ChemDescriptor)
+        self.assertEqual(p2.reactive_probe_chem_descriptor._id, '3')
+        self.assertIsInstance(p2.chromophore_chem_descriptor,
+                              ihm.ChemDescriptor)
+        self.assertEqual(p2.chromophore_chem_descriptor._id, '2')
+        self.assertEqual(p2.chromophore_center_atom, 'CB')
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -494,10 +494,6 @@ class SystemReader(object):
         self.flr_samples = IDMapper(None, ihm.flr.Sample,*(None,)*6)
         #: Mapping from ID to :class:`ihm.flr.Experiment` objects
         self.flr_experiments = IDMapper(None, ihm.flr.Experiment)
-        #: Mapping from ID to :class:`ihm.flr.ProbeDescriptor` objects
-        self.flr_probe_descriptors = IDMapper(None, ihm.flr.ProbeDescriptor,*(None,)*3)
-        #: Mapping from ID to :class:`ihm.flr.ProbeList` objects
-        self.flr_probe_lists = IDMapper(None, ihm.flr.ProbeList, *(None,) * 5)
         #: Mapping from ID to :class:`ihm.flr.Probe` objects
         self.flr_probes = IDMapper(None, ihm.flr.Probe)
         #: Mapping from ID to :class:`ihm.flr.PolyProbePosition` objects
@@ -2074,25 +2070,20 @@ class _FLRSampleHandler(Handler):
 class _FLRProbeListHandler(Handler):
     category = '_flr_probe_list'
 
-    def __call__(self, probe_id, chromophore_name, reactive_probe_flag, reactive_probe_name, probe_origin, probe_link_type):
-        ## The probe object does not have a counter part in the dictionary. Therefore, it is handled here and with the probe_descriptor
-        ## create the probe list object
-        cur_probe_list = self.sysr.flr_probe_lists.get_by_id(probe_id)
-        cur_reactive_probe_flag = self.get_bool(reactive_probe_flag)
-        self.copy_if_present(cur_probe_list, locals(),
-                             keys = ('chromophore_name',
-                                     'reactive_probe_flag',
-                                     'reactive_probe_name',
-                                     'probe_origin',
-                                     'probe_link_type'),
-                             mapkeys={'cur_reactive_probe_flag':'reactive_probe_flag'})
-        ## and the probe object
+    def __call__(self, probe_id, chromophore_name, reactive_probe_flag,
+                 reactive_probe_name, probe_origin, probe_link_type):
         cur_probe = self.sysr.flr_probes.get_by_id(probe_id)
-        cur_probe.add_probe_list_entry(cur_probe_list)
+        reactive_probe_flag = self.get_bool(reactive_probe_flag)
+        cur_probe.probe_list_entry = ihm.flr.ProbeList(
+                                chromophore_name=chromophore_name,
+                                reactive_probe_flag=reactive_probe_flag,
+                                reactive_probe_name=reactive_probe_name,
+                                probe_origin=probe_origin,
+                                probe_link_type=probe_link_type)
 
-        self.sysr.flr_data.get_by_id(1)._collection_flr_probe_list[probe_id] = cur_probe_list
-        if probe_id not in self.sysr.flr_data.get_by_id(1)._collection_flr_probe.keys():
-            self.sysr.flr_data.get_by_id(1)._collection_flr_probe[probe_id] = cur_probe
+        d = self.sysr.flr_data.get_by_id(1)
+        d._collection_flr_probe[probe_id] = cur_probe
+
 
 class _FLRSampleProbeDetailsHandler(Handler):
     category = '_flr_sample_probe_details'
@@ -2113,26 +2104,24 @@ class _FLRSampleProbeDetailsHandler(Handler):
                                         'cur_poly_probe_position':'poly_probe_position'})
         self.sysr.flr_data.get_by_id(1)._collection_flr_sample_probe_details[sample_probe_id] = cur_sample_probe_details
 
+
 class _FLRProbeDescriptorHandler(Handler):
     category = '_flr_probe_descriptor'
 
-    def __call__(self, probe_id, reactive_probe_chem_descriptor_id, chromophore_chem_descriptor_id, chromophore_center_atom):
-        ## The probe object does not have a counter part in the dictionary. Therefore, it is handled here and with the probe_list
-        ## create the probe descriptor object
-        cur_probe_descriptor = self.sysr.flr_probe_descriptors.get_by_id(probe_id)
-        reactive_probe_chem_descriptor = self.sysr.chem_descriptors.get_by_id_or_none(reactive_probe_chem_descriptor_id)
-        chromophore_chem_descriptor = self.sysr.chem_descriptors.get_by_id_or_none(chromophore_chem_descriptor_id)
-        self.copy_if_present(cur_probe_descriptor, locals(),
-                             keys = ('reactive_probe_chem_descriptor',
-                                     'chromophore_chem_descriptor',
-                                     'chromophore_center_atom'))
-        ## and the probe object
+    def __call__(self, probe_id, reactive_probe_chem_descriptor_id,
+                 chromophore_chem_descriptor_id, chromophore_center_atom):
+        react_cd = self.sysr.chem_descriptors.get_by_id_or_none(
+                                       reactive_probe_chem_descriptor_id)
+        chrom_cd = self.sysr.chem_descriptors.get_by_id_or_none(
+                                       chromophore_chem_descriptor_id)
         cur_probe = self.sysr.flr_probes.get_by_id(probe_id)
-        cur_probe.add_probe_descriptor(cur_probe_descriptor)
+        cur_probe.probe_descriptor = ihm.flr.ProbeDescriptor(
+                      reactive_probe_chem_descriptor=react_cd,
+                      chromophore_chem_descriptor=chrom_cd,
+                      chromophore_center_atom=chromophore_center_atom)
 
-        self.sysr.flr_data.get_by_id(1)._collection_flr_probe_descriptor[probe_id] = cur_probe_descriptor
-        if probe_id not in self.sysr.flr_data.get_by_id(1)._collection_flr_probe.keys():
-            self.sysr.flr_data.get_by_id(1)._collection_flr_probe[probe_id] = cur_probe
+        d = self.sysr.flr_data.get_by_id(1)
+        d._collection_flr_probe[probe_id] = cur_probe
 
 
 class _FLRPolyProbePositionHandler(Handler):

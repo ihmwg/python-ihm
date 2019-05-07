@@ -15,24 +15,6 @@ class Tests(unittest.TestCase):
         self.assertEqual(p.probe_list_entry, 'foo')
         self.assertEqual(p.probe_descriptor, 'bar')
 
-    def test_Probe_Add_probe_list_entry(self):
-        """ Test adding probe_list_entry after creation of Probe.
-            And test subsequent changing of the value. """
-        p = ihm.flr.Probe()
-        p.add_probe_list_entry('foo')
-        self.assertEqual(p.probe_list_entry,'foo')
-        p.add_probe_list_entry('foo2')
-        self.assertEqual(p.probe_list_entry,'foo2')
-
-    def test_Probe_Add_probe_descriptor(self):
-        """ Test adding probe_descriptor after creation of Probe.
-            And test subsequent changing of the value. """
-        p = ihm.flr.Probe()
-        p.add_probe_descriptor('foo')
-        self.assertEqual(p.probe_descriptor,'foo')
-        p.add_probe_descriptor('foo2')
-        self.assertEqual(p.probe_descriptor,'foo2')
-
     def test_Probe_Eq(self):
         """ Test euqality and inequality of Probe objects """
         p_ref = ihm.flr.Probe(probe_list_entry='foo',probe_descriptor='bar')
