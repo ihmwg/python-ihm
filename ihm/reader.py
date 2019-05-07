@@ -2191,16 +2191,17 @@ class _FLRPolyProbeConjugateHandler(Handler):
 class _FLRFretForsterRadiusHandler(Handler):
     category = '_flr_fret_forster_radius'
 
-    def __call__(self, id, donor_probe_id, acceptor_probe_id, forster_radius, reduced_forster_radius):
-        cur_fret_forster_radius = self.sysr.flr_fret_forster_radius.get_by_id(id)
-        cur_donor_probe = self.sysr.flr_probes.get_by_id(donor_probe_id)
-        cur_acceptor_probe = self.sysr.flr_probes.get_by_id(acceptor_probe_id)
-        self.copy_if_present(cur_fret_forster_radius, locals(),
-                             keys = ('donor_probe', 'acceptor_probe',
-                                     'forster_radius', 'reduced_forster_radius'),
-                             mapkeys = {'cur_donor_probe':'donor_probe',
-                                        'cur_acceptor_probe':'acceptor_probe'})
-        self.sysr.flr_data.get_by_id(1)._collection_flr_fret_forster_radius[id] = cur_fret_forster_radius
+    def __call__(self, id, donor_probe_id, acceptor_probe_id, forster_radius,
+                 reduced_forster_radius):
+        ffr = self.sysr.flr_fret_forster_radius.get_by_id(id)
+        ffr.donor_probe = self.sysr.flr_probes.get_by_id(donor_probe_id)
+        ffr.acceptor_probe = self.sysr.flr_probes.get_by_id(acceptor_probe_id)
+        ffr.forster_radius = self.get_float(forster_radius)
+        ffr.reduced_forster_radius = self.get_float(reduced_forster_radius)
+
+        d = self.sysr.flr_data.get_by_id(1)
+        d._collection_flr_fret_forster_radius[id] = ffr
+
 
 class _FLRFretCalibrationParametersHandler(Handler):
     category = '_flr_fret_calibration_parameters'

@@ -2726,6 +2726,33 @@ _flr_poly_probe_conjugate.probe_stoichiometry
         self.assertEqual(p2.ambiguous_stoichiometry, True)
         self.assertAlmostEqual(p2.probe_stoichiometry, 2.0, places=0)
 
+    def test_flr_fret_forster_radius_handler(self):
+        """Test FLRFretForsterRadiusHandler"""
+        fh = StringIO("""
+loop_
+_flr_fret_forster_radius.id
+_flr_fret_forster_radius.donor_probe_id
+_flr_fret_forster_radius.acceptor_probe_id
+_flr_fret_forster_radius.forster_radius
+_flr_fret_forster_radius.reduced_forster_radius
+1 9 10 252.000 53.200
+2 11 12 52.000 .
+""")
+        s, = ihm.reader.read(fh)
+        flr, = s.flr_data
+        self.assertEqual(sorted(flr._collection_flr_fret_forster_radius.keys()),
+                         ['1', '2'])
+        r1 = flr._collection_flr_fret_forster_radius['1']
+        self.assertIsInstance(r1.donor_probe, ihm.flr.Probe)
+        self.assertEqual(r1.donor_probe._id, '9')
+        self.assertIsInstance(r1.acceptor_probe, ihm.flr.Probe)
+        self.assertEqual(r1.acceptor_probe._id, '10')
+        self.assertAlmostEqual(r1.forster_radius, 252.000, places=1)
+        self.assertAlmostEqual(r1.reduced_forster_radius, 53.200, places=1)
+
+        r2 = flr._collection_flr_fret_forster_radius['2']
+        self.assertEqual(r2.reduced_forster_radius, None)
+
 
 if __name__ == '__main__':
     unittest.main()

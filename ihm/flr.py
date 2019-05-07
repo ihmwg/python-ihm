@@ -449,8 +449,8 @@ class FRETForsterRadius(object):
        :type donor_probe: :class:`Probe`
        :param acceptor_probe: The acceptor probe.
        :type acceptor_probe: :class:`Probe`
-       :param forster_radius: The Forster radius between the two probes.
-       :param reduced_forster_radius: The reduced Forster radius between
+       :param float forster_radius: The Forster radius between the two probes.
+       :param float reduced_forster_radius: The reduced Forster radius between
               the two probes.
     """
 
