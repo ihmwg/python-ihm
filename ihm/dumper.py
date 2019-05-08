@@ -1232,7 +1232,8 @@ class _ModelDumper(Dumper):
                 rngcheck = _RangeChecker(model)
                 for atom in model.get_atoms():
                     rngcheck(atom)
-                    comp = atom.asym_unit.entity.sequence[atom.seq_id-1]
+                    seq_id = 1 if atom.seq_id is None else atom.seq_id
+                    comp = atom.asym_unit.entity.sequence[seq_id-1]
                     seen_types[atom.type_symbol] = None
                     l.write(id=ordinal,
                             type_symbol=atom.type_symbol,
