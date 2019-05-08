@@ -891,9 +891,12 @@ _ihm_external_files.details
         l = ihm.location.PDBLocation('1abc', '1.0', 'other details')
         ds2 = ihm.dataset.PDBDataset(l)
         system.orphan_datasets.append(ds2)
+        ds3 = ihm.dataset.PDBDataset(l, details='other dataset details')
+        system.orphan_datasets.append(ds3)
         dump.finalize(system) # Assign IDs
         self.assertEqual(ds1._id, 1)
         self.assertEqual(ds2._id, 1)
+        self.assertEqual(ds3._id, 1)
         self.assertEqual(len(dump._dataset_by_id), 1)
 
     def test_dataset_dumper_duplicates_samedata_sameloc(self):
@@ -999,7 +1002,7 @@ _ihm_external_files.details
         system.orphan_dataset_groups.append(group2)
 
         l = ihm.location.PDBLocation('1abc', '1.0', 'test details')
-        ds3 = ihm.dataset.PDBDataset(l)
+        ds3 = ihm.dataset.PDBDataset(l, details='test dataset details')
         system.orphan_datasets.append(ds3)
         ds3.parents.append(ds2)
         # Ignore duplicates
@@ -1013,9 +1016,10 @@ loop_
 _ihm_dataset_list.id
 _ihm_dataset_list.data_type
 _ihm_dataset_list.database_hosted
-1 'CX-MS data' NO
-2 'CX-MS data' NO
-3 'Experimental model' YES
+_ihm_dataset_list.details
+1 'CX-MS data' NO .
+2 'CX-MS data' NO .
+3 'Experimental model' YES 'test dataset details'
 #
 #
 loop_

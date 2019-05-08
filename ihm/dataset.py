@@ -13,6 +13,7 @@ class Dataset(object):
               :class:`~ihm.location.InputFileLocation` if the dataset is stored
               in an external file.
        :type location: :class:`ihm.location.Location`
+       :param str details: Text giving more information about the dataset.
     """
 
     _eq_keys = ['location']
@@ -28,8 +29,8 @@ class Dataset(object):
         return hash(self._eq_vals())
 
     data_type = 'unspecified'
-    def __init__(self, location):
-        self.location = location
+    def __init__(self, location, details=None):
+        self.location, self.details = location, details
 
         #: A list of :class:`Dataset` objects from which this one was derived.
         #: For example, a 3D EM map may be derived from a set of 2D images.

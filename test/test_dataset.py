@@ -17,10 +17,12 @@ class Tests(unittest.TestCase):
         """Test Dataset base class"""
         l = ihm.location.PDBLocation('1abc', version='foo', details='bar')
         d = ihm.dataset.Dataset(l)
+        self.assertEqual(d.details, None)
         self.assertEqual(len(d.parents), 0)
 
         l2 = ihm.location.PDBLocation('1xyz', version='foo', details='bar')
-        d2 = ihm.dataset.Dataset(l2)
+        d2 = ihm.dataset.Dataset(l2, details='foo')
+        self.assertEqual(d2.details, 'foo')
         d.parents.append(d2)
         self.assertEqual(len(d.parents), 1)
         self.assertNotEqual(d, d2)
@@ -166,6 +168,8 @@ class Tests(unittest.TestCase):
             l2 = ihm.location.InputFileLocation(fname, details='other details')
             d2 = ihm.dataset.PDBDataset(l2)
             self.assertEqual(l1, l2)
+            d3 = ihm.dataset.PDBDataset(l2, details='other dataset details')
+            self.assertEqual(d2, d3)
 
     def test_duplicate_locations(self):
         """Datasets with same location should be considered duplicates"""

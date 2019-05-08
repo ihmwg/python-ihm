@@ -1018,10 +1018,11 @@ class _DatasetListHandler(Handler):
                 for x in inspect.getmembers(ihm.dataset, inspect.isclass)
                 if issubclass(x[1], ihm.dataset.Dataset))
 
-    def __call__(self, data_type, id):
+    def __call__(self, data_type, id, details):
         typ = None if data_type is None else data_type.lower()
         f = self.sysr.datasets.get_by_id(id,
                              self.type_map.get(typ, ihm.dataset.Dataset))
+        f.details = details
 
 
 class _DatasetGroupHandler(Handler):

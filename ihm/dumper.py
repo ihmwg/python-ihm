@@ -671,9 +671,10 @@ class _DatasetDumper(Dumper):
 
     def dump(self, system, writer):
         with writer.loop("_ihm_dataset_list",
-                         ["id", "data_type", "database_hosted"]) as l:
+                         ["id", "data_type", "database_hosted",
+                          "details"]) as l:
             for d in self._dataset_by_id:
-                l.write(id=d._id, data_type=d.data_type,
+                l.write(id=d._id, data_type=d.data_type, details=d.details,
                         database_hosted=isinstance(d.location,
                                                    location.DatabaseLocation))
         self.dump_groups(writer)

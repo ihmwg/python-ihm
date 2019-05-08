@@ -719,10 +719,11 @@ loop_
 _ihm_dataset_list.id
 _ihm_dataset_list.data_type
 _ihm_dataset_list.database_hosted
-1 'Experimental model' YES
-2 'COMPARATIVE MODEL' YES
-3 'EM raw micrographs' YES
-4 . YES
+_ihm_dataset_list.details
+1 'Experimental model' YES .
+2 'COMPARATIVE MODEL' YES .
+3 'EM raw micrographs' YES 'test details'
+4 . YES .
 """
         for fh in cif_file_handles(cif):
             s, = ihm.reader.read(fh)
@@ -732,6 +733,8 @@ _ihm_dataset_list.database_hosted
             self.assertEqual(d3.__class__, ihm.dataset.EMMicrographsDataset)
             # No specified data type - use base class
             self.assertEqual(d4.__class__, ihm.dataset.Dataset)
+            self.assertEqual(d1.details, None)
+            self.assertEqual(d3.details, 'test details')
 
     def test_dataset_group_handler(self):
         """Test DatasetGroupHandler"""
