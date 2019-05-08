@@ -1638,7 +1638,7 @@ class _PredictedContactRestraintHandler(Handler):
         return resatom
 
     def __call__(self, id, group_id, dataset_list_id, asym_id_1,
-                 seq_id_1, rep_atom_1, asym_id_2, seq_id_2, rep_atom_2,
+                 seq_id_1, atom_id_1, asym_id_2, seq_id_2, atom_id_2,
                  restraint_type, probability, distance_lower_limit,
                  distance_upper_limit, model_granularity, software_id):
         r = self.sysr.pred_cont_restraints.get_by_id(id)
@@ -1646,8 +1646,8 @@ class _PredictedContactRestraintHandler(Handler):
             rg = self.sysr.pred_cont_restraint_groups.get_by_id(group_id)
             rg.append(r)
         r.dataset = self.sysr.datasets.get_by_id_or_none(dataset_list_id)
-        r.resatom1 = self._get_resatom(asym_id_1, seq_id_1, rep_atom_1)
-        r.resatom2 = self._get_resatom(asym_id_2, seq_id_2, rep_atom_2)
+        r.resatom1 = self._get_resatom(asym_id_1, seq_id_1, atom_id_1)
+        r.resatom2 = self._get_resatom(asym_id_2, seq_id_2, atom_id_2)
         r.distance = _handle_distance[restraint_type](distance_lower_limit,
                                                       distance_upper_limit,
                                                       self.get_float)
