@@ -84,6 +84,11 @@ class IntegrativeModelDataset(Dataset):
     data_type = 'Integrative model'
 
 
+class DeNovoModelDataset(Dataset):
+    """A 3D structure determined by de novo modeling"""
+    data_type = 'De Novo model'
+
+
 class EMDensityDataset(Dataset):
     """A 3D electron microscopy dataset"""
     data_type = '3DEM volume'

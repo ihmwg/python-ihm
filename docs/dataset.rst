@@ -28,6 +28,9 @@ The :mod:`ihm.dataset` Python module
 .. autoclass:: IntegrativeModelDataset
    :members:
 
+.. autoclass:: DeNovoModelDataset
+   :members:
+
 .. autoclass:: EMDensityDataset
    :members:
 

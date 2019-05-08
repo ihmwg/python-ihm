@@ -107,6 +107,12 @@ class Tests(unittest.TestCase):
         d = ihm.dataset.IntegrativeModelDataset(loc)
         self.assertEqual(d.data_type, 'Integrative model')
 
+    def test_de_novo_model_dataset(self):
+        """Test DeNovoModelDataset"""
+        loc = ihm.location.FileLocation(repo='mydoi', path='a')
+        d = ihm.dataset.DeNovoModelDataset(loc)
+        self.assertEqual(d.data_type, 'De Novo model')
+
     def test_em2d_class_dataset(self):
         """Test EM2DClassDataset"""
         loc = ihm.location.FileLocation(repo='mydoi', path='a')

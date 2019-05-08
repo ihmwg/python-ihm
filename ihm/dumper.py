@@ -787,7 +787,8 @@ class _StartingModelDumper(Dumper):
         # Map dataset types to starting model sources
         source_map = {'Comparative model': 'comparative model',
                       'Integrative model': 'integrative model',
-                      'Experimental model': 'experimental model'}
+                      'Experimental model': 'experimental model',
+                      'De Novo model': 'ab initio model'}
         with writer.loop("_ihm_starting_model_details",
                      ["starting_model_id", "entity_id", "entity_description",
                       "asym_id", "seq_id_begin",
