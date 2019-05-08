@@ -12,7 +12,6 @@
 import itertools
 import re
 from .format import CifWriter
-import ihm.util
 import sys
 # Handle different naming of urllib in Python 2/3
 try:
@@ -23,9 +22,25 @@ import json
 
 __version__ = '0.7'
 
+class __UnknownValue(object):
+    # Represent the mmCIF 'unknown' special value
+
+    def __str__(self):
+        return '?'
+    __repr__ = __str__
+
+    # Unknown value is a singleton and should only compare equal to itself
+    def __eq__(self, other):
+        return self is other
+    def __lt__(self, other):
+        return False
+    __gt__ = __lt__
+    __le__ = __ge__ = __eq__
+
+
 #: A value that isn't known. Note that this is distinct from a value that
 #: is deliberately omitted, which is represented by Python None.
-unknown = ihm.util._unknown
+unknown = __UnknownValue()
 
 def _remove_identical(gen):
     """Return only unique objects from `gen`.
