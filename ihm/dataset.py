@@ -102,6 +102,16 @@ class DeNovoModelDataset(Dataset):
     data_type = 'De Novo model'
 
 
+class NMRDataset(Dataset):
+    """A nuclear magnetic resonance (NMR) dataset"""
+    data_type = 'NMR data'
+
+
+class MutagenesisDataset(Dataset):
+    """Mutagenesis data"""
+    data_type = 'Mutagenesis data'
+
+
 class EMDensityDataset(Dataset):
     """A 3D electron microscopy dataset"""
     data_type = '3DEM volume'
