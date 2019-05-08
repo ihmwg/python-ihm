@@ -1001,6 +1001,10 @@ _ihm_external_files.details
         # Ignore duplicates
         ds3.parents.append(ds2)
 
+        # Dataset with no location
+        ds4 = ihm.dataset.PDBDataset(None)
+        system.orphan_datasets.append(ds4)
+
         d = ihm.dumper._DatasetDumper()
         d.finalize(system) # Assign IDs
         out = _get_dumper_output(d, system)
@@ -1012,6 +1016,7 @@ _ihm_dataset_list.database_hosted
 1 'CX-MS data' NO
 2 'CX-MS data' NO
 3 'Experimental model' YES
+4 'Experimental model' NO
 #
 #
 loop_

@@ -688,7 +688,8 @@ class _DatasetDumper(Dumper):
                                                    location.DatabaseLocation))
         self.dump_groups(writer)
         self.dump_other((d for d in self._dataset_by_id
-                         if not isinstance(d.location,
+                         if d.location is not None
+                         and not isinstance(d.location,
                                            location.DatabaseLocation)),
                         writer)
         self.dump_rel_dbs((d for d in self._dataset_by_id
