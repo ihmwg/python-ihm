@@ -1432,7 +1432,8 @@ class _SASRestraintHandler(Handler):
         r.segment = self.get_bool(profile_segment_flag)
         self.copy_if_present(r, locals(),
                 keys=('fitting_atom_type', 'fitting_method', 'details'))
-        fs = fitting_state if fitting_state is not None else 'Single'
+        fs = (fitting_state if fitting_state not in (None, ihm.unknown)
+                            else 'Single')
         r.multi_state = fs.lower() != 'single'
         r.radius_of_gyration = self.get_float(radius_of_gyration)
         r.number_of_gaussians = self.get_int(number_of_gaussians)
