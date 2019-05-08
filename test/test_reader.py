@@ -531,11 +531,13 @@ B 1 Nup85
             s, = ihm.reader.read(fh)
             a1, a2 = s.asym_units
             self.assertEqual(a1._id, 'A')
+            self.assertEqual(a1.id, 'A')
             self.assertEqual(a1.entity._id, '1')
 
             self.assertEqual(a1.details, 'Nup84')
             self.assertEqual(a2.entity._id, '1')
             self.assertEqual(a2._id, 'B')
+            self.assertEqual(a2.id, 'B')
             self.assertEqual(a2.details, 'Nup85')
             self.assertEqual(id(a1.entity), id(a2.entity))
 

@@ -840,6 +840,8 @@ class _StructAsymHandler(Handler):
 
     def __call__(self, id, entity_id, details):
         s = self.sysr.asym_units.get_by_id(id)
+        # Keep this ID (like a user-assigned ID); don't reassign it on output
+        s.id = id
         s.entity = self.sysr.entities.get_by_id(entity_id)
         self.copy_if_present(s, locals(), keys=('details',))
 
