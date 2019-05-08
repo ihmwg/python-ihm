@@ -1158,7 +1158,8 @@ _ihm_model_representation_details.model_object_count
         s2 = ihm.startmodel.Template(dataset=dstemplate, asym_id='D',
                              seq_id_range=(-5,2), # 5,12 in IHM numbering
                              template_seq_id_range=(201,210),
-                             sequence_identity=40.,
+                             sequence_identity
+                                    =ihm.startmodel.SequenceIdentity(40., None),
                              alignment_file=ali)
 
         sm = TestStartingModel(asym(1,15), dstarget, 'A', [s1, s2], offset=10,
@@ -1231,7 +1232,7 @@ _ihm_starting_comparative_models.template_sequence_identity_denominator
 _ihm_starting_comparative_models.template_dataset_list_id
 _ihm_starting_comparative_models.alignment_file_id
 1 1 A 1 10 C 101 110 30.000 1 101 .
-2 1 A 5 12 D 201 210 40.000 1 101 5
+2 1 A 5 12 D 201 210 40.000 . 101 5
 #
 #
 loop_

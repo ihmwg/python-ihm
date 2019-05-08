@@ -860,6 +860,7 @@ class _StartingModelDumper(Dumper):
             for sm in system._all_starting_models():
                 off = sm.offset
                 for template in sm.templates:
+                    denom = template.sequence_identity.denominator
                     l.write(id=ordinal,
                       starting_model_id=sm._id,
                       starting_model_auth_asym_id=sm.asym_id,
@@ -871,7 +872,7 @@ class _StartingModelDumper(Dumper):
                       template_sequence_identity=
                                   float(template.sequence_identity),
                       template_sequence_identity_denominator=
-                                  int(template.sequence_identity.denominator),
+                                  None if denom is None else int(denom),
                       template_dataset_list_id=template.dataset._id
                                                if template.dataset else None,
                       alignment_file_id=template.alignment_file._id
