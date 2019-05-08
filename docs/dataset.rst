@@ -31,6 +31,12 @@ The :mod:`ihm.dataset` Python module
 .. autoclass:: DeNovoModelDataset
    :members:
 
+.. autoclass:: NMRDataset
+   :members:
+
+.. autoclass:: MutagenesisDataset
+   :members:
+
 .. autoclass:: EMDensityDataset
    :members:
 

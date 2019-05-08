@@ -113,6 +113,18 @@ class Tests(unittest.TestCase):
         d = ihm.dataset.DeNovoModelDataset(loc)
         self.assertEqual(d.data_type, 'De Novo model')
 
+    def test_nmr_dataset(self):
+        """Test NMRDataset"""
+        loc = ihm.location.FileLocation(repo='mydoi', path='a')
+        d = ihm.dataset.NMRDataset(loc)
+        self.assertEqual(d.data_type, 'NMR data')
+
+    def test_mutagenesis_dataset(self):
+        """Test MutagenesisDataset"""
+        loc = ihm.location.FileLocation(repo='mydoi', path='a')
+        d = ihm.dataset.MutagenesisDataset(loc)
+        self.assertEqual(d.data_type, 'Mutagenesis data')
+
     def test_em2d_class_dataset(self):
         """Test EM2DClassDataset"""
         loc = ihm.location.FileLocation(repo='mydoi', path='a')
