@@ -313,6 +313,42 @@ _entity_poly_seq.hetero
                 self.assertEqual(s[4].type, 'L-peptide linking')
                 self.assertEqual(s[4].__class__, ihm.LPeptideChemComp)
 
+    def test_entity_poly_handler(self):
+        """Test EntityPolyHandler"""
+        fh = StringIO("""
+loop_
+_entity_poly_seq.entity_id
+_entity_poly_seq.num
+_entity_poly_seq.mon_id
+_entity_poly_seq.hetero
+1 1 OCS .
+1 2 MET .
+1 3 ACE .
+2 1 MET .
+#
+loop_
+_entity_poly.entity_id
+_entity_poly.type
+_entity_poly.pdbx_seq_one_letter_code
+_entity_poly.pdbx_seq_one_letter_code_can
+1 'polypeptide(L)'
+;(OCS)
+M
+;
+SM
+""")
+        s, = ihm.reader.read(fh)
+        e1, e2 = s.entities
+        c1, c2, c3 = e1.sequence
+        self.assertEqual(c1.id, 'OCS')
+        # Missing information should be filled in from entity_poly
+        self.assertEqual(c1.code, 'OCS')
+        self.assertEqual(c1.code_canonical, 'S')
+        # No info in entity_poly for this component
+        self.assertEqual(c3.id, 'ACE')
+        self.assertEqual(c3.code, None)
+        self.assertEqual(c3.code_canonical, None)
+
     def test_chem_comp_nonpoly_handler(self):
         """Test ChemCompHandler and EntityNonPolyHandler"""
         chem_comp_cat = """

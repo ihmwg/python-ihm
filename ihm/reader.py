@@ -827,6 +827,56 @@ class _EntityPolySeqHandler(Handler):
         s.sequence[seq_id-1] = self.sysr.chem_comps.get_by_id(mon_id)
 
 
+class _EntityPolyHandler(Handler):
+    category = '_entity_poly'
+
+    def __init__(self, *args):
+        super(_EntityPolyHandler, self).__init__(*args)
+        self._entity_info = {}
+
+    def _get_codes(self, codestr):
+        """Convert a one-letter-code string into a sequence of individual
+           codes"""
+        i = 0
+        while i < len(codestr):
+            # Strip out linebreaks
+            if codestr[i] == '\n':
+                pass
+            elif codestr[i] == '(':
+                end = codestr.index(')', i)
+                yield codestr[i+1:end]
+                i = end
+            else:
+                yield codestr[i]
+            i += 1
+
+    def __call__(self, entity_id, type, pdbx_seq_one_letter_code,
+                 pdbx_seq_one_letter_code_can):
+        class EntityInfo(object):
+            pass
+        e = EntityInfo()
+        e.one_letter = tuple(self._get_codes(pdbx_seq_one_letter_code))
+        e.one_letter_can = tuple(self._get_codes(pdbx_seq_one_letter_code_can))
+        e.sequence_type = type
+        self._entity_info[entity_id] = e
+
+    def finalize(self):
+        for e in self.system.entities:
+            ei = self._entity_info.get(e._id, None)
+            if ei is None:
+                continue
+            # Fill in missing information (one-letter codes) for nonstandard
+            # residues
+            # todo: also add info for residues that aren't in entity_poly_seq
+            # at all
+            for i, comp in enumerate(e.sequence):
+                if comp.code is None and i < len(ei.one_letter):
+                    comp.code = ei.one_letter[i]
+                if (comp.code_canonical is None
+                    and i < len(ei.one_letter_can)):
+                    comp.code_canonical = ei.one_letter_can[i]
+
+
 class _EntityNonPolyHandler(Handler):
     category = '_pdbx_entity_nonpoly'
 
@@ -2553,7 +2603,7 @@ def read(fh, model_class=ihm.model.Model, format='mmCIF', handlers=[],
               _CitationAuthorHandler(s), _ChemCompHandler(s),
               _ChemDescriptorHandler(s), _EntityHandler(s),
               _EntitySrcNatHandler(s), _EntitySrcGenHandler(s),
-              _EntitySrcSynHandler(s),
+              _EntitySrcSynHandler(s), _EntityPolyHandler(s),
               _EntityPolySeqHandler(s), _EntityNonPolyHandler(s),
               _StructAsymHandler(s), _AssemblyDetailsHandler(s),
               _AssemblyHandler(s), _ExtRefHandler(s), _ExtFileHandler(s),
