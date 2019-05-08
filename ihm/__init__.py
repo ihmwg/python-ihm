@@ -23,6 +23,13 @@ import json
 
 __version__ = '0.6'
 
+# For compatibility with master branch
+class __UnknownValue(object):
+    def __str__(self):
+        return '?'
+    __repr__ = __str__
+
+
 #: A value that isn't known. Note that this is distinct from a value that
 #: is deliberately omitted, which is represented by Python None.
 unknown = ihm.util._unknown
