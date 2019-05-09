@@ -1,3 +1,5 @@
+# coding=utf-8
+
 """Classes to handle fluorescence data.
    The classes roughly correspond to categories in the
    `FLR dictionary <https://github.com/ihmwg/FLR-dictionary/>`_.
@@ -342,7 +344,7 @@ class FRETAnalysis(object):
        :param sample_probe_2: The combination of sample and probe for the
               second probe.
        :type sample_probe_2: :class:`SampleProbeDetails`
-       :param forster_radius: The Forster radius object for this FRET analysis.
+       :param forster_radius: The Förster radius object for this FRET analysis.
        :type forster_radius: :class:`FRETForsterRadius`.
        :param calibration_parameters: The calibration parameters used for
               this analysis.
@@ -443,14 +445,14 @@ class FRETDistanceRestraint(object):
 
 
 class FRETForsterRadius(object):
-    """The FRET Forster radius between two probes.
+    """The FRET Förster radius between two probes.
 
        :param donor_probe: The donor probe.
        :type donor_probe: :class:`Probe`
        :param acceptor_probe: The acceptor probe.
        :type acceptor_probe: :class:`Probe`
-       :param float forster_radius: The Forster radius between the two probes.
-       :param float reduced_forster_radius: The reduced Forster radius between
+       :param float forster_radius: The Förster radius between the two probes.
+       :param float reduced_forster_radius: The reduced Förster radius between
               the two probes.
     """
 
@@ -628,7 +630,7 @@ class FPSGlobalParameters(object):
 
        *For a description of the parameters, see also the FPS manual.*
 
-       :param forster_radius: The Forster radius used in the FPS program.
+       :param forster_radius: The Förster radius used in the FPS program.
        :param conversion_function_polynom_order: Order of the polynom for
               the conversion function between Rmp and <RDA>E.
        :param repetition: The number of repetitions.
