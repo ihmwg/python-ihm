@@ -502,8 +502,8 @@ class PeakAssignment(object):
     """The method of peak assignment in case of multiple peaks,
         e.g. by population.
 
-        :param method_name:
-        :param details: The details of the peak assignment procedure.
+        :param str method_name: The method used for peak assignment.
+        :param str details: The details of the peak assignment procedure.
     """
     def __init__(self, method_name, details=None):
         self.method_name = method_name

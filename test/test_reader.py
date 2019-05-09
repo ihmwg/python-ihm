@@ -2918,6 +2918,21 @@ _flr_fret_analysis.software_id
         self.assertIsInstance(a.software, ihm.Software)
         self.assertEqual(a.software._id, '99')
 
+    def test_flr_peak_assignment_handler(self):
+        """Test FLRPeakAssignmentHandler"""
+        fh = StringIO("""
+loop_
+_flr_peak_assignment.id
+_flr_peak_assignment.method_name
+_flr_peak_assignment.details
+1 Population 'Test details'
+""")
+        s, = ihm.reader.read(fh)
+        flr, = s.flr_data
+        a = flr._collection_flr_peak_assignment['1']
+        self.assertEqual(a.method_name, 'Population')
+        self.assertEqual(a.details, 'Test details')
+
 
 if __name__ == '__main__':
     unittest.main()

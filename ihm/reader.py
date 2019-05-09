@@ -2317,11 +2317,14 @@ class _FLRFretAnalysisHandler(Handler):
 
 class _FLRPeakAssignmentHandler(Handler):
     category = '_flr_peak_assignment'
+
     def __call__(self, id, method_name, details):
-        cur_peak_assignment = self.sysr.flr_peak_assignments.get_by_id(id)
-        self.copy_if_present(cur_peak_assignment, locals(),
-                             keys = ('method_name','details'))
-        self.sysr.flr_data.get_by_id(1)._collection_flr_peak_assignment[id] = cur_peak_assignment
+        p = self.sysr.flr_peak_assignments.get_by_id(id)
+        self.copy_if_present(p, locals(), keys=('method_name', 'details'))
+
+        d = self.sysr.flr_data.get_by_id(1)
+        d._collection_flr_peak_assignment[id] = p
+
 
 class _FLRFretDistanceRestraintHandler(Handler):
     category = '_flr_fret_distance_restraint'
