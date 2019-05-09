@@ -2328,34 +2328,36 @@ class _FLRPeakAssignmentHandler(Handler):
 
 class _FLRFretDistanceRestraintHandler(Handler):
     category = '_flr_fret_distance_restraint'
-    def __call__(self, ordinal_id, id, group_id, sample_probe_id_1, sample_probe_id_2, state_id, analysis_id,
-                 distance, distance_error_plus, distance_error_minus, distance_type, population_fraction,
-                 peak_assignment_id):
-        cur_fret_distance_restraint = self.sysr.flr_fret_distance_restraints.get_by_id(id)
-        cur_sample_probe_1 = self.sysr.flr_sample_probe_details.get_by_id(sample_probe_id_1)
-        cur_sample_probe_2 = self.sysr.flr_sample_probe_details.get_by_id(sample_probe_id_2)
-        cur_state = self.sysr.states.get_by_id_or_none(state_id)
-        cur_analysis = self.sysr.flr_fret_analyses.get_by_id(analysis_id)
-        cur_peak_assignment = self.sysr.flr_peak_assignments.get_by_id(peak_assignment_id)
-        self.copy_if_present(cur_fret_distance_restraint, locals(),
-                             keys = ('sample_probe_1', 'sample_probe_2', 'analysis',
-                                     'distance', 'distance_error_plus', 'distance_error_minus',
-                                     'distance_type', 'state','population_fraction','peak_assignment'),
-                             mapkeys = {'cur_sample_probe_1':'sample_probe_1',
-                                        'cur_sample_probe_2':'sample_probe_2',
-                                        'cur_state':'state',
-                                        'cur_analysis':'analysis',
-                                        'cur_peak_assignment':'peak_assignment'})
+    def __call__(self, ordinal_id, id, group_id, sample_probe_id_1,
+                 sample_probe_id_2, state_id, analysis_id, distance,
+                 distance_error_plus, distance_error_minus, distance_type,
+                 population_fraction, peak_assignment_id):
+        r = self.sysr.flr_fret_distance_restraints.get_by_id(id)
+        r.sample_probe_1 = self.sysr.flr_sample_probe_details.get_by_id(
+                                                        sample_probe_id_1)
+        r.sample_probe_2 = self.sysr.flr_sample_probe_details.get_by_id(
+                                                        sample_probe_id_2)
+        r.state = self.sysr.states.get_by_id_or_none(state_id)
+        r.analysis = self.sysr.flr_fret_analyses.get_by_id(analysis_id)
+        r.peak_assignment = self.sysr.flr_peak_assignments.get_by_id(
+                                                    peak_assignment_id)
+        r.distance = self.get_float(distance)
+        r.distance_error_plus = self.get_float(distance_error_plus)
+        r.distance_error_minus = self.get_float(distance_error_minus)
+        r.distance_type = distance_type
+        r.population_fraction = self.get_float(population_fraction)
 
-        ## also create the fret_distance_restraint_group
-        cur_fret_distance_restraint_group = self.sysr.flr_fret_distance_restraint_groups.get_by_id_or_none(group_id)
-        cur_fret_distance_restraint_group.add_distance_restraint(cur_fret_distance_restraint)
-        ## add it to the flr_data if it is not there yet
-        cur_flr_data = self.sysr.flr_data.get_by_id(1)
-        if cur_fret_distance_restraint_group not in cur_flr_data.distance_restraint_group_list:
-            cur_flr_data.add_distance_restraint_group(cur_fret_distance_restraint_group)
-        cur_flr_data._collection_flr_fret_distance_restraint[id] = cur_fret_distance_restraint
-        cur_flr_data._collection_flr_fret_distance_restraint_group[group_id] = cur_fret_distance_restraint_group
+        # also create the fret_distance_restraint_group
+        rg = self.sysr.flr_fret_distance_restraint_groups.get_by_id(group_id)
+        rg.add_distance_restraint(r)
+
+        # add it to the flr_data if it is not there yet
+        d = self.sysr.flr_data.get_by_id(1)
+        if rg not in d.distance_restraint_group_list:
+            d.add_distance_restraint_group(rg)
+        d._collection_flr_fret_distance_restraint[id] = r
+        d._collection_flr_fret_distance_restraint_group[group_id] = rg
+
 
 class _FLRFretModelQualityHandler(Handler):
     category = '_flr_fret_model_quality'

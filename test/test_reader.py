@@ -2933,6 +2933,55 @@ _flr_peak_assignment.details
         self.assertEqual(a.method_name, 'Population')
         self.assertEqual(a.details, 'Test details')
 
+    def test_flr_fret_distance_restraint_handler(self):
+        """Test FLRFretDistanceRestraintHandler"""
+        fh = StringIO("""
+loop_
+_flr_fret_distance_restraint.ordinal_id
+_flr_fret_distance_restraint.id
+_flr_fret_distance_restraint.group_id
+_flr_fret_distance_restraint.sample_probe_id_1
+_flr_fret_distance_restraint.sample_probe_id_2
+_flr_fret_distance_restraint.state_id
+_flr_fret_distance_restraint.analysis_id
+_flr_fret_distance_restraint.distance
+_flr_fret_distance_restraint.distance_error_plus
+_flr_fret_distance_restraint.distance_error_minus
+_flr_fret_distance_restraint.distance_type
+_flr_fret_distance_restraint.population_fraction
+_flr_fret_distance_restraint.peak_assignment_id
+1 1 1 1 2 9 19 53.500 2.500 2.300 <R_DA>_E 0.800 42
+2 2 1 3 4 8 18 49.000 2.000 2.100 <R_DA>_E 0.800 42
+""")
+        s, = ihm.reader.read(fh)
+        flr, = s.flr_data
+        self.assertEqual(sorted(
+                      flr._collection_flr_fret_distance_restraint_group.keys()),
+                         ['1'])
+        self.assertEqual(sorted(
+                      flr._collection_flr_fret_distance_restraint.keys()),
+                         ['1', '2'])
+        r1 = flr._collection_flr_fret_distance_restraint['1']
+        self.assertIsInstance(r1.sample_probe_1, ihm.flr.SampleProbeDetails)
+        self.assertEqual(r1.sample_probe_1._id, '1')
+        self.assertIsInstance(r1.sample_probe_2, ihm.flr.SampleProbeDetails)
+        self.assertEqual(r1.sample_probe_2._id, '2')
+        self.assertIsInstance(r1.state, ihm.model.State)
+        self.assertEqual(r1.state._id, '9')
+        self.assertIsInstance(r1.analysis, ihm.flr.FRETAnalysis)
+        self.assertEqual(r1.analysis._id, '19')
+        self.assertAlmostEqual(r1.distance, 53.500, places=1)
+        self.assertAlmostEqual(r1.distance_error_plus, 2.500, places=1)
+        self.assertAlmostEqual(r1.distance_error_minus, 2.300, places=1)
+        self.assertEqual(r1.distance_type, "<R_DA>_E")
+        self.assertAlmostEqual(r1.population_fraction, 0.800, places=1)
+        self.assertIsInstance(r1.peak_assignment, ihm.flr.PeakAssignment)
+        self.assertEqual(r1.peak_assignment._id, '42')
+
+        r2 = flr._collection_flr_fret_distance_restraint['2']
+        rg1 = flr._collection_flr_fret_distance_restraint_group['1']
+        self.assertEqual(rg1.distance_restraint_list, [r1, r2])
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -408,26 +408,27 @@ class FRETDistanceRestraint(object):
        :param analysis: The FRET analysis from which the distance
               restraint originated.
        :type analysis: :class:`FRETAnalysis`
-       :param distance: The distance of the restraint.
-       :param distance_error_plus: The (absolute, e.g. in Angstrom) error
+       :param float distance: The distance of the restraint.
+       :param float distance_error_plus: The (absolute, e.g. in Angstrom) error
               in the upper direction, such that
               ``upper boundary = distance + distance_error_plus``.
-       :param distance_error_minus: The (absolute, e.g. in Angstrom) error
+       :param float distance_error_minus: The (absolute, e.g. in Angstrom) error
               in the lower direction, such that
               ``lower boundary = distance + distance_error_minus``.
-       :param distance_type: The type of distance (<R_DA>, <R_DA>_E, or R_mp).
+       :param str distance_type: The type of distance (<R_DA>, <R_DA>_E,
+              or R_mp).
        :param state: The state the distance restraints is connected to.
               Important for multi-state models.
        :type state: :class:`ihm.model.State`
-       :param population_fraction: The population fraction of the state
+       :param float population_fraction: The population fraction of the state
               in case of multi-state models.
        :param peak_assignment: The method how a peak was assigned.
        :type peak_assignment: :class:`PeakAssignment`
     """
 
     def __init__(self, sample_probe_1, sample_probe_2, analysis, distance,
-                 distance_error_plus=0, distance_error_minus=0,
-                 distance_type=None, state=None, population_fraction=0,
+                 distance_error_plus=0., distance_error_minus=0.,
+                 distance_type=None, state=None, population_fraction=0.,
                  peak_assignment=None):
         self.sample_probe_1 = sample_probe_1
         self.sample_probe_2 = sample_probe_2
