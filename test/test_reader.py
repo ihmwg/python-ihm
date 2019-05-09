@@ -2878,6 +2878,46 @@ _flr_fret_calibration_parameters.a_b
         self.assertAlmostEqual(p1.delta, 3.0, places=1)
         self.assertAlmostEqual(p1.a_b, 0.8, places=1)
 
+    def test_flr_fret_analysis_handler(self):
+        """Test FLRFretAnalysisHandler"""
+        fh = StringIO("""
+loop_
+_flr_fret_analysis.id
+_flr_fret_analysis.experiment_id
+_flr_fret_analysis.sample_probe_id_1
+_flr_fret_analysis.sample_probe_id_2
+_flr_fret_analysis.forster_radius_id
+_flr_fret_analysis.calibration_parameters_id
+_flr_fret_analysis.method_name
+_flr_fret_analysis.chi_square_reduced
+_flr_fret_analysis.dataset_list_id
+_flr_fret_analysis.external_file_id
+_flr_fret_analysis.software_id
+1 8 9 2 11 12 PDA 1.500 18 42 99
+""")
+        s, = ihm.reader.read(fh)
+        flr, = s.flr_data
+        a = flr._collection_flr_fret_analysis['1']
+        self.assertIsInstance(a.experiment, ihm.flr.Experiment)
+        self.assertEqual(a.experiment._id, '8')
+        self.assertIsInstance(a.sample_probe_1, ihm.flr.SampleProbeDetails)
+        self.assertEqual(a.sample_probe_1._id, '9')
+        self.assertIsInstance(a.sample_probe_2, ihm.flr.SampleProbeDetails)
+        self.assertEqual(a.sample_probe_2._id, '2')
+        self.assertIsInstance(a.forster_radius, ihm.flr.FRETForsterRadius)
+        self.assertEqual(a.forster_radius._id, '11')
+        self.assertIsInstance(a.calibration_parameters,
+                              ihm.flr.FRETCalibrationParameters)
+        self.assertEqual(a.calibration_parameters._id, '12')
+        self.assertEqual(a.method_name, 'PDA')
+        self.assertAlmostEqual(a.chi_square_reduced, 1.500, places=1)
+        self.assertIsInstance(a.dataset, ihm.dataset.Dataset)
+        self.assertEqual(a.dataset._id, '18')
+        self.assertIsInstance(a.external_file, ihm.location.Location)
+        self.assertEqual(a.external_file._id, '42')
+        self.assertIsInstance(a.software, ihm.Software)
+        self.assertEqual(a.software._id, '99')
+
 
 if __name__ == '__main__':
     unittest.main()

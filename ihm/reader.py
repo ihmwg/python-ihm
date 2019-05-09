@@ -2289,32 +2289,31 @@ class _FLRFretCalibrationParametersHandler(Handler):
 class _FLRFretAnalysisHandler(Handler):
     category = '_flr_fret_analysis'
 
-    def __call__(self, id, experiment_id, sample_probe_id_1, sample_probe_id_2, forster_radius_id,
-                 calibration_parameters_id, method_name, chi_square_reduced, dataset_list_id, external_file_id,
+    def __call__(self, id, experiment_id, sample_probe_id_1, sample_probe_id_2,
+                 forster_radius_id, calibration_parameters_id, method_name,
+                 chi_square_reduced, dataset_list_id, external_file_id,
                  software_id):
-        cur_fret_analysis = self.sysr.flr_fret_analyses.get_by_id(id)
-        cur_experiment = self.sysr.flr_experiments.get_by_id(experiment_id)
-        cur_sample_probe_1 = self.sysr.flr_sample_probe_details.get_by_id(sample_probe_id_1)
-        cur_sample_probe_2 = self.sysr.flr_sample_probe_details.get_by_id(sample_probe_id_2)
-        cur_forster_radius = self.sysr.flr_fret_forster_radius.get_by_id(forster_radius_id)
-        cur_calibration_parameters = self.sysr.flr_fret_calibration_parameters.get_by_id(calibration_parameters_id)
-        cur_dataset_list_id = self.sysr.datasets.get_by_id(dataset_list_id)
-        cur_external_file = self.sysr.external_files.get_by_id_or_none(external_file_id)
-        cur_software = self.sysr.software.get_by_id_or_none(software_id)
-        self.copy_if_present(cur_fret_analysis, locals(),
-                             keys = ('experiment', 'sample_probe_1','sample_probe_2',
-                                     'forster_radius', 'calibration_parameters',
-                                     'method_name', 'chi_square_reduced',
-                                     'dataset_list_id', 'external_file', 'software'),
-                             mapkeys = {'cur_experiment':'experiment',
-                                        'cur_sample_probe_1':'sample_probe_1',
-                                        'cur_sample_probe_2':'sample_probe_2',
-                                        'cur_forster_radius':'forster_radius',
-                                        'cur_calibration_parameters':'calibration_parameters',
-                                        'cur_dataset_list_id':'dataset_list_id',
-                                        'cur_external_file':'external_file',
-                                        'cur_software':'software'})
-        self.sysr.flr_data.get_by_id(1)._collection_flr_fret_analysis[id] = cur_fret_analysis
+        f = self.sysr.flr_fret_analyses.get_by_id(id)
+        f.experiment = self.sysr.flr_experiments.get_by_id(experiment_id)
+        f.sample_probe_1 = self.sysr.flr_sample_probe_details.get_by_id(
+                                                         sample_probe_id_1)
+        f.sample_probe_2 = self.sysr.flr_sample_probe_details.get_by_id(
+                                                         sample_probe_id_2)
+        f.forster_radius = self.sysr.flr_fret_forster_radius.get_by_id(
+                                                         forster_radius_id)
+        f.calibration_parameters \
+                = self.sysr.flr_fret_calibration_parameters.get_by_id(
+                                                calibration_parameters_id)
+        f.dataset = self.sysr.datasets.get_by_id(dataset_list_id)
+        f.external_file = self.sysr.external_files.get_by_id_or_none(
+                                                 external_file_id)
+        f.software = self.sysr.software.get_by_id_or_none(software_id)
+        f.method_name = method_name
+        f.chi_square_reduced = self.get_float(chi_square_reduced)
+
+        d = self.sysr.flr_data.get_by_id(1)
+        d._collection_flr_fret_analysis[id] = f
+
 
 class _FLRPeakAssignmentHandler(Handler):
     category = '_flr_peak_assignment'

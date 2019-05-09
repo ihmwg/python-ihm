@@ -349,8 +349,8 @@ class FRETAnalysis(object):
        :param calibration_parameters: The calibration parameters used for
               this analysis.
        :type calibration_parameters: :class:`FRETCalibrationParameters`
-       :param method_name: The method used for the analysis.
-       :param chi_square_reduced: The chi-square reduced as a quality
+       :param str method_name: The method used for the analysis.
+       :param float chi_square_reduced: The chi-square reduced as a quality
               measure for the fit.
        :param dataset: The dataset used.
        :type dataset: :class:`ihm.dataset.Dataset`
