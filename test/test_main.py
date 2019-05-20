@@ -831,6 +831,8 @@ class Tests(unittest.TestCase):
         self.assertGreaterEqual(u, u)
         self.assertNotEqual(u, '?')
         self.assertNotEqual(u, None)
+        self.assertFalse(u < u)
+        self.assertFalse(u > u)
 
 
 if __name__ == '__main__':
