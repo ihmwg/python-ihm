@@ -17,6 +17,10 @@ if not hasattr(unittest.TestCase, 'assertIn'):
     def assertIsInstance(self, obj, cls, msg=None):
         return self.assertTrue(isinstance(obj, cls),
                         msg or '%s is not an instance of %s' % (obj, cls))
+    def assertLess(self, a, b, msg=None):
+        return self.assertTrue(a < b, msg or '%s not less than %s' % (a, b))
+    def assertGreater(self, a, b, msg=None):
+        return self.assertTrue(a > b, msg or '%s not greater than %s' % (a, b))
     def assertLessEqual(self, a, b, msg=None):
         return self.assertTrue(a <= b,
                         msg or '%s not less than or equal to %s' % (a, b))
@@ -26,6 +30,8 @@ if not hasattr(unittest.TestCase, 'assertIn'):
     unittest.TestCase.assertIn = assertIn
     unittest.TestCase.assertNotIn = assertNotIn
     unittest.TestCase.assertIsInstance = assertIsInstance
+    unittest.TestCase.assertLess = assertLess
+    unittest.TestCase.assertGreater = assertGreater
     unittest.TestCase.assertLessEqual = assertLessEqual
     unittest.TestCase.assertGreaterEqual = assertGreaterEqual
 
