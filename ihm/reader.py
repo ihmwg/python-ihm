@@ -2362,19 +2362,20 @@ class _FLRFretDistanceRestraintHandler(Handler):
 class _FLRFretModelQualityHandler(Handler):
     category = '_flr_fret_model_quality'
 
-    def __call__(self, model_id, chi_square_reduced, dataset_group_id, method, details):
-        cur_fret_model_quality = self.sysr.flr_fret_model_qualities.get_by_id(model_id)
-        cur_dataset_group = self.sysr.dataset_groups.get_by_id(dataset_group_id)
-        self.copy_if_present(cur_fret_model_quality, locals(),
-                             keys = ('model_id', 'chi_square_reduced','dataset_group_id',
-                                     'method','details'),
-                             mapkeys = {'cur_dataset_group':'dataset_group_id'})
+    def __call__(self, model_id, chi_square_reduced, dataset_group_id,
+                 method, details):
+        q = self.sysr.flr_fret_model_qualities.get_by_id(model_id)
+        q.model = self.sysr.models.get_by_id(model_id)
+        q.chi_square_reduced = self.get_float(chi_square_reduced)
+        q.dataset_group = self.sysr.dataset_groups.get_by_id(dataset_group_id)
+        self.copy_if_present(q, locals(), keys=('method', 'details'))
 
-        ## add it to the flr_data if it is not there yet
-        cur_flr_data = self.sysr.flr_data.get_by_id(1)
-        if cur_fret_model_quality not in cur_flr_data.fret_model_quality_list:
-            cur_flr_data.add_fret_model_quality(cur_fret_model_quality)
-        cur_flr_data._collection_flr_fret_model_quality[model_id] = cur_fret_model_quality
+        # add it to the flr_data if it is not there yet
+        d = self.sysr.flr_data.get_by_id(1)
+        if q not in d.fret_model_quality_list:
+            d.add_fret_model_quality(q)
+        d._collection_flr_fret_model_quality[model_id] = q
+
 
 class _FLRFretModelDistanceHandler(Handler):
     category = '_flr_fret_model_distance'
