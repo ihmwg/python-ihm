@@ -2402,45 +2402,38 @@ class _FLRFretModelDistanceHandler(Handler):
 class _FLRFPSGlobalParameterHandler(Handler):
     category = '_flr_fps_global_parameter'
 
-    def __call__(self, id, forster_radius_value, conversion_function_polynom_order, repetition,
-                 av_grid_rel, av_min_grid_a, av_allowed_sphere, av_search_nodes, av_e_samples_k,
-                 sim_viscosity_adjustment, sim_dt_adjustment, sim_max_iter_k, sim_max_force,
+    def __call__(self, id, forster_radius_value,
+                 conversion_function_polynom_order, repetition,
+                 av_grid_rel, av_min_grid_a, av_allowed_sphere,
+                 av_search_nodes, av_e_samples_k, sim_viscosity_adjustment,
+                 sim_dt_adjustment, sim_max_iter_k, sim_max_force,
                  sim_clash_tolerance_a, sim_reciprocal_kt, sim_clash_potential,
                  convergence_e, convergence_k, convergence_f, convergence_t):
-        cur_fps_global_parameters = self.sysr.flr_fps_global_parameters.get_by_id(id)
-        self.copy_if_present(cur_fps_global_parameters, locals(),
-                             keys = ('forster_radius',
-                                     'conversion_function_polynom_order',
-                                     'repetition',
-                                     'av_grid_rel',
-                                     'av_min_grid_a',
-                                     'av_allowed_sphere',
-                                     'av_search_nodes',
-                                     'av_e_samples_k',
-                                     'sim_viscosity_adjustment',
-                                     'sim_dt_adjustment',
-                                     'sim_max_iter_k',
-                                     'sim_max_force',
-                                     'sim_clash_tolerance_a',
-                                     'sim_reciprocal_kt',
-                                     'sim_clash_potential',
-                                     'convergence_e',
-                                     'convergence_k',
-                                     'convergence_f',
-                                     'convergence_t'),
-                             mapkeys = {'forster_radius_value':'forster_radius',
-                                        'av_grid_rel':'AV_grid_rel',
-                                        'av_min_grid_a':'AV_min_grid_A',
-                                        'av_allowed_sphere':'AV_allowed_sphere',
-                                        'av_search_nodes':'AV_search_nodes',
-                                        'av_e_samples_k':'AV_E_samples_k',
-                                        'sim_clash_tolerance_a':'sim_clash_tolerance_A',
-                                        'sim_reciprocal_kt':'sim_reciprocal_kT',
-                                        'convergence_e':'convergence_E',
-                                        'convergence_k':'convergence_K',
-                                        'convergence_f':'convergence_F',
-                                        'convergence_t':'convergence_T'})
-        self.sysr.flr_data.get_by_id(1)._collection_flr_fps_global_parameters[id] = cur_fps_global_parameters
+        p = self.sysr.flr_fps_global_parameters.get_by_id(id)
+        p.forster_radius = self.get_float(forster_radius_value)
+        p.conversion_function_polynom_order = self.get_int(
+                                conversion_function_polynom_order)
+        p.repetition = self.get_int(repetition)
+        p.av_grid_rel = self.get_float(av_grid_rel)
+        p.av_min_grid_a = self.get_float(av_min_grid_a)
+        p.av_allowed_sphere = self.get_float(av_allowed_sphere)
+        p.av_search_nodes = self.get_int(av_search_nodes)
+        p.av_e_samples_k = self.get_float(av_e_samples_k)
+        p.sim_viscosity_adjustment = self.get_float(sim_viscosity_adjustment)
+        p.sim_dt_adjustment = self.get_float(sim_dt_adjustment)
+        p.sim_max_iter_k = self.get_float(sim_max_iter_k)
+        p.sim_max_force = self.get_float(sim_max_force)
+        p.sim_clash_tolerance_a = self.get_float(sim_clash_tolerance_a)
+        p.sim_reciprocal_kt = self.get_float(sim_reciprocal_kt)
+        p.sim_clash_potential = sim_clash_potential
+        p.convergence_e = self.get_float(convergence_e)
+        p.convergence_k = self.get_float(convergence_k)
+        p.convergence_f = self.get_float(convergence_f)
+        p.convergence_t = self.get_float(convergence_t)
+
+        d = self.sysr.flr_data.get_by_id(1)
+        d._collection_flr_fps_global_parameters[id] = p
+
 
 class _FLRFPSModelingHandler(Handler):
     category = '_flr_fps_modeling'

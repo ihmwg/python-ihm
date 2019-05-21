@@ -3029,6 +3029,58 @@ _flr_fret_model_distance.distance_deviation
         self.assertAlmostEqual(d1.distance, 52.000, places=1)
         self.assertAlmostEqual(d1.distance_deviation, 1.500, places=1)
 
+    def test_flr_fps_global_parameter_handler(self):
+        """Test FLRFPSGlobalParameterHandler"""
+        fh = StringIO("""
+loop_
+_flr_FPS_global_parameter.id
+_flr_FPS_global_parameter.forster_radius_value
+_flr_FPS_global_parameter.conversion_function_polynom_order
+_flr_FPS_global_parameter.repetition
+_flr_FPS_global_parameter.AV_grid_rel
+_flr_FPS_global_parameter.AV_min_grid_A
+_flr_FPS_global_parameter.AV_allowed_sphere
+_flr_FPS_global_parameter.AV_search_nodes
+_flr_FPS_global_parameter.AV_E_samples_k
+_flr_FPS_global_parameter.sim_viscosity_adjustment
+_flr_FPS_global_parameter.sim_dt_adjustment
+_flr_FPS_global_parameter.sim_max_iter_k
+_flr_FPS_global_parameter.sim_max_force
+_flr_FPS_global_parameter.sim_clash_tolerance_A
+_flr_FPS_global_parameter.sim_reciprocal_kT
+_flr_FPS_global_parameter.sim_clash_potential
+_flr_FPS_global_parameter.convergence_E
+_flr_FPS_global_parameter.convergence_K
+_flr_FPS_global_parameter.convergence_F
+_flr_FPS_global_parameter.convergence_T
+1 52 3 1000 0.200 0.400 0.500 3 200 1 1 200 400 1 10 ^2 100 0.001 0.001 0.002
+""")
+        s, = ihm.reader.read(fh)
+        flr, = s.flr_data
+        self.assertEqual(sorted(
+                           flr._collection_flr_fps_global_parameters.keys()),
+                         ['1'])
+        p1 = flr._collection_flr_fps_global_parameters['1']
+        self.assertAlmostEqual(p1.forster_radius, 52.000, places=1)
+        self.assertEqual(p1.conversion_function_polynom_order, 3)
+        self.assertEqual(p1.repetition, 1000)
+        self.assertAlmostEqual(p1.av_grid_rel, 0.200, places=1)
+        self.assertAlmostEqual(p1.av_min_grid_a, 0.400, places=1)
+        self.assertAlmostEqual(p1.av_allowed_sphere, 0.500, places=1)
+        self.assertEqual(p1.av_search_nodes, 3)
+        self.assertAlmostEqual(p1.av_e_samples_k, 200, places=1)
+        self.assertAlmostEqual(p1.sim_viscosity_adjustment, 1, places=1)
+        self.assertAlmostEqual(p1.sim_dt_adjustment, 1, places=1)
+        self.assertEqual(p1.sim_max_iter_k, 200)
+        self.assertAlmostEqual(p1.sim_max_force, 400, places=1)
+        self.assertAlmostEqual(p1.sim_clash_tolerance_a, 1, places=1)
+        self.assertAlmostEqual(p1.sim_reciprocal_kt, 10, places=1)
+        self.assertEqual(p1.sim_clash_potential, "^2")
+        self.assertAlmostEqual(p1.convergence_e, 100, places=1)
+        self.assertAlmostEqual(p1.convergence_k, 0.001, places=3)
+        self.assertAlmostEqual(p1.convergence_f, 0.001, places=3)
+        self.assertAlmostEqual(p1.convergence_t, 0.002, places=3)
+
 
 if __name__ == '__main__':
     unittest.main()

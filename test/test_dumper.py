@@ -2978,15 +2978,18 @@ _ihm_predicted_contact_restraint.software_id
 
         ## FPS modeling
         cur_FPS_modeling_collection = ihm.flr.ModelingCollection()
-        cur_FPS_global_parameters = ihm.flr.FPSGlobalParameters(forster_radius=52,conversion_function_polynom_order=3,
-                                                                  repetition=1000, AV_grid_rel=0.2, AV_min_grid_A=0.4,
-                                                                  AV_allowed_sphere=0.5, AV_search_nodes=3,
-                                                                  AV_E_samples_k=200, sim_viscosity_adjustment= 1,
-                                                                  sim_dt_adjustment=1, sim_max_iter_k= 200,
-                                                                  sim_max_force= 400, sim_clash_tolerance_A=1,
-                                                                  sim_reciprocal_kT=10, sim_clash_potential='^2',
-                                                                  convergence_E=100, convergence_K=0.001,
-                                                                  convergence_F=0.001, convergence_T=0.002)
+        cur_FPS_global_parameters = ihm.flr.FPSGlobalParameters(
+                             forster_radius=52,
+                             conversion_function_polynom_order=3,
+                             repetition=1000, av_grid_rel=0.2,
+                             av_min_grid_a=0.4, av_allowed_sphere=0.5,
+                             av_search_nodes=3, av_e_samples_k=200,
+                             sim_viscosity_adjustment=1,
+                             sim_dt_adjustment=1, sim_max_iter_k=200,
+                             sim_max_force=400, sim_clash_tolerance_a=1,
+                             sim_reciprocal_kt=10, sim_clash_potential='^2',
+                             convergence_e=100, convergence_k=0.001,
+                             convergence_f=0.001, convergence_t=0.002)
 
         cur_FPS_modeling_1 = ihm.flr.FPSModeling(protocol=cur_ihm_modeling_protocol,
                                                   restraint_group=cur_fret_distance_restraint_group,

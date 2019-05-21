@@ -750,113 +750,114 @@ class Tests(unittest.TestCase):
     def test_fps_global_parameters_init(self):
         """ Test initialization of FPSGlobalParameters. """
         f = ihm.flr.FPSGlobalParameters(
-                forster_radius = 'this_forster_radius',
-                conversion_function_polynom_order = 'this_conversion_function_polynom_order',
-                repetition = 'this_repetition',
-                AV_grid_rel = 'this_AV_grid_rel',
-                AV_min_grid_A = 'this_AV_min_grid_A',
-                AV_allowed_sphere = 'this_AV_allowed_sphere',
-                AV_search_nodes = 'this_AV_search_nodes',
-                AV_E_samples_k = 'this_AV_E_samples_k',
-                sim_viscosity_adjustment = 'this_sim_viscosity_adjustment',
-                sim_dt_adjustment = 'this_sim_dt_adjustment',
-                sim_max_iter_k = 'this_sim_max_iter_k',
-                sim_max_force = 'this_sim_max_force',
-                sim_clash_tolerance_A = 'this_sim_clash_tolerance_A',
-                sim_reciprocal_kT = 'this_sim_reciprocal_kT',
-                sim_clash_potential = 'this_sim_clash_potential',
-                convergence_E = 'this_convergence_E',
-                convergence_K = 'this_convergence_K',
-                convergence_F = 'this_convergence_F',
-                convergence_T = 'this_convergence_T',
-                optimized_distances = 'this_optimized_distances')
+                forster_radius='this_forster_radius',
+                conversion_function_polynom_order='this_cfpo',
+                repetition='this_repetition',
+                av_grid_rel='this_AV_grid_rel',
+                av_min_grid_a='this_AV_min_grid_A',
+                av_allowed_sphere='this_AV_allowed_sphere',
+                av_search_nodes='this_AV_search_nodes',
+                av_e_samples_k='this_AV_E_samples_k',
+                sim_viscosity_adjustment='this_sim_viscosity_adjustment',
+                sim_dt_adjustment='this_sim_dt_adjustment',
+                sim_max_iter_k='this_sim_max_iter_k',
+                sim_max_force='this_sim_max_force',
+                sim_clash_tolerance_a='this_sim_clash_tolerance_A',
+                sim_reciprocal_kt='this_sim_reciprocal_kT',
+                sim_clash_potential='this_sim_clash_potential',
+                convergence_e='this_convergence_E',
+                convergence_k='this_convergence_K',
+                convergence_f='this_convergence_F',
+                convergence_t='this_convergence_T',
+                optimized_distances='this_optimized_distances')
 
         self.assertEqual(f.forster_radius, 'this_forster_radius')
-        self.assertEqual(f.conversion_function_polynom_order, 'this_conversion_function_polynom_order')
+        self.assertEqual(f.conversion_function_polynom_order, 'this_cfpo')
         self.assertEqual(f.repetition, 'this_repetition')
-        self.assertEqual(f.AV_grid_rel, 'this_AV_grid_rel')
-        self.assertEqual(f.AV_min_grid_A, 'this_AV_min_grid_A')
-        self.assertEqual(f.AV_allowed_sphere, 'this_AV_allowed_sphere')
-        self.assertEqual(f.AV_search_nodes, 'this_AV_search_nodes')
-        self.assertEqual(f.AV_E_samples_k, 'this_AV_E_samples_k')
-        self.assertEqual(f.sim_viscosity_adjustment, 'this_sim_viscosity_adjustment')
+        self.assertEqual(f.av_grid_rel, 'this_AV_grid_rel')
+        self.assertEqual(f.av_min_grid_a, 'this_AV_min_grid_A')
+        self.assertEqual(f.av_allowed_sphere, 'this_AV_allowed_sphere')
+        self.assertEqual(f.av_search_nodes, 'this_AV_search_nodes')
+        self.assertEqual(f.av_e_samples_k, 'this_AV_E_samples_k')
+        self.assertEqual(f.sim_viscosity_adjustment,
+                         'this_sim_viscosity_adjustment')
         self.assertEqual(f.sim_dt_adjustment, 'this_sim_dt_adjustment')
         self.assertEqual(f.sim_max_iter_k, 'this_sim_max_iter_k')
         self.assertEqual(f.sim_max_force, 'this_sim_max_force')
-        self.assertEqual(f.sim_clash_tolerance_A,'this_sim_clash_tolerance_A')
-        self.assertEqual(f.sim_reciprocal_kT, 'this_sim_reciprocal_kT')
+        self.assertEqual(f.sim_clash_tolerance_a,'this_sim_clash_tolerance_A')
+        self.assertEqual(f.sim_reciprocal_kt, 'this_sim_reciprocal_kT')
         self.assertEqual(f.sim_clash_potential,'this_sim_clash_potential')
-        self.assertEqual(f.convergence_E, 'this_convergence_E')
-        self.assertEqual(f.convergence_K, 'this_convergence_K')
-        self.assertEqual(f.convergence_F, 'this_convergence_F')
-        self.assertEqual(f.convergence_T, 'this_convergence_T')
+        self.assertEqual(f.convergence_e, 'this_convergence_E')
+        self.assertEqual(f.convergence_k, 'this_convergence_K')
+        self.assertEqual(f.convergence_f, 'this_convergence_F')
+        self.assertEqual(f.convergence_t, 'this_convergence_T')
         self.assertEqual(f.optimized_distances, 'this_optimized_distances')
 
     def test_fps_global_parameters_eq(self):
         """ Test equality and inequality of FPSGlobalParameters objects. """
         f_ref = ihm.flr.FPSGlobalParameters(
-                forster_radius = 'this_forster_radius',
-                conversion_function_polynom_order = 'this_conversion_function_polynom_order',
-                repetition = 'this_repetition',
-                AV_grid_rel = 'this_AV_grid_rel',
-                AV_min_grid_A = 'this_AV_min_grid_A',
-                AV_allowed_sphere = 'this_AV_allowed_sphere',
-                AV_search_nodes = 'this_AV_search_nodes',
-                AV_E_samples_k = 'this_AV_E_samples_k',
-                sim_viscosity_adjustment = 'this_sim_viscosity_adjustment',
-                sim_dt_adjustment = 'this_sim_dt_adjustment',
-                sim_max_iter_k = 'this_sim_max_iter_k',
-                sim_max_force = 'this_sim_max_force',
-                sim_clash_tolerance_A = 'this_sim_clash_tolerance_A',
-                sim_reciprocal_kT = 'this_sim_reciprocal_kT',
-                sim_clash_potential = 'this_sim_clash_potential',
-                convergence_E = 'this_convergence_E',
-                convergence_K = 'this_convergence_K',
-                convergence_F = 'this_convergence_F',
-                convergence_T = 'this_convergence_T',
-                optimized_distances = 'this_optimized_distances')
+                forster_radius='this_forster_radius',
+                conversion_function_polynom_order='this_cfpo',
+                repetition='this_repetition',
+                av_grid_rel='this_AV_grid_rel',
+                av_min_grid_a='this_AV_min_grid_A',
+                av_allowed_sphere='this_AV_allowed_sphere',
+                av_search_nodes='this_AV_search_nodes',
+                av_e_samples_k='this_AV_E_samples_k',
+                sim_viscosity_adjustment='this_sim_viscosity_adjustment',
+                sim_dt_adjustment='this_sim_dt_adjustment',
+                sim_max_iter_k='this_sim_max_iter_k',
+                sim_max_force='this_sim_max_force',
+                sim_clash_tolerance_a='this_sim_clash_tolerance_A',
+                sim_reciprocal_kt='this_sim_reciprocal_kT',
+                sim_clash_potential='this_sim_clash_potential',
+                convergence_e='this_convergence_E',
+                convergence_k='this_convergence_K',
+                convergence_f='this_convergence_F',
+                convergence_t='this_convergence_T',
+                optimized_distances='this_optimized_distances')
         f_equal = ihm.flr.FPSGlobalParameters(
-                forster_radius = 'this_forster_radius',
-                conversion_function_polynom_order = 'this_conversion_function_polynom_order',
-                repetition = 'this_repetition',
-                AV_grid_rel = 'this_AV_grid_rel',
-                AV_min_grid_A = 'this_AV_min_grid_A',
-                AV_allowed_sphere = 'this_AV_allowed_sphere',
-                AV_search_nodes = 'this_AV_search_nodes',
-                AV_E_samples_k = 'this_AV_E_samples_k',
-                sim_viscosity_adjustment = 'this_sim_viscosity_adjustment',
-                sim_dt_adjustment = 'this_sim_dt_adjustment',
-                sim_max_iter_k = 'this_sim_max_iter_k',
-                sim_max_force = 'this_sim_max_force',
-                sim_clash_tolerance_A = 'this_sim_clash_tolerance_A',
-                sim_reciprocal_kT = 'this_sim_reciprocal_kT',
-                sim_clash_potential = 'this_sim_clash_potential',
-                convergence_E = 'this_convergence_E',
-                convergence_K = 'this_convergence_K',
-                convergence_F = 'this_convergence_F',
-                convergence_T = 'this_convergence_T',
-                optimized_distances = 'this_optimized_distances')
+                forster_radius='this_forster_radius',
+                conversion_function_polynom_order='this_cfpo',
+                repetition='this_repetition',
+                av_grid_rel='this_AV_grid_rel',
+                av_min_grid_a='this_AV_min_grid_A',
+                av_allowed_sphere='this_AV_allowed_sphere',
+                av_search_nodes='this_AV_search_nodes',
+                av_e_samples_k='this_AV_E_samples_k',
+                sim_viscosity_adjustment='this_sim_viscosity_adjustment',
+                sim_dt_adjustment='this_sim_dt_adjustment',
+                sim_max_iter_k='this_sim_max_iter_k',
+                sim_max_force='this_sim_max_force',
+                sim_clash_tolerance_a='this_sim_clash_tolerance_A',
+                sim_reciprocal_kt='this_sim_reciprocal_kT',
+                sim_clash_potential='this_sim_clash_potential',
+                convergence_e='this_convergence_E',
+                convergence_k='this_convergence_K',
+                convergence_f='this_convergence_F',
+                convergence_t='this_convergence_T',
+                optimized_distances='this_optimized_distances')
         f_unequal = ihm.flr.FPSGlobalParameters(
-                forster_radius = 'foo',
-                conversion_function_polynom_order = 'this_conversion_function_polynom_order',
-                repetition = 'this_repetition',
-                AV_grid_rel = 'this_AV_grid_rel',
-                AV_min_grid_A = 'this_AV_min_grid_A',
-                AV_allowed_sphere = 'this_AV_allowed_sphere',
-                AV_search_nodes = 'this_AV_search_nodes',
-                AV_E_samples_k = 'this_AV_E_samples_k',
-                sim_viscosity_adjustment = 'this_sim_viscosity_adjustment',
-                sim_dt_adjustment = 'this_sim_dt_adjustment',
-                sim_max_iter_k = 'this_sim_max_iter_k',
-                sim_max_force = 'this_sim_max_force',
-                sim_clash_tolerance_A = 'this_sim_clash_tolerance_A',
-                sim_reciprocal_kT = 'this_sim_reciprocal_kT',
-                sim_clash_potential = 'this_sim_clash_potential',
-                convergence_E = 'this_convergence_E',
-                convergence_K = 'this_convergence_K',
-                convergence_F = 'this_convergence_F',
-                convergence_T = 'this_convergence_T',
-                optimized_distances = 'this_optimized_distances')
+                forster_radius='foo',
+                conversion_function_polynom_order='this_cfpo',
+                repetition='this_repetition',
+                av_grid_rel='this_AV_grid_rel',
+                av_min_grid_a='this_AV_min_grid_A',
+                av_allowed_sphere='this_AV_allowed_sphere',
+                av_search_nodes='this_AV_search_nodes',
+                av_e_samples_k='this_AV_E_samples_k',
+                sim_viscosity_adjustment='this_sim_viscosity_adjustment',
+                sim_dt_adjustment='this_sim_dt_adjustment',
+                sim_max_iter_k='this_sim_max_iter_k',
+                sim_max_force='this_sim_max_force',
+                sim_clash_tolerance_a='this_sim_clash_tolerance_A',
+                sim_reciprocal_kt='this_sim_reciprocal_kT',
+                sim_clash_potential='this_sim_clash_potential',
+                convergence_e='this_convergence_E',
+                convergence_k='this_convergence_K',
+                convergence_f='this_convergence_F',
+                convergence_t='this_convergence_T',
+                optimized_distances='this_optimized_distances')
         self.assertTrue(f_ref == f_equal)
         self.assertFalse(f_ref == f_unequal)
         self.assertTrue(f_ref != f_unequal)

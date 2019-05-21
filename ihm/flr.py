@@ -631,60 +631,60 @@ class FPSGlobalParameters(object):
 
        *For a description of the parameters, see also the FPS manual.*
 
-       :param forster_radius: The Förster radius used in the FPS program.
-       :param conversion_function_polynom_order: Order of the polynom for
+       :param float forster_radius: The Förster radius used in the FPS program.
+       :param int conversion_function_polynom_order: Order of the polynom for
               the conversion function between Rmp and <RDA>E.
-       :param repetition: The number of repetitions.
-       :param AV_grid_rel: The AV grid spacing relative to the smallest
+       :param int repetition: The number of repetitions.
+       :param float av_grid_rel: The AV grid spacing relative to the smallest
               dye or linker dimension.
-       :param AV_min_grid_A: The minimal AV grid spacing in Angstrom.
-       :param AV_allowed_sphere: The allowed sphere radius.
-       :param AV_search_nodes: Number of neighboring positions to be
+       :param float av_min_grid_a: The minimal AV grid spacing in Angstrom.
+       :param float av_allowed_sphere: The allowed sphere radius.
+       :param int av_search_nodes: Number of neighboring positions to be
               scanned for clashes.
-       :param AV_E_samples_k: The number of samples for calculation
+       :param float av_e_samples_k: The number of samples for calculation
               of E (in thousand).
-       :param sim_viscosity_adjustment: Daming rate during docking
+       :param float sim_viscosity_adjustment: Daming rate during docking
               and refinement.
-       :param sim_dt_adjustment: Time step during simulation.
-       :param sim_max_iter_k: Maximal number of iterations (in thousand).
-       :param sim_max_force: Maximal force.
-       :param sim_clash_tolerance_A: Clash tolerance in Angstrom.
-       :param sim_reciprocal_kT: reciprocal kT.
-       :param sim_clash_potential: The clash potential.
-       :param convergence_E: Convergence criterion E.
-       :param convergence_K: Convergence criterion K.
-       :param convergence_F: Convergence criterion F.
-       :param convergence_T: Convergence criterion T.
-       :param optimized_distances: Which distances are optimized?
+       :param float sim_dt_adjustment: Time step during simulation.
+       :param float sim_max_iter_k: Maximal number of iterations (in thousand).
+       :param float sim_max_force: Maximal force.
+       :param float sim_clash_tolerance_a: Clash tolerance in Angstrom.
+       :param float sim_reciprocal_kt: reciprocal kT.
+       :param str sim_clash_potential: The clash potential.
+       :param float convergence_e: Convergence criterion E.
+       :param float convergence_k: Convergence criterion K.
+       :param float convergence_f: Convergence criterion F.
+       :param float convergence_t: Convergence criterion T.
+       :param str optimized_distances: Which distances are optimized?
 
     """
     def __init__(self, forster_radius, conversion_function_polynom_order,
-                 repetition, AV_grid_rel, AV_min_grid_A, AV_allowed_sphere,
-                 AV_search_nodes, AV_E_samples_k, sim_viscosity_adjustment,
+                 repetition, av_grid_rel, av_min_grid_a, av_allowed_sphere,
+                 av_search_nodes, av_e_samples_k, sim_viscosity_adjustment,
                  sim_dt_adjustment, sim_max_iter_k, sim_max_force,
-                 sim_clash_tolerance_A, sim_reciprocal_kT, sim_clash_potential,
-                 convergence_E, convergence_K, convergence_F, convergence_T,
+                 sim_clash_tolerance_a, sim_reciprocal_kt, sim_clash_potential,
+                 convergence_e, convergence_k, convergence_f, convergence_t,
                  optimized_distances='All'):
         self.forster_radius = forster_radius
         self.conversion_function_polynom_order \
                 = conversion_function_polynom_order
         self.repetition = repetition
-        self.AV_grid_rel = AV_grid_rel
-        self.AV_min_grid_A = AV_min_grid_A
-        self.AV_allowed_sphere = AV_allowed_sphere
-        self.AV_search_nodes = AV_search_nodes
-        self.AV_E_samples_k = AV_E_samples_k
+        self.av_grid_rel = av_grid_rel
+        self.av_min_grid_a = av_min_grid_a
+        self.av_allowed_sphere = av_allowed_sphere
+        self.av_search_nodes = av_search_nodes
+        self.av_e_samples_k = av_e_samples_k
         self.sim_viscosity_adjustment = sim_viscosity_adjustment
         self.sim_dt_adjustment = sim_dt_adjustment
         self.sim_max_iter_k = sim_max_iter_k
         self.sim_max_force = sim_max_force
-        self.sim_clash_tolerance_A = sim_clash_tolerance_A
-        self.sim_reciprocal_kT = sim_reciprocal_kT
+        self.sim_clash_tolerance_a = sim_clash_tolerance_a
+        self.sim_reciprocal_kt = sim_reciprocal_kt
         self.sim_clash_potential = sim_clash_potential
-        self.convergence_E = convergence_E
-        self.convergence_K = convergence_K
-        self.convergence_F = convergence_F
-        self.convergence_T = convergence_T
+        self.convergence_e = convergence_e
+        self.convergence_k = convergence_k
+        self.convergence_f = convergence_f
+        self.convergence_t = convergence_t
         self.optimized_distances = optimized_distances
 
     def __eq__(self, other):
