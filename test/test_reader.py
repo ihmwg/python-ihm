@@ -3006,6 +3006,29 @@ _flr_fret_model_quality.details
         self.assertEqual(q1.method, 'foo')
         self.assertEqual(q1.details, 'bar')
 
+    def test_flr_fret_model_distance_handler(self):
+        """Test FLRFretModelDistanceHandler"""
+        fh = StringIO("""
+loop_
+_flr_fret_model_distance.id
+_flr_fret_model_distance.restraint_id
+_flr_fret_model_distance.model_id
+_flr_fret_model_distance.distance
+_flr_fret_model_distance.distance_deviation
+1 42 34 52.000 1.500
+""")
+        s, = ihm.reader.read(fh)
+        flr, = s.flr_data
+        self.assertEqual(sorted(flr._collection_flr_fret_model_distance.keys()),
+                         ['1'])
+        d1 = flr._collection_flr_fret_model_distance['1']
+        self.assertIsInstance(d1.restraint, ihm.flr.FRETDistanceRestraint)
+        self.assertEqual(d1.restraint._id, '42')
+        self.assertIsInstance(d1.model, ihm.model.Model)
+        self.assertEqual(d1.model._id, '34')
+        self.assertAlmostEqual(d1.distance, 52.000, places=1)
+        self.assertAlmostEqual(d1.distance_deviation, 1.500, places=1)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -2380,21 +2380,24 @@ class _FLRFretModelQualityHandler(Handler):
 class _FLRFretModelDistanceHandler(Handler):
     category = '_flr_fret_model_distance'
 
-    def __call__(self, id, restraint_id, model_id, distance, distance_deviation):
-        cur_fret_model_distance = self.sysr.flr_fret_model_distances.get_by_id(id)
-        cur_restraint = self.sysr.flr_fret_distance_restraints.get_by_id(restraint_id)
-        cur_model = self.sysr.models.get_by_id(model_id)
-        self.copy_if_present(cur_fret_model_distance, locals(),
-                             keys = ('restraint_id', 'model_id', 'distance', 'distance_deviation'),
-                             mapkeys = {'cur_restraint':'restraint_id',
-                                        'cur_model':'model_id'})
-        cur_fret_model_distance.calculate_deviation()
+    def __call__(self, id, restraint_id, model_id, distance,
+                 distance_deviation):
+        md = self.sysr.flr_fret_model_distances.get_by_id(id)
+        md.restraint = self.sysr.flr_fret_distance_restraints.get_by_id(
+                                                restraint_id)
+        md.model = self.sysr.models.get_by_id(model_id)
+        md.distance = self.get_float(distance)
+        md.distance_deviation = self.get_float(distance_deviation)
+        # todo: this will fail if we haven't read the restraint category
+        # yet (should be in finalize instead)
+        md.calculate_deviation()
 
-        ## add it to the flr_data if it is not there yet
-        cur_flr_data = self.sysr.flr_data.get_by_id(1)
-        if cur_fret_model_distance not in cur_flr_data.fret_model_distance_list:
-            cur_flr_data.add_fret_model_distance(cur_fret_model_distance)
-        cur_flr_data._collection_flr_fret_model_distance[id] = cur_fret_model_distance
+        # add it to the flr_data if it is not there yet
+        d = self.sysr.flr_data.get_by_id(1)
+        if md not in d.fret_model_distance_list:
+            d.add_fret_model_distance(md)
+        d._collection_flr_fret_model_distance[id] = md
+
 
 class _FLRFPSGlobalParameterHandler(Handler):
     category = '_flr_fps_global_parameter'
