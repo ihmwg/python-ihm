@@ -3108,6 +3108,31 @@ _flr_FPS_modeling.details
         self.assertEqual(m1.probe_modeling_method, 'AV3')
         self.assertEqual(m1.details, 'test details')
 
+    def test_flr_fps_av_parameter_handler(self):
+        """Test FLRFPSAVParameterHandler"""
+        fh = StringIO("""
+loop_
+_flr_FPS_AV_parameter.id
+_flr_FPS_AV_parameter.num_linker_atoms
+_flr_FPS_AV_parameter.linker_length
+_flr_FPS_AV_parameter.linker_width
+_flr_FPS_AV_parameter.probe_radius_1
+_flr_FPS_AV_parameter.probe_radius_2
+_flr_FPS_AV_parameter.probe_radius_3
+1 15 20.000 3.500 10.000 5.000 4.000
+""")
+        s, = ihm.reader.read(fh)
+        flr, = s.flr_data
+        self.assertEqual(sorted(flr._collection_flr_fps_av_parameter.keys()),
+                         ['1'])
+        p = flr._collection_flr_fps_av_parameter['1']
+        self.assertEqual(p.num_linker_atoms, 15)
+        self.assertAlmostEqual(p.linker_length, 20.000, places=1)
+        self.assertAlmostEqual(p.linker_width, 3.500, places=1)
+        self.assertAlmostEqual(p.probe_radius_1, 10.000, places=1)
+        self.assertAlmostEqual(p.probe_radius_2, 5.000, places=1)
+        self.assertAlmostEqual(p.probe_radius_3, 4.000, places=1)
+
 
 if __name__ == '__main__':
     unittest.main()

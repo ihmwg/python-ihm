@@ -2459,13 +2459,20 @@ class _FLRFPSModelingHandler(Handler):
 
 class _FLRFPSAVParameterHandler(Handler):
     category = '_flr_fps_av_parameter'
-    def __call__(self, id, num_linker_atoms, linker_length, linker_width, probe_radius_1, probe_radius_2, probe_radius_3):
-        cur_FPS_AV_parameter = self.sysr.flr_fps_av_parameters.get_by_id(id)
-        self.copy_if_present(cur_FPS_AV_parameter, locals(),
-                             keys = ('num_linker_atoms','linker_length',
-                                     'linker_width','probe_radius_1',
-                                     'probe_radius_2','probe_radius_3'))
-        self.sysr.flr_data.get_by_id(1)._collection_flr_fps_av_parameter[id] = cur_FPS_AV_parameter
+
+    def __call__(self, id, num_linker_atoms, linker_length, linker_width,
+                 probe_radius_1, probe_radius_2, probe_radius_3):
+        p = self.sysr.flr_fps_av_parameters.get_by_id(id)
+        p.num_linker_atoms = self.get_int(num_linker_atoms)
+        p.linker_length = self.get_float(linker_length)
+        p.linker_width = self.get_float(linker_width)
+        p.probe_radius_1 = self.get_float(probe_radius_1)
+        p.probe_radius_2 = self.get_float(probe_radius_2)
+        p.probe_radius_3 = self.get_float(probe_radius_3)
+
+        d = self.sysr.flr_data.get_by_id(1)
+        d._collection_flr_fps_av_parameter[id] = p
+
 
 class _FLRFPSAVModelingHandler(Handler):
     category = '_flr_fps_av_modeling'

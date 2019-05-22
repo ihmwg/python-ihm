@@ -720,12 +720,14 @@ class FPSAVModeling(object):
 class FPSAVParameter(object):
     """The AV parameters used for the modeling using FPS.
 
-       :param num_linker_atoms: The number of atoms in the linker.
-       :param linker_length: The length of the linker in Angstrom.
-       :param linker_width: The width of the linker in Angstrom.
-       :param probe_radius_1: The first radius of the probe.
-       :param probe_radius_2: If AV3 is used, the second radius of the probe.
-       :param probe_radius_3: If AV3 is used, the third radius of the probe.
+       :param int num_linker_atoms: The number of atoms in the linker.
+       :param float linker_length: The length of the linker in Angstrom.
+       :param float linker_width: The width of the linker in Angstrom.
+       :param float probe_radius_1: The first radius of the probe.
+       :param float probe_radius_2: If AV3 is used, the second radius
+              of the probe.
+       :param float probe_radius_3: If AV3 is used, the third radius
+              of the probe.
     """
 
     def __init__(self, num_linker_atoms, linker_length, linker_width,
