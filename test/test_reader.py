@@ -3082,6 +3082,32 @@ _flr_FPS_global_parameter.convergence_T
         self.assertAlmostEqual(p1.convergence_f, 0.001, places=3)
         self.assertAlmostEqual(p1.convergence_t, 0.002, places=3)
 
+    def test_flr_fps_modeling_handler(self):
+        """Test FLRFPSModelingHandler"""
+        fh = StringIO("""
+loop_
+_flr_FPS_modeling.id
+_flr_FPS_modeling.ihm_modeling_protocol_ordinal_id
+_flr_FPS_modeling.restraint_group_id
+_flr_FPS_modeling.global_parameter_id
+_flr_FPS_modeling.probe_modeling_method
+_flr_FPS_modeling.details
+1 8 9 10 AV3 "test details"
+""")
+        s, = ihm.reader.read(fh)
+        flr, = s.flr_data
+        self.assertEqual(sorted(flr._collection_flr_fps_modeling.keys()), ['1'])
+        m1 = flr._collection_flr_fps_modeling['1']
+        self.assertIsInstance(m1.protocol, ihm.protocol.Protocol)
+        self.assertEqual(m1.protocol._id, '8')
+        self.assertIsInstance(m1.restraint_group,
+                              ihm.flr.FRETDistanceRestraintGroup)
+        self.assertEqual(m1.restraint_group._id, '9')
+        self.assertIsInstance(m1.global_parameter, ihm.flr.FPSGlobalParameters)
+        self.assertEqual(m1.global_parameter._id, '10')
+        self.assertEqual(m1.probe_modeling_method, 'AV3')
+        self.assertEqual(m1.details, 'test details')
+
 
 if __name__ == '__main__':
     unittest.main()

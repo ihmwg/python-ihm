@@ -608,6 +608,7 @@ class FPSModeling(object):
               step belongs.
        :type protocol: :class:`ihm.protocol.Protocol`
        :param restraint_group: The restraint group used for the modeling.
+       :type restraint_group: :class:`FRETDistanceRestraintGroup`
        :param global_parameter: The global FPS parameters used.
        :type global_parameter: :class:`FPSGlobalParameters`
        :param str probe_modeling_method: either "AV" or "MPP".

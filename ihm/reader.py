@@ -2442,20 +2442,20 @@ class _FLRFPSModelingHandler(Handler):
 
     def __call__(self, id, ihm_modeling_protocol_ordinal_id, restraint_group_id,
                  global_parameter_id, probe_modeling_method, details):
-        cur_FPS_modeling = self.sysr.flr_fps_modeling.get_by_id(id)
-        cur_ihm_model_protocol = self.sysr.protocols.get_by_id(ihm_modeling_protocol_ordinal_id)
-        cur_restraint_group = self.sysr.flr_fret_distance_restraint_groups.get_by_id(restraint_group_id)
-        cur_global_parameter = self.sysr.flr_fps_global_parameters.get_by_id(global_parameter_id)
-        self.copy_if_present(cur_FPS_modeling, locals(),
-                             keys = ('ihm_modeling_protocol_ordinal_id',
-                                     'restraint_group_id',
-                                     'global_parameter_id',
-                                     'probe_modeling_method',
-                                     'details'),
-                             mapkeys = {'cur_ihm_model_protocol':'ihm_modeling_protocol_ordinal_id',
-                                        'cur_restraint_group':'restraint_group_id',
-                                        'cur_global_parameter':'global_parameter_id'})
-        self.sysr.flr_data.get_by_id(1)._collection_flr_fps_modeling[id] = cur_FPS_modeling
+        m = self.sysr.flr_fps_modeling.get_by_id(id)
+        m.protocol = self.sysr.protocols.get_by_id(
+                                         ihm_modeling_protocol_ordinal_id)
+        m.restraint_group = \
+                self.sysr.flr_fret_distance_restraint_groups.get_by_id(
+                                                        restraint_group_id)
+        m.global_parameter = self.sysr.flr_fps_global_parameters.get_by_id(
+                                                        global_parameter_id)
+        self.copy_if_present(m, locals(),
+                             keys=('probe_modeling_method', 'details'))
+
+        d = self.sysr.flr_data.get_by_id(1)
+        d._collection_flr_fps_modeling[id] = m
+
 
 class _FLRFPSAVParameterHandler(Handler):
     category = '_flr_fps_av_parameter'
