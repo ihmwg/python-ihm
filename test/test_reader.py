@@ -386,7 +386,8 @@ _pdbx_entity_nonpoly.comp_id
 
     def test_chem_descriptor_handler(self):
         """Test ChemDescriptorHandler"""
-        for cat in ("ihm_chemical_descriptor", "flr_chemical_descriptor"):
+        for cat in ("ihm_chemical_component_descriptor",
+                    "flr_chemical_descriptor"):
             cif = """
 loop_
 _%(cat)s.id
@@ -2036,7 +2037,7 @@ _ihm_cross_link_list.entity_description_2
 _ihm_cross_link_list.entity_id_2
 _ihm_cross_link_list.seq_id_2
 _ihm_cross_link_list.comp_id_2
-_ihm_cross_link_list.linker_descriptor_id
+_ihm_cross_link_list.linker_chem_comp_descriptor_id
 _ihm_cross_link_list.dataset_list_id
 1 1 foo 1 2 THR foo 1 3 CYS 44 97
 2 2 foo 1 2 THR bar 2 3 PHE 44 97

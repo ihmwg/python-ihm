@@ -468,15 +468,15 @@ THR 'L-peptide linking' THREONINE 'C4 H9 N O3' 119.120
         out = _get_dumper_output(dumper, system)
         self.assertEqual(out, """#
 loop_
-_ihm_chemical_descriptor.id
-_ihm_chemical_descriptor.auth_name
-_ihm_chemical_descriptor.chem_comp_id
-_ihm_chemical_descriptor.chemical_name
-_ihm_chemical_descriptor.common_name
-_ihm_chemical_descriptor.smiles
-_ihm_chemical_descriptor.smiles_canonical
-_ihm_chemical_descriptor.inchi
-_ihm_chemical_descriptor.inchi_key
+_ihm_chemical_component_descriptor.id
+_ihm_chemical_component_descriptor.auth_name
+_ihm_chemical_component_descriptor.chem_comp_id
+_ihm_chemical_component_descriptor.chemical_name
+_ihm_chemical_component_descriptor.common_name
+_ihm_chemical_component_descriptor.smiles
+_ihm_chemical_component_descriptor.smiles_canonical
+_ihm_chemical_component_descriptor.inchi
+_ihm_chemical_component_descriptor.inchi_key
 1 EDC . . . CCN=C=NCCCN(C)C . . LMDZBCPBFSXMTL-UHFFFAOYSA-N
 #
 """)
@@ -2243,7 +2243,7 @@ _ihm_cross_link_list.entity_description_2
 _ihm_cross_link_list.entity_id_2
 _ihm_cross_link_list.seq_id_2
 _ihm_cross_link_list.comp_id_2
-_ihm_cross_link_list.linker_descriptor_id
+_ihm_cross_link_list.linker_chem_comp_descriptor_id
 _ihm_cross_link_list.linker_type
 _ihm_cross_link_list.dataset_list_id
 1 1 foo 1 2 THR foo 1 3 CYS 1 DSS 97

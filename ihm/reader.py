@@ -730,7 +730,7 @@ class _ChemCompHandler(Handler):
 
 
 class _ChemDescriptorHandler(Handler):
-    category = '_ihm_chemical_descriptor'
+    category = '_ihm_chemical_component_descriptor'
 
     def __call__(self, id, auth_name, chem_comp_id, chemical_name, common_name,
                  smiles, smiles_canonical, inchi, inchi_key):
@@ -1884,13 +1884,15 @@ class _CrossLinkListHandler(Handler):
             self._linkers_by_name[name] = ihm.ChemDescriptor(name)
         return self._linkers_by_name[name]
 
-    def __call__(self, dataset_list_id, linker_descriptor_id, group_id, id,
-                 entity_id_1, entity_id_2, seq_id_1, seq_id_2, linker_type):
+    def __call__(self, dataset_list_id, linker_chem_comp_descriptor_id,
+                 group_id, id, entity_id_1, entity_id_2, seq_id_1, seq_id_2,
+                 linker_type):
         dataset = self.sysr.datasets.get_by_id_or_none(dataset_list_id)
-        if linker_descriptor_id is None and linker_type is not None:
+        if linker_chem_comp_descriptor_id is None and linker_type is not None:
             linker = self._get_linker_by_name(linker_type)
         else:
-            linker = self.sysr.chem_descriptors.get_by_id(linker_descriptor_id)
+            linker = self.sysr.chem_descriptors.get_by_id(
+                                      linker_chem_comp_descriptor_id)
         # Group all crosslinks with same dataset and linker in one
         # CrossLinkRestraint object
         r = self.sysr.xl_restraints.get_by_attrs(dataset, linker)

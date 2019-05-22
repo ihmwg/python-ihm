@@ -182,7 +182,7 @@ class _ChemDescriptorDumper(Dumper):
             util._assign_id(d, seen_desc, self._descriptor_by_id)
 
     def dump(self, system, writer):
-        with writer.loop("_ihm_chemical_descriptor",
+        with writer.loop("_ihm_chemical_component_descriptor",
                 ["id", "auth_name", "chem_comp_id", "chemical_name",
                  "common_name", "smiles", "smiles_canonical", "inchi",
                  "inchi_key"]) as l:
@@ -1626,7 +1626,7 @@ class _CrossLinkDumper(Dumper):
                           "entity_id_1", "seq_id_1", "comp_id_1",
                           "entity_description_2",
                           "entity_id_2", "seq_id_2", "comp_id_2",
-                          "linker_descriptor_id", "linker_type",
+                          "linker_chem_comp_descriptor_id", "linker_type",
                           "dataset_list_id"]) as l:
             for r, xl in self._ex_xls_by_id:
                 entity1 = xl.residue1.entity
@@ -1643,6 +1643,7 @@ class _CrossLinkDumper(Dumper):
                         seq_id_2=xl.residue2.seq_id,
                         comp_id_2=seq2[xl.residue2.seq_id-1].id,
                         linker_descriptor_id=r.linker._id,
+                        linker_chem_comp_descriptor_id=r.linker._id,
                         linker_type=r.linker.auth_name,
                         dataset_list_id=r.dataset._id)
 
