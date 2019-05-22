@@ -3217,6 +3217,38 @@ _flr_FPS_MPP_atom_position.group_id
         self.assertAlmostEqual(p.y, 2.0, places=1)
         self.assertAlmostEqual(p.z, 3.0, places=1)
 
+    def test_flr_fps_mpp_modeling_handler(self):
+        """Test FLRFPSMPPModelingHandler"""
+        fh = StringIO("""
+loop_
+_flr_FPS_modeling.id
+_flr_FPS_modeling.ihm_modeling_protocol_ordinal_id
+_flr_FPS_modeling.restraint_group_id
+_flr_FPS_modeling.global_parameter_id
+_flr_FPS_modeling.probe_modeling_method
+_flr_FPS_modeling.details
+3 4 5 6 AV3 .
+#
+loop_
+_flr_FPS_MPP_modeling.ordinal_id
+_flr_FPS_MPP_modeling.FPS_modeling_id
+_flr_FPS_MPP_modeling.mpp_id
+_flr_FPS_MPP_modeling.mpp_atom_position_group_id
+1 3 4 5
+""")
+        s, = ihm.reader.read(fh)
+        flr, = s.flr_data
+        self.assertEqual(sorted(flr._collection_flr_fps_mpp_modeling.keys()),
+                         ['1'])
+        m = flr._collection_flr_fps_mpp_modeling['1']
+        self.assertIsInstance(m.fps_modeling, ihm.flr.FPSModeling)
+        self.assertEqual(m.fps_modeling._id, '3')
+        self.assertIsInstance(m.mpp, ihm.flr.FPSMeanProbePosition)
+        self.assertEqual(m.mpp._id, '4')
+        self.assertIsInstance(m.mpp_atom_position_group,
+                              ihm.flr.FPSMPPAtomPositionGroup)
+        self.assertEqual(m.mpp_atom_position_group._id, '5')
+
 
 if __name__ == '__main__':
     unittest.main()
