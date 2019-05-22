@@ -536,10 +536,14 @@ class SystemReader(object):
         self.flr_fps_av_modeling = IDMapper(None, ihm.flr.FPSAVModeling, *(None,)*3)
         #: Mapping from ID to :class:`ihm.flr.FPSMeanProbePosition` objects
         self.flr_fps_mean_probe_positions = IDMapper(None, ihm.flr.FPSMeanProbePosition, *(None,)*4)
+
         #: Mapping from ID to :class:`ihm.flr.FPSMPPAtomPositionGroup` objects
         self.flr_fps_mpp_atom_position_groups = IDMapper(None, ihm.flr.FPSMPPAtomPositionGroup)
+
         #: Mapping from ID to :class:`ihm.flr.FPSMPPAtomPosition` objects
-        self.flr_fps_mpp_atom_positions = IDMapper(None, ihm.flr.FPSMPPAtomPosition, *(None,)*8)
+        self.flr_fps_mpp_atom_positions = IDMapper(None,
+                                ihm.flr.FPSMPPAtomPosition, *(None,)*4)
+
         #: Mapping from ID to :class:`ihm.flr.FPSMPPModeling` objects
         self.flr_fps_mpp_modeling = IDMapper(None, ihm.flr.FPSMPPModeling, *(None,)*3)
 
@@ -2517,18 +2521,23 @@ class _FLRFPSMPPHandler(Handler):
 
 class _FLRFPSMPPAtomPositionHandler(Handler):
     category = '_flr_fps_mpp_atom_position'
-    def __call__(self, id, group_id, entity_id, seq_id, comp_id, atom_id, asym_id, xcoord, ycoord, zcoord):
-        cur_fps_mpp_atom_position = self.sysr.flr_fps_mpp_atom_positions.get_by_id(id)
-        cur_entity = self.sysr.entities.get_by_id(entity_id)
-        self.copy_if_present(cur_fps_mpp_atom_position, locals(),
-                             keys = ('entity', 'seq_id', 'comp_id', 'atom_id',
-                                     'asym_id', 'xcoord', 'ycoord', 'zcoord'),
-                             mapkeys = {'cur_entity':'entity'})
 
-        cur_fps_mpp_atom_position_group = self.sysr.flr_fps_mpp_atom_position_groups.get_by_id(group_id)
-        cur_fps_mpp_atom_position_group.add_atom_position(cur_fps_mpp_atom_position)
+    def __call__(self, id, group_id, seq_id, atom_id, asym_id, xcoord,
+                 ycoord, zcoord):
+        asym = self.sysr.asym_units.get_by_id(asym_id)
+        seq_id = self.get_int(seq_id)
 
-        self.sysr.flr_data.get_by_id(1)._collection_flr_fps_mpp_atom_position[id] = cur_fps_mpp_atom_position
+        p = self.sysr.flr_fps_mpp_atom_positions.get_by_id(id)
+        p.atom = asym.residue(seq_id).atom(atom_id)
+        p.x = self.get_float(xcoord)
+        p.y = self.get_float(ycoord)
+        p.z = self.get_float(zcoord)
+
+        g = self.sysr.flr_fps_mpp_atom_position_groups.get_by_id(group_id)
+        g.add_atom_position(p)
+
+        d = self.sysr.flr_data.get_by_id(1)
+        d._collection_flr_fps_mpp_atom_position[id] = p
 
 
 class _FLRFPSMPPModelingHandler(Handler):

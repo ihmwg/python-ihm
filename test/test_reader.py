@@ -3187,6 +3187,36 @@ _flr_FPS_mean_probe_position.mpp_zcoord
         self.assertAlmostEqual(p.y, 2.0, places=1)
         self.assertAlmostEqual(p.z, 3.0, places=1)
 
+    def test_flr_fps_mpp_atom_position_handler(self):
+        """Test FLRFPSMPPAtomPositionHandler"""
+        fh = StringIO("""
+loop_
+_flr_FPS_MPP_atom_position.id
+_flr_FPS_MPP_atom_position.entity_id
+_flr_FPS_MPP_atom_position.seq_id
+_flr_FPS_MPP_atom_position.comp_id
+_flr_FPS_MPP_atom_position.atom_id
+_flr_FPS_MPP_atom_position.asym_id
+_flr_FPS_MPP_atom_position.xcoord
+_flr_FPS_MPP_atom_position.ycoord
+_flr_FPS_MPP_atom_position.zcoord
+_flr_FPS_MPP_atom_position.group_id
+1 1 4 ALA CA A 1.000 2.000 3.000 1
+""")
+        s, = ihm.reader.read(fh)
+        flr, = s.flr_data
+        self.assertEqual(sorted(
+                            flr._collection_flr_fps_mpp_atom_position.keys()),
+                         ['1'])
+        p = flr._collection_flr_fps_mpp_atom_position['1']
+        self.assertIsInstance(p.atom, ihm.Atom)
+        self.assertEqual(p.atom.id, 'CA')
+        self.assertEqual(p.atom.seq_id, 4)
+        self.assertEqual(p.atom.asym._id, 'A')
+        self.assertAlmostEqual(p.x, 1.0, places=1)
+        self.assertAlmostEqual(p.y, 2.0, places=1)
+        self.assertAlmostEqual(p.z, 3.0, places=1)
+
 
 if __name__ == '__main__':
     unittest.main()
