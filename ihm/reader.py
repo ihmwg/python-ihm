@@ -2502,13 +2502,18 @@ class _FLRFPSAVModelingHandler(Handler):
 
 class _FLRFPSMPPHandler(Handler):
     category = '_flr_fps_mean_probe_position'
+
     def __call__(self, id, sample_probe_id, mpp_xcoord, mpp_ycoord, mpp_zcoord):
-        cur_fps_mean_probe_position = self.sysr.flr_fps_mean_probe_positions.get_by_id(id)
-        cur_sample_probe = self.sysr.flr_sample_probe_details.get_by_id(sample_probe_id)
-        self.copy_if_present(cur_fps_mean_probe_position, locals(),
-                             keys = ('sample_probe_id', 'mpp_xcoord', 'mpp_ycoord', 'mpp_zcoord'),
-                             mapkeys = {'cur_sample_probe':'sample_probe_id'})
-        self.sysr.flr_data.get_by_id(1)._collection_flr_fps_mean_probe_position[id] = cur_fps_mean_probe_position
+        p = self.sysr.flr_fps_mean_probe_positions.get_by_id(id)
+        p.sample_probe = self.sysr.flr_sample_probe_details.get_by_id(
+                                                        sample_probe_id)
+        p.x = self.get_float(mpp_xcoord)
+        p.y = self.get_float(mpp_ycoord)
+        p.z = self.get_float(mpp_zcoord)
+
+        d = self.sysr.flr_data.get_by_id(1)
+        d._collection_flr_fps_mean_probe_position[id] = p
+
 
 class _FLRFPSMPPAtomPositionHandler(Handler):
     category = '_flr_fps_mpp_atom_position'

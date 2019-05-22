@@ -3164,6 +3164,29 @@ _flr_FPS_AV_modeling.parameter_id
         self.assertIsInstance(m.parameter, ihm.flr.FPSAVParameter)
         self.assertEqual(m.parameter._id, '4')
 
+    def test_flr_fps_mean_probe_position_handler(self):
+        """Test FLRFPSMPPHandler"""
+        fh = StringIO("""
+loop_
+_flr_FPS_mean_probe_position.id
+_flr_FPS_mean_probe_position.sample_probe_id
+_flr_FPS_mean_probe_position.mpp_xcoord
+_flr_FPS_mean_probe_position.mpp_ycoord
+_flr_FPS_mean_probe_position.mpp_zcoord
+1 2 1.000 2.000 3.000
+""")
+        s, = ihm.reader.read(fh)
+        flr, = s.flr_data
+        self.assertEqual(sorted(
+                            flr._collection_flr_fps_mean_probe_position.keys()),
+                         ['1'])
+        p = flr._collection_flr_fps_mean_probe_position['1']
+        self.assertIsInstance(p.sample_probe, ihm.flr.SampleProbeDetails)
+        self.assertEqual(p.sample_probe._id, '2')
+        self.assertAlmostEqual(p.x, 1.0, places=1)
+        self.assertAlmostEqual(p.y, 2.0, places=1)
+        self.assertAlmostEqual(p.z, 3.0, places=1)
+
 
 if __name__ == '__main__':
     unittest.main()
