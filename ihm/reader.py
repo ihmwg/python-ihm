@@ -2476,27 +2476,29 @@ class _FLRFPSAVParameterHandler(Handler):
 
 class _FLRFPSAVModelingHandler(Handler):
     category = '_flr_fps_av_modeling'
+
     def __call__(self, id, sample_probe_id, fps_modeling_id, parameter_id):
-        cur_fps_av_modeling = self.sysr.flr_fps_av_modeling.get_by_id(id)
-        cur_sample_probe = self.sysr.flr_sample_probe_details.get_by_id(sample_probe_id)
-        cur_fps_modeling = self.sysr.flr_fps_modeling.get_by_id(fps_modeling_id)
-        cur_parameter = self.sysr.flr_fps_av_parameters.get_by_id(parameter_id)
-        self.copy_if_present(cur_fps_av_modeling, locals(),
-                             keys = ('FPS_modeling_id','sample_probe_id','parameter_id'),
-                             mapkeys = {'cur_fps_modeling':'FPS_modeling_id',
-                                        'cur_sample_probe':'sample_probe_id',
-                                        'cur_parameter':'parameter_id'})
-        self.sysr.flr_data.get_by_id(1)._collection_flr_fps_av_modeling[id] = cur_fps_av_modeling
+        m = self.sysr.flr_fps_av_modeling.get_by_id(id)
+        m.fps_modeling = self.sysr.flr_fps_modeling.get_by_id(fps_modeling_id)
+        m.sample_probe = self.sysr.flr_sample_probe_details.get_by_id(
+                                                            sample_probe_id)
+        m.parameter = self.sysr.flr_fps_av_parameters.get_by_id(parameter_id)
 
-        ## Add the FPS_AV_modeling to the modeling collection
-        cur_method = 'FPS_AV' if ('AV' in cur_fps_modeling.probe_modeling_method) else 'FPS_MPP'
+        d = self.sysr.flr_data.get_by_id(1)
+        d._collection_flr_fps_av_modeling[id] = m
+
+        # Add the FPS_AV_modeling to the modeling collection
+        # todo: this won't work correctly unless FPSModeling has already been
+        # read (should be done in finalize)
+        cur_method = 'FPS_AV' if 'AV' in m.fps_modeling.probe_modeling_method \
+                      else 'FPS_MPP'
         cur_modeling_collection = self.sysr.flr_modeling_collection.get_by_id(1)
-        cur_modeling_collection.add_modeling(cur_fps_av_modeling, cur_method)
+        cur_modeling_collection.add_modeling(m, cur_method)
 
-        ## add it to the flr_data if it is not there yet
-        cur_flr_data = self.sysr.flr_data.get_by_id(1)
-        if cur_modeling_collection not in cur_flr_data.flr_FPS_modeling_collection_list:
-            cur_flr_data.add_flr_FPS_modeling(cur_modeling_collection)
+        # add it to the flr_data if it is not there yet
+        if cur_modeling_collection not in d.flr_FPS_modeling_collection_list:
+            d.add_flr_FPS_modeling(cur_modeling_collection)
+
 
 class _FLRFPSMPPHandler(Handler):
     category = '_flr_fps_mean_probe_position'

@@ -3133,6 +3133,37 @@ _flr_FPS_AV_parameter.probe_radius_3
         self.assertAlmostEqual(p.probe_radius_2, 5.000, places=1)
         self.assertAlmostEqual(p.probe_radius_3, 4.000, places=1)
 
+    def test_flr_fps_av_modeling_handler(self):
+        """Test FLRFPSAVModelingHandler"""
+        fh = StringIO("""
+loop_
+_flr_FPS_modeling.id
+_flr_FPS_modeling.ihm_modeling_protocol_ordinal_id
+_flr_FPS_modeling.restraint_group_id
+_flr_FPS_modeling.global_parameter_id
+_flr_FPS_modeling.probe_modeling_method
+_flr_FPS_modeling.details
+3 4 5 6 AV3 .
+#
+loop_
+_flr_FPS_AV_modeling.id
+_flr_FPS_AV_modeling.sample_probe_id
+_flr_FPS_AV_modeling.FPS_modeling_id
+_flr_FPS_AV_modeling.parameter_id
+1 2 3 4
+""")
+        s, = ihm.reader.read(fh)
+        flr, = s.flr_data
+        self.assertEqual(sorted(flr._collection_flr_fps_av_modeling.keys()),
+                         ['1'])
+        m = flr._collection_flr_fps_av_modeling['1']
+        self.assertIsInstance(m.sample_probe, ihm.flr.SampleProbeDetails)
+        self.assertEqual(m.sample_probe._id, '2')
+        self.assertIsInstance(m.fps_modeling, ihm.flr.FPSModeling)
+        self.assertEqual(m.fps_modeling._id, '3')
+        self.assertIsInstance(m.parameter, ihm.flr.FPSAVParameter)
+        self.assertEqual(m.parameter._id, '4')
+
 
 if __name__ == '__main__':
     unittest.main()
