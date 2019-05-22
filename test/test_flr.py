@@ -660,6 +660,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(f2.distance_deviation, 10.0)
 
     def test_fret_model_distance_calculate_deviation(self):
+        """Test FRETModelDistance.calculate_deviation()"""
         class Dummy_Restraint():
             def __init__(self,distance):
                 self.distance = distance
@@ -672,6 +673,10 @@ class Tests(unittest.TestCase):
         ## Calculation of the distance deviation should update the deviation
         f1.update_deviation()
         self.assertEqual(f1.distance_deviation, 15.0)
+        # update_deviation() is a noop if restraint is None
+        f2 = ihm.flr.FRETModelDistance(restraint=None, model='foo', distance=30)
+        f2.update_deviation()
+        self.assertEqual(f2.distance_deviation, None)
 
     def test_fret_model_distance_eq(self):
         """ Test equality and inequality of FRETModelDistance objects. """
