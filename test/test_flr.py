@@ -1087,20 +1087,28 @@ class Tests(unittest.TestCase):
         self.assertFalse(f._occurs_in_list(Dummy_object('foo2','bar'),f.distance_restraint_group_list))
 
     def test_flr_data_all_chemical_descriptors(self):
-        """ Test for collection of all chemical descriptors. """
+        """Test for collection of all chemical descriptors."""
         f = ihm.flr.FLRData()
-        ## Define probe descriptors
-        this_probe_descriptor_1 = ihm.flr.ProbeDescriptor(reactive_probe_chem_descriptor='This_reactive_probe_desc_1',
-                                                           chromophore_chem_descriptor='This_chromophore_desc_1')
-        this_probe_descriptor_2 = ihm.flr.ProbeDescriptor(reactive_probe_chem_descriptor='This_reactive_probe_desc_2',
-                                                           chromophore_chem_descriptor='This_chromophore_desc_2')
-        this_probe_descriptor_3 = ihm.flr.ProbeDescriptor(reactive_probe_chem_descriptor='This_reactive_probe_desc_3',
-                                                           chromophore_chem_descriptor='This_chromophore_desc_3')
-        ## Define probes
-        this_probe_1 = ihm.flr.Probe(probe_list_entry='foo', probe_descriptor = this_probe_descriptor_1)
-        this_probe_2 = ihm.flr.Probe(probe_list_entry='foo', probe_descriptor=this_probe_descriptor_2)
-        this_probe_3 = ihm.flr.Probe(probe_list_entry='foo', probe_descriptor=this_probe_descriptor_3)
-        ## Define poly probe positions
+        # Define probe descriptors
+        this_probe_descriptor_1 = ihm.flr.ProbeDescriptor(
+                reactive_probe_chem_descriptor='This_reactive_probe_desc_1',
+                chromophore_chem_descriptor='This_chromophore_desc_1')
+        this_probe_descriptor_2 = ihm.flr.ProbeDescriptor(
+                reactive_probe_chem_descriptor='This_reactive_probe_desc_2',
+                chromophore_chem_descriptor='This_chromophore_desc_2')
+        this_probe_descriptor_3 = ihm.flr.ProbeDescriptor(
+                reactive_probe_chem_descriptor='This_reactive_probe_desc_3',
+                chromophore_chem_descriptor='This_chromophore_desc_3')
+
+        # Define probes
+        this_probe_1 = ihm.flr.Probe(probe_list_entry='foo',
+                                     probe_descriptor=this_probe_descriptor_1)
+        this_probe_2 = ihm.flr.Probe(probe_list_entry='foo',
+                                     probe_descriptor=this_probe_descriptor_2)
+        this_probe_3 = ihm.flr.Probe(probe_list_entry='foo',
+                                     probe_descriptor=this_probe_descriptor_3)
+
+        # Define poly probe positions
         this_poly_probe_position_1 = ihm.flr.PolyProbePosition(
                             resatom='foo', mutation_flag=True,
                             mutated_chem_descriptor='Mutated_Chem_descriptor_1',
@@ -1112,25 +1120,50 @@ class Tests(unittest.TestCase):
         this_poly_probe_position_3 = ihm.flr.PolyProbePosition(
                          resatom='foo', mutation_flag=False,
                          modification_flag=False)
-        this_sample_probe_1 = ihm.flr.SampleProbeDetails(sample = 'foo', probe = this_probe_1, fluorophore_type='donor',poly_probe_position = this_poly_probe_position_1)
-        this_sample_probe_2 = ihm.flr.SampleProbeDetails(sample = 'foo2', probe = this_probe_2, fluorophore_type='donor',poly_probe_position = this_poly_probe_position_2)
-        this_sample_probe_3 = ihm.flr.SampleProbeDetails(sample='foo3', probe=this_probe_3, fluorophore_type='donor', poly_probe_position=this_poly_probe_position_3)
-        this_distance_restraint_1 = ihm.flr.FRETDistanceRestraint(sample_probe_1 = this_sample_probe_1, sample_probe_2 = this_sample_probe_2,analysis=None,distance=50)
-        this_distance_restraint_2 = ihm.flr.FRETDistanceRestraint(sample_probe_1=this_sample_probe_1,sample_probe_2=this_sample_probe_3,analysis=None,distance=50)
+
+        this_sample_probe_1 = ihm.flr.SampleProbeDetails(
+                                sample='foo', probe=this_probe_1,
+                                fluorophore_type='donor',
+                                poly_probe_position=this_poly_probe_position_1)
+        this_sample_probe_2 = ihm.flr.SampleProbeDetails(
+                                sample='foo2', probe=this_probe_2,
+                                fluorophore_type='donor',
+                                poly_probe_position=this_poly_probe_position_2)
+        this_sample_probe_3 = ihm.flr.SampleProbeDetails(
+                                sample='foo3', probe=this_probe_3,
+                                fluorophore_type='donor',
+                                poly_probe_position=this_poly_probe_position_3)
+        this_distance_restraint_1 = ihm.flr.FRETDistanceRestraint(
+                                sample_probe_1=this_sample_probe_1,
+                                sample_probe_2=this_sample_probe_2,
+                                analysis=None, distance=50)
+        this_distance_restraint_2 = ihm.flr.FRETDistanceRestraint(
+                                sample_probe_1=this_sample_probe_1,
+                                sample_probe_2=this_sample_probe_3,
+                                analysis=None, distance=50)
+
         this_distance_restraint_group = ihm.flr.FRETDistanceRestraintGroup()
-        this_distance_restraint_group.add_distance_restraint(this_distance_restraint_1)
-        this_distance_restraint_group.add_distance_restraint(this_distance_restraint_2)
+        this_distance_restraint_group.add_distance_restraint(
+                                                this_distance_restraint_1)
+        this_distance_restraint_group.add_distance_restraint(
+                                                this_distance_restraint_2)
         f.add_distance_restraint_group(this_distance_restraint_group)
 
-        this_list_of_chemical_descriptors = list(f._all_flr_chemical_descriptors())
-        self.assertIn('This_reactive_probe_desc_1',this_list_of_chemical_descriptors)
-        self.assertIn('This_chromophore_desc_1', this_list_of_chemical_descriptors)
-        self.assertIn('This_reactive_probe_desc_2',this_list_of_chemical_descriptors)
-        self.assertIn('This_chromophore_desc_2', this_list_of_chemical_descriptors)
-        self.assertIn('This_reactive_probe_desc_3',this_list_of_chemical_descriptors)
-        self.assertIn('This_chromophore_desc_3', this_list_of_chemical_descriptors)
-        self.assertIn('Mutated_Chem_descriptor_1', this_list_of_chemical_descriptors)
-        self.assertIn('Modified_Chem_descriptor_1', this_list_of_chemical_descriptors)
+        conj = ihm.flr.PolyProbeConjugate(
+                        sample_probe=this_sample_probe_1,
+                        chem_descriptor='Conjugate_probe_desc',
+                        ambiguous_stoichiometry=False)
+        f.add_poly_probe_conjugate(conj)
+
+        descs = list(f._all_flr_chemical_descriptors())
+        self.assertEqual(descs,
+                ['This_reactive_probe_desc_1', 'This_chromophore_desc_1',
+                 'Mutated_Chem_descriptor_1', 'This_reactive_probe_desc_2',
+                 'This_chromophore_desc_2', 'Modified_Chem_descriptor_1',
+                 'This_reactive_probe_desc_1', 'This_chromophore_desc_1',
+                 'Mutated_Chem_descriptor_1', 'This_reactive_probe_desc_3',
+                 'This_chromophore_desc_3', 'Conjugate_probe_desc'])
+
 
 if __name__ == '__main__':
     unittest.main()
