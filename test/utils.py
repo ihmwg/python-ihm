@@ -27,6 +27,10 @@ if not hasattr(unittest.TestCase, 'assertIn'):
     def assertGreaterEqual(self, a, b, msg=None):
         return self.assertTrue(a >= b,
                         msg or '%s not greater than or equal to %s' % (a, b))
+    def assertIsNone(self, obj, msg=None):
+        return self.assertTrue(obj is None, msg or '%s is not None' % obj)
+    def assertIsNotNone(self, obj, msg=None):
+        return self.assertTrue(obj is not None, msg or 'unexpectedly None')
     unittest.TestCase.assertIn = assertIn
     unittest.TestCase.assertNotIn = assertNotIn
     unittest.TestCase.assertIsInstance = assertIsInstance
@@ -34,6 +38,8 @@ if not hasattr(unittest.TestCase, 'assertIn'):
     unittest.TestCase.assertGreater = assertGreater
     unittest.TestCase.assertLessEqual = assertLessEqual
     unittest.TestCase.assertGreaterEqual = assertGreaterEqual
+    unittest.TestCase.assertIsNone = assertIsNone
+    unittest.TestCase.assertIsNotNone = assertIsNotNone
 
 def set_search_paths(topdir):
     """Set search paths so that we can import Python modules"""
