@@ -18,6 +18,7 @@ import ihm.location
 import ihm.representation
 import ihm.model
 import ihm.source
+import ihm.flr
 
 class Tests(unittest.TestCase):
     def test_system(self):
@@ -797,8 +798,11 @@ class Tests(unittest.TestCase):
         d1 = ihm.ChemDescriptor("d1")
         d2 = ihm.ChemDescriptor("d2")
         d3 = ihm.ChemDescriptor("d3")
+        d4 = ihm.ChemDescriptor("d4")
 
         s = ihm.System()
+        f = ihm.flr.FLRData()
+        s.flr_data.append(f)
         r1 = MockObject()
         r2 = MockObject()
         r2.linker = None
@@ -809,8 +813,13 @@ class Tests(unittest.TestCase):
         r2.feature = None
         s.orphan_chem_descriptors.extend((d1, d2, d1))
 
+        # FLR chemical descriptors
+        conj = ihm.flr.PolyProbeConjugate(sample_probe=None, chem_descriptor=d4,
+                                          ambiguous_stoichiometry=False)
+        f.add_poly_probe_conjugate(conj)
+
         # duplicates should not be filtered
-        self.assertEqual(list(s._all_chem_descriptors()), [d1, d2, d1, d3])
+        self.assertEqual(list(s._all_chem_descriptors()), [d1, d2, d1, d3, d4])
 
     def test_update_locations_in_repositories(self):
         """Test update_locations_in_repositories() method"""

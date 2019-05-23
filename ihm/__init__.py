@@ -236,10 +236,9 @@ class System(object):
                       (restraint.linker for restraint in self.restraints
                                         if hasattr(restraint, 'linker')
                                         and restraint.linker),
-                      (list(itertools.chain.from_iterable
-                          ([entry._all_flr_chemical_descriptors()
-                            for entry in self.flr_data]))
-                       if self.flr_data != [] else []))
+                      (itertools.chain.from_iterable(
+                          f._all_flr_chemical_descriptors()
+                          for f in self.flr_data)))
 
     def _all_model_groups(self, only_in_states=True):
         """Iterate over all ModelGroups in the system.
