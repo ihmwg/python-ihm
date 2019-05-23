@@ -887,40 +887,28 @@ class FLRData(object):
 
     def _all_flr_chemical_descriptors(self):
         """Collect the chemical descriptors from the flr part.
-           *The list might contain duplicates.*
+           *This might contain duplicates.*
         """
-        self.flr_chemical_descriptors_list = []
-        ## collect from all distance_restraint_groups
+        # collect from all distance_restraint_groups
         for drgroup in self.distance_restraint_group_list:
-            ## collect form all distance restraints
+            # collect from all distance restraints
             for dr in drgroup.distance_restraint_list:
-                ## collect from both sample_probe_1 and sample_probe_2
-                for this_sample_probe in [dr.sample_probe_1, dr.sample_probe_2]:
-                    ## collect from the probe
+                # collect from both sample_probe_1 and sample_probe_2
+                for this_sample_probe in (dr.sample_probe_1, dr.sample_probe_2):
+                    # collect from the probe
                     probe = this_sample_probe.probe
-                    ## reactive probe
-                    cur_chem_desc \
-                       = probe.probe_descriptor.reactive_probe_chem_descriptor
-                    self.flr_chemical_descriptors_list.append(cur_chem_desc)
-                    ## chromophore
-                    cur_chem_desc \
-                            = probe.probe_descriptor.chromophore_chem_descriptor
-                    self.flr_chemical_descriptors_list.append(cur_chem_desc)
-                    ## collect from the poly_probe_position
-                    this_poly_probe_position \
-                            = this_sample_probe.poly_probe_position
-                    ## mutated chem descriptor
-                    if this_poly_probe_position.mutation_flag:
-                        cur_chem_desc \
-                            = this_poly_probe_position.mutated_chem_descriptor
-                        self.flr_chemical_descriptors_list.append(cur_chem_desc)
-                    ## modified chem descriptor
-                    if this_poly_probe_position.modification_flag:
-                        cur_chem_desc \
-                            = this_poly_probe_position.modified_chem_descriptor
-                        self.flr_chemical_descriptors_list.append(cur_chem_desc)
-        ## and collect from all poly_probe_conjugates
-        for this_poly_probe_conjugate in self.poly_probe_conjugate_list:
-            cur_chem_desc = this_poly_probe_conjugate.chem_descriptor
-            self.flr_chemical_descriptors_list.append(cur_chem_desc)
-        return self.flr_chemical_descriptors_list
+                    # reactive probe
+                    yield probe.probe_descriptor.reactive_probe_chem_descriptor
+                    # chromophore
+                    yield probe.probe_descriptor.chromophore_chem_descriptor
+                    # collect from the poly_probe_position
+                    pos = this_sample_probe.poly_probe_position
+                    # mutated chem descriptor
+                    if pos.mutation_flag:
+                        yield pos.mutated_chem_descriptor
+                    # modified chem descriptor
+                    if pos.modification_flag:
+                        yield pos.modified_chem_descriptor
+        # and collect from all poly_probe_conjugates
+        for c in self.poly_probe_conjugate_list:
+            yield c.chem_descriptor
