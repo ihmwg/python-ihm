@@ -392,20 +392,19 @@ _pdbx_entity_nonpoly.comp_id
 loop_
 _%(cat)s.id
 _%(cat)s.auth_name
-_%(cat)s.chem_comp_id
 _%(cat)s.chemical_name
 _%(cat)s.common_name
 _%(cat)s.smiles
 _%(cat)s.smiles_canonical
 _%(cat)s.inchi
 _%(cat)s.inchi_key
-1 EDC UNK "test-chem-EDC" . "CCN=C=NCCCN(C)C" . test-inchi test-inchi-key
+1 EDC "test-chem-EDC" . "CCN=C=NCCCN(C)C" . test-inchi test-inchi-key
 """ % {'cat': cat}
             for fh in cif_file_handles(cif):
                 s, = ihm.reader.read(fh)
                 d1, = s.orphan_chem_descriptors
                 self.assertEqual(d1.auth_name, 'EDC')
-                self.assertEqual(d1.chem_comp_id, 'UNK')
+                self.assertEqual(d1.chem_comp_id, None)
                 self.assertEqual(d1.chemical_name, 'test-chem-EDC')
                 self.assertEqual(d1.smiles, 'CCN=C=NCCCN(C)C')
                 self.assertEqual(d1.smiles_canonical, None)

@@ -470,14 +470,13 @@ THR 'L-peptide linking' THREONINE 'C4 H9 N O3' 119.120
 loop_
 _ihm_chemical_component_descriptor.id
 _ihm_chemical_component_descriptor.auth_name
-_ihm_chemical_component_descriptor.chem_comp_id
 _ihm_chemical_component_descriptor.chemical_name
 _ihm_chemical_component_descriptor.common_name
 _ihm_chemical_component_descriptor.smiles
 _ihm_chemical_component_descriptor.smiles_canonical
 _ihm_chemical_component_descriptor.inchi
 _ihm_chemical_component_descriptor.inchi_key
-1 EDC . . . CCN=C=NCCCN(C)C . . LMDZBCPBFSXMTL-UHFFFAOYSA-N
+1 EDC . . CCN=C=NCCCN(C)C . . LMDZBCPBFSXMTL-UHFFFAOYSA-N
 #
 """)
 

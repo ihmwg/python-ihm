@@ -183,12 +183,13 @@ class _ChemDescriptorDumper(Dumper):
 
     def dump(self, system, writer):
         with writer.loop("_ihm_chemical_component_descriptor",
-                ["id", "auth_name", "chem_comp_id", "chemical_name",
+                ["id", "auth_name", "chemical_name",
                  "common_name", "smiles", "smiles_canonical", "inchi",
                  "inchi_key"]) as l:
+            # note that we don't write out chem_comp_id; this is no longer
+            # present in the dictionary
             for d in self._descriptor_by_id:
                 l.write(id=d._id, auth_name=d.auth_name,
-                        chem_comp_id=d.chem_comp_id,
                         chemical_name=d.chemical_name,
                         common_name=d.common_name, smiles=d.smiles,
                         smiles_canonical=d.smiles_canonical, inchi=d.inchi,
