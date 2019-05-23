@@ -1489,8 +1489,8 @@ _ihm_model_list.representation_id
         model.representation.append(s)
 
         rngcheck = ihm.dumper._RangeChecker(model)
-        self.assertEqual(rngcheck._last_asmb_range_matched, None)
-        self.assertEqual(rngcheck._last_asmb_asym_matched, None)
+        self.assertIsNone(rngcheck._last_asmb_range_matched)
+        self.assertIsNone(rngcheck._last_asmb_asym_matched)
         # Atom is OK (good range)
         atom = ihm.model.Atom(asym_unit=asym, seq_id=1, atom_id='C',
                               type_symbol='C', x=1.0, y=2.0, z=3.0)
@@ -1568,7 +1568,7 @@ _ihm_model_list.representation_id
         model.representation.append(s)
 
         rngcheck = ihm.dumper._RangeChecker(model)
-        self.assertEqual(rngcheck._last_repr_segment_matched, None)
+        self.assertIsNone(rngcheck._last_repr_segment_matched)
         # Atom is OK (good range)
         atom = ihm.model.Atom(asym_unit=asym2, seq_id=1, atom_id='C',
                               type_symbol='C', x=1.0, y=2.0, z=3.0)

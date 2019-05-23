@@ -251,7 +251,7 @@ _citation_author.ordinal
             self.assertEqual(citation1.page_range, '2943')
             self.assertEqual(citation1.authors, [])
             self.assertEqual(citation1.pmid, '1234')
-            self.assertEqual(citation1.doi, None)
+            self.assertIsNone(citation1.doi)
 
             self.assertEqual(citation2._id, '3')
             self.assertEqual(citation2.page_range, ('2943', '2946'))
@@ -260,7 +260,7 @@ _citation_author.ordinal
 
             self.assertEqual(citation3._id, '4')
             self.assertEqual(citation3.authors, [])
-            self.assertEqual(citation3.page_range, None)
+            self.assertIsNone(citation3.page_range)
 
             # todo: should probably be an error, no _citation.id == 4
             self.assertEqual(citation4._id, '5')
@@ -303,7 +303,7 @@ _entity_poly_seq.hetero
                 self.assertEqual(id(s[1]), id(lpeptide['M']))
                 self.assertEqual(id(s[4]), id(lpeptide['C']))
                 self.assertEqual(s[0].name, 'METHIONINE')
-                self.assertEqual(s[2], None)
+                self.assertIsNone(s[2])
                 self.assertEqual(s[3].id, 'MYTYPE')
                 self.assertEqual(s[3].type, 'D-peptide linking')
                 self.assertEqual(s[3].name, 'MY CUSTOM COMPONENT')
@@ -346,8 +346,8 @@ SM
         self.assertEqual(c1.code_canonical, 'S')
         # No info in entity_poly for this component
         self.assertEqual(c3.id, 'ACE')
-        self.assertEqual(c3.code, None)
-        self.assertEqual(c3.code_canonical, None)
+        self.assertIsNone(c3.code)
+        self.assertIsNone(c3.code_canonical)
 
     def test_chem_comp_nonpoly_handler(self):
         """Test ChemCompHandler and EntityNonPolyHandler"""
@@ -404,10 +404,10 @@ _%(cat)s.inchi_key
                 s, = ihm.reader.read(fh)
                 d1, = s.orphan_chem_descriptors
                 self.assertEqual(d1.auth_name, 'EDC')
-                self.assertEqual(d1.chem_comp_id, None)
+                self.assertIsNone(d1.chem_comp_id)
                 self.assertEqual(d1.chemical_name, 'test-chem-EDC')
                 self.assertEqual(d1.smiles, 'CCN=C=NCCCN(C)C')
-                self.assertEqual(d1.smiles_canonical, None)
+                self.assertIsNone(d1.smiles_canonical)
                 self.assertEqual(d1.inchi, 'test-inchi')
                 self.assertEqual(d1.inchi_key, 'test-inchi-key')
 
@@ -434,8 +434,8 @@ _entity.details
             self.assertEqual(e1.number_of_molecules, '2') # todo: coerce to int
             self.assertEqual(e1.source.src_method, 'nat')
             self.assertEqual(e2.source.src_method, 'syn')
-            self.assertEqual(e3.source, None)
-            self.assertEqual(e4.source, None)
+            self.assertIsNone(e3.source)
+            self.assertIsNone(e4.source)
 
     def test_entity_src_gen_handler(self):
         """Test EntitySrcGenHandler"""
@@ -551,7 +551,7 @@ _pdbx_entity_src_syn.strain 'test strain'
                 self.assertEqual(e.source.scientific_name, 'test latin name')
                 self.assertEqual(e.source.common_name, 'test common name')
                 # _pdbx_entity_src_syn.strain is not used in current PDB
-                self.assertEqual(e.source.strain, None)
+                self.assertIsNone(e.source.strain)
 
     def test_asym_unit_handler(self):
         """Test AsymUnitHandler"""
@@ -631,7 +631,7 @@ _ihm_struct_assembly.seq_id_end
             s, = ihm.reader.read(fh)
             a1, a2, a3 = s.orphan_assemblies
             self.assertEqual(a1._id, '1')
-            self.assertEqual(a1.parent, None)
+            self.assertIsNone(a1.parent)
             self.assertEqual(len(a1), 3)
             # AsymUnitRange
             self.assertIsInstance(a1[0], ihm.AsymUnitRange)
@@ -698,7 +698,7 @@ _ihm_external_files.details
 
                 self.assertEqual(l2.path, 'foo/bar.txt')
                 self.assertEqual(l2.details, 'Test text')
-                self.assertEqual(l2.repo, None)
+                self.assertIsNone(l2.repo)
                 self.assertEqual(l2.__class__, ihm.location.InputFileLocation)
 
                 self.assertEqual(l3.path, '.')
@@ -707,7 +707,7 @@ _ihm_external_files.details
                 self.assertEqual(l3.__class__, ihm.location.OutputFileLocation)
 
                 self.assertEqual(l4.path, '.')
-                self.assertEqual(l4.details, None)
+                self.assertIsNone(l4.details)
                 self.assertEqual(l4.repo.doi, '10.5281/zenodo.1218058')
                 # Type is unspecified
                 self.assertEqual(l4.__class__, ihm.location.FileLocation)
@@ -733,7 +733,7 @@ _ihm_dataset_list.details
             self.assertEqual(d3.__class__, ihm.dataset.EMMicrographsDataset)
             # No specified data type - use base class
             self.assertEqual(d4.__class__, ihm.dataset.Dataset)
-            self.assertEqual(d1.details, None)
+            self.assertIsNone(d1.details)
             self.assertEqual(d3.details, 'test details')
 
     def test_dataset_group_handler(self):
@@ -804,12 +804,12 @@ _ihm_dataset_related_db_reference.details
             self.assertEqual(d3.location.db_name, 'EMDB')
             self.assertEqual(d3.location.__class__, ihm.location.EMDBLocation)
             self.assertEqual(d3.location.access_code, 'EMD-123')
-            self.assertEqual(d3.location.version, None)
-            self.assertEqual(d3.location.details, None)
-            self.assertEqual(d4.location.db_name, None)
+            self.assertIsNone(d3.location.version)
+            self.assertIsNone(d3.location.details)
+            self.assertIsNone(d4.location.db_name)
             self.assertEqual(d4.location.__class__,
                              ihm.location.DatabaseLocation)
-            self.assertEqual(d4.location.access_code, None)
+            self.assertIsNone(d4.location.access_code)
 
     def test_related_datasets_handler(self):
         """Test RelatedDatasetsHandler"""
@@ -859,12 +859,12 @@ _ihm_model_representation.model_object_count
             self.assertEqual(s1.primitive, 'sphere')
             self.assertEqual(s1.count, 1)
             self.assertEqual(s1.rigid, False)
-            self.assertEqual(s1.starting_model, None)
+            self.assertIsNone(s1.starting_model)
             self.assertEqual(s1.asym_unit.seq_id_range, (1,6))
 
             self.assertEqual(s2.__class__, ihm.representation.ResidueSegment)
             self.assertEqual(s2.primitive, 'sphere')
-            self.assertEqual(s2.count, None)
+            self.assertIsNone(s2.count)
             self.assertEqual(s2.rigid, True)
             self.assertEqual(s2.starting_model._id, '1')
             self.assertEqual(s2.asym_unit.seq_id_range, (7,20))
@@ -924,8 +924,8 @@ _ihm_starting_computational_models.script_file_id
             m1, m2 = s.orphan_starting_models
             self.assertEqual(m1.script_file._id, '8')
             self.assertEqual(m1.software._id, '99')
-            self.assertEqual(m2.script_file, None)
-            self.assertEqual(m2.software, None)
+            self.assertIsNone(m2.script_file)
+            self.assertIsNone(m2.software)
 
     def test_starting_comparative_models_handler(self):
         """Test StartingComparativeModelsHandler"""
@@ -957,7 +957,7 @@ _ihm_starting_comparative_models.alignment_file_id
             self.assertAlmostEqual(float(t1.sequence_identity), 90.0, places=1)
             self.assertEqual(t1.sequence_identity.denominator, 1)
             self.assertEqual(t1.alignment_file._id, '2')
-            self.assertEqual(t2.alignment_file, None)
+            self.assertIsNone(t2.alignment_file)
 
     def test_protocol_handler(self):
         """Test ProtocolHandler"""
@@ -997,11 +997,11 @@ _ihm_modeling_protocol.script_file_id
             self.assertEqual(p1.steps[0].multi_scale, True)
             self.assertEqual(p1.steps[0].multi_state, False)
             self.assertEqual(p1.steps[0].ordered, False)
-            self.assertEqual(p1.steps[0].software, None)
-            self.assertEqual(p1.steps[0].script_file, None)
+            self.assertIsNone(p1.steps[0].software)
+            self.assertIsNone(p1.steps[0].script_file)
             self.assertEqual(p1.steps[1]._id, '2')
             self.assertEqual(p1.steps[1].multi_scale, True)
-            self.assertEqual(p1.steps[1].multi_state, None)
+            self.assertIsNone(p1.steps[1].multi_state)
             self.assertEqual(p1.steps[1].ordered, False)
             self.assertEqual(p1.steps[1].software._id, '401')
             self.assertEqual(p1.steps[1].script_file._id, '501')
@@ -1043,16 +1043,16 @@ _ihm_modeling_post_process.script_file_id
             self.assertEqual(a1.steps[0].software._id, '401')
             self.assertEqual(a1.steps[0].script_file._id, '501')
             self.assertEqual(a1.steps[1].__class__, ihm.analysis.ClusterStep)
-            self.assertEqual(a1.steps[1].software, None)
-            self.assertEqual(a1.steps[1].script_file, None)
+            self.assertIsNone(a1.steps[1].software)
+            self.assertIsNone(a1.steps[1].script_file)
             self.assertEqual(len(a2.steps), 3)
 
             a1, = p2.analyses
             self.assertEqual(len(a1.steps), 1)
             self.assertEqual(a1.steps[0].__class__, ihm.analysis.EmptyStep)
             self.assertEqual(a1.steps[0].feature, 'none')
-            self.assertEqual(a1.steps[0].num_models_begin, None)
-            self.assertEqual(a1.steps[0].num_models_end, None)
+            self.assertIsNone(a1.steps[0].num_models_begin)
+            self.assertIsNone(a1.steps[0].num_models_end)
 
     def test_model_list_handler(self):
         """Test ModelListHandler"""
@@ -1073,7 +1073,7 @@ _ihm_model_list.representation_id
             s, = ihm.reader.read(fh)
             sg, = s.state_groups
             state, = sg
-            self.assertEqual(state.name, None) # auto-created state
+            self.assertIsNone(state.name) # auto-created state
             mg1, mg2 = state
             self.assertEqual(mg1.name, 'Cluster 1')
             self.assertEqual(mg1._id, '1')
@@ -1131,7 +1131,7 @@ _ihm_multi_state_modeling.details
             self.assertEqual(s1.experiment_type, 'Fraction of bulk')
             self.assertEqual(s1.details, 'unbound molecule 1')
 
-            self.assertEqual(s2.population_fraction, None)
+            self.assertIsNone(s2.population_fraction)
             self.assertEqual(len(s2), 1)
             self.assertEqual(len(s3), 2)
 
@@ -1157,7 +1157,7 @@ _ihm_ensemble_info.ensemble_file_id
             self.assertEqual(e.model_group._id, '3')
             self.assertEqual(e.num_models, 1257)
             self.assertEqual(e.post_process._id, '2')
-            self.assertEqual(e.clustering_method, None)
+            self.assertIsNone(e.clustering_method)
             self.assertEqual(e.clustering_feature, 'dRMSD')
             self.assertEqual(e.name, 'Cluster 1')
             self.assertAlmostEqual(e.precision, 15.4, places=1)
@@ -1215,7 +1215,7 @@ _ihm_3dem_restraint.cross_correlation_coefficient
         fits = sorted(r.fits.items(), key=lambda x:x[0]._id)
         self.assertEqual(len(fits), 2)
         self.assertEqual(fits[0][0]._id, '1')
-        self.assertEqual(fits[0][1].cross_correlation_coefficient, None)
+        self.assertIsNone(fits[0][1].cross_correlation_coefficient)
         self.assertEqual(fits[1][0]._id, '2')
         self.assertAlmostEqual(fits[1][1].cross_correlation_coefficient,
                                0.9, places=1)
@@ -1224,7 +1224,7 @@ _ihm_3dem_restraint.cross_correlation_coefficient
         """Test _get_int method"""
         h = ihm.reader.Handler(None)
         self.assertEqual(h.get_int('45'), 45)
-        self.assertEqual(h.get_int(None), None)
+        self.assertIsNone(h.get_int(None))
         self.assertEqual(h.get_int(ihm.unknown), ihm.unknown)
         self.assertRaises(ValueError, h.get_int, ".")
         self.assertRaises(ValueError, h.get_int, "?")
@@ -1234,7 +1234,7 @@ _ihm_3dem_restraint.cross_correlation_coefficient
         h = ihm.reader.Handler(None)
         self.assertEqual(h.get_int_or_string('45A'), '45A')
         self.assertEqual(h.get_int_or_string('45'), 45)
-        self.assertEqual(h.get_int_or_string(None), None)
+        self.assertIsNone(h.get_int_or_string(None))
         self.assertEqual(h.get_int_or_string(ihm.unknown), ihm.unknown)
         self.assertEqual(h.get_int_or_string('.'), '.')
         self.assertEqual(h.get_int_or_string('?'), '?')
@@ -1244,7 +1244,7 @@ _ihm_3dem_restraint.cross_correlation_coefficient
         """Test _get_float method"""
         h = ihm.reader.Handler(None)
         self.assertAlmostEqual(h.get_float('45.3'), 45.3, places=1)
-        self.assertEqual(h.get_float(None), None)
+        self.assertIsNone(h.get_float(None))
         self.assertEqual(h.get_float(ihm.unknown), ihm.unknown)
         self.assertRaises(ValueError, h.get_float, ".")
         self.assertRaises(ValueError, h.get_float, "?")
@@ -1254,15 +1254,15 @@ _ihm_3dem_restraint.cross_correlation_coefficient
         h = ihm.reader.Handler(None)
         self.assertEqual(h.get_bool('YES'), True)
         self.assertEqual(h.get_bool('NO'), False)
-        self.assertEqual(h.get_bool('something else'), None)
-        self.assertEqual(h.get_bool(None), None)
+        self.assertIsNone(h.get_bool('something else'))
+        self.assertIsNone(h.get_bool(None))
         self.assertEqual(h.get_bool(ihm.unknown), ihm.unknown)
 
     def test_get_lower(self):
         """Test _get_lower method"""
         h = ihm.reader.Handler(None)
         self.assertEqual(h.get_lower('Test String'), 'test string')
-        self.assertEqual(h.get_lower(None), None)
+        self.assertIsNone(h.get_lower(None))
         self.assertEqual(h.get_lower(ihm.unknown), ihm.unknown)
         self.assertEqual(h.get_lower('.'), '.')
         self.assertEqual(h.get_lower('?'), '?')
@@ -1275,7 +1275,7 @@ _ihm_3dem_restraint.cross_correlation_coefficient
         # Coerce to int so we can compare exactly
         self.assertEqual([int(x) for x in r], [4,6,9])
 
-        self.assertEqual(ihm.reader._get_vector3(d, 'omitted'), None)
+        self.assertIsNone(ihm.reader._get_vector3(d, 'omitted'))
         self.assertEqual(ihm.reader._get_vector3(d, 'unknown'), ihm.unknown)
 
     def test_get_matrix33(self):
@@ -1291,7 +1291,7 @@ _ihm_3dem_restraint.cross_correlation_coefficient
                           [1,2,3],
                           [8,1,7]])
 
-        self.assertEqual(ihm.reader._get_matrix33(d, 'omitted'), None)
+        self.assertIsNone(ihm.reader._get_matrix33(d, 'omitted'))
         self.assertEqual(ihm.reader._get_matrix33(d, 'unknown'), ihm.unknown)
 
     def test_unknown_omitted(self):
@@ -1438,7 +1438,7 @@ _ihm_sphere_obj_site.model_id
         self.assertAlmostEqual(s1.y, 145.089, places=2)
         self.assertAlmostEqual(s1.z, 134.782, places=2)
         self.assertAlmostEqual(s1.radius, 4.931, places=2)
-        self.assertEqual(s1.rmsf, None)
+        self.assertIsNone(s1.rmsf)
         self.assertAlmostEqual(s2.rmsf, 1.34, places=1)
 
     def test_atom_site_handler(self):
@@ -1486,10 +1486,10 @@ HETATM 2 C CA . SER . B 54.452 -48.492 -35.210 1 A 42.0 1 1
         self.assertAlmostEqual(a1.y, -49.984, places=2)
         self.assertAlmostEqual(a1.z, -35.287, places=2)
         self.assertEqual(a1.het, False)
-        self.assertEqual(a1.biso, None)
+        self.assertIsNone(a1.biso)
 
         self.assertEqual(a2.asym_unit._id, 'B')
-        self.assertEqual(a2.seq_id, None)
+        self.assertIsNone(a2.seq_id)
         self.assertEqual(a2.atom_id, 'CA')
         self.assertEqual(a2.type_symbol, 'C')
         self.assertEqual(a2.het, True)
@@ -1618,7 +1618,7 @@ _ihm_derived_distance_restraint.dataset_list_id
                                   ihm.restraint.LowerBoundDistanceRestraint)
             self.assertAlmostEqual(r1.distance.distance, 25.000, places=1)
             self.assertAlmostEqual(r1.probability, 0.8000, places=1)
-            self.assertEqual(r1.restrain_all, None)
+            self.assertIsNone(r1.restrain_all)
             self.assertEqual(r2.restrain_all, True)
             self.assertEqual(r3.restrain_all, False)
             self.assertIsInstance(r2.feature2,
@@ -1676,9 +1676,9 @@ _ihm_geometric_object_sphere.radius_r
             self.assertAlmostEqual(s1.center.z, 3.000, places=1)
             self.assertAlmostEqual(s1.transformation.tr_vector[1], 2.000,
                                    places=1)
-            self.assertEqual(s2.name, None)
-            self.assertEqual(s2.center, None)
-            self.assertEqual(s2.transformation, None)
+            self.assertIsNone(s2.name)
+            self.assertIsNone(s2.center)
+            self.assertIsNone(s2.transformation)
 
     def test_torus_handler(self):
         """Test TorusHandler"""
@@ -1713,8 +1713,8 @@ _ihm_geometric_object_torus.minor_radius_r
                                    places=1)
             self.assertAlmostEqual(t1.major_radius, 5.600, places=1)
             self.assertAlmostEqual(t1.minor_radius, 1.200, places=1)
-            self.assertEqual(t2.center, None)
-            self.assertEqual(t2.transformation, None)
+            self.assertIsNone(t2.center)
+            self.assertIsNone(t2.transformation)
 
     def test_half_torus_handler(self):
         """Test HalfTorusHandler"""
@@ -1766,10 +1766,10 @@ _ihm_geometric_object_half_torus.section
             self.assertAlmostEqual(t1.minor_radius, 1.200, places=1)
             self.assertAlmostEqual(t1.thickness, 0.100, places=1)
             self.assertEqual(t1.inner, True)
-            self.assertEqual(t2.center, None)
-            self.assertEqual(t2.transformation, None)
+            self.assertIsNone(t2.center)
+            self.assertIsNone(t2.transformation)
             self.assertEqual(t2.inner, False)
-            self.assertEqual(t3.inner, None)
+            self.assertIsNone(t3.inner)
 
     def test_axis_handler(self):
         """Test AxisHandler"""
@@ -1800,7 +1800,7 @@ _ihm_geometric_object_axis.transformation_id
             self.assertIsInstance(a2, ihm.geometry.YAxis)
             self.assertAlmostEqual(a1.transformation.tr_vector[1], 2.000,
                                    places=1)
-            self.assertEqual(a2.transformation, None)
+            self.assertIsNone(a2.transformation)
 
     def test_plane_handler(self):
         """Test PlaneHandler"""
@@ -1831,7 +1831,7 @@ _ihm_geometric_object_plane.transformation_id
             self.assertIsInstance(p2, ihm.geometry.YZPlane)
             self.assertAlmostEqual(p1.transformation.tr_vector[1], 2.000,
                                    places=1)
-            self.assertEqual(p2.transformation, None)
+            self.assertIsNone(p2.transformation)
 
     def test_geometric_restraint_handler(self):
         """Test GeometricRestraintHandler"""
@@ -1865,7 +1865,7 @@ _ihm_geometric_object_distance_restraint.dataset_list_id
         self.assertAlmostEqual(r1.harmonic_force_constant, 2.000, places=1)
         self.assertEqual(r1.restrain_all, False)
         self.assertEqual(r2.restrain_all, True)
-        self.assertEqual(r3.restrain_all, None)
+        self.assertIsNone(r3.restrain_all)
 
         self.assertIsInstance(r2, ihm.restraint.CenterGeometricRestraint)
         self.assertIsInstance(r3, ihm.restraint.InnerSurfaceGeometricRestraint)
@@ -2087,7 +2087,7 @@ _ihm_cross_link_list.dataset_list_id
         self.assertEqual(r1.linker.auth_name, 'DSS')
         self.assertEqual(r1.linker.chemical_name, 'disuccinimidyl suberate')
         self.assertEqual(r2.linker.auth_name, 'TST')
-        self.assertEqual(r2.linker.chemical_name, None)
+        self.assertIsNone(r2.linker.chemical_name)
         self.assertEqual(r3.linker.auth_name, 'DSS')
         self.assertEqual(r3.linker.chemical_name, 'disuccinimidyl suberate')
 
@@ -2161,9 +2161,9 @@ _ihm_cross_link_restraint.sigma_2
             self.assertTrue(xl2.atom1, 'C')
             self.assertTrue(xl2.atom2, 'N')
             self.assertAlmostEqual(xl2.distance.distance, 34.000, places=1)
-            self.assertEqual(xl2.psi, None)
-            self.assertEqual(xl2.sigma1, None)
-            self.assertEqual(xl2.sigma2, None)
+            self.assertIsNone(xl2.psi)
+            self.assertIsNone(xl2.sigma1)
+            self.assertIsNone(xl2.sigma2)
 
     def test_cross_link_result_handler(self):
         """Test CrossLinkResultHandler"""
@@ -2233,9 +2233,9 @@ _ihm_cross_link_result_parameters.sigma_2
             self.assertAlmostEqual(fits[0][1].sigma2, 2.100, places=1)
 
             self.assertEqual(fits[1][0]._id, '301')
-            self.assertEqual(fits[1][1].psi, None)
-            self.assertEqual(fits[1][1].sigma1, None)
-            self.assertEqual(fits[1][1].sigma2, None)
+            self.assertIsNone(fits[1][1].psi)
+            self.assertIsNone(fits[1][1].sigma1)
+            self.assertIsNone(fits[1][1].sigma2)
 
     def test_ordered_ensemble_handler(self):
         """Test OrderedEnsembleHandler"""
@@ -2262,7 +2262,7 @@ _ihm_ordered_ensemble.model_group_id_end
         self.assertEqual(s1.description, 'step 1 desc')
         self.assertEqual(len(s1), 1)
         e1 = s1[0]
-        self.assertEqual(e1.description, None)
+        self.assertIsNone(e1.description)
         self.assertEqual(e1.group_begin._id, '1')
         self.assertEqual(e1.group_end._id, '2')
 
@@ -2273,7 +2273,7 @@ _ihm_ordered_ensemble.model_group_id_end
         self.assertEqual(e1.group_begin._id, '1')
         self.assertEqual(e1.group_end._id, '3')
         e2 = s2[1]
-        self.assertEqual(e2.description, None)
+        self.assertIsNone(e2.description)
         self.assertEqual(e2.group_begin._id, '1')
         self.assertEqual(e2.group_end._id, '4')
 
@@ -2398,7 +2398,7 @@ _ihm_predicted_contact_restraint.software_id
         self.assertIsInstance(r3.distance,
                               ihm.restraint.UpperBoundDistanceRestraint)
         self.assertAlmostEqual(r3.distance.distance, 14.000, places=1)
-        self.assertEqual(r3.software, None)
+        self.assertIsNone(r3.software)
 
     def get_starting_model_coord(self):
         return """
@@ -2435,10 +2435,10 @@ _ihm_starting_model_coord.ordinal_id
         self.assertAlmostEqual(a1.y, 112.871, places=2)
         self.assertAlmostEqual(a1.z, 97.789, places=2)
         self.assertEqual(a1.het, False)
-        self.assertEqual(a1.biso, None)
+        self.assertIsNone(a1.biso)
 
         self.assertEqual(a2.asym_unit._id, 'B')
-        self.assertEqual(a2.seq_id, None)
+        self.assertIsNone(a2.seq_id)
         self.assertEqual(a2.atom_id, 'CA')
         self.assertEqual(a2.type_symbol, 'C')
         self.assertEqual(a2.het, True)
@@ -2522,7 +2522,7 @@ _flr_exp_setting.details
         self.assertEqual(es1.details, 'My_Exp_setting_1')
         es2 = flr._collection_flr_exp_setting['2']
         self.assertIsInstance(es2, ihm.flr.ExpSetting)
-        self.assertEqual(es2.details, None)
+        self.assertIsNone(es2.details)
 
     def test_flr_instrument_handler(self):
         """Test FLRInstrumentHandler"""
@@ -2542,7 +2542,7 @@ _flr_instrument.details
         self.assertEqual(i1.details, 'test')
         i2 = flr._collection_flr_instrument['2']
         self.assertIsInstance(i2, ihm.flr.Instrument)
-        self.assertEqual(i2.details, None)
+        self.assertIsNone(i2.details)
 
     def test_flr_entity_assembly_handler(self):
         """Test FLREntityAssemblyHandler"""
@@ -2585,7 +2585,7 @@ _flr_sample_condition.details
         self.assertEqual(s1.details, 'test')
         s2 = flr._collection_flr_sample_condition['2']
         self.assertIsInstance(s2, ihm.flr.SampleCondition)
-        self.assertEqual(s2.details, None)
+        self.assertIsNone(s2.details)
 
     def test_flr_sample_handler(self):
         """Test FLRSampleHandler"""
@@ -2635,7 +2635,7 @@ _flr_probe_list.probe_link_type
         self.assertIsInstance(p1, ihm.flr.ProbeList)
         self.assertEqual(p1.chromophore_name, 'Donor1')
         self.assertEqual(p1.reactive_probe_flag, False)
-        self.assertEqual(p1.reactive_probe_name, None)
+        self.assertIsNone(p1.reactive_probe_name)
         self.assertEqual(p1.probe_origin, 'extrinsic')
         self.assertEqual(p1.probe_link_type, 'covalent')
         p2 = flr._collection_flr_probe['2'].probe_list_entry
@@ -2663,7 +2663,7 @@ _flr_probe_descriptor.chromophore_center_atom
                          ['1', '2'])
         p1 = flr._collection_flr_probe['1'].probe_descriptor
         self.assertIsInstance(p1, ihm.flr.ProbeDescriptor)
-        self.assertEqual(p1.reactive_probe_chem_descriptor, None)
+        self.assertIsNone(p1.reactive_probe_chem_descriptor)
         self.assertIsInstance(p1.chromophore_chem_descriptor,
                               ihm.ChemDescriptor)
         self.assertEqual(p1.chromophore_chem_descriptor._id, '1')
@@ -2814,7 +2814,7 @@ _flr_poly_probe_conjugate.probe_stoichiometry
         self.assertIsInstance(p1.chem_descriptor, ihm.ChemDescriptor)
         self.assertEqual(p1.chem_descriptor._id, '5')
         self.assertEqual(p1.ambiguous_stoichiometry, False)
-        self.assertEqual(p1.probe_stoichiometry, None)
+        self.assertIsNone(p1.probe_stoichiometry)
 
         self.assertIsInstance(p2.sample_probe,
                               ihm.flr.SampleProbeDetails)
@@ -2849,7 +2849,7 @@ _flr_fret_forster_radius.reduced_forster_radius
         self.assertAlmostEqual(r1.reduced_forster_radius, 53.200, places=1)
 
         r2 = flr._collection_flr_fret_forster_radius['2']
-        self.assertEqual(r2.reduced_forster_radius, None)
+        self.assertIsNone(r2.reduced_forster_radius)
 
     def test_flr_fret_calibration_parameters_handler(self):
         """Test FLRFretCalibrationParametersHandler"""

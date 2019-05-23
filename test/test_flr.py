@@ -268,7 +268,7 @@ class Tests(unittest.TestCase):
                                 exp_setting = 'bar',
                                 sample = 'foo2')
         self.assertEqual(len(e3.details_list),1)
-        self.assertEqual(e3.details_list[0], None)
+        self.assertIsNone(e3.details_list[0])
 
 
     def test_Experiment_Add_entry(self):
@@ -676,7 +676,7 @@ class Tests(unittest.TestCase):
         # update_deviation() is a noop if restraint is None
         f2 = ihm.flr.FRETModelDistance(restraint=None, model='foo', distance=30)
         f2.update_deviation()
-        self.assertEqual(f2.distance_deviation, None)
+        self.assertIsNone(f2.distance_deviation)
 
     def test_fret_model_distance_eq(self):
         """ Test equality and inequality of FRETModelDistance objects. """
@@ -902,8 +902,8 @@ class Tests(unittest.TestCase):
         self.assertEqual(f1.linker_length, 'this_linker_length_1')
         self.assertEqual(f1.linker_width, 'this_linker_width_1')
         self.assertEqual(f1.probe_radius_1, 'this_probe_radius_1_1')
-        self.assertEqual(f1.probe_radius_2, None)
-        self.assertEqual(f1.probe_radius_3, None)
+        self.assertIsNone(f1.probe_radius_2)
+        self.assertIsNone(f1.probe_radius_3)
         ## Initialization with AV3
         f2 = ihm.flr.FPSAVParameter(num_linker_atoms = 'this_num_linker_atoms_2',
                                       linker_length = 'this_linker_length_2',

@@ -34,8 +34,8 @@ class Tests(unittest.TestCase):
         self.assertEqual(cc1.code, 'G')
         self.assertEqual(cc1.code_canonical, 'G')
         self.assertEqual(cc1.type, 'other')
-        self.assertEqual(cc1.formula, None)
-        self.assertEqual(cc1.formula_weight, None)
+        self.assertIsNone(cc1.formula)
+        self.assertIsNone(cc1.formula_weight)
         cc2 = ihm.ChemComp(id='GLY', code='G', code_canonical='G')
         cc3 = ihm.ChemComp(id='G', code='G', code_canonical='G')
         self.assertEqual(cc1, cc2)
@@ -46,13 +46,13 @@ class Tests(unittest.TestCase):
         """Test ChemComp.formula_weight"""
         # No formula
         cc = ihm.ChemComp('X', 'X', 'X', formula=None)
-        self.assertEqual(cc.formula_weight, None)
+        self.assertIsNone(cc.formula_weight)
         # Bad formula
         cc = ihm.ChemComp('X', 'X', 'X', formula='C90H')
         self.assertRaises(ValueError, lambda x: x.formula_weight, cc)
         # Formula with unknown element
         cc = ihm.ChemComp('X', 'X', 'X', formula='C5 Y')
-        self.assertEqual(cc.formula_weight, None)
+        self.assertIsNone(cc.formula_weight)
         # Formula with known elements and no charge
         cc = ihm.ChemComp('X', 'X', 'X', formula='C6 H12 P')
         self.assertAlmostEqual(cc.formula_weight, 115.136, places=2)
@@ -165,8 +165,8 @@ class Tests(unittest.TestCase):
         self.assertEqual(d1.chemical_name, 'test-EDC')
         self.assertEqual(d1.common_name, 'test-common-EDC')
         self.assertEqual(d1.smiles, 'CCN=C=NCCCN(C)C')
-        self.assertEqual(d1.inchi, None)
-        self.assertEqual(d1.inchi_key, None)
+        self.assertIsNone(d1.inchi)
+        self.assertIsNone(d1.inchi_key)
 
     def test_entity(self):
         """Test Entity class"""
@@ -188,7 +188,7 @@ class Tests(unittest.TestCase):
         self.assertAlmostEqual(e1.formula_weight, 499.516, places=1)
         # Entity containing a component with unknown weight
         heme = ihm.Entity([ihm.NonPolymerChemComp('HEM')])
-        self.assertEqual(heme.formula_weight, None)
+        self.assertIsNone(heme.formula_weight)
 
     def test_entity_type(self):
         """Test Entity.type"""
@@ -284,7 +284,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(c.title,
                 'Integrative structure and functional anatomy of a nuclear '
                 'pore complex (test of python-ihm lib).')
-        self.assertEqual(c.doi, None)
+        self.assertIsNone(c.doi)
         # Make sure that page range "475-82" is handled as 475,482
         self.assertEqual(c.page_range, ['475','482'])
 
@@ -293,7 +293,7 @@ class Tests(unittest.TestCase):
         e = ihm.Entity('AHCDAH')
         r = e.residue(3)
         self.assertEqual(r.entity, e)
-        self.assertEqual(r.asym, None)
+        self.assertIsNone(r.asym)
         self.assertEqual(r.seq_id, 3)
 
     def test_asym_unit_residue(self):
@@ -301,7 +301,7 @@ class Tests(unittest.TestCase):
         e = ihm.Entity('AHCDAH')
         a = ihm.AsymUnit(e, auth_seq_id_map=5)
         r = a.residue(3)
-        self.assertEqual(r.entity, None)
+        self.assertIsNone(r.entity)
         self.assertEqual(r.asym, a)
         self.assertEqual(r.seq_id, 3)
         self.assertEqual(r.auth_seq_id, 8)
@@ -314,7 +314,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(a.residue.entity, e)
         self.assertEqual(a.residue.seq_id, 3)
         self.assertEqual(a.entity, e)
-        self.assertEqual(a.asym, None)
+        self.assertIsNone(a.asym)
         self.assertEqual(a.seq_id, 3)
 
     def test_atom_asym(self):
@@ -324,7 +324,7 @@ class Tests(unittest.TestCase):
         a = asym.residue(3).atom('CA')
         self.assertEqual(a.id, 'CA')
         self.assertEqual(a.residue.seq_id, 3)
-        self.assertEqual(a.entity, None)
+        self.assertIsNone(a.entity)
         self.assertEqual(a.asym, asym)
         self.assertEqual(a.seq_id, 3)
 
