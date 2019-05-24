@@ -246,6 +246,30 @@ class _CrossLinkIDMapper(IDMapper):
             return newcls(*(None,)*4)
 
 
+class _FLRListAdapter(object):
+    """Take objects from IDMapper and place them in a dict rather than a list"""
+
+    def __init__(self, collection, flr_data):
+        self.collection, self.flr_data = collection, flr_data
+
+    def append(self, obj):
+        # We generally only have a single FLRData object, id=1
+        d = self.flr_data.get_by_id(1)
+        # Store in collection dict in FLRData rather than a list in System
+        collection = getattr(d, self.collection)
+        collection[obj._id] = obj
+
+
+class _FLRIDMapper(IDMapper):
+    """Handle mapping from mmCIF IDs to FLR Python objects.
+       This differs from the base IDMapper class in that created objects
+       are stored in a dict in the FLRData object, not in the System."""
+
+    def __init__(self, collection, flr_data, cls, *args, **keys):
+        system_list = _FLRListAdapter(collection, flr_data)
+        super(_FLRIDMapper, self).__init__(system_list, cls, *args, **keys)
+
+
 class _DatasetIDMapper(object):
     """Handle mapping from mmCIF dataset IDs to Python objects.
 
@@ -487,65 +511,141 @@ class SystemReader(object):
         ## FLR part
         #: Mapping from ID to :class:`ihm.flr.FLRData` objects
         self.flr_data = IDMapper(self.system.flr_data, ihm.flr.FLRData)
+
         #: Mapping from ID to :class:`ihm.flr.ExpSetting` objects
-        self.flr_exp_settings = IDMapper(None, ihm.flr.ExpSetting)
+        self.flr_exp_settings = _FLRIDMapper('_collection_flr_exp_setting',
+                                             self.flr_data, ihm.flr.ExpSetting)
+
         #: Mapping from ID to :class:`ihm.flr.Instrument` objects
-        self.flr_instruments = IDMapper(None, ihm.flr.Instrument)
+        self.flr_instruments = _FLRIDMapper('_collection_flr_instrument',
+                                            self.flr_data, ihm.flr.Instrument)
+
         #: Mapping from ID to :class:`ihm.flr.EntityAssembly` objects
-        self.flr_entity_assemblies = IDMapper(None, ihm.flr.EntityAssembly)
+        self.flr_entity_assemblies = _FLRIDMapper(
+                                '_collection_flr_entity_assembly',
+                                self.flr_data, ihm.flr.EntityAssembly)
+
         #: Mapping from ID to :class:`ihm.flr.SampleCondition` objects
-        self.flr_sample_conditions = IDMapper(None, ihm.flr.SampleCondition)
+        self.flr_sample_conditions = _FLRIDMapper(
+                                '_collection_flr_sample_condition',
+                                self.flr_data, ihm.flr.SampleCondition)
+
         #: Mapping from ID to :class:`ihm.flr.Sample` objects
-        self.flr_samples = IDMapper(None, ihm.flr.Sample,*(None,)*6)
+        self.flr_samples = _FLRIDMapper('_collection_flr_sample', self.flr_data,
+                                        ihm.flr.Sample,*(None,)*6)
+
         #: Mapping from ID to :class:`ihm.flr.Experiment` objects
-        self.flr_experiments = IDMapper(None, ihm.flr.Experiment)
+        self.flr_experiments = _FLRIDMapper('_collection_flr_experiment',
+                                            self.flr_data, ihm.flr.Experiment)
+
         #: Mapping from ID to :class:`ihm.flr.Probe` objects
-        self.flr_probes = IDMapper(None, ihm.flr.Probe)
+        self.flr_probes = _FLRIDMapper('_collection_flr_probe', self.flr_data,
+                                       ihm.flr.Probe)
+
         #: Mapping from ID to :class:`ihm.flr.PolyProbePosition` objects
-        self.flr_poly_probe_positions = IDMapper(None,
-                                ihm.flr.PolyProbePosition, None)
+        self.flr_poly_probe_positions = _FLRIDMapper(
+                            '_collection_flr_poly_probe_position',
+                            self.flr_data, ihm.flr.PolyProbePosition, None)
+
         #: Mapping from ID to :class:`ihm.flr.SampleProbeDetails` objects
-        self.flr_sample_probe_details = IDMapper(None, ihm.flr.SampleProbeDetails, *(None,)*5)
+        self.flr_sample_probe_details = _FLRIDMapper(
+                            '_collection_flr_sample_probe_details',
+                            self.flr_data, ihm.flr.SampleProbeDetails,
+                            *(None,)*5)
+
         #: Mapping from ID to :class:`ihm.flr.PolyProbeConjugate` objects
-        self.flr_poly_probe_conjugates = IDMapper(None, ihm.flr.PolyProbeConjugate, *(None,)*4)
+        self.flr_poly_probe_conjugates = _FLRIDMapper(
+                            '_collection_flr_poly_probe_conjugate',
+                            self.flr_data, ihm.flr.PolyProbeConjugate,
+                            *(None,)*4)
+
         #: Mapping from ID to :class:`ihm.flr.FRETForsterRadius` objects
-        self.flr_fret_forster_radius = IDMapper(None, ihm.flr.FRETForsterRadius, *(None,)*4)
+        self.flr_fret_forster_radius = _FLRIDMapper(
+                            '_collection_flr_fret_forster_radius',
+                            self.flr_data, ihm.flr.FRETForsterRadius,
+                            *(None,)*4)
+
         #: Mapping from ID to :class:`ihm.flr.FRETCalibrationParameters` objects
-        self.flr_fret_calibration_parameters = IDMapper(None, ihm.flr.FRETCalibrationParameters, *(None,)*8)
+        self.flr_fret_calibration_parameters = _FLRIDMapper(
+                            '_collection_flr_fret_calibration_parameters',
+                            self.flr_data, ihm.flr.FRETCalibrationParameters,
+                            *(None,)*8)
+
         #: Mapping from ID to :class:`ihm.flr.FRETAnalysis` objects
-        self.flr_fret_analyses = IDMapper(None, ihm.flr.FRETAnalysis, *(None,)*10)
+        self.flr_fret_analyses = _FLRIDMapper('_collection_flr_fret_analysis',
+                            self.flr_data, ihm.flr.FRETAnalysis, *(None,)*10)
+
         #: Mapping from ID to :class:`ihm.flr.PeakAssignment` objects
-        self.flr_peak_assignments = IDMapper(None, ihm.flr.PeakAssignment, *(None,)*2)
+        self.flr_peak_assignments = _FLRIDMapper(
+                            '_collection_flr_peak_assignment', self.flr_data,
+                            ihm.flr.PeakAssignment, *(None,)*2)
+
         #: Mapping from ID to :class:`ihm.flr.FRETDistanceRestraint` objects
-        self.flr_fret_distance_restraints = IDMapper(None, ihm.flr.FRETDistanceRestraint, *(None,)*10)
-        #: Mapping from ID to :class:`ihm.flr.FRETDistanceRestraintGroup` objects
-        self.flr_fret_distance_restraint_groups = IDMapper(None, ihm.flr.FRETDistanceRestraintGroup)
+        self.flr_fret_distance_restraints = _FLRIDMapper(
+                            '_collection_flr_fret_distance_restraint',
+                            self.flr_data, ihm.flr.FRETDistanceRestraint,
+                            *(None,)*10)
+
+        #: Mapping from ID to :class:`ihm.flr.FRETDistanceRestraintGroup`
+        #: objects
+        self.flr_fret_distance_restraint_groups = _FLRIDMapper(
+                            '_collection_flr_fret_distance_restraint_group',
+                            self.flr_data, ihm.flr.FRETDistanceRestraintGroup)
+
         #: Mapping from ID to :class:`ihm.flr.FRETModelQuality` objects
-        self.flr_fret_model_qualities = IDMapper(None, ihm.flr.FRETModelQuality, *(None,)*5)
+        self.flr_fret_model_qualities = _FLRIDMapper(
+                            '_collection_flr_fret_model_quality',
+                            self.flr_data, ihm.flr.FRETModelQuality, *(None,)*5)
+
         #: Mapping from ID to :class:`ihm.flr.FRETModelDistance` objects
-        self.flr_fret_model_distances = IDMapper(None, ihm.flr.FRETModelDistance, *(None,)*4)
+        self.flr_fret_model_distances = _FLRIDMapper(
+                            '_collection_flr_fret_model_distance',
+                            self.flr_data, ihm.flr.FRETModelDistance,
+                            *(None,)*4)
         #: Mapping from ID to :class:`ihm.flr.ModelingCollection` objects
-        self.flr_modeling_collection = IDMapper(None,ihm.flr.ModelingCollection)
+        self.flr_modeling_collection = IDMapper(None,
+                                        ihm.flr.ModelingCollection)
+
         #: Mapping from ID to :class:`ihm.flr.FPSModeling` objects
-        self.flr_fps_modeling = IDMapper(None,ihm.flr.FPSModeling, *(None,)*5)
+        self.flr_fps_modeling = _FLRIDMapper('_collection_flr_fps_modeling',
+                           self.flr_data, ihm.flr.FPSModeling, *(None,)*5)
+
         #: Mapping from ID to :class:`ihm.flr.FPSGlobalParameters` objects
-        self.flr_fps_global_parameters = IDMapper(None, ihm.flr.FPSGlobalParameters, *(None,)*20)
+        self.flr_fps_global_parameters = _FLRIDMapper(
+                            '_collection_flr_fps_global_parameters',
+                            self.flr_data, ihm.flr.FPSGlobalParameters,
+                            *(None,)*20)
+
         #: Mapping from ID to :class:`ihm.flr.FPSAVParameter` objects
-        self.flr_fps_av_parameters = IDMapper(None, ihm.flr.FPSAVParameter, *(None,)*6)
+        self.flr_fps_av_parameters = _FLRIDMapper(
+                            '_collection_flr_fps_av_parameter', self.flr_data,
+                            ihm.flr.FPSAVParameter, *(None,)*6)
+
         #: Mapping from ID to :class:`ihm.flr.FPSAVModeling` objects
-        self.flr_fps_av_modeling = IDMapper(None, ihm.flr.FPSAVModeling, *(None,)*3)
+        self.flr_fps_av_modeling = _FLRIDMapper(
+                            '_collection_flr_fps_av_modeling', self.flr_data,
+                            ihm.flr.FPSAVModeling, *(None,)*3)
+
         #: Mapping from ID to :class:`ihm.flr.FPSMeanProbePosition` objects
-        self.flr_fps_mean_probe_positions = IDMapper(None, ihm.flr.FPSMeanProbePosition, *(None,)*4)
+        self.flr_fps_mean_probe_positions = _FLRIDMapper(
+                            '_collection_flr_fps_mean_probe_position',
+                            self.flr_data, ihm.flr.FPSMeanProbePosition,
+                            *(None,)*4)
 
         #: Mapping from ID to :class:`ihm.flr.FPSMPPAtomPositionGroup` objects
-        self.flr_fps_mpp_atom_position_groups = IDMapper(None, ihm.flr.FPSMPPAtomPositionGroup)
+        self.flr_fps_mpp_atom_position_groups = IDMapper(
+                                    None, ihm.flr.FPSMPPAtomPositionGroup)
 
         #: Mapping from ID to :class:`ihm.flr.FPSMPPAtomPosition` objects
-        self.flr_fps_mpp_atom_positions = IDMapper(None,
-                                ihm.flr.FPSMPPAtomPosition, *(None,)*4)
+        self.flr_fps_mpp_atom_positions = _FLRIDMapper(
+                            '_collection_flr_fps_mpp_atom_position',
+                            self.flr_data, ihm.flr.FPSMPPAtomPosition,
+                            *(None,)*4)
 
         #: Mapping from ID to :class:`ihm.flr.FPSMPPModeling` objects
-        self.flr_fps_mpp_modeling = IDMapper(None, ihm.flr.FPSMPPModeling, *(None,)*3)
+        self.flr_fps_mpp_modeling = _FLRIDMapper(
+                            '_collection_flr_fps_mpp_modeling', self.flr_data,
+                            ihm.flr.FPSMPPModeling, *(None,)*3)
 
     def finalize(self):
         # make sequence immutable (see also _make_new_entity)
@@ -2065,8 +2165,6 @@ class _FLRExperimentHandler(Handler):
         sample = self.sysr.flr_samples.get_by_id(sample_id)
         experiment.add_entry(instrument=instrument, exp_setting=exp_setting,
                              sample=sample, details=details)
-        d = self.sysr.flr_data.get_by_id(1)
-        d._collection_flr_experiment[id] = experiment
 
 
 class _FLRExpSettingHandler(Handler):
@@ -2077,8 +2175,6 @@ class _FLRExpSettingHandler(Handler):
         cur_exp_setting = self.sysr.flr_exp_settings.get_by_id(id)
         # Set the variables
         self.copy_if_present(cur_exp_setting, locals(), keys=('details',))
-        d = self.sysr.flr_data.get_by_id(1)
-        d._collection_flr_exp_setting[id] = cur_exp_setting
 
 
 class _FLRInstrumentHandler(Handler):
@@ -2089,8 +2185,6 @@ class _FLRInstrumentHandler(Handler):
         cur_instrument = self.sysr.flr_instruments.get_by_id(id)
         # Set the variables
         self.copy_if_present(cur_instrument, locals(), keys=('details',))
-        d = self.sysr.flr_data.get_by_id(1)
-        d._collection_flr_instrument[id] = cur_instrument
 
 
 class _FLREntityAssemblyHandler(Handler):
@@ -2103,8 +2197,6 @@ class _FLREntityAssemblyHandler(Handler):
         entity = self.sysr.entities.get_by_id(entity_id)
         # Add the entity to the entity assembly
         a.add_entity(entity=entity, num_copies=self.get_int(num_copies))
-        d = self.sysr.flr_data.get_by_id(1)
-        d._collection_flr_entity_assembly[assembly_id] = a
 
 
 class _FLRSampleConditionHandler(Handler):
@@ -2115,8 +2207,6 @@ class _FLRSampleConditionHandler(Handler):
         cur_sample_condition = self.sysr.flr_sample_conditions.get_by_id(id)
         # Set the variables
         self.copy_if_present(cur_sample_condition, locals(), keys=('details',))
-        d = self.sysr.flr_data.get_by_id(1)
-        d._collection_flr_sample_condition[id] = cur_sample_condition
 
 
 class _FLRSampleHandler(Handler):
@@ -2134,8 +2224,6 @@ class _FLRSampleHandler(Handler):
         self.copy_if_present(sample, locals(), keys=('solvent_phase',),
                              mapkeys={'sample_description': 'description',
                                       'sample_details': 'details'})
-        d = self.sysr.flr_data.get_by_id(1)
-        d._collection_flr_sample[id] = sample
 
 
 class _FLRProbeListHandler(Handler):
@@ -2152,9 +2240,6 @@ class _FLRProbeListHandler(Handler):
                                 probe_origin=probe_origin,
                                 probe_link_type=probe_link_type)
 
-        d = self.sysr.flr_data.get_by_id(1)
-        d._collection_flr_probe[probe_id] = cur_probe
-
 
 class _FLRSampleProbeDetailsHandler(Handler):
     category = '_flr_sample_probe_details'
@@ -2168,9 +2253,6 @@ class _FLRSampleProbeDetailsHandler(Handler):
                                       poly_probe_position_id)
         spd.fluorophore_type = fluorophore_type
         spd.description = description
-
-        d = self.sysr.flr_data.get_by_id(1)
-        d._collection_flr_sample_probe_details[sample_probe_id] = spd
 
 
 class _FLRProbeDescriptorHandler(Handler):
@@ -2187,9 +2269,6 @@ class _FLRProbeDescriptorHandler(Handler):
                       reactive_probe_chem_descriptor=react_cd,
                       chromophore_chem_descriptor=chrom_cd,
                       chromophore_center_atom=chromophore_center_atom)
-
-        d = self.sysr.flr_data.get_by_id(1)
-        d._collection_flr_probe[probe_id] = cur_probe
 
 
 class _FLRPolyProbePositionHandler(Handler):
@@ -2211,9 +2290,6 @@ class _FLRPolyProbePositionHandler(Handler):
         ppos.modification_flag = self.get_bool(modification_flag)
         ppos.auth_name = auth_name
 
-        d = self.sysr.flr_data.get_by_id(1)
-        d._collection_flr_poly_probe_position[id] = ppos
-
 
 class _FLRPolyProbePositionModifiedHandler(Handler):
     category = '_flr_poly_probe_position_modified'
@@ -2222,8 +2298,6 @@ class _FLRPolyProbePositionModifiedHandler(Handler):
         ppos = self.sysr.flr_poly_probe_positions.get_by_id(id)
         ppos.modified_chem_descriptor = \
                 self.sysr.chem_descriptors.get_by_id_or_none(chem_descriptor_id)
-        d = self.sysr.flr_data.get_by_id(1)
-        d._collection_flr_poly_probe_position[id] = ppos
 
 
 class _FLRPolyProbePositionMutatedHandler(Handler):
@@ -2233,8 +2307,6 @@ class _FLRPolyProbePositionMutatedHandler(Handler):
         ppos = self.sysr.flr_poly_probe_positions.get_by_id(id)
         ppos.mutated_chem_descriptor = \
                 self.sysr.chem_descriptors.get_by_id_or_none(chem_descriptor_id)
-        d = self.sysr.flr_data.get_by_id(1)
-        d._collection_flr_poly_probe_position[id] = ppos
 
 
 class _FLRPolyProbeConjugateHandler(Handler):
@@ -2255,7 +2327,6 @@ class _FLRPolyProbeConjugateHandler(Handler):
         ## add it to the FLR_data if it is not there yet
         if ppc not in d.poly_probe_conjugate_list:
             d.add_poly_probe_conjugate(ppc)
-        d._collection_flr_poly_probe_conjugate[id] = ppc
 
 
 class _FLRFretForsterRadiusHandler(Handler):
@@ -2268,9 +2339,6 @@ class _FLRFretForsterRadiusHandler(Handler):
         ffr.acceptor_probe = self.sysr.flr_probes.get_by_id(acceptor_probe_id)
         ffr.forster_radius = self.get_float(forster_radius)
         ffr.reduced_forster_radius = self.get_float(reduced_forster_radius)
-
-        d = self.sysr.flr_data.get_by_id(1)
-        d._collection_flr_fret_forster_radius[id] = ffr
 
 
 class _FLRFretCalibrationParametersHandler(Handler):
@@ -2287,9 +2355,6 @@ class _FLRFretCalibrationParametersHandler(Handler):
         p.gamma = self.get_float(gamma)
         p.delta = self.get_float(delta)
         p.a_b = self.get_float(a_b)
-
-        d = self.sysr.flr_data.get_by_id(1)
-        d._collection_flr_fret_calibration_parameters[id] = p
 
 
 class _FLRFretAnalysisHandler(Handler):
@@ -2317,9 +2382,6 @@ class _FLRFretAnalysisHandler(Handler):
         f.method_name = method_name
         f.chi_square_reduced = self.get_float(chi_square_reduced)
 
-        d = self.sysr.flr_data.get_by_id(1)
-        d._collection_flr_fret_analysis[id] = f
-
 
 class _FLRPeakAssignmentHandler(Handler):
     category = '_flr_peak_assignment'
@@ -2327,9 +2389,6 @@ class _FLRPeakAssignmentHandler(Handler):
     def __call__(self, id, method_name, details):
         p = self.sysr.flr_peak_assignments.get_by_id(id)
         self.copy_if_present(p, locals(), keys=('method_name', 'details'))
-
-        d = self.sysr.flr_data.get_by_id(1)
-        d._collection_flr_peak_assignment[id] = p
 
 
 class _FLRFretDistanceRestraintHandler(Handler):
@@ -2361,8 +2420,6 @@ class _FLRFretDistanceRestraintHandler(Handler):
         d = self.sysr.flr_data.get_by_id(1)
         if rg not in d.distance_restraint_group_list:
             d.add_distance_restraint_group(rg)
-        d._collection_flr_fret_distance_restraint[id] = r
-        d._collection_flr_fret_distance_restraint_group[group_id] = rg
 
 
 class _FLRFretModelQualityHandler(Handler):
@@ -2380,7 +2437,6 @@ class _FLRFretModelQualityHandler(Handler):
         d = self.sysr.flr_data.get_by_id(1)
         if q not in d.fret_model_quality_list:
             d.add_fret_model_quality(q)
-        d._collection_flr_fret_model_quality[model_id] = q
 
 
 class _FLRFretModelDistanceHandler(Handler):
@@ -2402,7 +2458,6 @@ class _FLRFretModelDistanceHandler(Handler):
         d = self.sysr.flr_data.get_by_id(1)
         if md not in d.fret_model_distance_list:
             d.add_fret_model_distance(md)
-        d._collection_flr_fret_model_distance[id] = md
 
 
 class _FLRFPSGlobalParameterHandler(Handler):
@@ -2437,9 +2492,6 @@ class _FLRFPSGlobalParameterHandler(Handler):
         p.convergence_f = self.get_float(convergence_f)
         p.convergence_t = self.get_float(convergence_t)
 
-        d = self.sysr.flr_data.get_by_id(1)
-        d._collection_flr_fps_global_parameters[id] = p
-
 
 class _FLRFPSModelingHandler(Handler):
     category = '_flr_fps_modeling'
@@ -2457,9 +2509,6 @@ class _FLRFPSModelingHandler(Handler):
         self.copy_if_present(m, locals(),
                              keys=('probe_modeling_method', 'details'))
 
-        d = self.sysr.flr_data.get_by_id(1)
-        d._collection_flr_fps_modeling[id] = m
-
 
 class _FLRFPSAVParameterHandler(Handler):
     category = '_flr_fps_av_parameter'
@@ -2474,9 +2523,6 @@ class _FLRFPSAVParameterHandler(Handler):
         p.probe_radius_2 = self.get_float(probe_radius_2)
         p.probe_radius_3 = self.get_float(probe_radius_3)
 
-        d = self.sysr.flr_data.get_by_id(1)
-        d._collection_flr_fps_av_parameter[id] = p
-
 
 class _FLRFPSAVModelingHandler(Handler):
     category = '_flr_fps_av_modeling'
@@ -2488,9 +2534,6 @@ class _FLRFPSAVModelingHandler(Handler):
                                                             sample_probe_id)
         m.parameter = self.sysr.flr_fps_av_parameters.get_by_id(parameter_id)
 
-        d = self.sysr.flr_data.get_by_id(1)
-        d._collection_flr_fps_av_modeling[id] = m
-
         # Add the FPS_AV_modeling to the modeling collection
         # todo: this won't work correctly unless FPSModeling has already been
         # read (should be done in finalize)
@@ -2500,6 +2543,7 @@ class _FLRFPSAVModelingHandler(Handler):
         cur_modeling_collection.add_modeling(m, cur_method)
 
         # add it to the flr_data if it is not there yet
+        d = self.sysr.flr_data.get_by_id(1)
         if cur_modeling_collection not in d.flr_FPS_modeling_collection_list:
             d.add_flr_FPS_modeling(cur_modeling_collection)
 
@@ -2514,9 +2558,6 @@ class _FLRFPSMPPHandler(Handler):
         p.x = self.get_float(mpp_xcoord)
         p.y = self.get_float(mpp_ycoord)
         p.z = self.get_float(mpp_zcoord)
-
-        d = self.sysr.flr_data.get_by_id(1)
-        d._collection_flr_fps_mean_probe_position[id] = p
 
 
 class _FLRFPSMPPAtomPositionHandler(Handler):
@@ -2536,9 +2577,6 @@ class _FLRFPSMPPAtomPositionHandler(Handler):
         g = self.sysr.flr_fps_mpp_atom_position_groups.get_by_id(group_id)
         g.add_atom_position(p)
 
-        d = self.sysr.flr_data.get_by_id(1)
-        d._collection_flr_fps_mpp_atom_position[id] = p
-
 
 class _FLRFPSMPPModelingHandler(Handler):
     category = '_flr_fps_mpp_modeling'
@@ -2552,9 +2590,6 @@ class _FLRFPSMPPModelingHandler(Handler):
                 self.sysr.flr_fps_mpp_atom_position_groups.get_by_id(
                                         mpp_atom_position_group_id)
 
-        d = self.sysr.flr_data.get_by_id(1)
-        d._collection_flr_fps_mpp_modeling[ordinal_id] = m
-
         # Add the FPS_AV_modeling to the modeling collection
         # todo: this won't work correctly unless FPSModeling has already been
         # read (should be done in finalize)
@@ -2564,6 +2599,7 @@ class _FLRFPSMPPModelingHandler(Handler):
         cur_modeling_collection.add_modeling(m, cur_method)
 
         # add it to the flr_data if it is not there yet
+        d = self.sysr.flr_data.get_by_id(1)
         if cur_modeling_collection not in d.flr_FPS_modeling_collection_list:
             d.add_flr_FPS_modeling(cur_modeling_collection)
 
