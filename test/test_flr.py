@@ -1071,22 +1071,6 @@ class Tests(unittest.TestCase):
         f.flr_fps_modeling_collections.append('bar')
         self.assertEqual(f.flr_fps_modeling_collections, ['foo','bar'])
 
-    def test_flr_data_occurs_in_list(self):
-        """ Test for occurence in list. """
-        class MockObject():
-            def __init__(self, value1, value2):
-                self.value1 = value1
-                self.value2 = value2
-
-        f = ihm.flr.FLRData()
-        f.distance_restraint_groups.append(MockObject('foo','bar'))
-        self.assertTrue(f._occurs_in_list(
-                             MockObject('foo','bar'),
-                                        f.distance_restraint_groups))
-        self.assertFalse(f._occurs_in_list(
-                             MockObject('foo2','bar'),
-                                        f.distance_restraint_groups))
-
     def test_flr_data_all_chemical_descriptors(self):
         """Test for collection of all chemical descriptors."""
         f = ihm.flr.FLRData()

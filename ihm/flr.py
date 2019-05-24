@@ -878,12 +878,6 @@ class FLRData(object):
         self._collection_flr_fps_mpp_atom_position = {}
         self._collection_flr_fps_mpp_modeling = {}
 
-    def _occurs_in_list(self,curobject, list):
-        for entry in list:
-            if curobject.__dict__ == entry.__dict__:
-                return True
-        return False
-
     def _all_flr_chemical_descriptors(self):
         """Collect the chemical descriptors from the flr part.
            *This might contain duplicates.*
