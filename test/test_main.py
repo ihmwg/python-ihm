@@ -816,7 +816,7 @@ class Tests(unittest.TestCase):
         # FLR chemical descriptors
         conj = ihm.flr.PolyProbeConjugate(sample_probe=None, chem_descriptor=d4,
                                           ambiguous_stoichiometry=False)
-        f.add_poly_probe_conjugate(conj)
+        f.poly_probe_conjugates.append(conj)
 
         # duplicates should not be filtered
         self.assertEqual(list(s._all_chem_descriptors()), [d1, d2, d1, d3, d4])

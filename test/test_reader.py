@@ -2807,7 +2807,7 @@ _flr_poly_probe_conjugate.probe_stoichiometry
         self.assertEqual(sorted(
                             flr._collection_flr_poly_probe_conjugate.keys()),
                          ['1', '2'])
-        p1, p2 = s.flr_data[0].poly_probe_conjugate_list
+        p1, p2 = s.flr_data[0].poly_probe_conjugates
         self.assertIsInstance(p1.sample_probe,
                               ihm.flr.SampleProbeDetails)
         self.assertEqual(p1.sample_probe._id, '1')

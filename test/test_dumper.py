@@ -2882,10 +2882,9 @@ _ihm_predicted_contact_restraint.software_id
         cur_poly_probe_conjugate_4 = ihm.flr.PolyProbeConjugate(sample_probe=cur_sample_probe_details_4,
                                                                   chem_descriptor=cur_poly_probe_conjugate_chem_descriptor,
                                                                   ambiguous_stoichiometry=False)
-        cur_flr_data.add_poly_probe_conjugate(cur_poly_probe_conjugate_1)
-        cur_flr_data.add_poly_probe_conjugate(cur_poly_probe_conjugate_2)
-        cur_flr_data.add_poly_probe_conjugate(cur_poly_probe_conjugate_3)
-        cur_flr_data.add_poly_probe_conjugate(cur_poly_probe_conjugate_4)
+        cur_flr_data.poly_probe_conjugates.extend(
+                (cur_poly_probe_conjugate_1, cur_poly_probe_conjugate_2,
+                 cur_poly_probe_conjugate_3, cur_poly_probe_conjugate_4))
 
         ## Forster_radius
         cur_forster_radius = ihm.flr.FRETForsterRadius(donor_probe=cur_probe_1,
@@ -2944,7 +2943,8 @@ _ihm_predicted_contact_restraint.software_id
         cur_fret_distance_restraint_group.add_distance_restraint(cur_fret_distance_restraint_1)
         cur_fret_distance_restraint_group.add_distance_restraint(cur_fret_distance_restraint_2)
 
-        cur_flr_data.add_distance_restraint_group(cur_fret_distance_restraint_group)
+        cur_flr_data.distance_restraint_groups.append(
+                                cur_fret_distance_restraint_group)
 
         ## fret_model_quality
         cur_fret_model_quality_1 = ihm.flr.FRETModelQuality(model=cur_model_1,
@@ -2955,8 +2955,8 @@ _ihm_predicted_contact_restraint.software_id
                                                               chi_square_reduced=1.9,
                                                               dataset_group=dataset_group_1,
                                                               method=None)
-        cur_flr_data.add_fret_model_quality(cur_fret_model_quality_1)
-        cur_flr_data.add_fret_model_quality(cur_fret_model_quality_2)
+        cur_flr_data.fret_model_qualities.extend(
+                (cur_fret_model_quality_1, cur_fret_model_quality_2))
         ## fret_model_distance
         cur_fret_model_distance_1_1 = ihm.flr.FRETModelDistance(restraint=cur_fret_distance_restraint_1,
                                                                   model=cur_model_1,
@@ -2970,10 +2970,9 @@ _ihm_predicted_contact_restraint.software_id
         cur_fret_model_distance_2_2 = ihm.flr.FRETModelDistance(restraint=cur_fret_distance_restraint_2,
                                                                   model=cur_model_2,
                                                                   distance=49.4)
-        cur_flr_data.add_fret_model_distance(cur_fret_model_distance_1_1)
-        cur_flr_data.add_fret_model_distance(cur_fret_model_distance_1_2)
-        cur_flr_data.add_fret_model_distance(cur_fret_model_distance_2_1)
-        cur_flr_data.add_fret_model_distance(cur_fret_model_distance_2_2)
+        cur_flr_data.fret_model_distances.extend(
+                (cur_fret_model_distance_1_1, cur_fret_model_distance_1_2,
+                 cur_fret_model_distance_2_1, cur_fret_model_distance_2_2))
 
         ## FPS modeling
         cur_FPS_modeling_collection = ihm.flr.ModelingCollection()
@@ -3036,7 +3035,8 @@ _ihm_predicted_contact_restraint.software_id
         cur_FPS_modeling_collection.add_modeling(cur_FPS_MPP_modeling_2, 'FPS_MPP')
         cur_FPS_modeling_collection.add_modeling(cur_FPS_MPP_modeling_4, 'FPS_MPP')
 
-        cur_flr_data.add_flr_FPS_modeling(cur_FPS_modeling_collection)
+        cur_flr_data.flr_fps_modeling_collections.append(
+                cur_FPS_modeling_collection)
 
         system.flr_data = [cur_flr_data]
 

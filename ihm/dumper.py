@@ -2031,7 +2031,7 @@ class _FLRDumper(Dumper):
 
         ## fret_distance_restraint_group => FLR_data
         for flr_data in system.flr_data:
-            for rg in flr_data.distance_restraint_group_list:
+            for rg in flr_data.distance_restraint_groups:
                 if rg not in self._list_fret_distance_restraint_group:
                     ## assign the ID
                     rg._id = fret_distance_restraint_group_ID
@@ -2129,25 +2129,25 @@ class _FLRDumper(Dumper):
                         self._list_fret_calibration_parameters.append(this_fret_calibration_parameters)
                         fret_calibration_parameters_ID += 1
             ## poly_probe_conjugate => FLR_data
-            for this_poly_probe_conjugate in flr_data.poly_probe_conjugate_list:
+            for this_poly_probe_conjugate in flr_data.poly_probe_conjugates:
                 if this_poly_probe_conjugate not in self._list_poly_probe_conjugate:
                     this_poly_probe_conjugate._id = poly_probe_conjugate_ID
                     self._list_poly_probe_conjugate.append(this_poly_probe_conjugate)
                     poly_probe_conjugate_ID += 1
             ## model_quality => FLR_data
-            for this_model_quality in flr_data.fret_model_quality_list:
+            for this_model_quality in flr_data.fret_model_qualities:
                 if this_model_quality not in self._list_model_quality:
                     this_model_quality._id = model_quality_ID
                     self._list_model_quality.append(this_model_quality)
                     model_quality_ID += 1
             ## model_distance => FLR_data
-            for this_model_distance in flr_data.fret_model_distance_list:
+            for this_model_distance in flr_data.fret_model_distances:
                 if this_model_distance not in self._list_model_distance:
                     this_model_distance._id = model_distance_ID
                     self._list_model_distance.append(this_model_distance)
                     model_distance_ID += 1
             ## Modeling_group => FLR_data
-            for this_FPS_modeling_collection in flr_data.flr_FPS_modeling_collection_list:
+            for this_FPS_modeling_collection in flr_data.flr_fps_modeling_collections:
                 for index_i in range(len(this_FPS_modeling_collection.flr_modeling_list)):
                     ## FPS_AV_modeling => FPS_modeling
                     if 'FPS_AV' in this_FPS_modeling_collection.flr_modeling_method_list[index_i]:

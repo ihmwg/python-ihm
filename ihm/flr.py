@@ -829,12 +829,26 @@ class FLRData(object):
        :attr:`~ihm.System.flr_data`.
     """
     def __init__(self):
-        self.distance_restraint_group_list = []
-        self.poly_probe_conjugate_list = []
-        self.fret_model_quality_list = []
-        self.fret_model_distance_list = []
-        self.flr_FPS_modeling_collection_list = []
-        self.flr_chemical_descriptors_list = []
+        #: All groups of FRET distance restraints.
+        #: See :class:`FRETDistanceRestraintGroup`.
+        self.distance_restraint_groups = []
+
+        #: All conjugates of polymer residue and probe.
+        #: See :class:`PolyProbeConjugate`.
+        self.poly_probe_conjugates = []
+
+        #: All quality measures for models based on FRET data.
+        #: See :class:`FRETModelQuality`.
+        self.fret_model_qualities = []
+
+        #: All distances in models for distance restraints.
+        #: See :class:`FRETModelDistance`.
+        self.fret_model_distances = []
+
+        #: All collections of modeling objects.
+        #: See :class:`ModelingCollection`.
+        self.flr_fps_modeling_collections = []
+
         ## The following dictionaries are so far only used when reading data
         self._collection_flr_experiment = {}
         self._collection_flr_exp_setting = {}
@@ -864,21 +878,6 @@ class FLRData(object):
         self._collection_flr_fps_mpp_atom_position = {}
         self._collection_flr_fps_mpp_modeling = {}
 
-    def add_distance_restraint_group(self,entry):
-        self.distance_restraint_group_list.append(entry)
-
-    def add_poly_probe_conjugate(self,entry):
-        self.poly_probe_conjugate_list.append(entry)
-
-    def add_fret_model_quality(self,entry):
-        self.fret_model_quality_list.append(entry)
-
-    def add_fret_model_distance(self,entry):
-        self.fret_model_distance_list.append(entry)
-
-    def add_flr_FPS_modeling(self,entry):
-        self.flr_FPS_modeling_collection_list.append(entry)
-
     def _occurs_in_list(self,curobject, list):
         for entry in list:
             if curobject.__dict__ == entry.__dict__:
@@ -890,7 +889,7 @@ class FLRData(object):
            *This might contain duplicates.*
         """
         # collect from all distance_restraint_groups
-        for drgroup in self.distance_restraint_group_list:
+        for drgroup in self.distance_restraint_groups:
             # collect from all distance restraints
             for dr in drgroup.distance_restraint_list:
                 # collect from both sample_probe_1 and sample_probe_2
@@ -910,5 +909,5 @@ class FLRData(object):
                     if pos.modification_flag:
                         yield pos.modified_chem_descriptor
         # and collect from all poly_probe_conjugates
-        for c in self.poly_probe_conjugate_list:
+        for c in self.poly_probe_conjugates:
             yield c.chem_descriptor

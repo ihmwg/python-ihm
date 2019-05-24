@@ -2325,8 +2325,8 @@ class _FLRPolyProbeConjugateHandler(Handler):
 
         d = self.sysr.flr_data.get_by_id(1)
         ## add it to the FLR_data if it is not there yet
-        if ppc not in d.poly_probe_conjugate_list:
-            d.add_poly_probe_conjugate(ppc)
+        if ppc not in d.poly_probe_conjugates:
+            d.poly_probe_conjugates.append(ppc)
 
 
 class _FLRFretForsterRadiusHandler(Handler):
@@ -2418,8 +2418,8 @@ class _FLRFretDistanceRestraintHandler(Handler):
 
         # add it to the flr_data if it is not there yet
         d = self.sysr.flr_data.get_by_id(1)
-        if rg not in d.distance_restraint_group_list:
-            d.add_distance_restraint_group(rg)
+        if rg not in d.distance_restraint_groups:
+            d.distance_restraint_groups.append(rg)
 
 
 class _FLRFretModelQualityHandler(Handler):
@@ -2435,8 +2435,8 @@ class _FLRFretModelQualityHandler(Handler):
 
         # add it to the flr_data if it is not there yet
         d = self.sysr.flr_data.get_by_id(1)
-        if q not in d.fret_model_quality_list:
-            d.add_fret_model_quality(q)
+        if q not in d.fret_model_qualities:
+            d.fret_model_qualities.append(q)
 
 
 class _FLRFretModelDistanceHandler(Handler):
@@ -2456,8 +2456,8 @@ class _FLRFretModelDistanceHandler(Handler):
 
         # add it to the flr_data if it is not there yet
         d = self.sysr.flr_data.get_by_id(1)
-        if md not in d.fret_model_distance_list:
-            d.add_fret_model_distance(md)
+        if md not in d.fret_model_distances:
+            d.fret_model_distances.append(md)
 
 
 class _FLRFPSGlobalParameterHandler(Handler):
@@ -2544,8 +2544,8 @@ class _FLRFPSAVModelingHandler(Handler):
 
         # add it to the flr_data if it is not there yet
         d = self.sysr.flr_data.get_by_id(1)
-        if cur_modeling_collection not in d.flr_FPS_modeling_collection_list:
-            d.add_flr_FPS_modeling(cur_modeling_collection)
+        if cur_modeling_collection not in d.flr_fps_modeling_collections:
+            d.flr_fps_modeling_collections.append(cur_modeling_collection)
 
 
 class _FLRFPSMPPHandler(Handler):
@@ -2600,8 +2600,8 @@ class _FLRFPSMPPModelingHandler(Handler):
 
         # add it to the flr_data if it is not there yet
         d = self.sysr.flr_data.get_by_id(1)
-        if cur_modeling_collection not in d.flr_FPS_modeling_collection_list:
-            d.add_flr_FPS_modeling(cur_modeling_collection)
+        if cur_modeling_collection not in d.flr_fps_modeling_collections:
+            d.flr_fps_modeling_collections.append(cur_modeling_collection)
 
 
 

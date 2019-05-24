@@ -1032,59 +1032,60 @@ class Tests(unittest.TestCase):
     def test_flr_data_init(self):
         """ Test initialization of FLRData. """
         f = ihm.flr.FLRData()
-        self.assertEqual(f.distance_restraint_group_list, [])
-        self.assertEqual(f.poly_probe_conjugate_list, [])
-        self.assertEqual(f.fret_model_quality_list, [])
-        self.assertEqual(f.fret_model_distance_list, [])
-        self.assertEqual(f.flr_FPS_modeling_collection_list, [])
-        self.assertEqual(f.flr_chemical_descriptors_list, [])
+        self.assertEqual(f.distance_restraint_groups, [])
+        self.assertEqual(f.poly_probe_conjugates, [])
+        self.assertEqual(f.fret_model_qualities, [])
+        self.assertEqual(f.fret_model_distances, [])
+        self.assertEqual(f.flr_fps_modeling_collections, [])
 
     def test_flr_data_add_distance_restraint_group(self):
-        """ Test addition of a distance restraint group. """
+        """Test addition of a distance restraint group."""
         f = ihm.flr.FLRData()
-        f.add_distance_restraint_group('foo')
-        f.add_distance_restraint_group('bar')
-        self.assertEqual(f.distance_restraint_group_list, ['foo','bar'])
+        f.distance_restraint_groups.append('foo')
+        f.distance_restraint_groups.append('bar')
+        self.assertEqual(f.distance_restraint_groups, ['foo','bar'])
 
     def test_flr_data_add_poly_probe_conjugate(self):
-        """ Test addition of a poly_probe_conjugate. """
+        """Test addition of a poly_probe_conjugate."""
         f = ihm.flr.FLRData()
-        f.add_poly_probe_conjugate('foo')
-        f.add_poly_probe_conjugate('bar')
-        self.assertEqual(f.poly_probe_conjugate_list, ['foo','bar'])
+        f.poly_probe_conjugates.extend(('foo', 'bar'))
+        self.assertEqual(f.poly_probe_conjugates, ['foo','bar'])
 
     def test_flr_data_add_fret_model_quality(self):
-        """ Test addition of a fret_model_quality. """
+        """Test addition of a fret_model_quality."""
         f = ihm.flr.FLRData()
-        f.add_fret_model_quality('foo')
-        f.add_fret_model_quality('bar')
-        self.assertEqual(f.fret_model_quality_list, ['foo','bar'])
+        f.fret_model_qualities.extend(('foo', 'bar'))
+        self.assertEqual(f.fret_model_qualities, ['foo','bar'])
 
     def test_flr_data_add_fret_model_distance(self):
-        """ Test addition of a fret_model_distance. """
+        """Test addition of a fret_model_distance."""
         f = ihm.flr.FLRData()
-        f.add_fret_model_distance('foo')
-        f.add_fret_model_distance('bar')
-        self.assertEqual(f.fret_model_distance_list, ['foo','bar'])
+        f.fret_model_distances.append('foo')
+        f.fret_model_distances.append('bar')
+        self.assertEqual(f.fret_model_distances, ['foo','bar'])
 
     def test_flr_data_add_flr_fps_modeling(self):
-        """ Test addition of flr_FPS_modeling. """
+        """Test addition of flr_FPS_modeling."""
         f = ihm.flr.FLRData()
-        f.add_flr_FPS_modeling('foo')
-        f.add_flr_FPS_modeling('bar')
-        self.assertEqual(f.flr_FPS_modeling_collection_list, ['foo','bar'])
+        f.flr_fps_modeling_collections.append('foo')
+        f.flr_fps_modeling_collections.append('bar')
+        self.assertEqual(f.flr_fps_modeling_collections, ['foo','bar'])
 
     def test_flr_data_occurs_in_list(self):
         """ Test for occurence in list. """
-        class Dummy_object():
-            def __init__(self,value1, value2):
+        class MockObject():
+            def __init__(self, value1, value2):
                 self.value1 = value1
                 self.value2 = value2
 
         f = ihm.flr.FLRData()
-        f.add_distance_restraint_group(Dummy_object('foo','bar'))
-        self.assertTrue(f._occurs_in_list(Dummy_object('foo','bar'),f.distance_restraint_group_list))
-        self.assertFalse(f._occurs_in_list(Dummy_object('foo2','bar'),f.distance_restraint_group_list))
+        f.distance_restraint_groups.append(MockObject('foo','bar'))
+        self.assertTrue(f._occurs_in_list(
+                             MockObject('foo','bar'),
+                                        f.distance_restraint_groups))
+        self.assertFalse(f._occurs_in_list(
+                             MockObject('foo2','bar'),
+                                        f.distance_restraint_groups))
 
     def test_flr_data_all_chemical_descriptors(self):
         """Test for collection of all chemical descriptors."""
@@ -1147,13 +1148,13 @@ class Tests(unittest.TestCase):
                                                 this_distance_restraint_1)
         this_distance_restraint_group.add_distance_restraint(
                                                 this_distance_restraint_2)
-        f.add_distance_restraint_group(this_distance_restraint_group)
+        f.distance_restraint_groups.append(this_distance_restraint_group)
 
         conj = ihm.flr.PolyProbeConjugate(
                         sample_probe=this_sample_probe_1,
                         chem_descriptor='Conjugate_probe_desc',
                         ambiguous_stoichiometry=False)
-        f.add_poly_probe_conjugate(conj)
+        f.poly_probe_conjugates.append(conj)
 
         descs = list(f._all_flr_chemical_descriptors())
         self.assertEqual(descs,
