@@ -2961,7 +2961,8 @@ _flr_fret_distance_restraint.peak_assignment_id
         self.assertEqual(sorted(
                       flr._collection_flr_fret_distance_restraint.keys()),
                          ['1', '2'])
-        r1 = flr._collection_flr_fret_distance_restraint['1']
+        rg1, = flr.distance_restraint_groups
+        r1, r2 = rg1.get_info()
         self.assertIsInstance(r1.sample_probe_1, ihm.flr.SampleProbeDetails)
         self.assertEqual(r1.sample_probe_1._id, '1')
         self.assertIsInstance(r1.sample_probe_2, ihm.flr.SampleProbeDetails)
@@ -2978,8 +2979,6 @@ _flr_fret_distance_restraint.peak_assignment_id
         self.assertIsInstance(r1.peak_assignment, ihm.flr.PeakAssignment)
         self.assertEqual(r1.peak_assignment._id, '42')
 
-        r2 = flr._collection_flr_fret_distance_restraint['2']
-        rg1 = flr._collection_flr_fret_distance_restraint_group['1']
         self.assertEqual(rg1.distance_restraint_list, [r1, r2])
 
     def test_flr_fret_model_quality_handler(self):
@@ -2997,7 +2996,7 @@ _flr_fret_model_quality.details
         flr, = s.flr_data
         self.assertEqual(sorted(flr._collection_flr_fret_model_quality.keys()),
                          ['1'])
-        q1 = flr._collection_flr_fret_model_quality['1']
+        q1, = flr.fret_model_qualities
         self.assertIsInstance(q1.model, ihm.model.Model)
         self.assertEqual(q1.model._id, '1')
         self.assertAlmostEqual(q1.chi_square_reduced, 1.300, places=1)
@@ -3021,7 +3020,7 @@ _flr_fret_model_distance.distance_deviation
         flr, = s.flr_data
         self.assertEqual(sorted(flr._collection_flr_fret_model_distance.keys()),
                          ['1'])
-        d1 = flr._collection_flr_fret_model_distance['1']
+        d1, = flr.fret_model_distances
         self.assertIsInstance(d1.restraint, ihm.flr.FRETDistanceRestraint)
         self.assertEqual(d1.restraint._id, '42')
         self.assertIsInstance(d1.model, ihm.model.Model)
@@ -3155,6 +3154,7 @@ _flr_FPS_AV_modeling.parameter_id
         flr, = s.flr_data
         self.assertEqual(sorted(flr._collection_flr_fps_av_modeling.keys()),
                          ['1'])
+        c, = flr.flr_fps_modeling_collections
         m = flr._collection_flr_fps_av_modeling['1']
         self.assertIsInstance(m.sample_probe, ihm.flr.SampleProbeDetails)
         self.assertEqual(m.sample_probe._id, '2')
@@ -3239,6 +3239,7 @@ _flr_FPS_MPP_modeling.mpp_atom_position_group_id
         flr, = s.flr_data
         self.assertEqual(sorted(flr._collection_flr_fps_mpp_modeling.keys()),
                          ['1'])
+        c, = flr.flr_fps_modeling_collections
         m = flr._collection_flr_fps_mpp_modeling['1']
         self.assertIsInstance(m.fps_modeling, ihm.flr.FPSModeling)
         self.assertEqual(m.fps_modeling._id, '3')
