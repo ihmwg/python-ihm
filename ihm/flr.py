@@ -900,6 +900,16 @@ class FLRData(object):
         for s in self._all_sample_probe_details():
             yield s.sample
 
+    def _all_probes(self):
+        """Yield all Probe objects"""
+        for s in self._all_sample_probe_details():
+            yield s.probe
+
+    def _all_poly_probe_positions(self):
+        """Yield all PolyProbePosition objects"""
+        for s in self._all_sample_probe_details():
+            yield s.poly_probe_position
+
     def _all_exp_settings(self):
         """Yield all ExpSetting objects"""
         for e in self._all_experiments():

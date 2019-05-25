@@ -1967,12 +1967,15 @@ class _SASDumper(Dumper):
 def _assign_all_ids(all_objs_func):
     """Given a function that returns a list of all objects, assign IDs and
        return a list of objects sorted by ID"""
-    seen_objs = {}
     objs_by_id = []
+    next_id = 1
     for f in all_objs_func():
         util._remove_id(f)
     for f in all_objs_func():
-        util._assign_id(f, seen_objs, objs_by_id)
+        if not hasattr(f, '_id'):
+            f._id = next_id
+            objs_by_id.append(f)
+            next_id += 1
     return objs_by_id
 
 
@@ -2047,6 +2050,160 @@ class _FLREntityAssemblyDumper(Dumper):
                     ordinal += 1
 
 
+class _FLRSampleConditionDumper(Dumper):
+    def finalize(self, system):
+        def all_sample_conditions():
+            return itertools.chain.from_iterable(
+                                (s.condition for s in f._all_samples())
+                                for f in system.flr_data)
+        self._sample_conditions_by_id = _assign_all_ids(all_sample_conditions)
+
+    def dump(self, system, writer):
+        with writer.loop('_flr_sample_condition', ['id', 'details']) as l:
+            for x in self._sample_conditions_by_id:
+                l.write(id=x._id, details=x.details)
+
+
+class _FLRSampleDumper(Dumper):
+    def finalize(self, system):
+        def all_samples():
+            return itertools.chain.from_iterable(f._all_samples()
+                                                 for f in system.flr_data)
+        self._samples_by_id = _assign_all_ids(all_samples)
+
+    def dump(self, system, writer):
+        with writer.loop('_flr_sample',
+                         ['id','entity_assembly_id', 'num_of_probes',
+                          'sample_condition_id', 'sample_description',
+                          'sample_details', 'solvent_phase']) as l:
+            for x in self._samples_by_id:
+                l.write(id=x._id, entity_assembly_id=x.entity_assembly._id,
+                        num_of_probes=x.num_of_probes,
+                        sample_condition_id=x.condition._id,
+                        sample_description=x.description,
+                        sample_details=x.details, solvent_phase=x.solvent_phase)
+
+
+class _FLRProbeDumper(Dumper):
+    def finalize(self, system):
+        def all_probes():
+            return itertools.chain.from_iterable(f._all_probes()
+                                                 for f in system.flr_data)
+        self._probes_by_id = _assign_all_ids(all_probes)
+
+    def dump(self, system, writer):
+        self.dump_probe_list(system, writer)
+        self.dump_probe_descriptor(system, writer)
+
+    def dump_probe_list(self, system, writer):
+        with writer.loop('_flr_probe_list',
+                         ['probe_id', 'chromophore_name', 'reactive_probe_flag',
+                          'reactive_probe_name', 'probe_origin',
+                          'probe_link_type']) as l:
+            for x in self._probes_by_id:
+                entry = x.probe_list_entry
+                l.write(probe_id=x._id,
+                         chromophore_name=entry.chromophore_name,
+                         reactive_probe_flag=entry.reactive_probe_flag,
+                         reactive_probe_name=entry.reactive_probe_name,
+                         probe_origin=entry.probe_origin,
+                         probe_link_type=entry.probe_link_type)
+
+    def dump_probe_descriptor(self, system, writer):
+        with writer.loop('_flr_probe_descriptor',
+                         ['probe_id', 'reactive_probe_chem_descriptor_id',
+                          'chromophore_chem_descriptor_id',
+                          'chromophore_center_atom']) as l:
+            for x in self._probes_by_id:
+                reactive = x.probe_descriptor.reactive_probe_chem_descriptor
+                chrom = x.probe_descriptor.chromophore_chem_descriptor
+                l.write(probe_id=x._id,
+                        reactive_probe_chem_descriptor_id=
+                                  None if reactive is None else reactive._id,
+                         chromophore_chem_descriptor_id=
+                                  None if chrom is None else chrom._id,
+                         chromophore_center_atom=
+                                   x.probe_descriptor.chromophore_center_atom)
+
+
+class _FLRSampleProbeDetailsDumper(Dumper):
+    def finalize(self, system):
+        def all_sample_probe_details():
+            return itertools.chain.from_iterable(f._all_sample_probe_details()
+                                                 for f in system.flr_data)
+        self._sample_probe_details_by_id = _assign_all_ids(
+                                                all_sample_probe_details)
+
+    def dump(self, system, writer):
+        with writer.loop('_flr_sample_probe_details',
+                         ['sample_probe_id', 'sample_id', 'probe_id',
+                          'fluorophore_type', 'description',
+                          'poly_probe_position_id']) as l:
+            for x in self._sample_probe_details_by_id:
+                l.write(sample_probe_id=x._id,
+                         sample_id=x.sample._id,
+                         probe_id=x.probe._id,
+                         fluorophore_type=x.fluorophore_type,
+                         description=x.description,
+                         poly_probe_position_id=x.poly_probe_position._id)
+
+
+class _FLRPolyProbePositionDumper(Dumper):
+    def finalize(self, system):
+        def all_poly_probe_positions():
+            return itertools.chain.from_iterable(f._all_poly_probe_positions()
+                                                 for f in system.flr_data)
+        self._positions_by_id = _assign_all_ids(all_poly_probe_positions)
+
+    def dump(self, system, writer):
+        self.dump_position(system, writer)
+        self.dump_position_mutated(system, writer)
+        self.dump_position_modified(system, writer)
+
+    def dump_position(self, system, writer):
+        with writer.loop('_flr_poly_probe_position',
+                         ['id', 'entity_id', 'entity_description',
+                          'seq_id', 'comp_id', 'atom_id',
+                          'mutation_flag', 'modification_flag',
+                          'auth_name']) as l:
+            for x in self._positions_by_id:
+                comp = x.resatom.entity.sequence[x.resatom.seq_id-1].id
+                atom = None
+                if isinstance(x.resatom, ihm.Atom):
+                    atom = x.resatom.id
+                l.write(id=x._id, entity_id=x.resatom.entity._id,
+                        entity_description=x.resatom.entity.description,
+                        seq_id=x.resatom.seq_id,
+                        comp_id=comp, atom_id=atom,
+                        mutation_flag=x.mutation_flag,
+                        modification_flag=x.modification_flag,
+                        auth_name=x.auth_name)
+
+    def dump_position_mutated(self, system, writer):
+        with writer.loop('_flr_poly_probe_position_mutated',
+                         ['id','chem_descriptor_id','atom_id']) as l:
+            for x in self._positions_by_id:
+                if x.mutation_flag == True:
+                    atom = None
+                    if isinstance(x.resatom, ihm.Atom):
+                        atom = x.resatom.id
+                    l.write(id=x._id,
+                            chem_descriptor_id=x.mutated_chem_descriptor._id,
+                            atom_id=atom)
+
+    def dump_position_modified(self, system, writer):
+        with writer.loop('_flr_poly_probe_position_modified',
+                         ['id', 'chem_descriptor_id', 'atom_id']) as l:
+            for x in self._positions_by_id:
+                if x.modification_flag == True:
+                    atom = None
+                    if isinstance(x.resatom, ihm.Atom):
+                        atom = x.resatom.id
+                    l.write(id=x._id,
+                            chem_descriptor_id=x.modified_chem_descriptor._id,
+                            atom_id=atom)
+
+
 class _FLRDumper(Dumper):
     ## TODO: Treat empty entries.
     def finalize(self,system):
@@ -2055,14 +2212,8 @@ class _FLRDumper(Dumper):
         ## collects all objects and assigns ids
         self._list_fret_distance_restraint_group = []
         self._list_fret_distance_restraint = []
-        self._list_sample_probe_details = []
-        self._list_sample = []
-        self._list_sample_condition = []
-        self._list_probe = []
         self._list_probe_descriptor = []
         self._list_chemical_descriptor = []
-        self._list_probe_list = []
-        self._list_poly_probe_position = []
         self._list_fret_analysis = []
         self._list_fret_forster_radius = []
         self._list_fret_calibration_parameters = []
@@ -2083,12 +2234,7 @@ class _FLRDumper(Dumper):
         # in the list; if not, we add it to the list and give it an ID
         fret_distance_restraint_group_ID = 1
         fret_distance_restraint_ID = 1
-        sample_probe_ID = 1
-        sample_ID = 1
-        sample_condition_ID = 1
-        probe_ID = 1
         chemical_descriptor_ID = 1
-        poly_probe_position_ID = 1
         fret_analysis_ID = 1
         fret_forster_radius_ID = 1
         fret_calibration_parameters_ID = 1
@@ -2122,37 +2268,6 @@ class _FLRDumper(Dumper):
                         fdr._id = fret_distance_restraint_ID
                         self._list_fret_distance_restraint.append(fdr)
                         fret_distance_restraint_ID += 1
-                    ## sample_probe_details => fret_distance_restraint (for both sample_probe_ids)
-                    for this_sample_probe in [fdr.sample_probe_1, fdr.sample_probe_2]:
-                        if this_sample_probe not in self._list_sample_probe_details:
-                            this_sample_probe._id = sample_probe_ID
-                            self._list_sample_probe_details.append(this_sample_probe)
-                            sample_probe_ID += 1
-                        ## sample  => sample_probe_details
-                        this_sample = this_sample_probe.sample
-                        if this_sample not in self._list_sample:
-                            this_sample._id = sample_ID
-                            self._list_sample.append(this_sample)
-                            sample_ID += 1
-                        ## sample_condition => sample
-                        this_sample_condition = this_sample.condition
-                        if this_sample_condition not in self._list_sample_condition:
-                            this_sample_condition._id = sample_condition_ID
-                            self._list_sample_condition.append(this_sample_condition)
-                            sample_condition_ID += 1
-
-                        ## probe => sample_probe_details
-                        this_probe = this_sample_probe.probe
-                        if this_probe not in self._list_probe:
-                            this_probe._id = probe_ID
-                            self._list_probe.append(this_probe)
-                            probe_ID += 1
-                        ## poly_probe_position => sample_probe_details
-                        this_poly_probe_position = this_sample_probe.poly_probe_position
-                        if this_poly_probe_position not in self._list_poly_probe_position:
-                            this_poly_probe_position._id = poly_probe_position_ID
-                            self._list_poly_probe_position.append(this_poly_probe_position)
-                            poly_probe_position_ID += 1
                     ## fret_analysis => fret_distance_restraint
                     this_fret_analysis = fdr.analysis
                     if this_fret_analysis not in self._list_fret_analysis:
@@ -2267,101 +2382,6 @@ class _FLRDumper(Dumper):
         ## Write the data using the IHM dumper
         #### TODO: Each of these blocks could be a separate function
 
-        ## sample_condition
-        with writer.loop('_flr_sample_condition',['id','details']) as l:
-            for x in self._list_sample_condition:
-                l.write(id=x._id,details=x.details)
-        ## sample
-        with writer.loop('_flr_sample',
-                           ['id','entity_assembly_id','num_of_probes',
-                            'sample_condition_id','sample_description',
-                            'sample_details','solvent_phase']) as l:
-            for x in self._list_sample:
-                l.write(id=x._id, entity_assembly_id=x.entity_assembly._id,
-                        num_of_probes=x.num_of_probes,
-                        sample_condition_id=x.condition._id,
-                        sample_description=x.description,
-                        sample_details=x.details, solvent_phase=x.solvent_phase)
-        ## probe_list
-        with writer.loop('_flr_probe_list',
-                           ['probe_id','chromophore_name','reactive_probe_flag',
-                            'reactive_probe_name','probe_origin',
-                            'probe_link_type']) as l:
-            for x in self._list_probe:
-                entry = x.probe_list_entry
-                l.write(probe_id=x._id,
-                         chromophore_name=entry.chromophore_name,
-                         reactive_probe_flag=entry.reactive_probe_flag,
-                         reactive_probe_name=entry.reactive_probe_name,
-                         probe_origin=entry.probe_origin,
-                         probe_link_type=entry.probe_link_type)
-        ## sample_probe_details
-        with writer.loop('_flr_sample_probe_details',
-                           ['sample_probe_id','sample_id','probe_id',
-                            'fluorophore_type','description',
-                            'poly_probe_position_id']) as l:
-            for x in self._list_sample_probe_details:
-                l.write(sample_probe_id=x._id,
-                         sample_id=x.sample._id,
-                         probe_id=x.probe._id,
-                         fluorophore_type=x.fluorophore_type,
-                         description=x.description,
-                         poly_probe_position_id=x.poly_probe_position._id)
-        ## probe_descriptor
-        with writer.loop('_flr_probe_descriptor',
-                         ['probe_id','reactive_probe_chem_descriptor_id',
-                           'chromophore_chem_descriptor_id',
-                           'chromophore_center_atom']) as l:
-            for x in self._list_probe:
-                reactive = x.probe_descriptor.reactive_probe_chem_descriptor
-                chrom = x.probe_descriptor.chromophore_chem_descriptor
-                l.write(probe_id=x._id,
-                        reactive_probe_chem_descriptor_id=
-                                  None if reactive is None else reactive._id,
-                         chromophore_chem_descriptor_id=
-                                  None if chrom is None else chrom._id,
-                         chromophore_center_atom=
-                                   x.probe_descriptor.chromophore_center_atom)
-        ## poly_probe_position
-        with writer.loop('_flr_poly_probe_position',
-                         ['id', 'entity_id', 'entity_description',
-                          'seq_id', 'comp_id', 'atom_id',
-                          'mutation_flag', 'modification_flag',
-                          'auth_name']) as l:
-            for x in self._list_poly_probe_position:
-                comp = x.resatom.entity.sequence[x.resatom.seq_id-1].id
-                atom = None
-                if isinstance(x.resatom, ihm.Atom):
-                    atom = x.resatom.id
-                l.write(id=x._id, entity_id=x.resatom.entity._id,
-                        entity_description=x.resatom.entity.description,
-                        seq_id=x.resatom.seq_id,
-                        comp_id=comp, atom_id=atom,
-                        mutation_flag=x.mutation_flag,
-                        modification_flag=x.modification_flag,
-                        auth_name=x.auth_name)
-        ## poly_probe_position_mutated
-        with writer.loop('_flr_poly_probe_position_mutated',
-                         ['id','chem_descriptor_id','atom_id']) as l:
-            for x in self._list_poly_probe_position:
-                if x.mutation_flag == True:
-                    atom = None
-                    if isinstance(x.resatom, ihm.Atom):
-                        atom = x.resatom.id
-                    l.write(id=x._id,
-                            chem_descriptor_id=x.mutated_chem_descriptor._id,
-                            atom_id=atom)
-        ## poly_probe_position_mutated
-        with writer.loop('_flr_poly_probe_position_modified',
-                         ['id', 'chem_descriptor_id', 'atom_id']) as l:
-            for x in self._list_poly_probe_position:
-                if x.modification_flag == True:
-                    atom = None
-                    if isinstance(x.resatom, ihm.Atom):
-                        atom = x.resatom.id
-                    l.write(id=x._id,
-                            chem_descriptor_id=x.modified_chem_descriptor._id,
-                            atom_id=atom)
         ## poly_probe_conjugate
         with writer.loop('_flr_poly_probe_conjugate',
                          ['id', 'sample_probe_id','chem_descriptor_id',
@@ -2634,6 +2654,9 @@ def write(fh, systems, format='mmCIF', dumpers=[]):
                _MultiStateDumper(), _OrderedDumper(),
                _FLRExperimentDumper(), _FLRExpSettingDumper(),
                _FLRInstrumentDumper(), _FLREntityAssemblyDumper(),
+               _FLRSampleConditionDumper(), _FLRSampleDumper(),
+               _FLRProbeDumper(), _FLRSampleProbeDetailsDumper(),
+               _FLRPolyProbePositionDumper(),
                _FLRDumper()] + [d() for d in dumpers]
     writer_map = {'mmCIF': ihm.format.CifWriter,
                   'BCIF': ihm.format_bcif.BinaryCifWriter}

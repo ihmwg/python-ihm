@@ -3055,6 +3055,21 @@ _ihm_predicted_contact_restraint.software_id
         entity_assembly_dumper = ihm.dumper._FLREntityAssemblyDumper()
         entity_assembly_dumper.finalize(system)
 
+        sample_condition_dumper = ihm.dumper._FLRSampleConditionDumper()
+        sample_condition_dumper.finalize(system)
+
+        sample_dumper = ihm.dumper._FLRSampleDumper()
+        sample_dumper.finalize(system)
+
+        probe_dumper = ihm.dumper._FLRProbeDumper()
+        probe_dumper.finalize(system)
+
+        sample_probe_details_dumper = ihm.dumper._FLRSampleProbeDetailsDumper()
+        sample_probe_details_dumper.finalize(system)
+
+        poly_probe_pos_dumper = ihm.dumper._FLRPolyProbePositionDumper()
+        poly_probe_pos_dumper.finalize(system)
+
         dumper = ihm.dumper._FLRDumper()
         dumper.finalize(system) # assign IDs
 
@@ -3104,7 +3119,7 @@ _flr_entity_assembly.entity_description
 #
 """)
 
-        out = _get_dumper_output(dumper, system)
+        out = _get_dumper_output(sample_condition_dumper, system)
         self.assertEqual(out, """#
 loop_
 _flr_sample_condition.id
@@ -3112,7 +3127,10 @@ _flr_sample_condition.details
 1 My_Sample_condition_1
 2 My_Sample_condition_2
 #
-#
+""")
+
+        out = _get_dumper_output(sample_dumper, system)
+        self.assertEqual(out, """#
 loop_
 _flr_sample.id
 _flr_sample.entity_assembly_id
@@ -3124,7 +3142,10 @@ _flr_sample.solvent_phase
 1 1 2 1 Sample_1 'Details sample 1' liquid
 2 1 2 2 Sample_2 'Details sample 2' liquid
 #
-#
+""")
+
+        out = _get_dumper_output(probe_dumper, system)
+        self.assertEqual(out, """#
 loop_
 _flr_probe_list.probe_id
 _flr_probe_list.chromophore_name
@@ -3137,6 +3158,18 @@ _flr_probe_list.probe_link_type
 #
 #
 loop_
+_flr_probe_descriptor.probe_id
+_flr_probe_descriptor.reactive_probe_chem_descriptor_id
+_flr_probe_descriptor.chromophore_chem_descriptor_id
+_flr_probe_descriptor.chromophore_center_atom
+1 . 1 CB
+2 3 2 CB
+#
+""")
+
+        out = _get_dumper_output(sample_probe_details_dumper, system)
+        self.assertEqual(out, """#
+loop_
 _flr_sample_probe_details.sample_probe_id
 _flr_sample_probe_details.sample_id
 _flr_sample_probe_details.probe_id
@@ -3148,16 +3181,10 @@ _flr_sample_probe_details.poly_probe_position_id
 3 2 1 donor 'Donor in position2-position3' 3
 4 2 2 acceptor 'Acceptor in position2-position3' 2
 #
-#
-loop_
-_flr_probe_descriptor.probe_id
-_flr_probe_descriptor.reactive_probe_chem_descriptor_id
-_flr_probe_descriptor.chromophore_chem_descriptor_id
-_flr_probe_descriptor.chromophore_center_atom
-1 . 1 CB
-2 3 2 CB
-#
-#
+""")
+
+        out = _get_dumper_output(poly_probe_pos_dumper, system)
+        self.assertEqual(out, """#
 loop_
 _flr_poly_probe_position.id
 _flr_poly_probe_position.entity_id
@@ -3180,7 +3207,10 @@ _flr_poly_probe_position_modified.atom_id
 1 4 .
 2 4 CB
 #
-#
+""")
+
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
 loop_
 _flr_poly_probe_conjugate.id
 _flr_poly_probe_conjugate.sample_probe_id
