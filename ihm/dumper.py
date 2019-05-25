@@ -3,6 +3,7 @@
 import re
 import os
 import operator
+import itertools
 import ihm.format
 import ihm.format_bcif
 import ihm.model
@@ -1963,6 +1964,89 @@ class _SASDumper(Dumper):
                     ordinal += 1
 
 
+def _assign_all_ids(all_objs_func):
+    """Given a function that returns a list of all objects, assign IDs and
+       return a list of objects sorted by ID"""
+    seen_objs = {}
+    objs_by_id = []
+    for f in all_objs_func():
+        util._remove_id(f)
+    for f in all_objs_func():
+        util._assign_id(f, seen_objs, objs_by_id)
+    return objs_by_id
+
+
+class _FLRExperimentDumper(Dumper):
+    def finalize(self, system):
+        def all_experiments():
+            return itertools.chain.from_iterable(f._all_experiments()
+                                                 for f in system.flr_data)
+        self._experiments_by_id = _assign_all_ids(all_experiments)
+
+    def dump(self, system, writer):
+        with writer.loop('_flr_experiment',
+                   ['ordinal_id', 'id', 'instrument_id', 'exp_setting_id',
+                    'sample_id', 'details']) as l:
+            ordinal = 1
+            for x in self._experiments_by_id:
+                for i in range(len(x.sample_list)):
+                    l.write(ordinal_id=ordinal, id=x._id,
+                            instrument_id=x.instrument_list[i]._id,
+                            exp_setting_id=x.exp_setting_list[i]._id,
+                            sample_id=x.sample_list[i]._id,
+                            details=x.details_list[i])
+                    ordinal +=1
+
+
+class _FLRExpSettingDumper(Dumper):
+    def finalize(self, system):
+        def all_exp_settings():
+            return itertools.chain.from_iterable(f._all_exp_settings()
+                                                 for f in system.flr_data)
+        self._exp_settings_by_id = _assign_all_ids(all_exp_settings)
+
+    def dump(self, system, writer):
+        with writer.loop('_flr_exp_setting', ['id', 'details']) as l:
+            for x in self._exp_settings_by_id:
+                l.write(id=x._id, details=x.details)
+
+
+class _FLRInstrumentDumper(Dumper):
+    def finalize(self, system):
+        def all_instruments():
+            return itertools.chain.from_iterable(f._all_instruments()
+                                                 for f in system.flr_data)
+        self._instruments_by_id = _assign_all_ids(all_instruments)
+
+    def dump(self, system, writer):
+        with writer.loop('_flr_instrument', ['id', 'details']) as l:
+            for x in self._instruments_by_id:
+                l.write(id=x._id, details=x.details)
+
+
+class _FLREntityAssemblyDumper(Dumper):
+    def finalize(self, system):
+        def all_entity_assemblies():
+            return itertools.chain.from_iterable(
+                                (s.entity_assembly for s in f._all_samples())
+                                for f in system.flr_data)
+        self._entity_assemblies_by_id = _assign_all_ids(all_entity_assemblies)
+
+    def dump(self, system, writer):
+        with writer.loop('_flr_entity_assembly',
+                   ['ordinal_id', 'assembly_id', 'entity_id', 'num_copies',
+                    'entity_description']) as l:
+            ordinal = 1
+            for x in self._entity_assemblies_by_id:
+                for i in range(len(x.entity_list)):
+                    l.write(ordinal_id=ordinal,
+                            assembly_id=x._id,
+                            entity_id=x.entity_list[i]._id,
+                            num_copies=x.num_copies_list[i],
+                            entity_description=x.entity_list[i].description)
+                    ordinal += 1
+
+
 class _FLRDumper(Dumper):
     ## TODO: Treat empty entries.
     def finalize(self,system):
@@ -1973,7 +2057,6 @@ class _FLRDumper(Dumper):
         self._list_fret_distance_restraint = []
         self._list_sample_probe_details = []
         self._list_sample = []
-        self._list_entity_assembly = []
         self._list_sample_condition = []
         self._list_probe = []
         self._list_probe_descriptor = []
@@ -1981,9 +2064,6 @@ class _FLRDumper(Dumper):
         self._list_probe_list = []
         self._list_poly_probe_position = []
         self._list_fret_analysis = []
-        self._list_experiment = []
-        self._list_exp_setting = []
-        self._list_instrument = []
         self._list_fret_forster_radius = []
         self._list_fret_calibration_parameters = []
         self._list_peak_assignment = []
@@ -2005,15 +2085,11 @@ class _FLRDumper(Dumper):
         fret_distance_restraint_ID = 1
         sample_probe_ID = 1
         sample_ID = 1
-        entity_assembly_ID = 1
         sample_condition_ID = 1
         probe_ID = 1
         chemical_descriptor_ID = 1
         poly_probe_position_ID = 1
         fret_analysis_ID = 1
-        experiment_ID = 1
-        exp_setting_ID = 1
-        instrument_ID = 1
         fret_forster_radius_ID = 1
         fret_calibration_parameters_ID = 1
         peak_assignment_ID = 1
@@ -2058,13 +2134,6 @@ class _FLRDumper(Dumper):
                             this_sample._id = sample_ID
                             self._list_sample.append(this_sample)
                             sample_ID += 1
-                        ## entity_assembly => sample
-                        this_entity_assembly = this_sample.entity_assembly
-                        if this_entity_assembly not in self._list_entity_assembly:
-                            this_entity_assembly._id = entity_assembly_ID
-                            self._list_entity_assembly.append(this_entity_assembly)
-                            entity_assembly_ID += 1
-                            ## entities come from the normal PDBx/mmcif or IHM dictionary
                         ## sample_condition => sample
                         this_sample_condition = this_sample.condition
                         if this_sample_condition not in self._list_sample_condition:
@@ -2097,25 +2166,6 @@ class _FLRDumper(Dumper):
                         self._list_peak_assignment.append(this_peak_assignment)
                         peak_assignment_ID += 1
 
-                    ## experiment => fret_analysis
-                    ## The experiment_id is the ID for the experiment, which includes several measurements. It is not the ordinal_id !
-                    this_experiment = this_fret_analysis.experiment
-                    if this_experiment not in self._list_experiment:
-                        this_experiment._id = experiment_ID
-                        self._list_experiment.append(this_experiment)
-                        experiment_ID += 1
-                    ## exp_setting => experiment
-                    for this_exp_setting in this_experiment.exp_setting_list:
-                        if this_exp_setting not in self._list_exp_setting:
-                            this_exp_setting._id = exp_setting_ID
-                            self._list_exp_setting.append(this_exp_setting)
-                            exp_setting_ID += 1
-                    ## instrument => experiment
-                    for this_instrument in this_experiment.instrument_list:
-                        if this_instrument not in self._list_instrument:
-                            this_instrument._id = instrument_ID
-                            self._list_instrument.append(this_instrument)
-                            instrument_ID += 1
                     ## fret_forster_radius => fret_analysis
                     this_fret_forster_radius = this_fret_analysis.forster_radius
                     if this_fret_forster_radius not in self._list_fret_forster_radius:
@@ -2217,42 +2267,6 @@ class _FLRDumper(Dumper):
         ## Write the data using the IHM dumper
         #### TODO: Each of these blocks could be a separate function
 
-        ## experiment
-        with writer.loop('_flr_experiment',
-                   ['ordinal_id','id','instrument_id','exp_setting_id',
-                    'sample_id','details']) as l:
-            for x in self._list_experiment:
-                ordinal = 1
-                for i in range(len(x.sample_list)):
-                    l.write(ordinal_id=ordinal,
-                             id=x._id,
-                             instrument_id=x.instrument_list[i]._id,
-                             exp_setting_id=x.exp_setting_list[i]._id,
-                             sample_id=x.sample_list[i]._id,
-                             details=x.details_list[i]
-                             )
-                    ordinal +=1
-        ## exp_setting
-        with writer.loop('_flr_exp_setting',['id','details']) as l:
-            for x in self._list_exp_setting:
-                l.write(id=x._id,details=x.details)
-        ## instrument
-        with writer.loop('_flr_instrument',['id','details']) as l:
-            for x in self._list_instrument:
-                l.write(id=x._id,details=x.details)
-        ## entity_assembly
-        with writer.loop('_flr_entity_assembly',
-                   ['ordinal_id','assembly_id', 'entity_id','num_copies',
-                     'entity_description']) as l:
-            ordinal = 1
-            for x in self._list_entity_assembly:
-                for i in range(len(x.entity_list)):
-                    l.write(ordinal_id=ordinal,
-                             assembly_id=x._id,
-                             entity_id=x.entity_list[i]._id,
-                             num_copies=x.num_copies_list[i],
-                             entity_description=x.entity_list[i].description)
-                    ordinal += 1
         ## sample_condition
         with writer.loop('_flr_sample_condition',['id','details']) as l:
             for x in self._list_sample_condition:
@@ -2618,6 +2632,8 @@ def write(fh, systems, format='mmCIF', dumpers=[]):
                _EnsembleDumper(),
                _DensityDumper(),
                _MultiStateDumper(), _OrderedDumper(),
+               _FLRExperimentDumper(), _FLRExpSettingDumper(),
+               _FLRInstrumentDumper(), _FLREntityAssemblyDumper(),
                _FLRDumper()] + [d() for d in dumpers]
     writer_map = {'mmCIF': ihm.format.CifWriter,
                   'BCIF': ihm.format_bcif.BinaryCifWriter}

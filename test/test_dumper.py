@@ -3042,9 +3042,23 @@ _ihm_predicted_contact_restraint.software_id
 
         ihm.dumper._EntityDumper().finalize(system) # assign entity IDs
         ihm.dumper._StructAsymDumper().finalize(system) # assign asym IDs
+
+        experiment_dumper = ihm.dumper._FLRExperimentDumper()
+        experiment_dumper.finalize(system)
+
+        exp_setting_dumper = ihm.dumper._FLRExpSettingDumper()
+        exp_setting_dumper.finalize(system)
+
+        instrument_dumper = ihm.dumper._FLRInstrumentDumper()
+        instrument_dumper.finalize(system)
+
+        entity_assembly_dumper = ihm.dumper._FLREntityAssemblyDumper()
+        entity_assembly_dumper.finalize(system)
+
         dumper = ihm.dumper._FLRDumper()
         dumper.finalize(system) # assign IDs
-        out = _get_dumper_output(dumper, system)
+
+        out = _get_dumper_output(experiment_dumper, system)
         self.assertEqual(out, """#
 loop_
 _flr_experiment.ordinal_id
@@ -3056,20 +3070,29 @@ _flr_experiment.details
 1 1 1 1 1 .
 2 1 1 2 2 .
 #
-#
+""")
+
+        out = _get_dumper_output(exp_setting_dumper, system)
+        self.assertEqual(out, """#
 loop_
 _flr_exp_setting.id
 _flr_exp_setting.details
 1 My_Exp_setting_1
 2 My_Exp_setting_2
 #
-#
+""")
+
+        out = _get_dumper_output(instrument_dumper, system)
+        self.assertEqual(out, """#
 loop_
 _flr_instrument.id
 _flr_instrument.details
 1 My_Instrument
 #
-#
+""")
+
+        out = _get_dumper_output(entity_assembly_dumper, system)
+        self.assertEqual(out, """#
 loop_
 _flr_entity_assembly.ordinal_id
 _flr_entity_assembly.assembly_id
@@ -3079,7 +3102,10 @@ _flr_entity_assembly.entity_description
 1 1 1 1 Entity_1
 2 1 2 2 Entity_2
 #
-#
+""")
+
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
 loop_
 _flr_sample_condition.id
 _flr_sample_condition.details

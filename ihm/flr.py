@@ -878,6 +878,40 @@ class FLRData(object):
         self._collection_flr_fps_mpp_atom_position = {}
         self._collection_flr_fps_mpp_modeling = {}
 
+    def _all_distance_restraints(self):
+        """Yield all FRETDistanceRestraint objects"""
+        for rg in self.distance_restraint_groups:
+            for r in rg.distance_restraint_list:
+                yield r
+
+    def _all_experiments(self):
+        """Yield all Experiment objects"""
+        for r in self._all_distance_restraints():
+            yield r.analysis.experiment
+
+    def _all_sample_probe_details(self):
+        """Yield all SampleProbeDetails objects"""
+        for r in self._all_distance_restraints():
+            yield r.sample_probe_1
+            yield r.sample_probe_2
+
+    def _all_samples(self):
+        """Yield all Sample objects"""
+        for s in self._all_sample_probe_details():
+            yield s.sample
+
+    def _all_exp_settings(self):
+        """Yield all ExpSetting objects"""
+        for e in self._all_experiments():
+            for s in e.exp_setting_list:
+                yield s
+
+    def _all_instruments(self):
+        """Yield all Instrument objects"""
+        for e in self._all_experiments():
+            for s in e.instrument_list:
+                yield s
+
     def _all_flr_chemical_descriptors(self):
         """Collect the chemical descriptors from the flr part.
            *This might contain duplicates.*
