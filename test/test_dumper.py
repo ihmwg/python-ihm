@@ -2823,15 +2823,20 @@ _ihm_predicted_contact_restraint.software_id
 
         ## Modified residue
         ## Chem descriptor ID 4
-        cur_chem_descriptor_modified_residue = ihm.ChemDescriptor(auth_name='Modified_residue',
-                                                                  chem_comp_id=None,common_name=None,smiles='Modified')
+        cur_chem_descriptor_modified_residue = ihm.ChemDescriptor(
+                        auth_name='Modified_residue', smiles='Modified')
+        cur_chem_descriptor_mutated_residue = ihm.ChemDescriptor(
+                        auth_name='Mutated_residue', smiles='Mutated')
 
         cur_chem_descriptor_modified_residue._id = 4
+        cur_chem_descriptor_mutated_residue._id = 5
         ## Poly_probe_position
         cur_poly_probe_position_1 = ihm.flr.PolyProbePosition(
                       resatom=cur_entity_1.residue(1), # no atom ID given
-                      mutation_flag=False,
+                      mutation_flag=True,
                       modification_flag=True, auth_name='Position_1',
+                      mutated_chem_descriptor=
+                                cur_chem_descriptor_mutated_residue,
                       modified_chem_descriptor=
                                 cur_chem_descriptor_modified_residue)
         cur_poly_probe_position_2 = ihm.flr.PolyProbePosition(
@@ -2840,8 +2845,10 @@ _ihm_predicted_contact_restraint.software_id
                       modification_flag=False, auth_name='Position_2')
         cur_poly_probe_position_3 = ihm.flr.PolyProbePosition(
                       resatom=cur_entity_2.residue(10).atom('CB'),
-                      mutation_flag=False,
+                      mutation_flag=True,
                       modification_flag=True, auth_name='Position_3',
+                      mutated_chem_descriptor=
+                                cur_chem_descriptor_mutated_residue,
                       modified_chem_descriptor=
                                  cur_chem_descriptor_modified_residue)
         ## Sample_probe_details
@@ -3195,9 +3202,17 @@ _flr_poly_probe_position.atom_id
 _flr_poly_probe_position.mutation_flag
 _flr_poly_probe_position.modification_flag
 _flr_poly_probe_position.auth_name
-1 1 Entity_1 1 ALA . NO YES Position_1
-2 2 Entity_2 10 CYS CB NO YES Position_3
+1 1 Entity_1 1 ALA . YES YES Position_1
+2 2 Entity_2 10 CYS CB YES YES Position_3
 3 1 Entity_1 2 GLY CB NO NO Position_2
+#
+#
+loop_
+_flr_poly_probe_position_mutated.id
+_flr_poly_probe_position_mutated.chem_descriptor_id
+_flr_poly_probe_position_mutated.atom_id
+1 5 .
+2 5 CB
 #
 #
 loop_
