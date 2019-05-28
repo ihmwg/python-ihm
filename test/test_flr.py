@@ -693,33 +693,6 @@ class Tests(unittest.TestCase):
         self.assertFalse(f_ref == f_unequal)
         self.assertTrue(f_ref != f_unequal)
 
-    def test_modeling_collection_init(self):
-        """ Test initialization of ModelingCollection. """
-        m = ihm.flr.ModelingCollection()
-        self.assertEqual(m.flr_modeling_list, [])
-        self.assertEqual(m.flr_modeling_method_list, [])
-
-    def test_modeling_collection_add_modeling(self):
-        """ Test the addition of an entry to the ModelingCollection. """
-        m = ihm.flr.ModelingCollection()
-        m.add_modeling(modeling = 'foo', modeling_method = 'bar')
-        m.add_modeling(modeling = 'foo2', modeling_method = 'bar2')
-        self.assertEqual(m.flr_modeling_list, ['foo','foo2'])
-        self.assertEqual(m.flr_modeling_method_list, ['bar','bar2'])
-
-    def test_modeling_collection_eq(self):
-        """ Test equality and inequality of ModelingCollection objects. """
-        m_ref = ihm.flr.ModelingCollection()
-        m_ref.add_modeling(modeling='foo', modeling_method='bar')
-        m_equal = ihm.flr.ModelingCollection()
-        m_equal.add_modeling(modeling='foo', modeling_method='bar')
-        m_unequal = ihm.flr.ModelingCollection()
-        m_unequal.add_modeling(modeling='foo2',modeling_method='bar2')
-
-        self.assertTrue(m_ref == m_equal)
-        self.assertFalse(m_ref == m_unequal)
-        self.assertTrue(m_ref != m_unequal)
-
     def test_fps_modeling_init(self):
         """ Test initialization of FPSModeling. """
         f = ihm.flr.FPSModeling(protocol='foo',
@@ -1036,7 +1009,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(f.poly_probe_conjugates, [])
         self.assertEqual(f.fret_model_qualities, [])
         self.assertEqual(f.fret_model_distances, [])
-        self.assertEqual(f.flr_fps_modeling_collections, [])
+        self.assertEqual(f.fps_modeling, [])
 
     def test_flr_data_add_distance_restraint_group(self):
         """Test addition of a distance restraint group."""
@@ -1067,9 +1040,9 @@ class Tests(unittest.TestCase):
     def test_flr_data_add_flr_fps_modeling(self):
         """Test addition of flr_FPS_modeling."""
         f = ihm.flr.FLRData()
-        f.flr_fps_modeling_collections.append('foo')
-        f.flr_fps_modeling_collections.append('bar')
-        self.assertEqual(f.flr_fps_modeling_collections, ['foo','bar'])
+        f.fps_modeling.append('foo')
+        f.fps_modeling.append('bar')
+        self.assertEqual(f.fps_modeling, ['foo','bar'])
 
     def test_flr_data_all_chemical_descriptors(self):
         """Test for collection of all chemical descriptors."""

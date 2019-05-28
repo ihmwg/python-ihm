@@ -619,11 +619,6 @@ class SystemReader(object):
                             'fret_model_distances', self.flr_data,
                             ihm.flr.FRETModelDistance, *(None,)*4)
 
-        #: Mapping from ID to :class:`ihm.flr.ModelingCollection` objects
-        self.flr_modeling_collection = _FLRIDMapper(
-                            None, 'flr_fps_modeling_collections',
-                            self.flr_data, ihm.flr.ModelingCollection)
-
         #: Mapping from ID to :class:`ihm.flr.FPSModeling` objects
         self.flr_fps_modeling = _FLRIDMapper('_collection_flr_fps_modeling',
                            None, self.flr_data, ihm.flr.FPSModeling, *(None,)*5)
@@ -641,7 +636,7 @@ class SystemReader(object):
 
         #: Mapping from ID to :class:`ihm.flr.FPSAVModeling` objects
         self.flr_fps_av_modeling = _FLRIDMapper(
-                            '_collection_flr_fps_av_modeling', None,
+                            '_collection_flr_fps_av_modeling', 'fps_modeling',
                             self.flr_data, ihm.flr.FPSAVModeling, *(None,)*3)
 
         #: Mapping from ID to :class:`ihm.flr.FPSMeanProbePosition` objects
@@ -662,7 +657,7 @@ class SystemReader(object):
 
         #: Mapping from ID to :class:`ihm.flr.FPSMPPModeling` objects
         self.flr_fps_mpp_modeling = _FLRIDMapper(
-                            '_collection_flr_fps_mpp_modeling', None,
+                            '_collection_flr_fps_mpp_modeling', 'fps_modeling',
                             self.flr_data, ihm.flr.FPSMPPModeling, *(None,)*3)
 
     def finalize(self):
@@ -2532,14 +2527,6 @@ class _FLRFPSAVModelingHandler(Handler):
                                                             sample_probe_id)
         m.parameter = self.sysr.flr_fps_av_parameters.get_by_id(parameter_id)
 
-        # Add the FPS_AV_modeling to the modeling collection
-        # todo: this won't work correctly unless FPSModeling has already been
-        # read (should be done in finalize)
-        cur_method = 'FPS_AV' if 'AV' in m.fps_modeling.probe_modeling_method \
-                      else 'FPS_MPP'
-        cur_modeling_collection = self.sysr.flr_modeling_collection.get_by_id(1)
-        cur_modeling_collection.add_modeling(m, cur_method)
-
 
 class _FLRFPSMPPHandler(Handler):
     category = '_flr_fps_mean_probe_position'
@@ -2582,14 +2569,6 @@ class _FLRFPSMPPModelingHandler(Handler):
         m.mpp_atom_position_group = \
                 self.sysr.flr_fps_mpp_atom_position_groups.get_by_id(
                                         mpp_atom_position_group_id)
-
-        # Add the FPS_AV_modeling to the modeling collection
-        # todo: this won't work correctly unless FPSModeling has already been
-        # read (should be done in finalize)
-        cur_method = 'FPS_AV' if 'AV' in m.fps_modeling.probe_modeling_method \
-                      else 'FPS_MPP'
-        cur_modeling_collection = self.sysr.flr_modeling_collection.get_by_id(1)
-        cur_modeling_collection.add_modeling(m, cur_method)
 
 
 def read(fh, model_class=ihm.model.Model, format='mmCIF', handlers=[],

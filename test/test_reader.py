@@ -3154,7 +3154,6 @@ _flr_FPS_AV_modeling.parameter_id
         flr, = s.flr_data
         self.assertEqual(sorted(flr._collection_flr_fps_av_modeling.keys()),
                          ['1'])
-        c, = flr.flr_fps_modeling_collections
         m = flr._collection_flr_fps_av_modeling['1']
         self.assertIsInstance(m.sample_probe, ihm.flr.SampleProbeDetails)
         self.assertEqual(m.sample_probe._id, '2')
@@ -3239,7 +3238,6 @@ _flr_FPS_MPP_modeling.mpp_atom_position_group_id
         flr, = s.flr_data
         self.assertEqual(sorted(flr._collection_flr_fps_mpp_modeling.keys()),
                          ['1'])
-        c, = flr.flr_fps_modeling_collections
         m = flr._collection_flr_fps_mpp_modeling['1']
         self.assertIsInstance(m.fps_modeling, ihm.flr.FPSModeling)
         self.assertEqual(m.fps_modeling._id, '3')

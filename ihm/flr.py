@@ -577,32 +577,9 @@ class FRETModelDistance(object):
         return self.__dict__ == other.__dict__
 
 
-class ModelingCollection(object):
-    """Not part of the flr dictionary.
-
-       *In case of FPS, flr_modeling_list contains entries of FPSAVModeling
-       or FPSMPPModeling and flr_modeling_method_list contains "FPS_AV"
-       or "FPS_MPP"*
-    """
-
-    def __init__(self):
-        self.flr_modeling_list = []
-        self.flr_modeling_method_list = []
-
-    def add_modeling(self, modeling, modeling_method):
-        """ Modeling method can be "FPS_AV" or "FPS_MPP"
-        """
-        self.flr_modeling_list.append(modeling)
-        self.flr_modeling_method_list.append(modeling_method)
-
-    def __eq__(self, other):
-        return self.__dict__ == other.__dict__
-
-
 class FPSModeling(object):
     """Collect the modeling parameters for different steps of FPS,
        e.g. Docking, Refinement, or Error estimation.
-       Members of this class automatically get assigned an id.
 
        :param protocol: The modeling protocol to which the FPS modeling
               step belongs.
@@ -845,9 +822,9 @@ class FLRData(object):
         #: See :class:`FRETModelDistance`.
         self.fret_model_distances = []
 
-        #: All collections of modeling objects.
-        #: See :class:`ModelingCollection`.
-        self.flr_fps_modeling_collections = []
+        #: All modeling objects.
+        #: See :class:`FPSAVModeling` and :class:`FPSMPPModeling`.
+        self.fps_modeling = []
 
         ## The following dictionaries are so far only used when reading data
         self._collection_flr_experiment = {}
@@ -944,9 +921,8 @@ class FLRData(object):
 
     def _all_fps_modeling(self):
         """Yield all FPSModeling objects"""
-        for mc in self.flr_fps_modeling_collections:
-            for m in mc.flr_modeling_list:
-                yield m.fps_modeling
+        for m in self.fps_modeling:
+            yield m.fps_modeling
 
     def _all_fps_global_parameters(self):
         """Yield all FPSGlobalParameters objects"""
@@ -955,10 +931,9 @@ class FLRData(object):
 
     def _all_fps_av_modeling(self):
         """Yield all FPSAVModeling objects"""
-        for mc in self.flr_fps_modeling_collections:
-            for m in mc.flr_modeling_list:
-                if isinstance(m, FPSAVModeling):
-                    yield m
+        for m in self.fps_modeling:
+            if isinstance(m, FPSAVModeling):
+                yield m
 
     def _all_fps_av_parameter(self):
         """Yield all FPSAVParameter objects"""
@@ -967,10 +942,9 @@ class FLRData(object):
 
     def _all_fps_mpp_modeling(self):
         """Yield all FPSMPPModeling objects"""
-        for mc in self.flr_fps_modeling_collections:
-            for m in mc.flr_modeling_list:
-                if isinstance(m, FPSMPPModeling):
-                    yield m
+        for m in self.fps_modeling:
+            if isinstance(m, FPSMPPModeling):
+                yield m
 
     def _all_fps_mean_probe_position(self):
         """Yield all FPSMeanProbePosition objects"""

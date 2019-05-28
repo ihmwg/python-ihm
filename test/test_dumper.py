@@ -2973,7 +2973,6 @@ _ihm_predicted_contact_restraint.software_id
                  cur_fret_model_distance_2_1, cur_fret_model_distance_2_2))
 
         ## FPS modeling
-        cur_FPS_modeling_collection = ihm.flr.ModelingCollection()
         cur_FPS_global_parameters = ihm.flr.FPSGlobalParameters(
                              forster_radius=52,
                              conversion_function_polynom_order=3,
@@ -3005,8 +3004,8 @@ _ihm_predicted_contact_restraint.software_id
         cur_FPS_AV_modeling_3 = ihm.flr.FPSAVModeling(fps_modeling=cur_FPS_modeling_1,
                                                       sample_probe=cur_sample_probe_details_3,
                                                         parameter=cur_FPS_AV_parameters_1)
-        cur_FPS_modeling_collection.add_modeling(cur_FPS_AV_modeling_1,'FPS_AV')
-        cur_FPS_modeling_collection.add_modeling(cur_FPS_AV_modeling_3, 'FPS_AV')
+        cur_flr_data.fps_modeling.append(cur_FPS_AV_modeling_1)
+        cur_flr_data.fps_modeling.append(cur_FPS_AV_modeling_3)
 
         ## Modeling by mean probe position
         cur_mpp_atom_position_1 = ihm.flr.FPSMPPAtomPosition(
@@ -3030,11 +3029,8 @@ _ihm_predicted_contact_restraint.software_id
         cur_FPS_MPP_modeling_4 = ihm.flr.FPSMPPModeling(fps_modeling=cur_FPS_modeling_2,
                                                         mpp=cur_mean_probe_position_4,
                                                         mpp_atom_position_group=cur_mpp_atom_position_group)
-        cur_FPS_modeling_collection.add_modeling(cur_FPS_MPP_modeling_2, 'FPS_MPP')
-        cur_FPS_modeling_collection.add_modeling(cur_FPS_MPP_modeling_4, 'FPS_MPP')
-
-        cur_flr_data.flr_fps_modeling_collections.append(
-                cur_FPS_modeling_collection)
+        cur_flr_data.fps_modeling.append(cur_FPS_MPP_modeling_2)
+        cur_flr_data.fps_modeling.append(cur_FPS_MPP_modeling_4)
 
         system.flr_data = [cur_flr_data]
 
