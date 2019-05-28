@@ -2712,17 +2712,8 @@ _ihm_predicted_contact_restraint.software_id
 """)
 
 
-    def test_FLRDumper_Empty_flr_data(self):
-        """ Test that an empty flr_data object in system indeed does not produce an output. """
-        system = ihm.System()
-        dumper = ihm.dumper._FLRDumper()
-        dumper.finalize(system) # assign IDs
-        out = _get_dumper_output(dumper, system)
-        self.assertEqual(out, """""")
-
-
     def test_FLRDumper(self):
-        """ Test _FLRDumper """
+        """Test FLR dumpers"""
 
         class MockObject(object):
             pass
@@ -3104,8 +3095,11 @@ _ihm_predicted_contact_restraint.software_id
         fps_modeling_dumper = ihm.dumper._FLRFPSModelingDumper()
         fps_modeling_dumper.finalize(system)
 
-        dumper = ihm.dumper._FLRDumper()
-        dumper.finalize(system) # assign IDs
+        av_dumper = ihm.dumper._FLRFPSAVModelingDumper()
+        av_dumper.finalize(system)
+
+        mpp_dumper = ihm.dumper._FLRFPSMPPModelingDumper()
+        mpp_dumper.finalize(system) # assign IDs
 
         out = _get_dumper_output(experiment_dumper, system)
         self.assertEqual(out, """#
@@ -3411,7 +3405,7 @@ _flr_FPS_global_parameter.convergence_T
 #
 """)
 
-        out = _get_dumper_output(dumper, system)
+        out = _get_dumper_output(av_dumper, system)
         self.assertEqual(out, """#
 loop_
 _flr_FPS_AV_parameter.id
@@ -3432,7 +3426,10 @@ _flr_FPS_AV_modeling.parameter_id
 1 1 1 1
 2 3 1 1
 #
-#
+""")
+
+        out = _get_dumper_output(mpp_dumper, system)
+        self.assertEqual(out, """#
 loop_
 _flr_FPS_mean_probe_position.id
 _flr_FPS_mean_probe_position.sample_probe_id

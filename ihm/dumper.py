@@ -2440,83 +2440,28 @@ class _FLRFPSModelingDumper(Dumper):
                         convergence_T=x.convergence_t)
 
 
-class _FLRDumper(Dumper):
-    ## TODO: Treat empty entries.
-    def finalize(self,system):
-        if system.flr_data == []:
-            return
-        ## collects all objects and assigns ids
-        self._list_FPS_AV_modeling = []
-        self._list_FPS_AV_parameter = []
-        self._list_FPS_MPP_modeling = []
-        self._list_FPS_mean_probe_position = []
-        self._list_FPS_MPP_atom_position_group_id = []
-        self._list_FPS_MPP_atom_position = []
+class _FLRFPSAVModelingDumper(Dumper):
+    def finalize(self, system):
+        def all_fps_av_modeling():
+            return itertools.chain.from_iterable(f._all_fps_av_modeling()
+                                                 for f in system.flr_data)
+        self._fps_av_modeling_by_id = _assign_all_ids(all_fps_av_modeling)
+        def all_fps_av_parameter():
+            return itertools.chain.from_iterable(f._all_fps_av_parameter()
+                                                 for f in system.flr_data)
+        self._fps_av_modeling_by_id = _assign_all_ids(all_fps_av_modeling)
+        self._fps_av_parameter_by_id = _assign_all_ids(all_fps_av_parameter)
 
-        # always the same scheme: we check whether the object is already
-        # in the list; if not, we add it to the list and give it an ID
-        FPS_AV_modeling_ID = 1
-        FPS_AV_parameter_ID = 1
-        FPS_MPP_modeling_ID = 1
-        FPS_mean_probe_position_ID = 1
-        FPS_MPP_atom_position_group_ID = 1
-        FPS_MPP_atom_position_ID = 1
+    def dump(self, system, writer):
+        self.dump_parameter(system, writer)
+        self.dump_modeling(system, writer)
 
-        for flr_data in system.flr_data:
-            ## Modeling_group => FLR_data
-            for this_FPS_modeling_collection in flr_data.flr_fps_modeling_collections:
-                for index_i in range(len(this_FPS_modeling_collection.flr_modeling_list)):
-                    ## FPS_AV_modeling => FPS_modeling
-                    if 'FPS_AV' in this_FPS_modeling_collection.flr_modeling_method_list[index_i]:
-                        this_FPS_AV_modeling = this_FPS_modeling_collection.flr_modeling_list[index_i]
-                        if this_FPS_AV_modeling not in self._list_FPS_AV_modeling:
-                            this_FPS_AV_modeling._id = FPS_AV_modeling_ID
-                            self._list_FPS_AV_modeling.append(this_FPS_AV_modeling)
-                            FPS_AV_modeling_ID += 1
-                            ## FPS_AV_parameter => FPS_AV_modeling
-                            this_FPS_AV_parameter = this_FPS_AV_modeling.parameter
-                            if this_FPS_AV_parameter not in self._list_FPS_AV_parameter:
-                                this_FPS_AV_parameter._id = FPS_AV_parameter_ID
-                                self._list_FPS_AV_parameter.append(this_FPS_AV_parameter)
-                                FPS_AV_parameter_ID += 1
-                    ## FPS_MPP_modeling => FPS_modeling
-                    if 'FPS_MPP' in this_FPS_modeling_collection.flr_modeling_method_list[index_i]:
-                        this_FPS_MPP_modeling = this_FPS_modeling_collection.flr_modeling_list[index_i]
-                        if this_FPS_MPP_modeling not in self._list_FPS_MPP_modeling:
-                            this_FPS_MPP_modeling._id = FPS_MPP_modeling_ID
-                            self._list_FPS_MPP_modeling.append(this_FPS_MPP_modeling)
-                            FPS_MPP_modeling_ID += 1
-                            ## FPS_mean_probe_position => FPS_MPP_modeling
-                            this_FPS_mean_probe_position = this_FPS_MPP_modeling.mpp
-                            if this_FPS_mean_probe_position not in self._list_FPS_mean_probe_position:
-                                this_FPS_mean_probe_position._id = FPS_mean_probe_position_ID
-                                self._list_FPS_mean_probe_position.append(this_FPS_mean_probe_position)
-                                FPS_mean_probe_position_ID += 1
-                            ## FPS_MPP_atom_position_group => FPS_MPP_modeling
-                            this_FPS_MPP_atom_position_group_id = this_FPS_MPP_modeling.mpp_atom_position_group
-                            if this_FPS_MPP_atom_position_group_id not in self._list_FPS_MPP_atom_position_group_id:
-                                this_FPS_MPP_atom_position_group_id._id = FPS_MPP_atom_position_group_ID
-                                self._list_FPS_MPP_atom_position_group_id.append(this_FPS_MPP_atom_position_group_id)
-                                FPS_MPP_atom_position_group_ID += 1
-                                ## FPS_MPP_atom_position => FPS_MPP_atom_position_group
-                                for this_FPS_MPP_atom_position in this_FPS_MPP_atom_position_group_id.mpp_atom_position_list:
-                                    if this_FPS_MPP_atom_position not in self._list_FPS_MPP_atom_position:
-                                        this_FPS_MPP_atom_position._id = FPS_MPP_atom_position_ID
-                                        self._list_FPS_MPP_atom_position.append(this_FPS_MPP_atom_position)
-                                        FPS_MPP_atom_position_ID += 1
-
-    def dump(self,system,writer):
-        if system.flr_data == []:
-            return
-        ## Write the data using the IHM dumper
-        #### TODO: Each of these blocks could be a separate function
-
-        ## FPS_AV_parameter
+    def dump_parameter(self, system, writer):
         with writer.loop('_flr_FPS_AV_parameter',
                          ['id', 'num_linker_atoms', 'linker_length',
                           'linker_width', 'probe_radius_1', 'probe_radius_2',
                           'probe_radius_3']) as l:
-            for x in self._list_FPS_AV_parameter:
+            for x in self._fps_av_parameter_by_id:
                 l.write(id=x._id,
                         num_linker_atoms=x.num_linker_atoms,
                         linker_length=x.linker_length,
@@ -2525,44 +2470,72 @@ class _FLRDumper(Dumper):
                         probe_radius_2=x.probe_radius_2,
                         probe_radius_3=x.probe_radius_3)
 
-        ## FPS_AV_modeling
+    def dump_modeling(self, system, writer):
         with writer.loop('_flr_FPS_AV_modeling',
                          ['id', 'sample_probe_id', 'FPS_modeling_id',
                           'parameter_id']) as l:
-            for x in self._list_FPS_AV_modeling:
+            for x in self._fps_av_modeling_by_id:
                 l.write(id=x._id,
                         sample_probe_id=x.sample_probe._id,
                         FPS_modeling_id=x.fps_modeling._id,
                         parameter_id=x.parameter._id)
 
-        ## FPS_mean_probe_position
+
+class _FLRFPSMPPModelingDumper(Dumper):
+    def finalize(self, system):
+        def all_fps_mpp_modeling():
+            return itertools.chain.from_iterable(f._all_fps_mpp_modeling()
+                                                 for f in system.flr_data)
+        self._fps_mpp_modeling_by_id = _assign_all_ids(all_fps_mpp_modeling)
+        def all_fps_mean_probe_position():
+            return itertools.chain.from_iterable(
+                     f._all_fps_mean_probe_position() for f in system.flr_data)
+        self._fps_mpp_modeling_by_id = _assign_all_ids(all_fps_mpp_modeling)
+        self._fps_mpp_by_id = _assign_all_ids(all_fps_mean_probe_position)
+
+        def all_atom_position_group():
+            return itertools.chain.from_iterable(
+                     f._all_fps_atom_position_group() for f in system.flr_data)
+        self._atom_group_by_id = _assign_all_ids(all_atom_position_group)
+        def _all_atom_positions():
+            return itertools.chain.from_iterable(ag.mpp_atom_position_list
+                                              for ag in self._atom_group_by_id)
+        for i, a in enumerate(_all_atom_positions()):
+            a._id = i + 1
+
+    def dump(self, system, writer):
+        self.dump_mean_probe_position(system, writer)
+        self.dump_mpp_atom_position(system, writer)
+        self.dump_mpp_modeling(system, writer)
+
+    def dump_mean_probe_position(self, system, writer):
         with writer.loop('_flr_FPS_mean_probe_position',
                          ['id', 'sample_probe_id', 'mpp_xcoord', 'mpp_ycoord',
                           'mpp_zcoord']) as l:
-            for x in self._list_FPS_mean_probe_position:
+            for x in self._fps_mpp_by_id:
                 l.write(id=x._id, sample_probe_id=x.sample_probe._id,
                         mpp_xcoord=x.x, mpp_ycoord=x.y, mpp_zcoord=x.z)
 
-        ## FPS_MPP_atom_position
+    def dump_mpp_atom_position(self, system, writer):
         with writer.loop('_flr_FPS_MPP_atom_position',
                          ['id', 'entity_id', 'seq_id', 'comp_id', 'atom_id',
                           'asym_id', 'xcoord', 'ycoord', 'zcoord',
                           'group_id']) as l:
-            for group in self._list_FPS_MPP_atom_position_group_id:
-                for x in group.mpp_atom_position_list:
-                    comp = x.atom.asym.entity.sequence[x.atom.seq_id-1].id
-                    l.write(id=x._id, entity_id=x.atom.asym.entity._id,
-                            seq_id=x.atom.seq_id, comp_id=comp,
-                            atom_id=x.atom.id, asym_id=x.atom.asym._id,
-                            xcoord=x.x, ycoord=x.y, zcoord=x.z,
-                            group_id=group._id)
+         for group in self._atom_group_by_id:
+             for x in group.mpp_atom_position_list:
+                 comp = x.atom.asym.entity.sequence[x.atom.seq_id-1].id
+                 l.write(id=x._id, entity_id=x.atom.asym.entity._id,
+                         seq_id=x.atom.seq_id, comp_id=comp,
+                         atom_id=x.atom.id, asym_id=x.atom.asym._id,
+                         xcoord=x.x, ycoord=x.y, zcoord=x.z,
+                         group_id=group._id)
 
-        ## FPS_FPS_MPP_modeling
+    def dump_mpp_modeling(self, system, writer):
         cur_ordinal_id = 1
         with writer.loop('_flr_FPS_MPP_modeling',
                          ['ordinal_id', 'FPS_modeling_id', 'mpp_id',
                           'mpp_atom_position_group_id']) as l:
-            for x in self._list_FPS_MPP_modeling:
+            for x in self._fps_mpp_modeling_by_id:
                 l.write(ordinal_id=cur_ordinal_id,
                         FPS_modeling_id=x.fps_modeling._id,
                         mpp_id=x.mpp._id,
@@ -2640,7 +2613,8 @@ def write(fh, systems, format='mmCIF', dumpers=[]):
                _FLRAnalysisDumper(), _FLRPeakAssignmentDumper(),
                _FLRDistanceRestraintDumper(), _FLRModelQualityDumper(),
                _FLRModelDistanceDumper(), _FLRFPSModelingDumper(),
-               _FLRDumper()] + [d() for d in dumpers]
+               _FLRFPSAVModelingDumper(),
+               _FLRFPSMPPModelingDumper()] + [d() for d in dumpers]
     writer_map = {'mmCIF': ihm.format.CifWriter,
                   'BCIF': ihm.format_bcif.BinaryCifWriter}
 

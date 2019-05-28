@@ -953,6 +953,35 @@ class FLRData(object):
         for m in self._all_fps_modeling():
             yield m.global_parameter
 
+    def _all_fps_av_modeling(self):
+        """Yield all FPSAVModeling objects"""
+        for mc in self.flr_fps_modeling_collections:
+            for m in mc.flr_modeling_list:
+                if isinstance(m, FPSAVModeling):
+                    yield m
+
+    def _all_fps_av_parameter(self):
+        """Yield all FPSAVParameter objects"""
+        for m in self._all_fps_av_modeling():
+            yield m.parameter
+
+    def _all_fps_mpp_modeling(self):
+        """Yield all FPSMPPModeling objects"""
+        for mc in self.flr_fps_modeling_collections:
+            for m in mc.flr_modeling_list:
+                if isinstance(m, FPSMPPModeling):
+                    yield m
+
+    def _all_fps_mean_probe_position(self):
+        """Yield all FPSMeanProbePosition objects"""
+        for m in self._all_fps_mpp_modeling():
+            yield m.mpp
+
+    def _all_fps_atom_position_group(self):
+        """Yield all FPSMPPAtomPositionGroup objects"""
+        for m in self._all_fps_mpp_modeling():
+            yield m.mpp_atom_position_group
+
     def _all_flr_chemical_descriptors(self):
         """Collect the chemical descriptors from the flr part.
            *This might contain duplicates.*
