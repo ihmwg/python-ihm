@@ -259,10 +259,9 @@ class _FLRListAdapter(object):
 
         # Store in collection dict (by ID) in FLRData rather than a
         # list in System
-        if self.collection_dict is not None:
-            collection_dict = getattr(d, self.collection_dict)
-            collection_dict[obj._id] = obj
-        # Store in list in FLRData if applicable
+        collection_dict = getattr(d, self.collection_dict)
+        collection_dict[obj._id] = obj
+        # Also store in list in FLRData if applicable
         if self.collection_list is not None:
             collection_list = getattr(d, self.collection_list)
             collection_list.append(obj)
