@@ -889,6 +889,11 @@ class FLRData(object):
         for r in self._all_distance_restraints():
             yield r.analysis
 
+    def _all_peak_assignments(self):
+        """Yield all PeakAssignment objects"""
+        for r in self._all_distance_restraints():
+            yield r.peak_assignment
+
     def _all_experiments(self):
         """Yield all Experiment objects"""
         for a in self._all_analyses():
@@ -936,6 +941,17 @@ class FLRData(object):
         for e in self._all_experiments():
             for s in e.instrument_list:
                 yield s
+
+    def _all_fps_modeling(self):
+        """Yield all FPSModeling objects"""
+        for mc in self.flr_fps_modeling_collections:
+            for m in mc.flr_modeling_list:
+                yield m.fps_modeling
+
+    def _all_fps_global_parameters(self):
+        """Yield all FPSGlobalParameters objects"""
+        for m in self._all_fps_modeling():
+            yield m.global_parameter
 
     def _all_flr_chemical_descriptors(self):
         """Collect the chemical descriptors from the flr part.

@@ -3086,6 +3086,24 @@ _ihm_predicted_contact_restraint.software_id
         parameters_dumper = ihm.dumper._FLRCalibrationParametersDumper()
         parameters_dumper.finalize(system)
 
+        analysis_dumper = ihm.dumper._FLRAnalysisDumper()
+        analysis_dumper.finalize(system)
+
+        peak_assignment_dumper = ihm.dumper._FLRPeakAssignmentDumper()
+        peak_assignment_dumper.finalize(system)
+
+        distance_restraint_dumper = ihm.dumper._FLRDistanceRestraintDumper()
+        distance_restraint_dumper.finalize(system)
+
+        model_quality_dumper = ihm.dumper._FLRModelQualityDumper()
+        model_quality_dumper.finalize(system)
+
+        model_distance_dumper = ihm.dumper._FLRModelDistanceDumper()
+        model_distance_dumper.finalize(system)
+
+        fps_modeling_dumper = ihm.dumper._FLRFPSModelingDumper()
+        fps_modeling_dumper.finalize(system)
+
         dumper = ihm.dumper._FLRDumper()
         dumper.finalize(system) # assign IDs
 
@@ -3277,7 +3295,7 @@ _flr_fret_calibration_parameters.a_b
 #
 """)
 
-        out = _get_dumper_output(dumper, system)
+        out = _get_dumper_output(analysis_dumper, system)
         self.assertEqual(out, """#
 loop_
 _flr_fret_analysis.id
@@ -3294,14 +3312,20 @@ _flr_fret_analysis.software_id
 1 1 1 2 1 1 PDA 1.500 1 . .
 2 1 3 4 1 2 PDA 1.800 1 . .
 #
-#
+""")
+
+        out = _get_dumper_output(peak_assignment_dumper, system)
+        self.assertEqual(out, """#
 loop_
 _flr_peak_assignment.id
 _flr_peak_assignment.method_name
 _flr_peak_assignment.details
 1 Population 'Peaks were assigned by population fractions.'
 #
-#
+""")
+
+        out = _get_dumper_output(distance_restraint_dumper, system)
+        self.assertEqual(out, """#
 loop_
 _flr_fret_distance_restraint.ordinal_id
 _flr_fret_distance_restraint.id
@@ -3319,7 +3343,10 @@ _flr_fret_distance_restraint.peak_assignment_id
 1 1 1 1 2 1 1 53.500 2.500 2.300 <R_DA>_E 0.800 1
 2 2 1 3 4 1 2 49.000 2.000 2.100 <R_DA>_E 0.800 1
 #
-#
+""")
+
+        out = _get_dumper_output(model_quality_dumper, system)
+        self.assertEqual(out, """#
 loop_
 _flr_fret_model_quality.model_id
 _flr_fret_model_quality.chi_square_reduced
@@ -3329,7 +3356,10 @@ _flr_fret_model_quality.details
 1 1.300 1 . .
 2 1.900 1 . .
 #
-#
+""")
+
+        out = _get_dumper_output(model_distance_dumper, system)
+        self.assertEqual(out, """#
 loop_
 _flr_fret_model_distance.id
 _flr_fret_model_distance.restraint_id
@@ -3341,7 +3371,10 @@ _flr_fret_model_distance.distance_deviation
 3 1 2 53.800 -0.300
 4 2 2 49.400 -0.400
 #
-#
+""")
+
+        out = _get_dumper_output(fps_modeling_dumper, system)
+        self.assertEqual(out, """#
 loop_
 _flr_FPS_modeling.id
 _flr_FPS_modeling.ihm_modeling_protocol_ordinal_id
@@ -3376,7 +3409,10 @@ _flr_FPS_global_parameter.convergence_F
 _flr_FPS_global_parameter.convergence_T
 1 52 3 1000 0.200 0.400 0.500 3 200 1 1 200 400 1 10 ^2 100 0.001 0.001 0.002
 #
-#
+""")
+
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
 loop_
 _flr_FPS_AV_parameter.id
 _flr_FPS_AV_parameter.num_linker_atoms

@@ -2260,22 +2260,192 @@ class _FLRCalibrationParametersDumper(Dumper):
                         gamma=x.gamma, delta=x.delta, a_b=x.a_b)
 
 
+class _FLRAnalysisDumper(Dumper):
+    def finalize(self, system):
+        def all_analyses():
+            return itertools.chain.from_iterable(f._all_analyses()
+                                                 for f in system.flr_data)
+        self._analyses_by_id = _assign_all_ids(all_analyses)
+
+    def dump(self, system, writer):
+        with writer.loop('_flr_fret_analysis',
+                         ['id', 'experiment_id', 'sample_probe_id_1',
+                          'sample_probe_id_2', 'forster_radius_id',
+                          'calibration_parameters_id', 'method_name',
+                          'chi_square_reduced', 'dataset_list_id',
+                          'external_file_id', 'software_id']) as l:
+            for x in self._analyses_by_id:
+                l.write(id=x._id,
+                        experiment_id=x.experiment._id,
+                        sample_probe_id_1=x.sample_probe_1._id,
+                        sample_probe_id_2=x.sample_probe_2._id,
+                        forster_radius_id=x.forster_radius._id,
+                        calibration_parameters_id=x.calibration_parameters._id,
+                        method_name=x.method_name,
+                        chi_square_reduced=x.chi_square_reduced,
+                        dataset_list_id=x.dataset._id,
+                        external_file_id=None if x.external_file is None
+                                              else x.external_file._id,
+                        software_id=None if x.software is None
+                                         else x.software._id)
+
+
+class _FLRPeakAssignmentDumper(Dumper):
+    def finalize(self, system):
+        def all_peak_assignments():
+            return itertools.chain.from_iterable(f._all_peak_assignments()
+                                                 for f in system.flr_data)
+        self._peak_assignments_by_id = _assign_all_ids(all_peak_assignments)
+
+    def dump(self, system, writer):
+        with writer.loop('_flr_peak_assignment',
+                         ['id', 'method_name', 'details']) as l:
+            for x in self._peak_assignments_by_id:
+                l.write(id=x._id, method_name=x.method_name,
+                         details=x.details)
+
+
+class _FLRDistanceRestraintDumper(Dumper):
+    def finalize(self, system):
+        def all_restraint_groups():
+            return itertools.chain.from_iterable(f.distance_restraint_groups
+                                                 for f in system.flr_data)
+        self._restraint_groups_by_id = _assign_all_ids(all_restraint_groups)
+        def _all_restraints():
+            return itertools.chain.from_iterable(rg.distance_restraint_list
+                                      for rg in self._restraint_groups_by_id)
+        for i, r in enumerate(_all_restraints()):
+            r._id = i + 1
+
+    def dump(self, system, writer):
+        with writer.loop('_flr_fret_distance_restraint',
+                         ['ordinal_id', 'id', 'group_id', 'sample_probe_id_1',
+                          'sample_probe_id_2', 'state_id', 'analysis_id',
+                          'distance', 'distance_error_plus',
+                          'distance_error_minus', 'distance_type',
+                          'population_fraction', 'peak_assignment_id']) as l:
+            ordinal = 1
+            for rg in self._restraint_groups_by_id:
+                for r in rg.distance_restraint_list:
+                    l.write(ordinal_id=ordinal, id=r._id, group_id=rg._id,
+                            sample_probe_id_1=r.sample_probe_1._id,
+                            sample_probe_id_2=r.sample_probe_2._id,
+                            state_id=None if r.state is None else r.state._id,
+                            analysis_id=r.analysis._id, distance=r.distance,
+                            distance_error_plus=r.distance_error_plus,
+                            distance_error_minus=r.distance_error_minus,
+                            distance_type=r.distance_type,
+                            population_fraction=r.population_fraction,
+                            peak_assignment_id=r.peak_assignment._id)
+                    ordinal += 1
+
+
+class _FLRModelQualityDumper(Dumper):
+    def finalize(self, system):
+        def all_model_qualities():
+            return itertools.chain.from_iterable(f.fret_model_qualities
+                                                 for f in system.flr_data)
+        self._model_qualities_by_id = _assign_all_ids(all_model_qualities)
+
+    def dump(self, system, writer):
+        with writer.loop('_flr_fret_model_quality',
+                         ['model_id', 'chi_square_reduced', 'dataset_group_id',
+                          'method', 'details']) as l:
+            for x in self._model_qualities_by_id:
+                l.write(model_id=x._id,
+                        chi_square_reduced=x.chi_square_reduced,
+                        dataset_group_id=x.dataset_group._id,
+                        method=x.method, details=x.details)
+
+
+class _FLRModelDistanceDumper(Dumper):
+    def finalize(self, system):
+        def all_model_distances():
+            return itertools.chain.from_iterable(f.fret_model_distances
+                                                 for f in system.flr_data)
+        self._model_distances_by_id = _assign_all_ids(all_model_distances)
+
+    def dump(self, system, writer):
+        with writer.loop('_flr_fret_model_distance',
+                         ['id', 'restraint_id', 'model_id', 'distance',
+                          'distance_deviation']) as l:
+            for x in self._model_distances_by_id:
+                l.write(id=x._id, restraint_id=x.restraint._id,
+                        model_id=x.model._id, distance=x.distance,
+                        distance_deviation=x.distance_deviation)
+
+
+class _FLRFPSModelingDumper(Dumper):
+    def finalize(self, system):
+        def all_fps_modeling():
+            return itertools.chain.from_iterable(f._all_fps_modeling()
+                                                 for f in system.flr_data)
+        self._fps_modeling_by_id = _assign_all_ids(all_fps_modeling)
+        def all_fps_global_parameters():
+            return itertools.chain.from_iterable(f._all_fps_global_parameters()
+                                                 for f in system.flr_data)
+        self._fps_modeling_by_id = _assign_all_ids(all_fps_modeling)
+        self._fps_parameters_by_id = _assign_all_ids(all_fps_global_parameters)
+
+    def dump(self, system, writer):
+        self.dump_fps_modeling(system, writer)
+        self.dump_fps_global_parameters(system, writer)
+
+    def dump_fps_modeling(self, system, writer):
+        with writer.loop('_flr_FPS_modeling',
+                         ['id', 'ihm_modeling_protocol_ordinal_id',
+                          'restraint_group_id', 'global_parameter_id',
+                          'probe_modeling_method', 'details']) as l:
+            for x in self._fps_modeling_by_id:
+                l.write(id=x._id,
+                        ihm_modeling_protocol_ordinal_id=x.protocol._id,
+                        restraint_group_id=x.restraint_group._id,
+                        global_parameter_id=x.global_parameter._id,
+                        probe_modeling_method=x.probe_modeling_method,
+                        details=x.details)
+
+    def dump_fps_global_parameters(self, system, writer):
+        with writer.loop('_flr_FPS_global_parameter',
+                         ['id', 'forster_radius_value',
+                          'conversion_function_polynom_order', 'repetition',
+                          'AV_grid_rel', 'AV_min_grid_A', 'AV_allowed_sphere',
+                          'AV_search_nodes', 'AV_E_samples_k',
+                          'sim_viscosity_adjustment', 'sim_dt_adjustment',
+                          'sim_max_iter_k', 'sim_max_force',
+                          'sim_clash_tolerance_A', 'sim_reciprocal_kT',
+                          'sim_clash_potential', 'convergence_E',
+                          'convergence_K', 'convergence_F',
+                          'convergence_T']) as l:
+            for x in self._fps_parameters_by_id:
+                l.write(id=x._id,
+                        forster_radius_value=x.forster_radius,
+                        conversion_function_polynom_order
+                                   =x.conversion_function_polynom_order,
+                        repetition=x.repetition,
+                        AV_grid_rel=x.av_grid_rel,
+                        AV_min_grid_A=x.av_min_grid_a,
+                        AV_allowed_sphere=x.av_allowed_sphere,
+                        AV_search_nodes=x.av_search_nodes,
+                        AV_E_samples_k=x.av_e_samples_k,
+                        sim_viscosity_adjustment=x.sim_viscosity_adjustment,
+                        sim_dt_adjustment=x.sim_dt_adjustment,
+                        sim_max_iter_k=x.sim_max_iter_k,
+                        sim_max_force=x.sim_max_force,
+                        sim_clash_tolerance_A=x.sim_clash_tolerance_a,
+                        sim_reciprocal_kT=x.sim_reciprocal_kt,
+                        sim_clash_potential=x.sim_clash_potential,
+                        convergence_E=x.convergence_e,
+                        convergence_K=x.convergence_k,
+                        convergence_F=x.convergence_f,
+                        convergence_T=x.convergence_t)
+
+
 class _FLRDumper(Dumper):
     ## TODO: Treat empty entries.
     def finalize(self,system):
         if system.flr_data == []:
             return
         ## collects all objects and assigns ids
-        self._list_fret_distance_restraint_group = []
-        self._list_fret_distance_restraint = []
-        self._list_probe_descriptor = []
-        self._list_chemical_descriptor = []
-        self._list_fret_analysis = []
-        self._list_peak_assignment = []
-        self._list_model_quality = []
-        self._list_model_distance = []
-        self._list_FPS_modeling = []
-        self._list_FPS_global_parameters = []
         self._list_FPS_AV_modeling = []
         self._list_FPS_AV_parameter = []
         self._list_FPS_MPP_modeling = []
@@ -2285,15 +2455,6 @@ class _FLRDumper(Dumper):
 
         # always the same scheme: we check whether the object is already
         # in the list; if not, we add it to the list and give it an ID
-        fret_distance_restraint_group_ID = 1
-        fret_distance_restraint_ID = 1
-        chemical_descriptor_ID = 1
-        fret_analysis_ID = 1
-        peak_assignment_ID = 1
-        model_quality_ID = 1
-        model_distance_ID = 1
-        FPS_modeling_ID = 1
-        FPS_global_parameters_ID = 1
         FPS_AV_modeling_ID = 1
         FPS_AV_parameter_ID = 1
         FPS_MPP_modeling_ID = 1
@@ -2301,47 +2462,7 @@ class _FLRDumper(Dumper):
         FPS_MPP_atom_position_group_ID = 1
         FPS_MPP_atom_position_ID = 1
 
-        ## fret_distance_restraint_group => FLR_data
         for flr_data in system.flr_data:
-            for rg in flr_data.distance_restraint_groups:
-                if rg not in self._list_fret_distance_restraint_group:
-                    ## assign the ID
-                    rg._id = fret_distance_restraint_group_ID
-                    ## add the object to the list
-                    self._list_fret_distance_restraint_group.append(rg)
-                    ## and increase the ID
-                    fret_distance_restraint_group_ID += 1
-                ## for each
-                ## fret_distance_restraint => fret_distance_restraint_group
-                for fdr in rg.distance_restraint_list:
-                    if fdr not in self._list_fret_distance_restraint:
-                        fdr._id = fret_distance_restraint_ID
-                        self._list_fret_distance_restraint.append(fdr)
-                        fret_distance_restraint_ID += 1
-                    ## fret_analysis => fret_distance_restraint
-                    this_fret_analysis = fdr.analysis
-                    if this_fret_analysis not in self._list_fret_analysis:
-                        this_fret_analysis._id = fret_analysis_ID
-                        self._list_fret_analysis.append(this_fret_analysis)
-                        fret_analysis_ID += 1
-                    ## peak assignment => fret_distance_restraint
-                    this_peak_assignment = fdr.peak_assignment
-                    if this_peak_assignment not in self._list_peak_assignment:
-                        this_peak_assignment._id = peak_assignment_ID
-                        self._list_peak_assignment.append(this_peak_assignment)
-                        peak_assignment_ID += 1
-            ## model_quality => FLR_data
-            for this_model_quality in flr_data.fret_model_qualities:
-                if this_model_quality not in self._list_model_quality:
-                    this_model_quality._id = model_quality_ID
-                    self._list_model_quality.append(this_model_quality)
-                    model_quality_ID += 1
-            ## model_distance => FLR_data
-            for this_model_distance in flr_data.fret_model_distances:
-                if this_model_distance not in self._list_model_distance:
-                    this_model_distance._id = model_distance_ID
-                    self._list_model_distance.append(this_model_distance)
-                    model_distance_ID += 1
             ## Modeling_group => FLR_data
             for this_FPS_modeling_collection in flr_data.flr_fps_modeling_collections:
                 for index_i in range(len(this_FPS_modeling_collection.flr_modeling_list)):
@@ -2358,17 +2479,6 @@ class _FLRDumper(Dumper):
                                 this_FPS_AV_parameter._id = FPS_AV_parameter_ID
                                 self._list_FPS_AV_parameter.append(this_FPS_AV_parameter)
                                 FPS_AV_parameter_ID += 1
-                        this_FPS_modeling = this_FPS_AV_modeling.fps_modeling
-                        if this_FPS_modeling not in self._list_FPS_modeling:
-                            this_FPS_modeling._id = FPS_modeling_ID
-                            self._list_FPS_modeling.append(this_FPS_modeling)
-                            FPS_modeling_ID += 1
-                            ## FPS_global_parameters
-                            this_FPS_global_parameters = this_FPS_modeling.global_parameter
-                            if this_FPS_global_parameters not in self._list_FPS_global_parameters:
-                                this_FPS_global_parameters._id = FPS_global_parameters_ID
-                                self._list_FPS_global_parameters.append(this_FPS_global_parameters)
-                                FPS_global_parameters_ID += 1
                     ## FPS_MPP_modeling => FPS_modeling
                     if 'FPS_MPP' in this_FPS_modeling_collection.flr_modeling_method_list[index_i]:
                         this_FPS_MPP_modeling = this_FPS_modeling_collection.flr_modeling_list[index_i]
@@ -2394,18 +2504,6 @@ class _FLRDumper(Dumper):
                                         this_FPS_MPP_atom_position._id = FPS_MPP_atom_position_ID
                                         self._list_FPS_MPP_atom_position.append(this_FPS_MPP_atom_position)
                                         FPS_MPP_atom_position_ID += 1
-                        this_FPS_modeling = this_FPS_MPP_modeling.fps_modeling
-                        if this_FPS_modeling not in self._list_FPS_modeling:
-                            this_FPS_modeling._id = FPS_modeling_ID
-                            self._list_FPS_modeling.append(this_FPS_modeling)
-                            FPS_modeling_ID += 1
-                            ## FPS_global_parameters
-                            this_FPS_global_parameters = this_FPS_modeling.global_parameter
-                            if this_FPS_global_parameters not in self._list_FPS_global_parameters:
-                                this_FPS_global_parameters._id = FPS_global_parameters_ID
-                                self._list_FPS_global_parameters.append(this_FPS_global_parameters)
-                                FPS_global_parameters_ID += 1
-
 
     def dump(self,system,writer):
         if system.flr_data == []:
@@ -2413,126 +2511,6 @@ class _FLRDumper(Dumper):
         ## Write the data using the IHM dumper
         #### TODO: Each of these blocks could be a separate function
 
-        ## fret_analysis
-        with writer.loop('_flr_fret_analysis',
-                         ['id', 'experiment_id', 'sample_probe_id_1',
-                          'sample_probe_id_2', 'forster_radius_id',
-                          'calibration_parameters_id', 'method_name',
-                          'chi_square_reduced', 'dataset_list_id',
-                          'external_file_id', 'software_id']) as l:
-            for x in self._list_fret_analysis:
-                l.write(id=x._id,
-                        experiment_id=x.experiment._id,
-                        sample_probe_id_1=x.sample_probe_1._id,
-                        sample_probe_id_2=x.sample_probe_2._id,
-                        forster_radius_id=x.forster_radius._id,
-                        calibration_parameters_id=x.calibration_parameters._id,
-                        method_name=x.method_name,
-                        chi_square_reduced=x.chi_square_reduced,
-                        dataset_list_id=x.dataset._id,
-                        external_file_id=None if x.external_file is None
-                                              else x.external_file._id,
-                        software_id=None if x.software is None
-                                         else x.software._id)
-        ## peak_assignment
-        with writer.loop('_flr_peak_assignment',
-                         ['id', 'method_name', 'details']) as l:
-            for x in self._list_peak_assignment:
-                l.write(id=x._id, method_name=x.method_name,
-                         details=x.details)
-        ## fret_distance_restraint
-        with writer.loop('_flr_fret_distance_restraint',
-                         ['ordinal_id', 'id', 'group_id', 'sample_probe_id_1',
-                          'sample_probe_id_2', 'state_id', 'analysis_id',
-                          'distance', 'distance_error_plus',
-                          'distance_error_minus', 'distance_type',
-                          'population_fraction', 'peak_assignment_id']) as l:
-            ordinal=1
-            for x in self._list_fret_distance_restraint_group:
-                for this_dist_rest in x.distance_restraint_list:
-                    l.write(ordinal_id=ordinal, id=this_dist_rest._id,
-                            group_id=x._id,
-                            sample_probe_id_1=this_dist_rest.sample_probe_1._id,
-                            sample_probe_id_2=this_dist_rest.sample_probe_2._id,
-                            state_id=None if this_dist_rest.state is None
-                                          else this_dist_rest.state._id,
-                             analysis_id=this_dist_rest.analysis._id,
-                             distance=this_dist_rest.distance,
-                             distance_error_plus=
-                                        this_dist_rest.distance_error_plus,
-                             distance_error_minus=
-                                        this_dist_rest.distance_error_minus,
-                             distance_type=this_dist_rest.distance_type,
-                             population_fraction=
-                                        this_dist_rest.population_fraction,
-                             peak_assignment_id=
-                                        this_dist_rest.peak_assignment._id)
-                    ordinal += 1
-        ## fret_model_quality
-        with writer.loop('_flr_fret_model_quality',
-                         ['model_id', 'chi_square_reduced', 'dataset_group_id',
-                          'method', 'details']) as l:
-            for x in self._list_model_quality:
-                l.write(model_id=x._id,
-                        chi_square_reduced=x.chi_square_reduced,
-                        dataset_group_id=x.dataset_group._id,
-                        method=x.method, details=x.details)
-        ## fret_model_distance
-        with writer.loop('_flr_fret_model_distance',
-                         ['id', 'restraint_id', 'model_id', 'distance',
-                          'distance_deviation']) as l:
-            for x in self._list_model_distance:
-                l.write(id=x._id, restraint_id=x.restraint._id,
-                        model_id=x.model._id, distance=x.distance,
-                        distance_deviation=x.distance_deviation)
-
-        ## FPS_modeling
-        with writer.loop('_flr_FPS_modeling',
-                         ['id', 'ihm_modeling_protocol_ordinal_id',
-                          'restraint_group_id', 'global_parameter_id',
-                          'probe_modeling_method', 'details']) as l:
-            for x in self._list_FPS_modeling:
-                l.write(id=x._id,
-                        ihm_modeling_protocol_ordinal_id=
-                                  x.protocol._id,
-                        restraint_group_id=x.restraint_group._id,
-                        global_parameter_id=x.global_parameter._id,
-                        probe_modeling_method=x.probe_modeling_method,
-                        details=x.details)
-        ## FPS_global_parameter
-        with writer.loop('_flr_FPS_global_parameter',
-                         ['id', 'forster_radius_value',
-                          'conversion_function_polynom_order', 'repetition',
-                          'AV_grid_rel', 'AV_min_grid_A', 'AV_allowed_sphere',
-                          'AV_search_nodes', 'AV_E_samples_k',
-                          'sim_viscosity_adjustment', 'sim_dt_adjustment',
-                          'sim_max_iter_k', 'sim_max_force',
-                          'sim_clash_tolerance_A', 'sim_reciprocal_kT',
-                          'sim_clash_potential', 'convergence_E',
-                          'convergence_K', 'convergence_F',
-                          'convergence_T']) as l:
-            for x in self._list_FPS_global_parameters:
-                l.write(id=x._id,
-                        forster_radius_value=x.forster_radius,
-                        conversion_function_polynom_order
-                                   =x.conversion_function_polynom_order,
-                        repetition=x.repetition,
-                        AV_grid_rel=x.av_grid_rel,
-                        AV_min_grid_A=x.av_min_grid_a,
-                        AV_allowed_sphere=x.av_allowed_sphere,
-                        AV_search_nodes=x.av_search_nodes,
-                        AV_E_samples_k=x.av_e_samples_k,
-                        sim_viscosity_adjustment=x.sim_viscosity_adjustment,
-                        sim_dt_adjustment=x.sim_dt_adjustment,
-                        sim_max_iter_k=x.sim_max_iter_k,
-                        sim_max_force=x.sim_max_force,
-                        sim_clash_tolerance_A=x.sim_clash_tolerance_a,
-                        sim_reciprocal_kT=x.sim_reciprocal_kt,
-                        sim_clash_potential=x.sim_clash_potential,
-                        convergence_E=x.convergence_e,
-                        convergence_K=x.convergence_k,
-                        convergence_F=x.convergence_f,
-                        convergence_T=x.convergence_t)
         ## FPS_AV_parameter
         with writer.loop('_flr_FPS_AV_parameter',
                          ['id', 'num_linker_atoms', 'linker_length',
@@ -2659,6 +2637,9 @@ def write(fh, systems, format='mmCIF', dumpers=[]):
                _FLRProbeDumper(), _FLRSampleProbeDetailsDumper(),
                _FLRPolyProbePositionDumper(), _FLRConjugateDumper(),
                _FLRForsterRadiusDumper(), _FLRCalibrationParametersDumper(),
+               _FLRAnalysisDumper(), _FLRPeakAssignmentDumper(),
+               _FLRDistanceRestraintDumper(), _FLRModelQualityDumper(),
+               _FLRModelDistanceDumper(), _FLRFPSModelingDumper(),
                _FLRDumper()] + [d() for d in dumpers]
     writer_map = {'mmCIF': ihm.format.CifWriter,
                   'BCIF': ihm.format_bcif.BinaryCifWriter}
