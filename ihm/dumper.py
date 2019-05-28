@@ -2204,6 +2204,62 @@ class _FLRPolyProbePositionDumper(Dumper):
                             atom_id=atom)
 
 
+class _FLRConjugateDumper(Dumper):
+    def finalize(self, system):
+        def all_conjugates():
+            return itertools.chain.from_iterable(f.poly_probe_conjugates
+                                                 for f in system.flr_data)
+        self._conjugates_by_id = _assign_all_ids(all_conjugates)
+
+    def dump(self, system, writer):
+        with writer.loop('_flr_poly_probe_conjugate',
+                         ['id', 'sample_probe_id', 'chem_descriptor_id',
+                          'ambiguous_stoichiometry_flag',
+                          'probe_stoichiometry']) as l:
+            for x in self._conjugates_by_id:
+                l.write(id=x._id,
+                        sample_probe_id=x.sample_probe._id,
+                        chem_descriptor_id=x.chem_descriptor._id,
+                        ambiguous_stoichiometry_flag=x.ambiguous_stoichiometry,
+                        probe_stoichiometry=x.probe_stoichiometry)
+
+
+class _FLRForsterRadiusDumper(Dumper):
+    def finalize(self, system):
+        def all_forster_radii():
+            return itertools.chain.from_iterable(f._all_forster_radii()
+                                                 for f in system.flr_data)
+        self._radii_by_id = _assign_all_ids(all_forster_radii)
+
+    def dump(self, system, writer):
+        with writer.loop('_flr_fret_forster_radius',
+                         ['id', 'donor_probe_id', 'acceptor_probe_id',
+                          'forster_radius', 'reduced_forster_radius']) as l:
+            for x in self._radii_by_id:
+                l.write(id=x._id, donor_probe_id=x.donor_probe._id,
+                        acceptor_probe_id=x.acceptor_probe._id,
+                        forster_radius=x.forster_radius,
+                        reduced_forster_radius=x.reduced_forster_radius)
+
+
+class _FLRCalibrationParametersDumper(Dumper):
+    def finalize(self, system):
+        def all_calibration_parameters():
+            return itertools.chain.from_iterable(f._all_calibration_parameters()
+                                                 for f in system.flr_data)
+        self._parameters_by_id = _assign_all_ids(all_calibration_parameters)
+
+    def dump(self, system, writer):
+        with writer.loop('_flr_fret_calibration_parameters',
+                         ['id', 'phi_acceptor', 'alpha', 'alpha_sd',
+                          'gG_gR_ratio', 'beta', 'gamma', 'delta', 'a_b']) as l:
+            for x in self._parameters_by_id:
+                l.write(id=x._id, phi_acceptor=x.phi_acceptor,
+                        alpha=x.alpha, alpha_sd=x.alpha_sd,
+                        gG_gR_ratio=x.gg_gr_ratio, beta=x.beta,
+                        gamma=x.gamma, delta=x.delta, a_b=x.a_b)
+
+
 class _FLRDumper(Dumper):
     ## TODO: Treat empty entries.
     def finalize(self,system):
@@ -2215,10 +2271,7 @@ class _FLRDumper(Dumper):
         self._list_probe_descriptor = []
         self._list_chemical_descriptor = []
         self._list_fret_analysis = []
-        self._list_fret_forster_radius = []
-        self._list_fret_calibration_parameters = []
         self._list_peak_assignment = []
-        self._list_poly_probe_conjugate = []
         self._list_model_quality = []
         self._list_model_distance = []
         self._list_FPS_modeling = []
@@ -2236,10 +2289,7 @@ class _FLRDumper(Dumper):
         fret_distance_restraint_ID = 1
         chemical_descriptor_ID = 1
         fret_analysis_ID = 1
-        fret_forster_radius_ID = 1
-        fret_calibration_parameters_ID = 1
         peak_assignment_ID = 1
-        poly_probe_conjugate_ID = 1
         model_quality_ID = 1
         model_distance_ID = 1
         FPS_modeling_ID = 1
@@ -2280,25 +2330,6 @@ class _FLRDumper(Dumper):
                         this_peak_assignment._id = peak_assignment_ID
                         self._list_peak_assignment.append(this_peak_assignment)
                         peak_assignment_ID += 1
-
-                    ## fret_forster_radius => fret_analysis
-                    this_fret_forster_radius = this_fret_analysis.forster_radius
-                    if this_fret_forster_radius not in self._list_fret_forster_radius:
-                        this_fret_forster_radius._id = fret_forster_radius_ID
-                        self._list_fret_forster_radius.append(this_fret_forster_radius)
-                        fret_forster_radius_ID += 1
-                    ## fret_calibration_parameters => fret_analysis
-                    this_fret_calibration_parameters = this_fret_analysis.calibration_parameters
-                    if this_fret_calibration_parameters not in self._list_fret_calibration_parameters:
-                        this_fret_calibration_parameters._id = fret_calibration_parameters_ID
-                        self._list_fret_calibration_parameters.append(this_fret_calibration_parameters)
-                        fret_calibration_parameters_ID += 1
-            ## poly_probe_conjugate => FLR_data
-            for this_poly_probe_conjugate in flr_data.poly_probe_conjugates:
-                if this_poly_probe_conjugate not in self._list_poly_probe_conjugate:
-                    this_poly_probe_conjugate._id = poly_probe_conjugate_ID
-                    self._list_poly_probe_conjugate.append(this_poly_probe_conjugate)
-                    poly_probe_conjugate_ID += 1
             ## model_quality => FLR_data
             for this_model_quality in flr_data.fret_model_qualities:
                 if this_model_quality not in self._list_model_quality:
@@ -2382,36 +2413,6 @@ class _FLRDumper(Dumper):
         ## Write the data using the IHM dumper
         #### TODO: Each of these blocks could be a separate function
 
-        ## poly_probe_conjugate
-        with writer.loop('_flr_poly_probe_conjugate',
-                         ['id', 'sample_probe_id','chem_descriptor_id',
-                          'ambiguous_stoichiometry_flag',
-                          'probe_stoichiometry']) as l:
-            for x in self._list_poly_probe_conjugate:
-                l.write(id=x._id,
-                        sample_probe_id=x.sample_probe._id,
-                        chem_descriptor_id=x.chem_descriptor._id,
-                        ambiguous_stoichiometry_flag=x.ambiguous_stoichiometry,
-                        probe_stoichiometry=x.probe_stoichiometry)
-        ## fret_forster_radius
-        with writer.loop('_flr_fret_forster_radius',
-                         ['id', 'donor_probe_id', 'acceptor_probe_id',
-                          'forster_radius', 'reduced_forster_radius']) as l:
-            for x in self._list_fret_forster_radius:
-                l.write(id=x._id,
-                        donor_probe_id=x.donor_probe._id,
-                        acceptor_probe_id=x.acceptor_probe._id,
-                        forster_radius=x.forster_radius,
-                        reduced_forster_radius=x.reduced_forster_radius)
-        ## fret_calibration_parameters
-        with writer.loop('_flr_fret_calibration_parameters',
-                         ['id', 'phi_acceptor', 'alpha', 'alpha_sd',
-                          'gG_gR_ratio', 'beta', 'gamma', 'delta', 'a_b']) as l:
-            for x in self._list_fret_calibration_parameters:
-                l.write(id=x._id, phi_acceptor=x.phi_acceptor,
-                        alpha=x.alpha, alpha_sd=x.alpha_sd,
-                        gG_gR_ratio=x.gg_gr_ratio, beta=x.beta,
-                        gamma=x.gamma, delta=x.delta, a_b=x.a_b)
         ## fret_analysis
         with writer.loop('_flr_fret_analysis',
                          ['id', 'experiment_id', 'sample_probe_id_1',
@@ -2656,7 +2657,8 @@ def write(fh, systems, format='mmCIF', dumpers=[]):
                _FLRInstrumentDumper(), _FLREntityAssemblyDumper(),
                _FLRSampleConditionDumper(), _FLRSampleDumper(),
                _FLRProbeDumper(), _FLRSampleProbeDetailsDumper(),
-               _FLRPolyProbePositionDumper(),
+               _FLRPolyProbePositionDumper(), _FLRConjugateDumper(),
+               _FLRForsterRadiusDumper(), _FLRCalibrationParametersDumper(),
                _FLRDumper()] + [d() for d in dumpers]
     writer_map = {'mmCIF': ihm.format.CifWriter,
                   'BCIF': ihm.format_bcif.BinaryCifWriter}

@@ -3077,6 +3077,15 @@ _ihm_predicted_contact_restraint.software_id
         poly_probe_pos_dumper = ihm.dumper._FLRPolyProbePositionDumper()
         poly_probe_pos_dumper.finalize(system)
 
+        conjugate_dumper = ihm.dumper._FLRConjugateDumper()
+        conjugate_dumper.finalize(system)
+
+        radii_dumper = ihm.dumper._FLRForsterRadiusDumper()
+        radii_dumper.finalize(system)
+
+        parameters_dumper = ihm.dumper._FLRCalibrationParametersDumper()
+        parameters_dumper.finalize(system)
+
         dumper = ihm.dumper._FLRDumper()
         dumper.finalize(system) # assign IDs
 
@@ -3224,7 +3233,7 @@ _flr_poly_probe_position_modified.atom_id
 #
 """)
 
-        out = _get_dumper_output(dumper, system)
+        out = _get_dumper_output(conjugate_dumper, system)
         self.assertEqual(out, """#
 loop_
 _flr_poly_probe_conjugate.id
@@ -3237,7 +3246,10 @@ _flr_poly_probe_conjugate.probe_stoichiometry
 3 3 5 NO .
 4 4 5 NO .
 #
-#
+""")
+
+        out = _get_dumper_output(radii_dumper, system)
+        self.assertEqual(out, """#
 loop_
 _flr_fret_forster_radius.id
 _flr_fret_forster_radius.donor_probe_id
@@ -3246,7 +3258,10 @@ _flr_fret_forster_radius.forster_radius
 _flr_fret_forster_radius.reduced_forster_radius
 1 1 2 52.000 53.200
 #
-#
+""")
+
+        out = _get_dumper_output(parameters_dumper, system)
+        self.assertEqual(out, """#
 loop_
 _flr_fret_calibration_parameters.id
 _flr_fret_calibration_parameters.phi_acceptor
@@ -3260,7 +3275,10 @@ _flr_fret_calibration_parameters.a_b
 1 0.350 2.400 . 0.400 . . . 0.800
 2 0.350 2.400 . 0.380 . . . 0.800
 #
-#
+""")
+
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
 loop_
 _flr_fret_analysis.id
 _flr_fret_analysis.experiment_id

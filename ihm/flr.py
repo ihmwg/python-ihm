@@ -884,10 +884,25 @@ class FLRData(object):
             for r in rg.distance_restraint_list:
                 yield r
 
+    def _all_analyses(self):
+        """Yield all FRETAnalysis objects"""
+        for r in self._all_distance_restraints():
+            yield r.analysis
+
     def _all_experiments(self):
         """Yield all Experiment objects"""
-        for r in self._all_distance_restraints():
-            yield r.analysis.experiment
+        for a in self._all_analyses():
+            yield a.experiment
+
+    def _all_forster_radii(self):
+        """Yield all FRETForsterRadius objects"""
+        for a in self._all_analyses():
+            yield a.forster_radius
+
+    def _all_calibration_parameters(self):
+        """Yield all FRETCalibrationParameters objects"""
+        for a in self._all_analyses():
+            yield a.calibration_parameters
 
     def _all_sample_probe_details(self):
         """Yield all SampleProbeDetails objects"""
