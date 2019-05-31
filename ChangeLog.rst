@@ -1,3 +1,7 @@
+HEAD
+====
+ - Add support for the latest version of the IHM dictionary.
+
 0.8 - 2019-05-28
 ================
  - :func:`ihm.reader.read` can now be asked to warn if it encounters
