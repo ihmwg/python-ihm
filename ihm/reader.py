@@ -144,6 +144,41 @@ class _ChemCompIDMapper(IDMapper):
             return newcls(*self._cls_args, **self._cls_keys)
 
 
+class RangeIDMapper(object):
+    """Utility class to handle mapping from mmCIF IDs to
+       :class:`ihm.AsymUnitRange` or :class:`EntityRange` objects."""
+
+    def __init__(self):
+        self._id_map = {}
+
+    def set(self, range_id, seq_id_begin, seq_id_end):
+        """Add a range.
+
+           :param str range_id: mmCIF ID
+           :param int seq_id_begin: Index of the start of the range
+           :param int seq_id_end: Index of the end of the range
+        """
+        self._id_map[range_id] = (seq_id_begin, seq_id_end)
+
+    def get(self, asym_or_entity, range_id):
+        """Get a range from an ID.
+
+           :param asym_or_entity: An :class:`ihm.Entity` or
+                  :class:`ihm.AsymUnit` object representing the part of
+                  the system to which the range will be applied.
+           :param str range_id: mmCIF ID
+           :return: A range as a :class:`ihm.Entity`, :class:`ihm.AsymUnit`,
+                    :class:`ihm.EntityRange` or :class:`ihm.AsymUnitRange`
+                    object.
+        """
+        # range_id can be None if the entire asym/entity should be selected
+        # (e.g. for a non-polymer)
+        if range_id is None:
+            return asym_or_entity
+        else:
+            return asym_or_entity(*self._id_map[range_id])
+
+
 class _AnalysisIDMapper(IDMapper):
     """Add extra handling to IDMapper for the post processing category"""
 
@@ -374,6 +409,10 @@ class SystemReader(object):
 
         #: Mapping from ID to :class:`ihm.Assembly` objects
         self.assemblies = IDMapper(self.system.orphan_assemblies, ihm.Assembly)
+
+        #: Mapping from ID to :class:`ihm.AsymUnitRange`
+        #: or :class:`EntityRange` objects
+        self.ranges = RangeIDMapper()
 
         #: Mapping from ID to :class:`ihm.location.Repository` objects
         self.repos = IDMapper(None, ihm.location.Repository, None)
@@ -993,6 +1032,14 @@ class _EntityPolyHandler(Handler):
                     comp.code_canonical = ei.one_letter_can[i]
 
 
+class _EntityPolySegmentHandler(Handler):
+    category = '_ihm_entity_poly_segment'
+
+    def __call__(self, id, seq_id_begin, seq_id_end):
+        self.sysr.ranges.set(id, self.get_int(seq_id_begin),
+                             self.get_int(seq_id_end))
+
+
 class _EntityNonPolyHandler(Handler):
     category = '_pdbx_entity_nonpoly'
 
@@ -1012,39 +1059,31 @@ class _StructAsymHandler(Handler):
         self.copy_if_present(s, locals(), keys=('details',))
 
 
-class _AssemblyDetailsHandler(Handler):
-    category = '_ihm_struct_assembly_details'
-
-    def __call__(self, assembly_id, assembly_name, assembly_description):
-        s = self.sysr.assemblies.get_by_id(assembly_id)
-        self.copy_if_present(s, locals(),
-                mapkeys={'assembly_name':'name',
-                         'assembly_description':'description'})
-
-
 class _AssemblyHandler(Handler):
-    # todo: figure out how to populate System.complete_assembly
     category = '_ihm_struct_assembly'
+
+    def __call__(self, id, name, description):
+        s = self.sysr.assemblies.get_by_id(id)
+        self.copy_if_present(s, locals(), keys=('name', 'description'))
+
+
+class _AssemblyDetailsHandler(Handler):
+    # todo: figure out how to populate System.complete_assembly
+    category = '_ihm_struct_assembly_details'
     ignored_keywords = ['ordinal_id', 'entity_description']
 
-    def __call__(self, assembly_id, parent_assembly_id, seq_id_begin,
-                 seq_id_end, asym_id, entity_id):
+    def __call__(self, assembly_id, parent_assembly_id, entity_poly_segment_id,
+                 asym_id, entity_id):
         a_id = assembly_id
         a = self.sysr.assemblies.get_by_id(a_id)
         parent_id = parent_assembly_id
         if parent_id and parent_id != a_id and not a.parent:
             a.parent = self.sysr.assemblies.get_by_id(parent_id)
-        def handle_range(obj):
-            # seq_id_range can be None for assemblies of nonpolymers - treat as
-            # complete entity/asym
-            if seq_id_begin is None or seq_id_end is None:
-                return obj
-            else:
-                return obj(int(seq_id_begin), int(seq_id_end))
         if asym_id:
-            a.append(handle_range(self.sysr.asym_units.get_by_id(asym_id)))
+            obj = self.sysr.asym_units.get_by_id(asym_id)
         else:
-            a.append(handle_range(self.sysr.entities.get_by_id(entity_id)))
+            obj = self.sysr.entities.get_by_id(entity_id)
+        a.append(self.sysr.ranges.get(obj, entity_poly_segment_id))
 
     def finalize(self):
         # Any EntityRange or AsymUnitRange which covers an entire entity,
@@ -1145,6 +1184,15 @@ class _DatasetGroupHandler(Handler):
     category = '_ihm_dataset_group'
     ignored_keywords = ['ordinal_id']
 
+    def __call__(self, id, name, application, details):
+        g = self.sysr.dataset_groups.get_by_id(id)
+        self.copy_if_present(g, locals(),
+                             keys=('name', 'application', 'details'))
+
+
+class _DatasetGroupLinkHandler(Handler):
+    category = '_ihm_dataset_group_link'
+
     def __call__(self, group_id, dataset_list_id):
         g = self.sysr.dataset_groups.get_by_id(group_id)
         ds = self.sysr.datasets.get_by_id(dataset_list_id)
@@ -1195,6 +1243,14 @@ class _RelatedDatasetsHandler(Handler):
         derived.parents.append(primary)
 
 
+class _ModelRepresentationHandler(Handler):
+    category = '_ihm_model_representation'
+
+    def __call__(self, id, name, details):
+        rep = self.sysr.representations.get_by_id(id)
+        self.copy_if_present(rep, locals(), keys=('name', 'details'))
+
+
 def _make_atom_segment(asym, rigid, primitive, count, smodel):
     return ihm.representation.AtomicSegment(
                 asym_unit=asym, rigid=rigid, starting_model=smodel)
@@ -1214,8 +1270,9 @@ def _make_feature_segment(asym, rigid, primitive, count, smodel):
                 asym_unit=asym, rigid=rigid, primitive=primitive,
                 count=count, starting_model=smodel)
 
-class _ModelRepresentationHandler(Handler):
-    category = '_ihm_model_representation'
+
+class _ModelRepresentationDetailsHandler(Handler):
+    category = '_ihm_model_representation_details'
     ignored_keywords = ['entity_description']
 
     _rigid_map = {'rigid': True, 'flexible': False, None: None}
@@ -1224,12 +1281,12 @@ class _ModelRepresentationHandler(Handler):
                         'multi-residue': _make_multi_residue_segment,
                         'by-feature': _make_feature_segment}
 
-    def __call__(self, entity_asym_id, seq_id_begin, seq_id_end,
+    def __call__(self, entity_asym_id, entity_poly_segment_id,
                  representation_id, starting_model_id, model_object_primitive,
                  model_granularity, model_object_count, model_mode):
-        asym = self.sysr.asym_units.get_by_id(entity_asym_id)
-        if seq_id_begin is not None and seq_id_end is not None:
-            asym = asym(int(seq_id_begin), int(seq_id_end))
+        asym = self.sysr.ranges.get(
+                       self.sysr.asym_units.get_by_id(entity_asym_id),
+                       entity_poly_segment_id)
         rep = self.sysr.representations.get_by_id(representation_id)
         smodel = self.sysr.starting_models.get_by_id_or_none(
                                             starting_model_id)
@@ -1248,13 +1305,13 @@ class _StartingModelDetailsHandler(Handler):
     category = '_ihm_starting_model_details'
     ignored_keywords = ['entity_description']
 
-    def __call__(self, starting_model_id, asym_id, seq_id_begin, seq_id_end,
+    def __call__(self, starting_model_id, asym_id, entity_poly_segment_id,
                  dataset_list_id, starting_model_auth_asym_id,
                  starting_model_sequence_offset):
         m = self.sysr.starting_models.get_by_id(starting_model_id)
-        asym = self.sysr.asym_units.get_by_id(asym_id)
-        if seq_id_begin is not None and seq_id_end is not None:
-            asym = asym(int(seq_id_begin), int(seq_id_end))
+        asym = self.sysr.ranges.get(
+                       self.sysr.asym_units.get_by_id(asym_id),
+                       entity_poly_segment_id)
         m.asym_unit = asym
         m.dataset = self.sysr.datasets.get_by_id(dataset_list_id)
         self.copy_if_present(m, locals(),
@@ -1305,12 +1362,19 @@ class _ProtocolHandler(Handler):
     category = '_ihm_modeling_protocol'
     ignored_keywords = ['ordinal_id', 'struct_assembly_description']
 
-    def __call__(self, protocol_id, step_id, protocol_name, num_models_begin,
+    def __call__(self, id, protocol_name, num_steps):
+        p = self.sysr.protocols.get_by_id(id)
+        self.copy_if_present(p, locals(), mapkeys={'protocol_name':'name'})
+
+
+class _ProtocolDetailsHandler(Handler):
+    category = '_ihm_modeling_protocol_details'
+
+    def __call__(self, protocol_id, step_id, num_models_begin,
                  num_models_end, multi_scale_flag, multi_state_flag,
                  ordered_flag, struct_assembly_id, dataset_group_id,
                  software_id, script_file_id, step_name, step_method):
         p = self.sysr.protocols.get_by_id(protocol_id)
-        self.copy_if_present(p, locals(),  mapkeys={'protocol_name':'name'})
         nbegin = self.get_int(num_models_begin)
         nend = self.get_int(num_models_end)
         mscale = self.get_bool(multi_scale_flag)
@@ -1379,16 +1443,9 @@ class _PostProcessHandler(Handler):
 class _ModelListHandler(Handler):
     category = '_ihm_model_list'
 
-    def __call__(self, model_group_id, model_group_name, model_id, model_name,
+    def __call__(self, model_id, model_name,
                  assembly_id, representation_id, protocol_id):
-        model_group = self.sysr.model_groups.get_by_id(model_group_id)
-        self.copy_if_present(model_group, locals(),
-                             mapkeys={'model_group_name':'name'})
-
         model = self.sysr.models.get_by_id(model_id)
-
-        assert model._id not in (m._id for m in model_group)
-        model_group.append(model)
 
         self.copy_if_present(model, locals(), mapkeys={'model_name':'name'})
         model.assembly = self.sysr.assemblies.get_by_id_or_none(
@@ -1397,6 +1454,14 @@ class _ModelListHandler(Handler):
                                             representation_id)
         model.protocol = self.sysr.protocols.get_by_id_or_none(
                                             protocol_id)
+
+
+class _ModelGroupHandler(Handler):
+    category = '_ihm_model_group'
+
+    def __call__(self, id, name, details):
+        model_group = self.sysr.model_groups.get_by_id(id)
+        self.copy_if_present(model_group, locals(), keys=('name', 'details'))
 
     def finalize(self):
         # Put all model groups not assigned to a state in their own state
@@ -1413,25 +1478,38 @@ class _ModelListHandler(Handler):
             self.system.state_groups.append(ihm.model.StateGroup([s]))
 
 
+class _ModelGroupLinkHandler(Handler):
+    category = '_ihm_model_group_link'
+
+    def __call__(self, group_id, model_id):
+        model_group = self.sysr.model_groups.get_by_id(group_id)
+        model = self.sysr.models.get_by_id(model_id)
+        model_group.append(model)
+
+
 class _MultiStateHandler(Handler):
     category = '_ihm_multi_state_modeling'
 
-    def __call__(self, state_group_id, state_id, model_group_id,
+    def __call__(self, state_group_id, state_id,
                  population_fraction, experiment_type, details, state_name,
                  state_type):
         state_group = self.sysr.state_groups.get_by_id(state_group_id)
         state = self.sysr.states.get_by_id(state_id)
-
-        if state._id not in [s._id for s in state_group]:
-            state_group.append(state)
-
-        model_group = self.sysr.model_groups.get_by_id(model_group_id)
-        state.append(model_group)
+        state_group.append(state)
 
         state.population_fraction = self.get_float(population_fraction)
         self.copy_if_present(state, locals(),
                 keys=['experiment_type', 'details'],
                 mapkeys={'state_name':'name', 'state_type':'type'})
+
+
+class _MultiStateLinkHandler(Handler):
+    category = '_ihm_multi_state_model_group_link'
+
+    def __call__(self, state_id, model_group_id):
+        state = self.sysr.states.get_by_id(state_id)
+        model_group = self.sysr.model_groups.get_by_id(model_group_id)
+        state.append(model_group)
 
 
 class _EnsembleHandler(Handler):
@@ -1462,16 +1540,15 @@ class _EnsembleHandler(Handler):
 class _DensityHandler(Handler):
     category = '_ihm_localization_density_files'
 
-    def __call__(self, id, ensemble_id, file_id, asym_id, seq_id_begin,
-                 seq_id_end):
+    def __call__(self, id, ensemble_id, file_id, asym_id,
+                 entity_poly_segment_id):
         density = self.sysr.densities.get_by_id(id)
         ensemble = self.sysr.ensembles.get_by_id(ensemble_id)
         f = self.sysr.external_files.get_by_id(file_id)
 
-        asym = self.sysr.asym_units.get_by_id(asym_id)
-        if seq_id_begin is not None and seq_id_end is not None:
-            asym = asym(int(seq_id_begin), int(seq_id_end))
-
+        asym = self.sysr.ranges.get(
+                       self.sysr.asym_units.get_by_id(asym_id),
+                       entity_poly_segment_id)
         density.asym_unit = asym
         density.file = f
         ensemble.densities.append(density)
@@ -1755,7 +1832,7 @@ class _PredictedContactRestraintHandler(Handler):
         return resatom
 
     def __call__(self, id, group_id, dataset_list_id, asym_id_1,
-                 seq_id_1, atom_id_1, asym_id_2, seq_id_2, atom_id_2,
+                 seq_id_1, rep_atom_1, asym_id_2, seq_id_2, rep_atom_2,
                  restraint_type, probability, distance_lower_limit,
                  distance_upper_limit, model_granularity, software_id):
         r = self.sysr.pred_cont_restraints.get_by_id(id)
@@ -1763,8 +1840,8 @@ class _PredictedContactRestraintHandler(Handler):
             rg = self.sysr.pred_cont_restraint_groups.get_by_id(group_id)
             rg.append(r)
         r.dataset = self.sysr.datasets.get_by_id_or_none(dataset_list_id)
-        r.resatom1 = self._get_resatom(asym_id_1, seq_id_1, atom_id_1)
-        r.resatom2 = self._get_resatom(asym_id_2, seq_id_2, atom_id_2)
+        r.resatom1 = self._get_resatom(asym_id_1, seq_id_1, rep_atom_1)
+        r.resatom2 = self._get_resatom(asym_id_2, seq_id_2, rep_atom_2)
         r.distance = _handle_distance[restraint_type](distance_lower_limit,
                                                       distance_upper_limit,
                                                       self.get_float)
@@ -2637,16 +2714,22 @@ def read(fh, model_class=ihm.model.Model, format='mmCIF', handlers=[],
               _EntitySrcNatHandler(s), _EntitySrcGenHandler(s),
               _EntitySrcSynHandler(s), _EntityPolyHandler(s),
               _EntityPolySeqHandler(s), _EntityNonPolyHandler(s),
+              _EntityPolySegmentHandler(s),
               _StructAsymHandler(s), _AssemblyDetailsHandler(s),
               _AssemblyHandler(s), _ExtRefHandler(s), _ExtFileHandler(s),
               _DatasetListHandler(s), _DatasetGroupHandler(s),
+              _DatasetGroupLinkHandler(s),
               _DatasetExtRefHandler(s), _DatasetDBRefHandler(s),
               _RelatedDatasetsHandler(s), _ModelRepresentationHandler(s),
+              _ModelRepresentationDetailsHandler(s),
               _StartingModelDetailsHandler(s),
               _StartingComputationalModelsHandler(s),
               _StartingComparativeModelsHandler(s),
-              _ProtocolHandler(s), _PostProcessHandler(s), _ModelListHandler(s),
-              _MultiStateHandler(s), _EnsembleHandler(s), _DensityHandler(s),
+              _ProtocolHandler(s), _ProtocolDetailsHandler(s),
+              _PostProcessHandler(s), _ModelListHandler(s),
+              _ModelGroupHandler(s), _ModelGroupLinkHandler(s),
+              _MultiStateHandler(s), _MultiStateLinkHandler(s),
+              _EnsembleHandler(s), _DensityHandler(s),
               _EM3DRestraintHandler(s), _EM2DRestraintHandler(s),
               _EM2DFittingHandler(s), _SASRestraintHandler(s),
               _SphereObjSiteHandler(s), _AtomSiteHandler(s),
