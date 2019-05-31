@@ -992,6 +992,8 @@ class _EntityPolyHandler(Handler):
     def _get_codes(self, codestr):
         """Convert a one-letter-code string into a sequence of individual
            codes"""
+        if codestr is None:
+            return
         i = 0
         while i < len(codestr):
             # Strip out linebreaks

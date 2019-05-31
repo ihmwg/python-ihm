@@ -325,6 +325,7 @@ _entity_poly_seq.hetero
 1 2 MET .
 1 3 ACE .
 2 1 MET .
+3 1 MET .
 #
 loop_
 _entity_poly.entity_id
@@ -336,9 +337,10 @@ _entity_poly.pdbx_seq_one_letter_code_can
 M
 ;
 SM
+3 other . .
 """)
         s, = ihm.reader.read(fh)
-        e1, e2 = s.entities
+        e1, e2, e3 = s.entities
         c1, c2, c3 = e1.sequence
         self.assertEqual(c1.id, 'OCS')
         # Missing information should be filled in from entity_poly
