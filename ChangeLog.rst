@@ -1,5 +1,5 @@
-HEAD
-====
+0.9 - 2019-05-31
+================
  - Add support for the latest version of the IHM dictionary.
 
 0.8 - 2019-05-28
