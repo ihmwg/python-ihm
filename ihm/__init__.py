@@ -29,6 +29,11 @@ class __UnknownValue(object):
         return '?'
     __repr__ = __str__
 
+    def __bool__(self):
+        return False
+    # Python2 compatibility
+    __nonzero__ = __bool__
+
     # Unknown value is a singleton and should only compare equal to itself
     def __eq__(self, other):
         return self is other

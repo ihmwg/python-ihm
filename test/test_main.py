@@ -879,6 +879,8 @@ class Tests(unittest.TestCase):
         self.assertNotEqual(u, None)
         self.assertFalse(u < u)
         self.assertFalse(u > u)
+        # Should act like False
+        self.assertFalse(u)
 
 
 if __name__ == '__main__':
