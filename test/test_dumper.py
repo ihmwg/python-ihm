@@ -2575,17 +2575,19 @@ _ihm_geometric_object_plane.transformation_id
         a3 = ihm.AsymUnit(e2, 'heme')
         system.asym_units.extend((a1, a2, a3))
 
-        f = ihm.restraint.ResidueFeature([a1, a2(2,3)])
+        f = ihm.restraint.ResidueFeature([a1, a2(2,3), e1, e1(2,3)])
         system.orphan_features.append(f)
         # Cannot make a ResidueFeature that includes a non-polymer 'residue'
         self.assertRaises(ValueError, ihm.restraint.ResidueFeature, [a1, a3])
 
         # Polymeric atom feature
         f = ihm.restraint.AtomFeature([a1.residue(1).atom('CA'),
-                                       a2.residue(2).atom('N')])
+                                       a2.residue(2).atom('N'),
+                                       e1.residue(1).atom('CB')])
         system.orphan_features.append(f)
         # Nonpolymeric atom feature
-        f = ihm.restraint.AtomFeature([a3.residue(1).atom('FE')])
+        f = ihm.restraint.AtomFeature([a3.residue(1).atom('FE'),
+                                       e2.residue(1).atom('FE')])
         system.orphan_features.append(f)
         # Cannot make one feature that selects both polymer and nonpolymer
         self.assertRaises(ValueError, ihm.restraint.AtomFeature,
@@ -2593,7 +2595,7 @@ _ihm_geometric_object_plane.transformation_id
                                        a2.residue(2).atom('N'),
                                        a3.residue(1).atom('FE')])
         # Nonpolymeric feature
-        f = ihm.restraint.NonPolyFeature([a3])
+        f = ihm.restraint.NonPolyFeature([a3, e2])
         system.orphan_features.append(f)
         # Cannot make a NonPolyFeature that includes a polymer 'residue'
         self.assertRaises(ValueError, ihm.restraint.NonPolyFeature, [a1, a3])
@@ -2635,6 +2637,8 @@ _ihm_poly_residue_feature.seq_id_end
 _ihm_poly_residue_feature.comp_id_end
 1 1 1 A 1 ALA 4 THR
 2 1 1 B 2 CYS 3 GLY
+3 1 1 . 1 ALA 4 THR
+4 1 1 . 2 CYS 3 GLY
 #
 #
 loop_
@@ -2647,6 +2651,7 @@ _ihm_poly_atom_feature.comp_id
 _ihm_poly_atom_feature.atom_id
 1 2 1 A 1 ALA CA
 2 2 1 B 2 CYS N
+3 2 1 . 1 ALA CB
 #
 #
 loop_
@@ -2657,7 +2662,9 @@ _ihm_non_poly_feature.asym_id
 _ihm_non_poly_feature.comp_id
 _ihm_non_poly_feature.atom_id
 1 3 2 C HEM FE
-2 4 2 C HEM .
+2 3 2 . HEM FE
+3 4 2 C HEM .
+4 4 2 . HEM .
 #
 #
 loop_
