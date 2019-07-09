@@ -1,5 +1,5 @@
-HEAD
-====
+0.10 - 2019-07-09
+=================
  - Features (:class:`ihm.restraint.AtomFeature`,
    :class:`ihm.restraint.ResidueFeature`, and
    :class:`ihm.restraint.NonPolyFeature`), which previously could select part
