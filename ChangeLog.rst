@@ -3,7 +3,7 @@
  - Features (:class:`ihm.restraint.AtomFeature`,
    :class:`ihm.restraint.ResidueFeature`, and
    :class:`ihm.restraint.NonPolyFeature`), which previously could select part
-   or all of an :class:`ihm.AsymUnit`, can now also also select parts of an
+   or all of an :class:`ihm.AsymUnit`, can now also select parts of an
    :class:`Entity`. A restraint acting on an entity-feature is assumed
    to apply to all instances of that entity.
 
