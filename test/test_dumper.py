@@ -792,8 +792,8 @@ _ihm_struct_assembly_details.entity_poly_segment_id
         a1 = ihm.AsymUnit(e1)
         system.entities.extend((e1, e2))
         system.asym_units.append(a1)
-        # Note that no asym unit uses entity e2, so the assembly
-        # should omit the chain ID ('.')
+        # Note that no asym unit uses entity e2, so it won't be included
+        # in the assembly
 
         # Assign entity and asym IDs
         ihm.dumper._EntityDumper().finalize(system)
@@ -814,7 +814,6 @@ _ihm_entity_poly_segment.seq_id_end
 _ihm_entity_poly_segment.comp_id_begin
 _ihm_entity_poly_segment.comp_id_end
 1 1 1 3 ALA GLY
-2 2 1 2 GLU TRP
 #
 """)
 
@@ -838,7 +837,6 @@ _ihm_struct_assembly_details.entity_id
 _ihm_struct_assembly_details.asym_id
 _ihm_struct_assembly_details.entity_poly_segment_id
 1 1 1 foo 1 A 1
-2 1 1 bar 2 . 2
 #
 """)
 
@@ -2011,6 +2009,8 @@ _ihm_localization_density_files.entity_poly_segment_id
         a1._id = 'X'
         system.entities.extend((e1, e2, e3))
         system.asym_units.append(a1)
+        system.orphan_features.append(ihm.restraint.ResidueFeature([e2]))
+        system.orphan_features.append(ihm.restraint.NonPolyFeature([e3]))
 
         system._make_complete_assembly()
 
@@ -2019,10 +2019,11 @@ _ihm_localization_density_files.entity_poly_segment_id
         dumper = ihm.dumper._EntityPolySegmentDumper()
         dumper.finalize(system) # assign IDs
 
-        # e1 isn't directly used in the assembly (a1 is used instead) so
-        # should have no range ID
+        # e1 isn't directly used in anything (a1 is used instead, in the
+        # assembly) so should have no range ID
         self.assertFalse(hasattr(e1, '_range_id'))
         self.assertEqual(a1._range_id, 1)
+        # e2 is use, in a ResidueFeature, so should have a range ID
         self.assertEqual(e2._range_id, 2)
         # non-polymers don't have ranges
         self.assertEqual(e3._range_id, None)

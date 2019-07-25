@@ -436,7 +436,9 @@ class Feature(object):
        Features are typically assigned to one or more
        :class:`~ihm.restraint.GeometricRestraint` objects.
     """
-    pass
+    def _all_entities_or_asyms(self):
+        # Get all Entities or AsymUnits referenced by this object
+        return []
 
 
 class ResidueFeature(Feature):
@@ -463,6 +465,9 @@ class ResidueFeature(Feature):
     def __init__(self, ranges):
         self.ranges = ranges
         _ = self._get_entity_type()
+
+    def _all_entities_or_asyms(self):
+        return self.ranges
 
     def _get_entity_type(self):
         def _get_entity(x):
@@ -519,6 +524,9 @@ class NonPolyFeature(Feature):
     def __init__(self, objs):
         self.objs = objs
         _ = self._get_entity_type()
+
+    def _all_entities_or_asyms(self):
+        return self.objs
 
     def _get_entity_type(self):
         def _get_entity(x):

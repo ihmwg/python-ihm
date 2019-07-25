@@ -1,3 +1,9 @@
+HEAD
+====
+ - :class:`ihm.Assembly` objects can now only contain :class:`AsymUnit`
+   and :class:`AsymUnitRange` objects (not :class:`Entity` or
+   :class:`EntityRange`).
+
 0.10 - 2019-07-09
 =================
  - Features (:class:`ihm.restraint.AtomFeature`,
