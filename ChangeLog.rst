@@ -3,6 +3,8 @@ HEAD
  - :class:`ihm.Assembly` objects can now only contain :class:`AsymUnit`
    and :class:`AsymUnitRange` objects (not :class:`Entity` or
    :class:`EntityRange`).
+ - Bugfix: ensembles that don't reference a :class:`ihm.model.ModelGroup`
+   no longer cause the reader to create bogus empty model groups.
 
 0.10 - 2019-07-09
 =================
