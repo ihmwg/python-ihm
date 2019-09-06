@@ -1,5 +1,5 @@
-HEAD
-====
+0.11 - 2019-09-05
+=================
  - :class:`ihm.Assembly` objects can now only contain :class:`AsymUnit`
    and :class:`AsymUnitRange` objects (not :class:`Entity` or
    :class:`EntityRange`).
