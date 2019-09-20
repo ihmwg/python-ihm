@@ -194,6 +194,8 @@ class Tests(unittest.TestCase):
         self.assertEqual(f.dataset, 'foo')
         self.assertEqual(f.object_characteristic, 'outer surface')
         self.assertIsNone(f.assembly)
+        self.assertEqual(f.feature, 'feat')
+        self.assertEqual(f._all_features, ('feat',))
 
     def test_derived_distance_restraint(self):
         """Test DerivedDistanceRestraint class"""
@@ -202,6 +204,9 @@ class Tests(unittest.TestCase):
                 distance='dist')
         self.assertEqual(f.dataset, 'foo')
         self.assertIsNone(f.assembly)
+        self.assertEqual(f.feature1, 'feat1')
+        self.assertEqual(f.feature2, 'feat2')
+        self.assertEqual(f._all_features, ('feat1', 'feat2'))
 
 
 if __name__ == '__main__':

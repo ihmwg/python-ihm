@@ -585,6 +585,7 @@ class GeometricRestraint(object):
         self.geometric_object, self.feature = geometric_object, feature
         self.distance, self.restrain_all = distance, restrain_all
         self.harmonic_force_constant = harmonic_force_constant
+    _all_features = property(lambda self: (self.feature,))
 
 
 class CenterGeometricRestraint(GeometricRestraint):
@@ -635,6 +636,7 @@ class DerivedDistanceRestraint(object):
         self.feature1, self.feature2 = feature1, feature2
         self.distance, self.restrain_all = distance, restrain_all
         self.probability = probability
+    _all_features = property(lambda self: (self.feature1, self.feature2))
 
 
 class PredictedContactRestraint(object):
