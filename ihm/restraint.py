@@ -434,7 +434,8 @@ class Feature(object):
        :class:`NonPolyFeature`, and :class:`PseudoSiteFeature`.
 
        Features are typically assigned to one or more
-       :class:`~ihm.restraint.GeometricRestraint` objects.
+       :class:`~ihm.restraint.GeometricRestraint` or
+       :class:`~ihm.restraint.DerivedDistanceRestraint` objects.
     """
     def _all_entities_or_asyms(self):
         # Get all Entities or AsymUnits referenced by this object
