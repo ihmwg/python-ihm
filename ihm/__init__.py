@@ -906,7 +906,7 @@ class Residue(object):
        :meth:`AsymUnit.residue`.
     """
 
-    __slots__ = ['entity', 'asym', 'seq_id']
+    __slots__ = ['entity', 'asym', 'seq_id', '_range_id']
 
     def __init__(self, seq_id, entity=None, asym=None):
         self.entity = entity
@@ -923,6 +923,8 @@ class Residue(object):
     auth_seq_id = property(_get_auth_seq_id,
                            doc="Author-provided seq_id; only makes sense "
                                "for asymmetric units")
+    # Allow passing residues where a range is requested (e.g. to ResidueFeature)
+    seq_id_range = property(lambda self: (self.seq_id, self.seq_id))
 
 
 class Entity(object):

@@ -1,3 +1,9 @@
+HEAD
+====
+ - :class:`ihm.restraint.ResidueFeature` objects can now act on one or
+   more :class:`Residue` objects, which act equivalently to
+   1-residue ranges (:class:`AsymUnitRange` or :class:`EntityRange`).
+
 0.11 - 2019-09-05
 =================
  - :class:`ihm.Assembly` objects can now only contain :class:`AsymUnit`

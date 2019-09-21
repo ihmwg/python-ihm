@@ -447,11 +447,12 @@ class ResidueFeature(Feature):
 
        Residues can be selected from both :class:`AsymUnit` and
        :class:`Entity` (the latter implies that it selects residues
-       in all instances of that entity).
+       in all instances of that entity). Individual residues can
+       also be selected by passing :class:`Residue` objects.
 
        :param sequence ranges: A list of :class:`AsymUnitRange`,
-              :class:`AsymUnit`, :class:`EntityRange`, and/or :class:`Entity`
-              objects.
+              :class:`AsymUnit`, :class:`EntityRange`, :class:`Residue`,
+              and/or :class:`Entity` objects.
     """
 
     # Type is 'residue' if each range selects a single residue, otherwise

@@ -154,6 +154,10 @@ class Tests(unittest.TestCase):
         f.ranges.append(a(2,2))
         self.assertEqual(f.type, 'residue')
 
+        # Should work with actual Residue objects too
+        f.ranges.append(a.residue(3))
+        self.assertEqual(f.type, 'residue')
+
         # At least one range is a true range
         f.ranges.append(a(3,4))
         self.assertEqual(f.type, 'residue range')
