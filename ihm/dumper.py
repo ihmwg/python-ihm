@@ -1,4 +1,4 @@
-"""Utility classes to dump out information in mmCIF format"""
+"""Utility classes to dump out information in mmCIF or BinaryCIF format"""
 
 import re
 import os

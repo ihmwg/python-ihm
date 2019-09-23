@@ -1,4 +1,4 @@
-"""Utility classes to read in information in mmCIF format"""
+"""Utility classes to read in information in mmCIF or BinaryCIF format"""
 
 import ihm.format
 import ihm.format_bcif
@@ -2660,9 +2660,9 @@ def read(fh, model_class=ihm.model.Model, format='mmCIF', handlers=[],
          warn_unknown_category=False, warn_unknown_keyword=False,
          read_starting_model_coord=True,
          starting_model_class=ihm.startmodel.StartingModel):
-    """Read data from the mmCIF file handle `fh`.
+    """Read data from the file handle `fh`.
 
-       Note that the reader currently expects to see an mmCIF file compliant
+       Note that the reader currently expects to see a file compliant
        with the PDBx and/or IHM dictionaries. It is not particularly tolerant
        of noncompliant or incomplete files, and will probably throw an
        exception rather than warning about and trying to handle such files.
@@ -2677,7 +2677,8 @@ def read(fh, model_class=ihm.model.Model, format='mmCIF', handlers=[],
        so is used if built. The BinaryCIF reader needs the msgpack Python
        module to function.
 
-       :param file fh: The file handle to read from.
+       :param file fh: The file handle to read from. (For BinaryCIF files,
+              the file should be opened in binary mode.)
        :param model_class: The class to use to store model information (such
               as coordinates). For use with other software, it is recommended
               to subclass :class:`ihm.model.Model` and override
