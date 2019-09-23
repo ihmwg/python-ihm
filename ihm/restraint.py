@@ -209,7 +209,8 @@ class CrossLinkRestraint(Restraint):
         #:     restraint.experimental_cross_links.append([xl2, xl3])
         self.experimental_cross_links = []
 
-        #: All cross-links used in the modeling
+        #: All cross-links used in the modeling, as a list of
+        #: :class:`CrossLink` objects.
         self.cross_links = []
 
 
@@ -296,8 +297,9 @@ class LowerUpperBoundDistanceRestraint(DistanceRestraint):
 
 class CrossLink(object):
     """Base class for all cross-links used in the modeling.
-       See :class:`ResidueCrossLink`, :class:`AtomCrossLink`,
-       :class:`FeatureCrossLink`."""
+       Do not use this class directly, but instead use a subclass:
+       :class:`ResidueCrossLink`, :class:`AtomCrossLink`,
+       or :class:`FeatureCrossLink`."""
     pass
 
 
