@@ -1414,7 +1414,8 @@ _ihm_modeling_protocol_details.description
                              feature='energy/score', num_models_begin=42,
                              num_models_end=42,
                              assembly=asmb1, dataset_group=dg1,
-                             software=software, script_file=script))
+                             software=software, script_file=script,
+                             details='test step'))
         p1.analyses.extend((a1, a2))
 
         dumper = ihm.dumper._ProtocolDumper()
@@ -1438,10 +1439,11 @@ _ihm_modeling_post_process.struct_assembly_id
 _ihm_modeling_post_process.dataset_group_id
 _ihm_modeling_post_process.software_id
 _ihm_modeling_post_process.script_file_id
-1 1 1 1 none none . . . . . .
-2 1 2 1 filter energy/score 1000 200 . . . .
-3 1 2 2 cluster RMSD 200 42 . . . .
-4 1 2 3 validation energy/score 42 42 101 301 401 501
+_ihm_modeling_post_process.details
+1 1 1 1 none none . . . . . . .
+2 1 2 1 filter energy/score 1000 200 . . . . .
+3 1 2 2 cluster RMSD 200 42 . . . . .
+4 1 2 3 validation energy/score 42 42 101 301 401 501 'test step'
 #
 """)
 

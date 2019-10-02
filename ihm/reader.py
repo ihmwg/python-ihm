@@ -1425,7 +1425,7 @@ class _PostProcessHandler(Handler):
 
     def __call__(self, protocol_id, analysis_id, type, id, num_models_begin,
                  num_models_end, struct_assembly_id, dataset_group_id,
-                 software_id, script_file_id, feature):
+                 software_id, script_file_id, feature, details):
         protocol = self.sysr.protocols.get_by_id(protocol_id)
         analysis = self.sysr.analyses.get_by_id(analysis_id)
         if analysis._id not in [a._id for a in protocol.analyses]:
@@ -1435,6 +1435,7 @@ class _PostProcessHandler(Handler):
         step = self.sysr.analysis_steps.get_by_id(id,
                                 self.type_map.get(typ, ihm.analysis.Step))
         analysis.steps.append(step)
+        step.details = details
 
         if typ == 'none':
             # If this step was forward referenced, feature will have been set

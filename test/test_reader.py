@@ -1101,12 +1101,13 @@ _ihm_modeling_post_process.struct_assembly_id
 _ihm_modeling_post_process.dataset_group_id
 _ihm_modeling_post_process.software_id
 _ihm_modeling_post_process.script_file_id
-1  1   1   1   'filter'  'energy/score'  15000   6520 . . 401 501
-2  1   1   2   'cluster' 'dRMSD'         6520    6520 . . . .
-3  1   2   1   'filter'  'energy/score'  15000   6520 . . . .
-4  1   2   2   'filter'  'composition'   6520    6520 . . . .
-5  1   2   3   'cluster' 'dRMSD'         6520    6520 . . . .
-6  2   3   1   'none' .         .    . . . . .
+_ihm_modeling_post_process.details
+1  1   1   1   'filter'  'energy/score'  15000   6520 . . 401 501 .
+2  1   1   2   'cluster' 'dRMSD'         6520    6520 . . . . .
+3  1   2   1   'filter'  'energy/score'  15000   6520 . . . . .
+4  1   2   2   'filter'  'composition'   6520    6520 . . . . .
+5  1   2   3   'cluster' 'dRMSD'         6520    6520 . . . . .
+6  2   3   1   'none' .         .    . . . . . 'empty step'
 """
         for fh in cif_file_handles(cif):
             s, = ihm.reader.read(fh)
@@ -1124,6 +1125,7 @@ _ihm_modeling_post_process.script_file_id
             self.assertEqual(a1.steps[1].__class__, ihm.analysis.ClusterStep)
             self.assertIsNone(a1.steps[1].software)
             self.assertIsNone(a1.steps[1].script_file)
+            self.assertIsNone(a1.steps[1].details)
             self.assertEqual(len(a2.steps), 3)
 
             a1, = p2.analyses
@@ -1132,6 +1134,7 @@ _ihm_modeling_post_process.script_file_id
             self.assertEqual(a1.steps[0].feature, 'none')
             self.assertIsNone(a1.steps[0].num_models_begin)
             self.assertIsNone(a1.steps[0].num_models_end)
+            self.assertEqual(a1.steps[0].details, 'empty step')
 
     def test_model_list_handler(self):
         """Test ModelListHandler and ModelGroupHandler"""

@@ -1024,7 +1024,7 @@ class _PostProcessDumper(Dumper):
                           "type", "feature", "num_models_begin",
                           "num_models_end", "struct_assembly_id",
                           "dataset_group_id", "software_id",
-                          "script_file_id"]) as l:
+                          "script_file_id", "details"]) as l:
             for p in system._all_protocols():
                 for a in p.analyses:
                     for s in a.steps:
@@ -1040,7 +1040,8 @@ class _PostProcessDumper(Dumper):
                                 software_id=s.software._id if s.software
                                                            else None,
                                 script_file_id=s.script_file._id
-                                               if s.script_file else None)
+                                               if s.script_file else None,
+                                details=s.details)
 
 
 class _RangeChecker(object):
