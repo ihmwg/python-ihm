@@ -1056,8 +1056,9 @@ _ihm_modeling_protocol_details.multi_state_flag
 _ihm_modeling_protocol_details.ordered_flag
 _ihm_modeling_protocol_details.software_id
 _ihm_modeling_protocol_details.script_file_id
-1 1 1 1 1 . Sampling 'Monte Carlo' 0 500 YES NO NO . .
-2 1 2 1 2 . Sampling 'Monte Carlo' 500 5000 YES . NO 401 501
+_ihm_modeling_protocol_details.description
+1 1 1 1 1 . Sampling 'Monte Carlo' 0 500 YES NO NO . . .
+2 1 2 1 2 . Sampling 'Monte Carlo' 500 5000 YES . NO 401 501 'test step'
 """
         for fh in cif_file_handles(cif):
             s, = ihm.reader.read(fh)
@@ -1075,12 +1076,14 @@ _ihm_modeling_protocol_details.script_file_id
             self.assertEqual(p1.steps[0].ordered, False)
             self.assertIsNone(p1.steps[0].software)
             self.assertIsNone(p1.steps[0].script_file)
+            self.assertIsNone(p1.steps[0].description)
             self.assertEqual(p1.steps[1]._id, '2')
             self.assertEqual(p1.steps[1].multi_scale, True)
             self.assertIsNone(p1.steps[1].multi_state)
             self.assertEqual(p1.steps[1].ordered, False)
             self.assertEqual(p1.steps[1].software._id, '401')
             self.assertEqual(p1.steps[1].script_file._id, '501')
+            self.assertEqual(p1.steps[1].description, 'test step')
 
     def test_post_process_handler(self):
         """Test PostProcessHandler"""

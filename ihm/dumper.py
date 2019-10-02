@@ -980,7 +980,8 @@ class _ProtocolDumper(Dumper):
                           "step_name", "step_method", "num_models_begin",
                           "num_models_end", "multi_scale_flag",
                           "multi_state_flag", "ordered_flag",
-                          "software_id", "script_file_id"]) as l:
+                          "software_id", "script_file_id",
+                          "description"]) as l:
             for p in system._all_protocols():
                 for s in p.steps:
                     l.write(id=ordinal, protocol_id=p._id,
@@ -997,7 +998,8 @@ class _ProtocolDumper(Dumper):
                             multi_scale_flag=s.multi_scale,
                             software_id=s.software._id if s.software else None,
                             script_file_id=s.script_file._id
-                                           if s.script_file else None)
+                                           if s.script_file else None,
+                            description=s.description)
                     ordinal += 1
 
 

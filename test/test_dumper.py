@@ -1346,7 +1346,8 @@ _ihm_starting_model_seq_dif.details
         p2.steps.append(ihm.protocol.Step(assembly=assembly, dataset_group=dsg2,
                                method='Replica exchange', num_models_begin=2000,
                                num_models_end=1000, multi_scale=True,
-                               software=software, script_file=script))
+                               software=software, script_file=script,
+                               description='test step'))
         system.orphan_protocols.append(p2)
 
         dumper = ihm.dumper._ProtocolDumper()
@@ -1377,9 +1378,10 @@ _ihm_modeling_protocol_details.multi_state_flag
 _ihm_modeling_protocol_details.ordered_flag
 _ihm_modeling_protocol_details.software_id
 _ihm_modeling_protocol_details.script_file_id
-1 1 1 42 99 foo s1 'Monte Carlo' 0 500 YES NO NO . .
-2 1 2 42 99 foo . 'Replica exchange' 500 2000 YES NO NO . .
-3 2 1 42 101 foo . 'Replica exchange' 2000 1000 YES NO NO 80 90
+_ihm_modeling_protocol_details.description
+1 1 1 42 99 foo s1 'Monte Carlo' 0 500 YES NO NO . . .
+2 1 2 42 99 foo . 'Replica exchange' 500 2000 YES NO NO . . .
+3 2 1 42 101 foo . 'Replica exchange' 2000 1000 YES NO NO 80 90 'test step'
 #
 """)
 

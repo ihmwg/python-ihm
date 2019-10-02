@@ -1385,7 +1385,8 @@ class _ProtocolDetailsHandler(Handler):
     def __call__(self, protocol_id, step_id, num_models_begin,
                  num_models_end, multi_scale_flag, multi_state_flag,
                  ordered_flag, struct_assembly_id, dataset_group_id,
-                 software_id, script_file_id, step_name, step_method):
+                 software_id, script_file_id, step_name, step_method,
+                 description):
         p = self.sysr.protocols.get_by_id(protocol_id)
         nbegin = self.get_int(num_models_begin)
         nend = self.get_int(num_models_end)
@@ -1401,7 +1402,8 @@ class _ProtocolDetailsHandler(Handler):
                               method=None, num_models_begin=nbegin,
                               num_models_end=nend, multi_scale=mscale,
                               multi_state=mstate, ordered=ordered,
-                              software=software, script_file=script)
+                              software=software, script_file=script,
+                              description=description)
         s._id = step_id
         self.copy_if_present(s, locals(),
                 mapkeys={'step_name':'name', 'step_method':'method'})
