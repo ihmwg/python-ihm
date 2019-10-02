@@ -843,7 +843,7 @@ _ihm_struct_assembly_details.entity_poly_segment_id
     def test_external_reference_dumper(self):
         """Test ExternalReferenceDumper"""
         system = ihm.System()
-        repo1 = ihm.location.Repository(doi="foo")
+        repo1 = ihm.location.Repository(doi="foo", details='test repo')
         repo2 = ihm.location.Repository(doi="10.5281/zenodo.46266",
                                         url='nup84-v1.0.zip',
                                         top_directory=os.path.join('foo',
@@ -893,10 +893,11 @@ _ihm_external_reference_info.reference_type
 _ihm_external_reference_info.reference
 _ihm_external_reference_info.refers_to
 _ihm_external_reference_info.associated_url
-1 . DOI foo Other .
-2 Zenodo DOI 10.5281/zenodo.46266 Archive nup84-v1.0.zip
-3 Zenodo DOI 10.5281/zenodo.58025 File foo.spd
-4 . 'Supplementary Files' . Other .
+_ihm_external_reference_info.details
+1 . DOI foo Other . 'test repo'
+2 Zenodo DOI 10.5281/zenodo.46266 Archive nup84-v1.0.zip .
+3 Zenodo DOI 10.5281/zenodo.58025 File foo.spd .
+4 . 'Supplementary Files' . Other . .
 #
 #
 loop_

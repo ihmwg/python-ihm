@@ -1127,12 +1127,14 @@ class _ExtRefHandler(Handler):
         self.type_map = {'doi':ihm.location.Repository,
                          'supplementary files':_LocalFiles}
 
-    def __call__(self, reference_id, reference_type, reference, associated_url):
+    def __call__(self, reference_id, reference_type, reference, associated_url,
+                 details):
         ref_id = reference_id
         typ = 'doi' if reference_type is None else reference_type.lower()
         repo = self.sysr.repos.get_by_id(ref_id,
                              self.type_map.get(typ, ihm.location.Repository))
         self.copy_if_present(repo, locals(),
+                    keys=('details',),
                     mapkeys={'reference':'doi', 'associated_url':'url'})
 
     def finalize(self):

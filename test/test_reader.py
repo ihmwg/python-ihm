@@ -679,9 +679,11 @@ _ihm_external_reference_info.reference_type
 _ihm_external_reference_info.reference
 _ihm_external_reference_info.refers_to
 _ihm_external_reference_info.associated_url
+_ihm_external_reference_info.details
 1 Zenodo DOI 10.5281/zenodo.1218053 Archive https://example.com/foo.zip
-2 . 'Supplementary Files' . Other .
-3 Zenodo DOI 10.5281/zenodo.1218058 File https://example.com/foo.dcd
+'test repo'
+2 . 'Supplementary Files' . Other . .
+3 Zenodo DOI 10.5281/zenodo.1218058 File https://example.com/foo.dcd .
 """
         ext_file_cat = """
 loop_
@@ -705,6 +707,7 @@ _ihm_external_files.details
                 self.assertEqual(l1.path, 'scripts/test.py')
                 self.assertEqual(l1.details, 'Test script')
                 self.assertEqual(l1.repo.doi, '10.5281/zenodo.1218053')
+                self.assertEqual(l1.repo.details, 'test repo')
                 self.assertEqual(l1.__class__,
                                  ihm.location.WorkflowFileLocation)
 

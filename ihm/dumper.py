@@ -613,6 +613,7 @@ class _ExternalReferenceDumper(Dumper):
         reference = None
         refers_to = 'Other'
         url = None
+        details = None
 
         def __init__(self, top_directory):
             self.top_directory = top_directory
@@ -652,13 +653,13 @@ class _ExternalReferenceDumper(Dumper):
         with writer.loop("_ihm_external_reference_info",
                          ["reference_id", "reference_provider",
                           "reference_type", "reference", "refers_to",
-                          "associated_url"]) as l:
+                          "associated_url", "details"]) as l:
             for repo in self._repo_by_id:
                 l.write(reference_id=repo._id,
                         reference_provider=repo.reference_provider,
                         reference_type=repo.reference_type,
                         reference=repo.reference, refers_to=repo.refers_to,
-                        associated_url=repo.url)
+                        associated_url=repo.url, details=repo.details)
 
     def dump_refs(self, writer):
         with writer.loop("_ihm_external_files",
