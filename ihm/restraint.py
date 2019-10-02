@@ -441,6 +441,7 @@ class Feature(object):
        :class:`~ihm.restraint.GeometricRestraint` or
        :class:`~ihm.restraint.DerivedDistanceRestraint` objects.
     """
+    details = None
     def _all_entities_or_asyms(self):
         # Get all Entities or AsymUnits referenced by this object
         return []
@@ -457,6 +458,7 @@ class ResidueFeature(Feature):
        :param sequence ranges: A list of :class:`AsymUnitRange`,
               :class:`AsymUnit`, :class:`EntityRange`, :class:`Residue`,
               and/or :class:`Entity` objects.
+       :param str details: Additional text describing this feature.
     """
 
     # Type is 'residue' if each range selects a single residue, otherwise
@@ -468,8 +470,8 @@ class ResidueFeature(Feature):
         return 'residue'
     type = property(__get_type)
 
-    def __init__(self, ranges):
-        self.ranges = ranges
+    def __init__(self, ranges, details=None):
+        self.ranges, self.details = ranges, details
         _ = self._get_entity_type()
 
     def _all_entities_or_asyms(self):
@@ -495,11 +497,12 @@ class AtomFeature(Feature):
        see :class:`NonPolyFeature`.
 
        :param sequence atoms: A list of :class:`ihm.Atom` objects.
+       :param str details: Additional text describing this feature.
     """
     type = 'atom'
 
-    def __init__(self, atoms):
-        self.atoms = atoms
+    def __init__(self, atoms, details=None):
+        self.atoms, self.details = atoms, details
         _ = self._get_entity_type()
 
     def _get_entity_type(self):
@@ -523,12 +526,13 @@ class NonPolyFeature(Feature):
 
        :param sequence objs: A list of :class:`AsymUnit` and/or
               :class:`Entity` objects.
+       :param str details: Additional text describing this feature.
     """
 
     type = 'ligand'
 
-    def __init__(self, objs):
-        self.objs = objs
+    def __init__(self, objs, details=None):
+        self.objs, self.details = objs, details
         _ = self._get_entity_type()
 
     def _all_entities_or_asyms(self):
@@ -550,15 +554,15 @@ class PseudoSiteFeature(Feature):
        :param float y: Cartesian Y coordinate of this site.
        :param float z: Cartesian Z coordinate of this site.
        :param float radius: Radius of the site, if applicable.
-       :param str description: Textual description of this site.
+       :param str details: Additional text describing this feature.
     """
 
     type = 'pseudo site'
 
-    def __init__(self, x, y, z, radius=None, description=None):
+    def __init__(self, x, y, z, radius=None, details=None):
         self.x, self.y, self.z = x, y, z
         self.radius = radius
-        self.description = description
+        self.details = details
 
     def _get_entity_type(self):
         return 'other'

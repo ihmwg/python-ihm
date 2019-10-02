@@ -1750,6 +1750,15 @@ class _PolyResidueFeatureHandler(Handler):
         f.ranges.append(asym_or_entity(r1,r2))
 
 
+class _FeatureListHandler(Handler):
+    category = '_ihm_feature_list'
+
+    def __call__(self, feature_id, details):
+        if details:
+            f = self.sysr.features.get_by_id(feature_id)
+            f.details = details
+
+
 class _PolyAtomFeatureHandler(Handler):
     category = '_ihm_poly_atom_feature'
 
@@ -2755,6 +2764,7 @@ def read(fh, model_class=ihm.model.Model, format='mmCIF', handlers=[],
               _EM3DRestraintHandler(s), _EM2DRestraintHandler(s),
               _EM2DFittingHandler(s), _SASRestraintHandler(s),
               _SphereObjSiteHandler(s), _AtomSiteHandler(s),
+              _FeatureListHandler(s),
               _PolyResidueFeatureHandler(s), _PolyAtomFeatureHandler(s),
               _NonPolyFeatureHandler(s), _PseudoSiteFeatureHandler(s),
               _DerivedDistanceRestraintHandler(s),

@@ -1726,6 +1726,17 @@ _ihm_pseudo_site_feature.description
 """
         rsr = """
 loop_
+_ihm_feature_list.feature_id
+_ihm_feature_list.feature_type
+_ihm_feature_list.entity_type
+_ihm_feature_list.details
+1 atom polymer 'test feature'
+2 'residue range' polymer .
+3 atom non-polymer .
+4 atom non-polymer .
+5 'pseudo site' other .
+#
+loop_
 _ihm_derived_distance_restraint.id
 _ihm_derived_distance_restraint.group_id
 _ihm_derived_distance_restraint.feature_id_1
@@ -1760,6 +1771,7 @@ _ihm_derived_distance_restraint.dataset_list_id
             self.assertEqual(r1.feature1.atoms[1].id, 'CB')
             self.assertEqual(r1.feature1.atoms[1].residue.seq_id, 1)
             self.assertIsNone(r1.feature1.atoms[1].residue.asym)
+            self.assertEqual(r1.feature1.details, 'test feature')
             self.assertIsInstance(r1.feature2,
                                   ihm.restraint.ResidueFeature)
             self.assertEqual(len(r1.feature2.ranges), 2)

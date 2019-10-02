@@ -1568,10 +1568,12 @@ class _FeatureDumper(Dumper):
 
     def dump_list(self, writer):
         with writer.loop("_ihm_feature_list",
-                         ["feature_id", "feature_type", "entity_type"]) as l:
+                         ["feature_id", "feature_type", "entity_type",
+                          "details"]) as l:
             for f in self._features_by_id:
                 l.write(feature_id=f._id, feature_type=f.type,
-                        entity_type=f._get_entity_type())
+                        entity_type=f._get_entity_type(),
+                        details=f.details)
 
     def dump_poly_residue(self, writer):
         def _get_entity(x):
@@ -1650,12 +1652,12 @@ class _FeatureDumper(Dumper):
     def dump_pseudo_site(self, writer):
         with writer.loop("_ihm_pseudo_site_feature",
                          ["feature_id", "Cartn_x", "Cartn_y",
-                          "Cartn_z", "radius", "description"]) as l:
+                          "Cartn_z", "radius"]) as l:
             for f in self._features_by_id:
                 if not isinstance(f, restraint.PseudoSiteFeature):
                     continue
                 l.write(feature_id=f._id, Cartn_x=f.x, Cartn_y=f.y,
-                        Cartn_z=f.z, radius=f.radius, description=f.description)
+                        Cartn_z=f.z, radius=f.radius)
 
 
 class _CrossLinkDumper(Dumper):

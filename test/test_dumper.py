@@ -2595,7 +2595,8 @@ _ihm_geometric_object_plane.transformation_id
         a3 = ihm.AsymUnit(e2, 'heme')
         system.asym_units.extend((a1, a2, a3))
 
-        f = ihm.restraint.ResidueFeature([a1, a2(2,3), e1, e1(2,3)])
+        f = ihm.restraint.ResidueFeature([a1, a2(2,3), e1, e1(2,3)],
+                                         details='test feature')
         system.orphan_features.append(f)
         # Cannot make a ResidueFeature that includes a non-polymer 'residue'
         self.assertRaises(ValueError, ihm.restraint.ResidueFeature, [a1, a3])
@@ -2639,11 +2640,12 @@ loop_
 _ihm_feature_list.feature_id
 _ihm_feature_list.feature_type
 _ihm_feature_list.entity_type
-1 'residue range' polymer
-2 atom polymer
-3 atom non-polymer
-4 ligand non-polymer
-5 'pseudo site' other
+_ihm_feature_list.details
+1 'residue range' polymer 'test feature'
+2 atom polymer .
+3 atom non-polymer .
+4 ligand non-polymer .
+5 'pseudo site' other .
 #
 #
 loop_
@@ -2693,8 +2695,7 @@ _ihm_pseudo_site_feature.Cartn_x
 _ihm_pseudo_site_feature.Cartn_y
 _ihm_pseudo_site_feature.Cartn_z
 _ihm_pseudo_site_feature.radius
-_ihm_pseudo_site_feature.description
-5 10.000 20.000 30.000 . .
+5 10.000 20.000 30.000 .
 #
 """)
 
