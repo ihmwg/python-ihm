@@ -895,10 +895,11 @@ _ihm_model_representation_details.starting_model_id
 _ihm_model_representation_details.model_mode
 _ihm_model_representation_details.model_granularity
 _ihm_model_representation_details.model_object_count
-1 1 1 Nup84 A 1 sphere . flexible by-feature 1
-2 1 1 Nup84 A 2 sphere 1 rigid by-residue .
-3 2 1 Nup84 A . atomistic . flexible by-atom .
-4 3 2 Nup85 B . sphere . . multi-residue .
+_ihm_model_representation_details.description
+1 1 1 Nup84 A 1 sphere . flexible by-feature 1 'test segment'
+2 1 1 Nup84 A 2 sphere 1 rigid by-residue . .
+3 2 1 Nup84 A . atomistic . flexible by-atom . .
+4 3 2 Nup85 B . sphere . . multi-residue . .
 """
         for fh in cif_file_handles(cif):
             s, = ihm.reader.read(fh)
@@ -911,6 +912,7 @@ _ihm_model_representation_details.model_object_count
             self.assertEqual(s1.rigid, False)
             self.assertIsNone(s1.starting_model)
             self.assertEqual(s1.asym_unit.seq_id_range, (1,6))
+            self.assertEqual(s1.description, 'test segment')
 
             self.assertEqual(s2.__class__, ihm.representation.ResidueSegment)
             self.assertEqual(s2.primitive, 'sphere')
@@ -918,6 +920,7 @@ _ihm_model_representation_details.model_object_count
             self.assertEqual(s2.rigid, True)
             self.assertEqual(s2.starting_model._id, '1')
             self.assertEqual(s2.asym_unit.seq_id_range, (7,20))
+            self.assertIsNone(s2.description)
 
             self.assertEqual(len(r2), 1)
             s1, = r2

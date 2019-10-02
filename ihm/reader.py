@@ -1259,24 +1259,26 @@ class _ModelRepresentationHandler(Handler):
         self.copy_if_present(rep, locals(), keys=('name', 'details'))
 
 
-def _make_atom_segment(asym, rigid, primitive, count, smodel):
+def _make_atom_segment(asym, rigid, primitive, count, smodel, description):
     return ihm.representation.AtomicSegment(
-                asym_unit=asym, rigid=rigid, starting_model=smodel)
+                asym_unit=asym, rigid=rigid, starting_model=smodel,
+                description=description)
 
-def _make_residue_segment(asym, rigid, primitive, count, smodel):
+def _make_residue_segment(asym, rigid, primitive, count, smodel, description):
     return ihm.representation.ResidueSegment(
                 asym_unit=asym, rigid=rigid, primitive=primitive,
-                starting_model=smodel)
+                starting_model=smodel, description=description)
 
-def _make_multi_residue_segment(asym, rigid, primitive, count, smodel):
+def _make_multi_residue_segment(asym, rigid, primitive, count, smodel,
+                                description):
     return ihm.representation.MultiResidueSegment(
                 asym_unit=asym, rigid=rigid, primitive=primitive,
-                starting_model=smodel)
+                starting_model=smodel, description=description)
 
-def _make_feature_segment(asym, rigid, primitive, count, smodel):
+def _make_feature_segment(asym, rigid, primitive, count, smodel, description):
     return ihm.representation.FeatureSegment(
                 asym_unit=asym, rigid=rigid, primitive=primitive,
-                count=count, starting_model=smodel)
+                count=count, starting_model=smodel, description=description)
 
 
 class _ModelRepresentationDetailsHandler(Handler):
@@ -1291,7 +1293,8 @@ class _ModelRepresentationDetailsHandler(Handler):
 
     def __call__(self, entity_asym_id, entity_poly_segment_id,
                  representation_id, starting_model_id, model_object_primitive,
-                 model_granularity, model_object_count, model_mode):
+                 model_granularity, model_object_count, model_mode,
+                 description):
         asym = self.sysr.ranges.get(
                        self.sysr.asym_units.get_by_id(entity_asym_id),
                        entity_poly_segment_id)
@@ -1304,7 +1307,7 @@ class _ModelRepresentationDetailsHandler(Handler):
         count = self.get_int(model_object_count)
         rigid = self._rigid_map[self.get_lower(model_mode)]
         segment = self._segment_factory[gran](asym, rigid, primitive,
-                                              count, smodel)
+                                              count, smodel, description)
         rep.append(segment)
 
 

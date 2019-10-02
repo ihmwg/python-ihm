@@ -1121,7 +1121,8 @@ _ihm_related_datasets.dataset_list_id_primary
                     rigid=False, primitive='gaussian')
         s4 = ihm.representation.FeatureSegment(
                     asym(3,4), starting_model=None,
-                    rigid=True, primitive='other', count=3)
+                    rigid=True, primitive='other', count=3,
+                    description='test segment')
         r1 = ihm.representation.Representation((s1, s2), name='foo',
                                                details='foo details')
         r2 = ihm.representation.Representation((s3, s4), name='bar')
@@ -1157,10 +1158,11 @@ _ihm_model_representation_details.starting_model_id
 _ihm_model_representation_details.model_mode
 _ihm_model_representation_details.model_granularity
 _ihm_model_representation_details.model_object_count
-1 1 42 bar X 1 atomistic . rigid by-atom .
-2 1 42 bar X 2 sphere . flexible by-residue .
-3 2 42 bar X 1 gaussian . flexible multi-residue .
-4 2 42 bar X 2 other . rigid by-feature 3
+_ihm_model_representation_details.description
+1 1 42 bar X 1 atomistic . rigid by-atom . .
+2 1 42 bar X 2 sphere . flexible by-residue . .
+3 2 42 bar X 1 gaussian . flexible multi-residue . .
+4 2 42 bar X 2 other . rigid by-feature 3 'test segment'
 #
 """)
 

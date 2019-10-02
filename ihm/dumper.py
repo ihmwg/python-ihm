@@ -799,7 +799,7 @@ class _ModelRepresentationDumper(Dumper):
                           "entity_asym_id", "entity_poly_segment_id",
                           "model_object_primitive", "starting_model_id",
                           "model_mode", "model_granularity",
-                          "model_object_count"]) as l:
+                          "model_object_count", "description"]) as l:
             for r in system._all_representations():
                 for segment in r:
                     entity = segment.asym_unit.entity
@@ -814,7 +814,8 @@ class _ModelRepresentationDumper(Dumper):
                                                   else None,
                             model_mode='rigid' if segment.rigid else 'flexible',
                             model_granularity=segment.granularity,
-                            model_object_count=segment.count)
+                            model_object_count=segment.count,
+                            description=segment.description)
                     ordinal_id += 1
 
 
