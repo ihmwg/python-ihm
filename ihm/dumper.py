@@ -2653,7 +2653,8 @@ def _check_restraint_groups(system):
                 "Restraints. Due to limitations of the underlying dictionary, "
                 "all objects in a RestraintGroup must be of the same type, "
                 "and only certain types (currently only "
-                "DerivedDistanceRestraint) can be grouped." % g)
+                "DerivedDistanceRestraint or PredictedContactRestraint) "
+                "can be grouped." % g)
 
 def write(fh, systems, format='mmCIF', dumpers=[]):
     """Write out all `systems` to the file handle `fh`.
