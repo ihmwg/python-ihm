@@ -1722,7 +1722,7 @@ class _CrossLinkDumper(Dumper):
                           "entity_description_2",
                           "entity_id_2", "seq_id_2", "comp_id_2",
                           "linker_chem_comp_descriptor_id", "linker_type",
-                          "dataset_list_id"]) as l:
+                          "dataset_list_id", "details"]) as l:
             for r, xl in self._ex_xls_by_id:
                 entity1 = xl.residue1.entity
                 entity2 = xl.residue2.entity
@@ -1739,7 +1739,8 @@ class _CrossLinkDumper(Dumper):
                         comp_id_2=seq2[xl.residue2.seq_id-1].id,
                         linker_chem_comp_descriptor_id=r.linker._id,
                         linker_type=r.linker.auth_name,
-                        dataset_list_id=r.dataset._id)
+                        dataset_list_id=r.dataset._id,
+                        details=xl.details)
 
     def dump_restraint(self, system, writer):
         with writer.loop("_ihm_cross_link_restraint",

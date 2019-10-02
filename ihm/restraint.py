@@ -221,9 +221,11 @@ class ExperimentalCrossLink(object):
        :type residue1: :class:`ihm.Residue`
        :param residue2: The second residue linked by the cross-link.
        :type residue2: :class:`ihm.Residue`
+       :param str details: Additional text describing the cross-link.
     """
-    def __init__(self, residue1, residue2):
+    def __init__(self, residue1, residue2, details=None):
         self.residue1, self.residue2 = residue1, residue2
+        self.details = details
 
 
 class DistanceRestraint(object):

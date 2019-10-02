@@ -2099,7 +2099,7 @@ class _CrossLinkListHandler(Handler):
 
     def __call__(self, dataset_list_id, linker_chem_comp_descriptor_id,
                  group_id, id, entity_id_1, entity_id_2, seq_id_1, seq_id_2,
-                 linker_type):
+                 linker_type, details):
         dataset = self.sysr.datasets.get_by_id_or_none(dataset_list_id)
         if linker_chem_comp_descriptor_id is None and linker_type is not None:
             linker = self._get_linker_by_name(linker_type)
@@ -2119,6 +2119,7 @@ class _CrossLinkListHandler(Handler):
         xl_group.append(xl)
         xl.residue1 = self._get_entity_residue(entity_id_1, seq_id_1)
         xl.residue2 = self._get_entity_residue(entity_id_2, seq_id_2)
+        xl.details = details
 
     def _get_entity_residue(self, entity_id, seq_id):
         entity = self.sysr.entities.get_by_id(entity_id)

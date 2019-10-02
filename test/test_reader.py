@@ -2195,12 +2195,13 @@ _ihm_cross_link_list.seq_id_2
 _ihm_cross_link_list.comp_id_2
 _ihm_cross_link_list.linker_chem_comp_descriptor_id
 _ihm_cross_link_list.dataset_list_id
-1 1 foo 1 2 THR foo 1 3 CYS 44 97
-2 2 foo 1 2 THR bar 2 3 PHE 44 97
-3 2 foo 1 2 THR bar 2 2 GLU 44 97
-4 3 foo 1 1 ALA bar 2 1 ASP 44 97
-5 4 foo 1 1 ALA bar 2 1 ASP 88 97
-6 5 foo 1 1 ALA bar 2 1 ASP 44 98
+_ihm_cross_link_list.details
+1 1 foo 1 2 THR foo 1 3 CYS 44 97 .
+2 2 foo 1 2 THR bar 2 3 PHE 44 97 'test xl'
+3 2 foo 1 2 THR bar 2 2 GLU 44 97 .
+4 3 foo 1 1 ALA bar 2 1 ASP 44 97 .
+5 4 foo 1 1 ALA bar 2 1 ASP 88 97 .
+6 5 foo 1 1 ALA bar 2 1 ASP 44 98 .
 """)
         s, = ihm.reader.read(fh)
         # Check grouping
@@ -2214,6 +2215,7 @@ _ihm_cross_link_list.dataset_list_id
         self.assertEqual(xl.residue2.entity._id, '2')
         self.assertEqual(xl.residue1.seq_id, 2)
         self.assertEqual(xl.residue2.seq_id, 3)
+        self.assertEqual(xl.details, 'test xl')
 
     def test_cross_link_list_handler_linker_type(self):
         """Test CrossLinkListHandler with old-style linker_type"""
