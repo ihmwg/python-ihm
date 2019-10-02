@@ -843,7 +843,7 @@ class _StartingModelDumper(Dumper):
                       "starting_model_source",
                       "starting_model_auth_asym_id",
                       "starting_model_sequence_offset",
-                      "dataset_list_id"]) as l:
+                      "dataset_list_id", "description"]) as l:
             for sm in system._all_starting_models():
                 l.write(starting_model_id=sm._id,
                         entity_id=sm.asym_unit.entity._id,
@@ -853,7 +853,8 @@ class _StartingModelDumper(Dumper):
                         starting_model_source=source_map[sm.dataset.data_type],
                         starting_model_auth_asym_id=sm.asym_id,
                         dataset_list_id=sm.dataset._id,
-                        starting_model_sequence_offset=sm.offset)
+                        starting_model_sequence_offset=sm.offset,
+                        description=sm.description)
 
     def dump_computational(self, system, writer):
         """Dump details on computational models."""

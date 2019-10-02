@@ -1208,7 +1208,8 @@ _ihm_model_representation_details.model_object_count
                                script_file=script, software=software)
         system.orphan_starting_models.append(sm)
 
-        sm = TestStartingModel(asym(1,15), dstarget, 'A', [])
+        sm = TestStartingModel(asym(1,15), dstarget, 'A', [],
+                               description="test desc")
         system.orphan_starting_models.append(sm)
 
         e1._id = 42
@@ -1249,8 +1250,9 @@ _ihm_starting_model_details.starting_model_source
 _ihm_starting_model_details.starting_model_auth_asym_id
 _ihm_starting_model_details.starting_model_sequence_offset
 _ihm_starting_model_details.dataset_list_id
-1 42 foo 99 2 'experimental model' A 10 102
-2 42 foo 99 1 'experimental model' A 0 102
+_ihm_starting_model_details.description
+1 42 foo 99 2 'experimental model' A 10 102 .
+2 42 foo 99 1 'experimental model' A 0 102 'test desc'
 #
 #
 loop_

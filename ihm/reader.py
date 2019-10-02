@@ -1315,7 +1315,7 @@ class _StartingModelDetailsHandler(Handler):
 
     def __call__(self, starting_model_id, asym_id, entity_poly_segment_id,
                  dataset_list_id, starting_model_auth_asym_id,
-                 starting_model_sequence_offset):
+                 starting_model_sequence_offset, description):
         m = self.sysr.starting_models.get_by_id(starting_model_id)
         asym = self.sysr.ranges.get(
                        self.sysr.asym_units.get_by_id(asym_id),
@@ -1323,6 +1323,7 @@ class _StartingModelDetailsHandler(Handler):
         m.asym_unit = asym
         m.dataset = self.sysr.datasets.get_by_id(dataset_list_id)
         self.copy_if_present(m, locals(),
+                    keys=('description',),
                     mapkeys={'starting_model_auth_asym_id':'asym_id'})
         if starting_model_sequence_offset is not None:
             m.offset = int(starting_model_sequence_offset)
