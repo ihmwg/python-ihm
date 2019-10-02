@@ -182,15 +182,17 @@ class Ensemble(object):
               for the entire ensemble, for example as a DCD file
               (see :class:`DCDWriter`).
        :type file: :class:`ihm.location.OutputFileLocation`
+       :param str details: Additional text describing this ensemble
     """
     def __init__(self, model_group, num_models, post_process=None,
                  clustering_method=None, clustering_feature=None, name=None,
-                 precision=None, file=None):
+                 precision=None, file=None, details=None):
         self.model_group, self.num_models = model_group, num_models
         self.post_process = post_process
         self.clustering_method = clustering_method
         self.clustering_feature = clustering_feature
         self.name, self.precision, self.file = name, precision, file
+        self.details = details
 
         #: All localization densities for this ensemble, as
         #: :class:`LocalizationDensity` objects

@@ -1533,7 +1533,8 @@ class _EnsembleHandler(Handler):
     def __call__(self, ensemble_id, model_group_id, post_process_id,
                  ensemble_file_id, num_ensemble_models,
                  ensemble_precision_value, ensemble_name,
-                 ensemble_clustering_method, ensemble_clustering_feature):
+                 ensemble_clustering_method, ensemble_clustering_feature,
+                 details):
         ensemble = self.sysr.ensembles.get_by_id(ensemble_id)
         mg = self.sysr.model_groups.get_by_id_or_none(model_group_id)
         pp = self.sysr.analysis_steps.get_by_id_or_none(post_process_id)
@@ -1546,6 +1547,7 @@ class _EnsembleHandler(Handler):
         # model group anyway)
         ensemble.post_process = pp
         ensemble.file = f
+        ensemble.details = details
         self.copy_if_present(ensemble, locals(),
                 mapkeys={'ensemble_name':'name',
                          'ensemble_clustering_method':'clustering_method',

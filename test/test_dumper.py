@@ -1942,7 +1942,7 @@ N
         loc = ihm.location.OutputFileLocation(repo='foo', path='bar')
         loc._id = 3
         e2 = ihm.model.Ensemble(model_group=group, num_models=10,
-                                file=loc)
+                                file=loc, details='test details')
         system.ensembles.extend((e1, e2))
 
         dumper = ihm.dumper._EnsembleDumper()
@@ -1961,8 +1961,9 @@ _ihm_ensemble_info.num_ensemble_models
 _ihm_ensemble_info.num_ensemble_models_deposited
 _ihm_ensemble_info.ensemble_precision_value
 _ihm_ensemble_info.ensemble_file_id
-1 cluster1 99 42 Hierarchical RMSD 10 2 4.200 .
-2 . . 42 . . 10 2 . 3
+_ihm_ensemble_info.details
+1 cluster1 99 42 Hierarchical RMSD 10 2 4.200 . .
+2 . . 42 . . 10 2 . 3 'test details'
 #
 """)
 

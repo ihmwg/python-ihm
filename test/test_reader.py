@@ -1253,8 +1253,9 @@ _ihm_ensemble_info.num_ensemble_models
 _ihm_ensemble_info.num_ensemble_models_deposited
 _ihm_ensemble_info.ensemble_precision_value
 _ihm_ensemble_info.ensemble_file_id
-1 'Cluster 1' 2 3 . dRMSD 1257 1 15.400 9
-2 'Cluster 2' 2 . . dRMSD 1257 1 15.400 9
+_ihm_ensemble_info.details
+1 'Cluster 1' 2 3 . dRMSD 1257 1 15.400 9 .
+2 'Cluster 2' 2 . . dRMSD 1257 1 15.400 9 'cluster details'
 """
         for fh in cif_file_handles(cif):
             s, = ihm.reader.read(fh)
@@ -1265,9 +1266,11 @@ _ihm_ensemble_info.ensemble_file_id
             self.assertIsNone(e.clustering_method)
             self.assertEqual(e.clustering_feature, 'dRMSD')
             self.assertEqual(e.name, 'Cluster 1')
+            self.assertIsNone(e.details)
             self.assertAlmostEqual(e.precision, 15.4, places=1)
             self.assertEqual(e.file._id, '9')
             self.assertIsNone(e2.model_group)
+            self.assertEqual(e2.details, 'cluster details')
 
     def test_density_handler(self):
         """Test DensityHandler"""

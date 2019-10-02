@@ -1315,7 +1315,7 @@ class _EnsembleDumper(Dumper):
                           "num_ensemble_models",
                           "num_ensemble_models_deposited",
                           "ensemble_precision_value",
-                          "ensemble_file_id"]) as l:
+                          "ensemble_file_id", "details"]) as l:
             for e in system.ensembles:
                 l.write(ensemble_id=e._id, ensemble_name=e.name,
                         post_process_id=e.post_process._id if e.post_process
@@ -1326,7 +1326,8 @@ class _EnsembleDumper(Dumper):
                         num_ensemble_models=e.num_models,
                         num_ensemble_models_deposited=e.num_models_deposited,
                         ensemble_precision_value=e.precision,
-                        ensemble_file_id=e.file._id if e.file else None)
+                        ensemble_file_id=e.file._id if e.file else None,
+                        details=e.details)
 
 
 class _DensityDumper(Dumper):
