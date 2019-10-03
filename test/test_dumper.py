@@ -2480,8 +2480,7 @@ _ihm_cross_link_result_parameters.sigma_2
 
         sphere = ihm.geometry.Sphere(center=center, transformation=trans,
                                      radius=2.2, name='my sphere',
-                                     description='a test sphere',
-                                     details='some details')
+                                     description='a test sphere')
         torus = ihm.geometry.Torus(center=center, transformation=trans,
                                    major_radius=5.6, minor_radius=1.2)
         half_torus = ihm.geometry.HalfTorus(center=center, transformation=trans,
@@ -2536,12 +2535,11 @@ _ihm_geometric_object_list.object_id
 _ihm_geometric_object_list.object_type
 _ihm_geometric_object_list.object_name
 _ihm_geometric_object_list.object_description
-_ihm_geometric_object_list.details
-1 sphere 'my sphere' 'a test sphere' 'some details'
-2 torus . . .
-3 half-torus . . .
-4 axis . . .
-5 plane . . .
+1 sphere 'my sphere' 'a test sphere'
+2 torus . .
+3 half-torus . .
+4 axis . .
+5 plane . .
 #
 #
 loop_

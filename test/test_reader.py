@@ -1818,8 +1818,7 @@ _ihm_geometric_object_list.object_id
 _ihm_geometric_object_list.object_type
 _ihm_geometric_object_list.object_name
 _ihm_geometric_object_list.object_description
-_ihm_geometric_object_list.details
-1 sphere 'my sphere' 'a test sphere' 'some details'
+1 sphere 'my sphere' 'a test sphere'
 """
         spheres = """
 loop_
@@ -1839,7 +1838,6 @@ _ihm_geometric_object_sphere.radius_r
             self.assertIsInstance(s2, ihm.geometry.Sphere)
             self.assertEqual(s1.name, 'my sphere')
             self.assertEqual(s1.description, 'a test sphere')
-            self.assertEqual(s1.details, 'some details')
             self.assertAlmostEqual(s1.center.x, 1.000, places=1)
             self.assertAlmostEqual(s1.center.y, 2.000, places=1)
             self.assertAlmostEqual(s1.center.z, 3.000, places=1)
@@ -1857,8 +1855,7 @@ _ihm_geometric_object_list.object_id
 _ihm_geometric_object_list.object_type
 _ihm_geometric_object_list.object_name
 _ihm_geometric_object_list.object_description
-_ihm_geometric_object_list.details
-1 torus . . .
+1 torus . .
 """
         tori = """
 loop_
@@ -1893,10 +1890,9 @@ _ihm_geometric_object_list.object_id
 _ihm_geometric_object_list.object_type
 _ihm_geometric_object_list.object_name
 _ihm_geometric_object_list.object_description
-_ihm_geometric_object_list.details
-1 half-torus . . .
-2 half-torus . . .
-3 half-torus . . .
+1 half-torus . .
+2 half-torus . .
+3 half-torus . .
 """
         tori = """
 loop_
@@ -1948,9 +1944,8 @@ _ihm_geometric_object_list.object_id
 _ihm_geometric_object_list.object_type
 _ihm_geometric_object_list.object_name
 _ihm_geometric_object_list.object_description
-_ihm_geometric_object_list.details
-1 axis . . .
-2 axis . . .
+1 axis . .
+2 axis . .
 """
         axes = """
 loop_
@@ -1979,9 +1974,8 @@ _ihm_geometric_object_list.object_id
 _ihm_geometric_object_list.object_type
 _ihm_geometric_object_list.object_name
 _ihm_geometric_object_list.object_description
-_ihm_geometric_object_list.details
-1 plane . . .
-2 plane . . .
+1 plane . .
+2 plane . .
 """
         planes = """
 loop_

@@ -1488,11 +1488,10 @@ class _GeometricObjectDumper(Dumper):
     def dump_generic(self, writer):
         with writer.loop("_ihm_geometric_object_list",
                          ["object_id", "object_type", "object_name",
-                          "object_description", "details"]) as l:
+                          "object_description"]) as l:
             for o in self._objects_by_id:
                 l.write(object_id=o._id, object_type=o.type, object_name=o.name,
-                        object_description=o.description,
-                        details=o.details)
+                        object_description=o.description)
 
     def dump_sphere(self, writer):
         with writer.loop("_ihm_geometric_object_sphere",
