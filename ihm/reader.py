@@ -1911,14 +1911,14 @@ class _GeometricObjectHandler(Handler):
                         and ihm.geometry.GeometricObject in x[1].__bases__)
 
     def __call__(self, object_type, object_id, object_name, object_description,
-                 other_details):
+                 details):
         typ = object_type.lower() if object_type is not None else 'other'
         g = self.sysr.geometries.get_by_id(object_id,
                           self._type_map.get(typ, ihm.geometry.GeometricObject))
         self.copy_if_present(g, locals(),
+                             keys=('details',),
                              mapkeys={'object_name': 'name',
-                                      'object_description': 'description',
-                                      'other_details': 'details'})
+                                      'object_description': 'description'})
 
 
 class _SphereHandler(Handler):

@@ -2536,7 +2536,7 @@ _ihm_geometric_object_list.object_id
 _ihm_geometric_object_list.object_type
 _ihm_geometric_object_list.object_name
 _ihm_geometric_object_list.object_description
-_ihm_geometric_object_list.other_details
+_ihm_geometric_object_list.details
 1 sphere 'my sphere' 'a test sphere' 'some details'
 2 torus . . .
 3 half-torus . . .
