@@ -1865,7 +1865,7 @@ _ihm_sphere_obj_site.model_id
                                        het=True),
                         ihm.model.Atom(asym_unit=asym, seq_id=2, atom_id='N',
                                        type_symbol='N', x=4.0, y=5.0, z=6.0,
-                                       biso=42.0)]
+                                       biso=42.0, occupancy=0.2)]
 
         dumper = ihm.dumper._ModelDumper()
         dumper.finalize(system) # assign model/group IDs
@@ -1906,14 +1906,15 @@ _atom_site.label_asym_id
 _atom_site.Cartn_x
 _atom_site.Cartn_y
 _atom_site.Cartn_z
+_atom_site.occupancy
 _atom_site.label_entity_id
 _atom_site.auth_asym_id
 _atom_site.B_iso_or_equiv
 _atom_site.pdbx_PDB_model_num
 _atom_site.ihm_model_id
-ATOM 1 C C . ALA 1 X 1.000 2.000 3.000 9 X . 1 1
-HETATM 2 C CA . ALA 1 X 10.000 20.000 30.000 9 X . 1 1
-ATOM 3 N N . CYS 2 X 4.000 5.000 6.000 9 X 42.000 1 1
+ATOM 1 C C . ALA 1 X 1.000 2.000 3.000 . 9 X . 1 1
+HETATM 2 C CA . ALA 1 X 10.000 20.000 30.000 . 9 X . 1 1
+ATOM 3 N N . CYS 2 X 4.000 5.000 6.000 0.200 9 X 42.000 1 1
 #
 #
 loop_

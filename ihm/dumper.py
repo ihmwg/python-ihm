@@ -1253,7 +1253,7 @@ class _ModelDumper(Dumper):
                           "label_atom_id", "label_alt_id", "label_comp_id",
                           "label_seq_id",
                           "label_asym_id", "Cartn_x",
-                          "Cartn_y", "Cartn_z", "label_entity_id",
+                          "Cartn_y", "Cartn_z", "occupancy", "label_entity_id",
                           "auth_asym_id",
                           "B_iso_or_equiv", "pdbx_PDB_model_num",
                           "ihm_model_id"]) as l:
@@ -1275,6 +1275,7 @@ class _ModelDumper(Dumper):
                             auth_asym_id=atom.asym_unit._id,
                             Cartn_x=atom.x, Cartn_y=atom.y, Cartn_z=atom.z,
                             B_iso_or_equiv=atom.biso,
+                            occupancy=atom.occupancy,
                             pdbx_PDB_model_num=model._id,
                             ihm_model_id=model._id)
                     ordinal += 1

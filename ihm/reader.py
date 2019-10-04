@@ -1677,12 +1677,13 @@ class _AtomSiteHandler(Handler):
 
     def __call__(self, pdbx_pdb_model_num, label_asym_id, b_iso_or_equiv,
                  label_seq_id, label_atom_id, type_symbol, cartn_x, cartn_y,
-                 cartn_z, group_pdb, auth_seq_id):
+                 cartn_z, occupancy, group_pdb, auth_seq_id):
         # todo: handle fields other than those output by us
         # todo: handle insertion codes
         model = self.sysr.models.get_by_id(pdbx_pdb_model_num)
         asym = self.sysr.asym_units.get_by_id(label_asym_id)
         biso = self.get_float(b_iso_or_equiv)
+        occupancy = self.get_float(occupancy)
         # seq_id can be None for non-polymers (HETATM)
         seq_id = self.get_int(label_seq_id)
         group = 'ATOM' if group_pdb is None else group_pdb
@@ -1692,7 +1693,7 @@ class _AtomSiteHandler(Handler):
                 type_symbol=type_symbol,
                 x=float(cartn_x), y=float(cartn_y),
                 z=float(cartn_z), het=group != 'ATOM',
-                biso=biso)
+                biso=biso, occupancy=occupancy)
         model.add_atom(a)
 
         auth_seq_id = self.get_int_or_string(auth_seq_id)
