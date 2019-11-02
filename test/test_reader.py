@@ -2456,6 +2456,43 @@ _ihm_ordered_ensemble.model_group_id_end
         s, = ihm.reader.read(f)
         f.close()
 
+    def test_old_file_read_default(self):
+        """Test default handling of old files"""
+        cif = """
+loop_
+_audit_conform.dict_name
+_audit_conform.dict_version
+mmcif_pdbx.dic     5.311
+ihm-extension.dic  0.14
+"""
+        s, = ihm.reader.read(StringIO(cif))
+
+    def test_old_file_read_fail(self):
+        """Test failure reading old files"""
+        cif = """
+loop_
+_audit_conform.dict_name
+_audit_conform.dict_version
+mmcif_pdbx.dic     5.311
+ihm-extension.dic  0.14
+"""
+        self.assertRaises(ihm.reader.OldFileError,
+                          ihm.reader.read, StringIO(cif), reject_old_file=True)
+
+    def test_new_file_read_ok(self):
+        """Test success reading not-old files"""
+        # File read is OK if version is new enough, or version cannot be parsed
+        # because it is non-int or has too many elements
+        for ver in ('1.0', '0.0.4', '0.0a'):
+            cif = """
+loop_
+_audit_conform.dict_name
+_audit_conform.dict_version
+mmcif_pdbx.dic     5.311
+ihm-extension.dic  %s
+""" % ver
+            s, = ihm.reader.read(StringIO(cif), reject_old_file=True)
+
     def test_warn_unknown_category(self):
         """Test warnings for unknown categories"""
         cif = """

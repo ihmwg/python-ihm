@@ -21,6 +21,13 @@ try:
 except ImportError:
     _format = None
 
+
+class OldFileError(Exception):
+    """Exception raised if a file conforms to too old a version of the
+       IHM extension dictionary. See :func:`read`."""
+    pass
+
+
 def _make_new_entity():
     """Make a new Entity object"""
     e = ihm.Entity([])
@@ -842,6 +849,24 @@ class _StructHandler(Handler):
     def __call__(self, title, entry_id):
         self.copy_if_present(self.system, locals(), keys=('title',),
                               mapkeys={'entry_id': 'id'})
+
+
+class _AuditConformHandler(Handler):
+    category = '_audit_conform'
+
+    def __call__(self, dict_name, dict_version):
+        # Reject old file versions if we can parse the version
+        if dict_name == 'ihm-extension.dic':
+            try:
+                major, minor = [int(x) for x in dict_version.split('.')]
+                if (major, minor) < (1, 0):
+                    raise OldFileError(
+                        "This version of python-ihm only supports reading "
+                        "files that conform to version 1.0 or later of the "
+                        "IHM extension dictionary. This file conforms to "
+                        "version %s." % dict_version)
+            except ValueError:
+                pass
 
 
 class _SoftwareHandler(Handler):
@@ -2806,7 +2831,8 @@ class _FLRFPSMPPModelingHandler(Handler):
 def read(fh, model_class=ihm.model.Model, format='mmCIF', handlers=[],
          warn_unknown_category=False, warn_unknown_keyword=False,
          read_starting_model_coord=True,
-         starting_model_class=ihm.startmodel.StartingModel):
+         starting_model_class=ihm.startmodel.StartingModel,
+         reject_old_file=False):
     """Read data from the file handle `fh`.
 
        Note that the reader currently expects to see a file compliant
@@ -2851,6 +2877,10 @@ def read(fh, model_class=ihm.model.Model, format='mmCIF', handlers=[],
               is recommended to subclass :class:`ihm.startmodel.StartingModel`
               and override :meth:`~ihm.startmodel.StartingModel.add_atom`
               and/or :meth:`~ihm.startmodel.StartingModel.add_seq_dif`.
+       :param bool reject_old_file: If True, raise an
+              :exc:`ihm.reader.OldFileError` if the file conforms to an
+              older version of the dictionary than this library supports
+              (by default the library will read what it can from the file).
        :return: A list of :class:`ihm.System` objects.
     """
     systems = []
@@ -2937,6 +2967,8 @@ def read(fh, model_class=ihm.model.Model, format='mmCIF', handlers=[],
               _FLRFPSMPPHandler(s),
               _FLRFPSMPPAtomPositionHandler(s),
               _FLRFPSMPPModelingHandler(s)] + [h(s) for h in handlers]
+        if reject_old_file:
+            hs.append(_AuditConformHandler(s))
         if read_starting_model_coord:
             hs.append(_StartingModelCoordHandler(s))
         if uchandler:

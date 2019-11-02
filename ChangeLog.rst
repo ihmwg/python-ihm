@@ -1,3 +1,9 @@
+HEAD
+====
+ - :func:`ihm.reader.read` has a new optional ``reject_old_file`` argument.
+   If set, it will raise an exception if asked to read a file that conforms
+   to too old a version of the IHM extension dictionary.
+
 0.12 - 2019-10-16
 =================
  - :class:`ihm.restraint.ResidueFeature` objects can now act on one or
