@@ -417,6 +417,12 @@ class Tests(unittest.TestCase):
         self.assertEqual(f.external_file, 'this_external_file')
         self.assertEqual(f.software, 'this_software')
 
+        self.assertRaises(ValueError,
+            ihm.flr.FRETAnalysis, experiment='this_experiment',
+            sample_probe_1='this_sample_probe_1',
+            sample_probe_2='this_sample_probe_2',
+            forster_radius='this_forster_radius', type='garbage')
+
     def test_fret_analysis_eq(self):
         """ Test equality and inequality of FRETAnalysis objects. """
         f_ref = ihm.flr.FRETAnalysis(experiment = 'this_experiment',
