@@ -54,8 +54,8 @@ class _AuditConformDumper(Dumper):
     def dump(self, system, writer):
         with writer.category("_audit_conform") as l:
             # Update to match the version of the IHM dictionary we support:
-            l.write(dict_name="ihm-extension.dic", dict_version="0.137",
-                    dict_location=self.URL % "7ea672a")
+            l.write(dict_name="ihm-extension.dic", dict_version="1.04",
+                    dict_location=self.URL % "3a8e0b9")
 
 
 class _StructDumper(Dumper):
