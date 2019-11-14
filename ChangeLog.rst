@@ -3,6 +3,8 @@ HEAD
  - :func:`ihm.reader.read` has a new optional ``reject_old_file`` argument.
    If set, it will raise an exception if asked to read a file that conforms
    to too old a version of the IHM extension dictionary.
+ - Definitions for the DHSO and BMSO cross-linkers are now provided in the
+   :mod:`ihm.cross_linkers` module.
 
 0.12 - 2019-10-16
 =================
