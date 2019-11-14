@@ -1,5 +1,5 @@
-HEAD
-====
+0.13 - 2019-11-14
+=================
  - :func:`ihm.reader.read` has a new optional ``reject_old_file`` argument.
    If set, it will raise an exception if asked to read a file that conforms
    to too old a version of the IHM extension dictionary.
