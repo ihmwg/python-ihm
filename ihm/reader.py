@@ -35,6 +35,7 @@ def _make_new_entity():
     e.sequence = list(e.sequence)
     return e
 
+
 def _get_vector3(d, key):
     """Return a 3D vector (as a list) from d[key+[1..3]]
        or leave as is if None or ihm.unknown"""
@@ -42,7 +43,8 @@ def _get_vector3(d, key):
         return d[key+'1']
     else:
         # Assume if one element is present, all are
-        return [float(d[key+"%d" % k]) for k in (1,2,3)]
+        return [float(d[key+"%d" % k]) for k in (1, 2, 3)]
+
 
 def _get_matrix33(d, key):
     """Return a 3x3 matrix (as a list of lists) from d[key+[1..3][1..3]]]
@@ -51,8 +53,9 @@ def _get_matrix33(d, key):
         return d[key+'11']
     else:
         # Assume if one element is present, all are
-        return [[float(d[key+"%d%d" % (i,j)]) for j in (1,2,3)]
-                for i in (1,2,3)]
+        return [[float(d[key+"%d%d" % (i, j)]) for j in (1, 2, 3)]
+                for i in (1, 2, 3)]
+
 
 class IDMapper(object):
     """Utility class to handle mapping from mmCIF IDs to Python objects.
@@ -136,7 +139,7 @@ class _ChemCompIDMapper(IDMapper):
         else:
             # Assign nonpolymer class based on the ID
             if newcls is ihm.NonPolymerChemComp or newcls is ihm.WaterChemComp:
-                newcls = ihm.WaterChemComp if objid=='HOH' \
+                newcls = ihm.WaterChemComp if objid == 'HOH' \
                                            else ihm.NonPolymerChemComp
             return super(_ChemCompIDMapper, self).get_by_id(objid, newcls)
 
@@ -374,7 +377,6 @@ class _XLRestraintMapper(object):
         return self._seen_rsrs.values()
 
 
-
 class SystemReader(object):
     """Utility class to track global information for a :class:`ihm.System`
        being read from a file, such as the mapping from IDs to objects
@@ -426,12 +428,12 @@ class SystemReader(object):
 
         #: Mapping from ID to :class:`ihm.location.FileLocation` objects
         self.external_files = IDMapper(self.system.locations,
-                                 ihm.location.FileLocation,
-                                 '/') # should always exist?
+                                       ihm.location.FileLocation,
+                                       '/')  # should always exist?
 
         #: Mapping from ID to :class:`ihm.location.DatabaseLocation` objects
         self.db_locations = IDMapper(self.system.locations,
-                                 ihm.location.DatabaseLocation, None, None)
+                                     ihm.location.DatabaseLocation, None, None)
 
         #: Mapping from ID to :class:`ihm.dataset.Dataset` objects
         self.datasets = IDMapper(self.system.orphan_datasets,
@@ -439,15 +441,16 @@ class SystemReader(object):
 
         #: Mapping from ID to :class:`ihm.dataset.DatasetGroup` objects
         self.dataset_groups = IDMapper(self.system.orphan_dataset_groups,
-                                  ihm.dataset.DatasetGroup)
+                                       ihm.dataset.DatasetGroup)
 
         #: Mapping from ID to :class:`ihm.startmodel.StartingModel` objects
         self.starting_models = IDMapper(self.system.orphan_starting_models,
-                                  starting_model_class, *(None,)*3)
+                                        starting_model_class, *(None,)*3)
 
-        #: Mapping from ID to :class:`ihm.representation.Representation` objects
+        #: Mapping from ID to :class:`ihm.representation.Representation`
+        #: objects
         self.representations = IDMapper(self.system.orphan_representations,
-                                  ihm.representation.Representation)
+                                        ihm.representation.Representation)
 
         #: Mapping from ID to :class:`ihm.protocol.Protocol` objects
         self.protocols = IDMapper(self.system.orphan_protocols,
@@ -455,7 +458,7 @@ class SystemReader(object):
 
         #: Mapping from ID to :class:`ihm.analysis.Step` objects
         self.analysis_steps = _AnalysisIDMapper(None, ihm.analysis.Step,
-                                  *(None,)*3)
+                                                *(None,)*3)
 
         #: Mapping from ID to :class:`ihm.analysis.Analysis` objects
         self.analyses = IDMapper(None, ihm.analysis.Analysis)
@@ -471,7 +474,7 @@ class SystemReader(object):
 
         #: Mapping from ID to :class:`ihm.model.StateGroup` objects
         self.state_groups = IDMapper(self.system.state_groups,
-                                  ihm.model.StateGroup)
+                                     ihm.model.StateGroup)
 
         #: Mapping from ID to :class:`ihm.model.Ensemble` objects
         self.ensembles = IDMapper(self.system.ensembles,
@@ -483,27 +486,30 @@ class SystemReader(object):
 
         #: Mapping from ID to :class:`ihm.restraint.EM3DRestraint` objects
         self.em3d_restraints = _DatasetIDMapper(self.system.restraints,
-                                   self.datasets,
-                                   ihm.restraint.EM3DRestraint, None)
+                                                self.datasets,
+                                                ihm.restraint.EM3DRestraint,
+                                                None)
 
         #: Mapping from ID to :class:`ihm.restraint.EM2DRestraint` objects
         self.em2d_restraints = IDMapper(self.system.restraints,
-                                   ihm.restraint.EM2DRestraint, *(None,)*2)
+                                        ihm.restraint.EM2DRestraint,
+                                        *(None,)*2)
 
         #: Mapping from ID to :class:`ihm.restraint.SASRestraint` objects
         self.sas_restraints = _DatasetIDMapper(self.system.restraints,
-                                   self.datasets,
-                                   ihm.restraint.SASRestraint, None)
+                                               self.datasets,
+                                               ihm.restraint.SASRestraint,
+                                               None)
 
         #: Mapping from ID to :class:`ihm.restraint.Feature` objects
         self.features = _FeatureIDMapper(self.system.orphan_features,
-                                   ihm.restraint.Feature)
+                                         ihm.restraint.Feature)
 
         #: Mapping from ID to :class:`ihm.restraint.DerivedDistanceRestraint`
         #: objects
         self.dist_restraints = IDMapper(self.system.restraints,
-                                   ihm.restraint.DerivedDistanceRestraint,
-                                   *(None,)*4)
+                                        ihm.restraint.DerivedDistanceRestraint,
+                                        *(None,)*4)
 
         #: Mapping from ID to :class:`ihm.restraint.PredictedContactRestraint`
         #: objects
@@ -514,7 +520,7 @@ class SystemReader(object):
         #: Mapping from ID to :class:`ihm.restraint.RestraintGroup` of
         #: :class:`ihm.restraint.DerivedDistanceRestraint` objects
         self.dist_restraint_groups = IDMapper(self.system.restraint_groups,
-                                   ihm.restraint.RestraintGroup)
+                                              ihm.restraint.RestraintGroup)
 
         #: Mapping from ID to :class:`ihm.restraint.RestraintGroup` of
         #: :class:`ihm.restraint.PredictedContactRestraint` objects
@@ -563,7 +569,8 @@ class SystemReader(object):
         #: Mapping from ID to :class:`ihm.model.ProcessStep` objects
         self.ordered_steps = IDMapper(None, ihm.model.ProcessStep)
 
-        ## FLR part
+        # FLR part
+
         #: Mapping from ID to :class:`ihm.flr.FLRData` objects
         self.flr_data = IDMapper(self.system.flr_data, ihm.flr.FLRData)
 
