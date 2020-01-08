@@ -11,7 +11,6 @@
 
 import itertools
 import re
-from .format import CifWriter
 import sys
 # Handle different naming of urllib in Python 2/3
 try:

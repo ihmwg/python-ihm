@@ -1694,7 +1694,6 @@ class _CrossLinkDumper(Dumper):
 
     def finalize_modeling(self, system):
         seen_cross_links = {}
-        seen_group_ids = {}
         xl_id = 1
         self._xls_by_id = []
         for r in self._all_restraints(system):
@@ -1801,7 +1800,6 @@ class _GeometricRestraintDumper(Dumper):
 
     def dump(self, system, writer):
         condmap = {True: 'ALL', False: 'ANY', None: None}
-        ordinal = 1
         with writer.loop("_ihm_geometric_object_distance_restraint",
                          ["id", "object_id", "feature_id",
                           "object_characteristic", "restraint_type",
@@ -1857,7 +1855,6 @@ class _DerivedDistanceRestraintDumper(Dumper):
 
     def dump(self, system, writer):
         condmap = {True: 'ALL', False: 'ANY', None: None}
-        ordinal = 1
         with writer.loop("_ihm_derived_distance_restraint",
                          ["id", "group_id", "feature_id_1", "feature_id_2",
                           "restraint_type", "distance_lower_limit",
