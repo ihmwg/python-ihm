@@ -209,8 +209,8 @@ class _FeatureIDMapper(IDMapper):
             # Make Feature base class (takes no args)
             return self._cls()
         elif newcls is ihm.restraint.PseudoSiteFeature:
-            # Pseudo site constructor needs x, y, z coordinates
-            return newcls(None, None, None)
+            # Pseudo site constructor needs "site" argument
+            return newcls(None)
         else:
             # Make subclass (takes one ranges/atoms argument)
             return newcls([])
@@ -228,9 +228,8 @@ class _FeatureIDMapper(IDMapper):
            and not hasattr(obj, 'objs'):
             obj.objs = []
         elif newcls is ihm.restraint.PseudoSiteFeature \
-           and not hasattr(obj, 'x'):
-            obj.x = obj.y = obj.z = None
-            obj.radius = obj.description = None
+           and not hasattr(obj, 'site'):
+            obj.site = None
 
 
 class _GeometryIDMapper(IDMapper):
@@ -505,6 +504,10 @@ class SystemReader(object):
         self.features = _FeatureIDMapper(self.system.orphan_features,
                                          ihm.restraint.Feature)
 
+        #: Mapping from ID to :class:`ihm.restraint.PseudoSite` objects
+        self.pseudo_sites = IDMapper(self.system.orphan_pseudo_sites,
+                                     ihm.restraint.PseudoSite, *(None,)*3)
+
         #: Mapping from ID to :class:`ihm.restraint.DerivedDistanceRestraint`
         #: objects
         self.dist_restraints = IDMapper(self.system.restraints,
@@ -561,6 +564,10 @@ class SystemReader(object):
         #: Mapping from ID to :class:`ihm.restraint.CrossLink`
         self.cross_links = _CrossLinkIDMapper(None,
                                 ihm.restraint.CrossLink)
+
+        #: Mapping from ID to :class:`ihm.restraint.CrossLinkPseudoSite`
+        self.cross_link_pseudo_sites = IDMapper(None,
+                                    ihm.restraint.CrossLinkPseudoSite, None)
 
         #: Mapping from ID to :class:`ihm.model.OrderedProcess` objects
         self.ordered_procs = IDMapper(self.system.ordered_processes,
@@ -1853,15 +1860,23 @@ class _NonPolyFeatureHandler(Handler):
 class _PseudoSiteFeatureHandler(Handler):
     category = '_ihm_pseudo_site_feature'
 
-    def __call__(self, feature_id, cartn_x, cartn_y, cartn_z, radius,
-                 description):
+    def __call__(self, feature_id, pseudo_site_id):
         f = self.sysr.features.get_by_id(feature_id,
                                          ihm.restraint.PseudoSiteFeature)
-        f.x = self.get_float(cartn_x)
-        f.y = self.get_float(cartn_y)
-        f.z = self.get_float(cartn_z)
-        f.radius = self.get_float(radius)
-        f.description = description
+        p = self.sysr.pseudo_sites.get_by_id(pseudo_site_id)
+        f.site = p
+
+
+class _PseudoSiteHandler(Handler):
+    category = '_ihm_pseudo_site'
+
+    def __call__(self, id, cartn_x, cartn_y, cartn_z, radius, description):
+        p = self.sysr.pseudo_sites.get_by_id(id)
+        p.x = self.get_float(cartn_x)
+        p.y = self.get_float(cartn_y)
+        p.z = self.get_float(cartn_z)
+        p.radius = self.get_float(radius)
+        p.description = description
 
 
 def _make_harmonic(low, up, _get_float):
@@ -2243,6 +2258,23 @@ class _CrossLinkRestraintHandler(Handler):
         for xl in self.sysr.cross_links.get_all():
             r = rsr_for_ex_xl[xl.experimental_cross_link]
             r.cross_links.append(xl)
+
+
+class _CrossLinkPseudoSiteHandler(Handler):
+    category = '_ihm_cross_link_pseudo_site'
+
+    def __call__(self, id, restraint_id, cross_link_partner, pseudo_site_id,
+                 model_id):
+        xlps = self.sysr.cross_link_pseudo_sites.get_by_id(id)
+        xlps.site = self.sysr.pseudo_sites.get_by_id(pseudo_site_id)
+        xlps.model = self.sysr.models.get_by_id_or_none(model_id)
+
+        xl = self.sysr.cross_links.get_by_id(restraint_id)
+        partner = self.get_int(cross_link_partner)
+        if partner == 2:
+            xl.pseudo2 = xlps
+        else:
+            xl.pseudo1 = xlps
 
 
 class _CrossLinkResultHandler(Handler):
@@ -2930,6 +2962,7 @@ def read(fh, model_class=ihm.model.Model, format='mmCIF', handlers=[],
               _FeatureListHandler(s),
               _PolyResidueFeatureHandler(s), _PolyAtomFeatureHandler(s),
               _NonPolyFeatureHandler(s), _PseudoSiteFeatureHandler(s),
+              _PseudoSiteHandler(s),
               _DerivedDistanceRestraintHandler(s),
               _PredictedContactRestraintHandler(s), _CenterHandler(s),
               _TransformationHandler(s), _GeometricObjectHandler(s),
@@ -2937,6 +2970,7 @@ def read(fh, model_class=ihm.model.Model, format='mmCIF', handlers=[],
               _AxisHandler(s), _PlaneHandler(s), _GeometricRestraintHandler(s),
               _PolySeqSchemeHandler(s), _NonPolySchemeHandler(s),
               _CrossLinkListHandler(s), _CrossLinkRestraintHandler(s),
+              _CrossLinkPseudoSiteHandler(s),
               _CrossLinkResultHandler(s), _StartingModelSeqDifHandler(s),
               _OrderedEnsembleHandler(s), _FLRChemDescriptorHandler(s),
               _FLRInstSettingHandler(s),

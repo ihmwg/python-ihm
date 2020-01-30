@@ -191,6 +191,13 @@ class System(object):
         #: See :class:`~ihm.restraint.Feature`.
         self.orphan_features = []
 
+        #: All orphaned pseudo sites.
+        #: This can be used to keep track of all pseudo sites that are not
+        #: otherwise used - normally a site is used in a
+        #: :class:`~ihm.restraint.PseudoSiteFeature` or a
+        #: :class:`~ihm.restraint.CrossLinkPseudoSite`.
+        self.orphan_pseudo_sites = []
+
         #: Contains the fluorescence (FLR) part.
         #: See :class:`~ihm.flr.FLRData`.
         self.flr_data = []
@@ -432,6 +439,24 @@ class System(object):
                         if feature:
                             yield feature
         return itertools.chain(self.orphan_features, _all_restraint_features())
+
+    def _all_pseudo_sites(self):
+        """Iterate over all PseudoSites in the system.
+           This includes all PseudoSites referenced from other objects,
+           plus any referenced from the top-level system.
+           Duplicates may be present."""
+        def _all_restraint_sites():
+            for r in self._all_restraints():
+                if hasattr(r, 'cross_links'):
+                    for xl in r.cross_links:
+                        if xl.pseudo1:
+                            yield xl.pseudo1.site
+                        if xl.pseudo2:
+                            yield xl.pseudo2.site
+        return itertools.chain(self.orphan_pseudo_sites,
+                               _all_restraint_sites(),
+                               (f.site for f in self._all_features()
+                                if hasattr(f, 'site') and f.site))
 
     def _all_software(self):
         """Iterate over all Software in the system.
