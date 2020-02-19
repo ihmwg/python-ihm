@@ -296,10 +296,10 @@ class Subsample(object):
 
        :param str name: A descriptive name for this sample
        :param int num_models: The total number of models in this sample
-       :param model_group: The set of models in this ensemble, if applicable.
+       :param model_group: The set of models in this sample, if applicable.
        :type model_group: :class:`ModelGroup`
        :param file: A reference to an external file containing coordinates
-              for the entire ensemble, for example as a DCD file
+              for the entire sample, for example as a DCD file
               (see :class:`DCDWriter`).
        :type file: :class:`ihm.location.OutputFileLocation`
     """
