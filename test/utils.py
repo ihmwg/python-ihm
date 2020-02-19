@@ -35,6 +35,7 @@ if not hasattr(unittest.TestCase, 'assertIn'):
         return self.assertTrue(obj is not None, msg or 'unexpectedly None')
     unittest.TestCase.assertIn = assertIn
     unittest.TestCase.assertNotIn = assertNotIn
+    unittest.TestCase.assertIs = assertIs
     unittest.TestCase.assertIsInstance = assertIsInstance
     unittest.TestCase.assertLess = assertLess
     unittest.TestCase.assertGreater = assertGreater
