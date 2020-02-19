@@ -284,7 +284,7 @@ class Subsample(object):
        In some cases the models that make up an :class:`Ensemble` may be
        partitioned into subsamples, for example to determine if the
        sampling was exhaustive
-       (see https://www.ncbi.nlm.nih.gov/pmc/articles/pmid/29211988/).
+       (see `Viswanath et al. 2017 <https://www.ncbi.nlm.nih.gov/pmc/articles/pmid/29211988/>`_).
        This base class can be used to describe the set of models in the
        subsample, for example by pointing to an externally-deposited
        set of conformations.
