@@ -188,7 +188,7 @@ class Ensemble(object):
     """
     def __init__(self, model_group, num_models, post_process=None,
                  clustering_method=None, clustering_feature=None, name=None,
-                 precision=None, file=None, details=None, sub_samples=None):
+                 precision=None, file=None, details=None):
         self.model_group, self.num_models = model_group, num_models
         self.post_process = post_process
         self.clustering_method = clustering_method
@@ -291,7 +291,7 @@ class Subsample(object):
 
        Usually a derived class (:class:`RandomSubsample` or
        :class:`IndependentSubsample`) is used instead of this class.
-       Instances are stored in :attr:`Ensemble.sub_samples`. All of the
+       Instances are stored in :attr:`Ensemble.subsamples`. All of the
        subsamples in a given ensemble must be of the same type.
 
        :param str name: A descriptive name for this sample
