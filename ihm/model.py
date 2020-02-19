@@ -182,7 +182,7 @@ class Ensemble(object):
        :param float precision: The precision of the entire ensemble.
        :param file: A reference to an external file containing coordinates
               for the entire ensemble, for example as a DCD file
-              (see :class:`DCDWriter`). See also ``sub_samples``.
+              (see :class:`DCDWriter`). See also :attr:`subsamples`.
        :type file: :class:`ihm.location.OutputFileLocation`
        :param str details: Additional text describing this ensemble
     """
