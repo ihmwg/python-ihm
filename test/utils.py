@@ -14,6 +14,8 @@ if not hasattr(unittest.TestCase, 'assertIn'):
         return self.assertTrue(member not in container,
                         msg or '%s unexpectedly found in %s'
                         % (member, container))
+    def assertIs(self, a, b, msg=None):
+        return self.assertTrue(a is b, msg or '%s is not %s' % (a, b))
     def assertIsInstance(self, obj, cls, msg=None):
         return self.assertTrue(isinstance(obj, cls),
                         msg or '%s is not an instance of %s' % (obj, cls))
