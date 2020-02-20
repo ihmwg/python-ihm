@@ -677,7 +677,12 @@ class Tests(unittest.TestCase):
         ss2.file = loc4
         ensemble.densities = [density]
         ensemble.subsamples = [ss1, ss2]
-        s.ensembles.append(ensemble)
+
+        ensemble2 = MockObject()
+        ensemble2.file = None
+        ensemble2.densities = []
+        ensemble2.subsamples = []
+        s.ensembles.extend((ensemble, ensemble2))
 
         start_model = MockObject()
         start_model.dataset = None
