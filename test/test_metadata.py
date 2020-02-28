@@ -326,6 +326,15 @@ class Tests(unittest.TestCase):
         self.assertEqual(s.name, 'Phyre2')
         self.assertEqual(s.version, '2.0')
 
+    def test_swiss_model(self):
+        """Test PDBParser when given a SWISS-MODEL model."""
+        pdbname = utils.get_input_file_name(TOPDIR, 'swiss_model.pdb')
+        p = self._parse_pdb(pdbname)
+        s, = p['software']
+        self.assertEqual(s.name, 'SWISS-MODEL')
+        self.assertIn('using PROMOD3 engine', s.description)
+        self.assertEqual(s.version, '1.3.0')
+
     def test_unknown_model(self):
         """Test PDBParser when given an unknown model."""
         pdbname = utils.get_input_file_name(TOPDIR, 'unknown_model.pdb')
