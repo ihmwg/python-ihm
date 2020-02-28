@@ -12,6 +12,7 @@
 
 import ihm
 from . import location, dataset, startmodel, util
+from .startmodel import SequenceIdentityDenominator
 import ihm.source
 
 import operator
@@ -169,6 +170,32 @@ def _get_swiss_model_metadata(filename):
                         else:
                             in_header[key] = val
     return meta
+
+def _parse_seq(seq):
+    """Get a primary sequence and its length (without gaps)"""
+    return seq, len(seq.replace('-', ''))
+
+def _get_aligned_region(tgt_seq, tmpl_seq):
+    """Given two primary sequences, return the range of each that is
+       aligned (i.e. from the first aligned residue in both sequences to
+       the last)"""
+    first = True
+    tgt_pos = 0
+    tmpl_pos = 0
+    start_align = end_align = None
+    for tgt, tmpl in zip(tgt_seq, tmpl_seq):
+        if tgt != '-':
+            tgt_pos += 1
+        if tmpl != '-':
+            tmpl_pos += 1
+            if tgt != '-':
+                end_align = (tgt_pos, tmpl_pos)
+                if first:
+                    start_align = end_align
+                    first = False
+    if first:
+        raise ValueError("Cannot parse empty alignment")
+    return (start_align[0], end_align[0]), (start_align[1], end_align[1])
 
 
 class PDBParser(Parser):
@@ -354,6 +381,45 @@ class PDBParser(Parser):
                version=meta.get('info', {}).get('VERSN', ihm.unknown),
                location='https://swissmodel.expasy.org/')
         ret['software'].append(s)
+        comp_model_ds = dataset.ComparativeModelDataset(local_file)
+        ret['dataset'] = comp_model_ds
+
+        ret['templates'] = self._add_swiss_model_templates(
+                local_file, meta, comp_model_ds, ret)
+
+    def _add_swiss_model_templates(self, local_file, meta, comp_model_ds, ret):
+        """Add template information extracted from SWISS-MODEL PDB metadata"""
+        ret_templates = {}
+        templates = [v for k,v in sorted(((k, v) for k,v in meta.items()
+                                          if k.startswith('TEMPLATE')),
+                                          key=operator.itemgetter(0))]
+        for t in templates:
+            l = location.PDBLocation(t['PDBID'])
+            d = dataset.PDBDataset(l)
+            # Make the comparative model dataset derive from the template's
+            comp_model_ds.parents.append(d)
+            for chain in t['MMCIF']:
+                # todo: check we're using the right chain ID and that target
+                # and template chain IDs really are always the same
+                offset = int(t[chain, 'OFF'])
+                tgt_seq, tgt_len = _parse_seq(t[chain, 'TRG'])
+                tmpl_seq, tmpl_len = _parse_seq(t[chain, 'TPL'])
+                tgt_rng, tmpl_rng = _get_aligned_region(tgt_seq, tmpl_seq)
+
+                # apply offset
+                tmpl_rng = (tmpl_rng[0] + offset, tmpl_rng[1] + offset)
+
+                seq_id = float(t['SID'])
+                seq_id = startmodel.SequenceIdentity(
+                    float(t['SID']),
+                    SequenceIdentityDenominator.NUM_ALIGNED_WITHOUT_GAPS)
+                tmpl = startmodel.Template(dataset=d, asym_id=chain,
+                                   seq_id_range=tgt_rng,
+                                   template_seq_id_range=tmpl_rng,
+                                   sequence_identity=seq_id,
+                                   alignment_file=local_file)
+                ret_templates[chain] = [tmpl]
+        return ret_templates
 
     def _parse_unknown_model(self, fh, first_line, local_file, filename, ret):
         # todo: revisit assumption that all unknown source PDBs are
@@ -426,7 +492,7 @@ class PDBParser(Parser):
         target_asym_id = info.group(6)
         sequence_identity = startmodel.SequenceIdentity(
                           float(info.group(8)),
-                          startmodel.SequenceIdentityDenominator.SHORTER_LENGTH)
+                          SequenceIdentityDenominator.SHORTER_LENGTH)
 
         # Assume a code of 1abc, 1abc_N, 1abcX, or 1abcX_N refers
         # to a real PDB structure
