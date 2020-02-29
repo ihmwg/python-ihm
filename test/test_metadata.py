@@ -401,6 +401,11 @@ class Tests(unittest.TestCase):
         self.assertEqual(dataset.location.details,
                          'Starting model structure')
 
+    def test_get_aligned_region_empty(self):
+        """Test _get_aligned_region() with empty alignment"""
+        self.assertRaises(ValueError, ihm.metadata._get_aligned_region,
+                          'AAAA', '----')
+
 
 if __name__ == '__main__':
     unittest.main()
