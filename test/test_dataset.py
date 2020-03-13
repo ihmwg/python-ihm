@@ -27,6 +27,16 @@ class Tests(unittest.TestCase):
         self.assertEqual(len(d.parents), 1)
         self.assertNotEqual(d, d2)
 
+        l3 = ihm.location.PDBLocation('1cde', version='foo', details='bar')
+        d3 = ihm.dataset.Dataset(l3, details='bar')
+        t = ihm.dataset.DatasetTransformation(
+            rot_matrix=[[-0.64,0.09,0.77],[0.76,-0.12,0.64],
+                        [0.15,0.99,0.01]],
+            tr_vector=[1.,2.,3.])
+        td = ihm.dataset.TransformedDataset(d3, transform=t)
+        d.parents.append(td)
+        self.assertEqual(len(d.parents), 2)
+
     def test_add_primary_no_parents(self):
         """Test add_primary() method, no parents"""
         l1 = ihm.location.PDBLocation('1abc', version='foo', details='bar')
