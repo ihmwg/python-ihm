@@ -61,7 +61,7 @@ class TransformedDataset(object):
        :type dataset: :class:`Dataset`
        :param transform: The rotation and translation that places a
               derived dataset on this dataset.
-       :type transform: :class:`ihm.geometry.Transform`
+       :type transform: :class:`ihm.geometry.Transformation`
     """
     def __init__(self, dataset, transform):
         self.dataset, self.transform = dataset, transform
