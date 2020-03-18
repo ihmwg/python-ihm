@@ -48,20 +48,6 @@ class Dataset(object):
         root.parents.append(dataset)
 
 
-class DatasetTransformation(object):
-    """A transformation to apply to a :class:`Dataset`.
-       See :class:`TransformedDataset`. This is typically used for
-       derived datasets.
-
-       :param rot_matrix: Rotation matrix (as a 3x3 array of floats) that
-              places a derived dataset on its parent.
-       :param tr_vector: Translation vector (as a 3-element float list) that
-              places a derived dataset on its parent.
-    """
-    def __init__(self, rot_matrix, tr_vector):
-        self.rot_matrix, self.tr_vector = rot_matrix, tr_vector
-
-
 class TransformedDataset(object):
     """A :class:`Dataset` that should be rotated or translated before using.
        This is typically used for derived datasets
@@ -75,7 +61,7 @@ class TransformedDataset(object):
        :type dataset: :class:`Dataset`
        :param transform: The rotation and translation that places a
               derived dataset on this dataset.
-       :type transform: :class:`DatasetTransform`
+       :type transform: :class:`ihm.geometry.Transform`
     """
     def __init__(self, dataset, transform):
         self.dataset, self.transform = dataset, transform

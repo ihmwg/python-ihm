@@ -711,12 +711,16 @@ class _DatasetDumper(Dumper):
         self._transform_by_id = []
         for d in system._all_datasets():
             for t in _all_transforms(d):
-                util._remove_id(t)
+                # Can't use default _id attribute here since a given transform
+                # may be used by both a dataset and a geometric object, and
+                # since they live in different tables they need different IDs
+                util._remove_id(t, attr='_dtid')
             util._remove_id(d)
         for d in system._all_datasets():
             util._assign_id(d, seen_datasets, self._dataset_by_id)
             for t in _all_transforms(d):
-                util._assign_id(t, seen_transforms, self._transform_by_id)
+                util._assign_id(t, seen_transforms, self._transform_by_id,
+                                attr='_dtid')
 
         # Assign IDs to all groups and remove duplicates
         seen_group_ids = {}
@@ -801,7 +805,7 @@ class _DatasetDumper(Dumper):
                 ids = set()
                 for p in derived.parents:
                     if isinstance(p, ihm.dataset.TransformedDataset):
-                        ids.add((p.dataset._id, p.transform._id))
+                        ids.add((p.dataset._id, p.transform._dtid))
                     else:
                         ids.add((p._id, None))
                 # Don't duplicate IDs, and sort by parent ID (cannot sort
@@ -820,7 +824,7 @@ class _DatasetDumper(Dumper):
                  "rot_matrix[1][3]", "rot_matrix[2][3]", "rot_matrix[3][3]",
                  "tr_vector[1]", "tr_vector[2]", "tr_vector[3]"]) as l:
             for t in self._transform_by_id:
-                l.write(id=t._id,
+                l.write(id=t._dtid,
                         **_get_transform(t.rot_matrix, t.tr_vector))
 
 

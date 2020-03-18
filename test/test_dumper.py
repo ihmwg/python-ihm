@@ -1046,7 +1046,7 @@ _ihm_external_files.details
         # Derived dataset with (shared) transformation
         l = ihm.location.PDBLocation('1cde', version='foo', details='bar')
         dst = ihm.dataset.Dataset(l, details='bar')
-        t = ihm.dataset.DatasetTransformation(
+        t = ihm.geometry.Transformation(
             rot_matrix=[[-0.64,0.09,0.77],[0.76,-0.12,0.64],
                         [0.15,0.99,0.01]],
             tr_vector=[1.,2.,3.])
