@@ -335,6 +335,44 @@ def _prettyprint_seq(seq, width):
         yield ''.join(line)
 
 
+class _StructRefDumper(Dumper):
+    def finalize(self, system):
+        ordinal = itertools.count(1)
+        for e in system.entities:
+            for r in e.references:
+                r._id = next(ordinal)
+
+    def _get_sequence(self, reference):
+        """Get the sequence string"""
+        # Split into lines to get tidier CIF output
+        return "\n".join(_prettyprint_seq(reference.sequence, 70))
+
+    def dump(self, system, writer):
+        with writer.loop("_struct_ref",
+                ["id", "entity_id", "db_name", "db_code", "pdbx_db_accession",
+                 "pdbx_align_begin", "pdbx_seq_one_letter_code",
+                 "details"]) as l:
+            for e in system.entities:
+                for r in e.references:
+                    l.write(id=r._id, entity_id=e._id, db_name=r.db_name,
+                            db_code=r.db_code, pdbx_db_accession=r.accession,
+                            pdbx_align_begin=r.align_begin, details=r.details,
+                            pdbx_seq_one_letter_code=self._get_sequence(r))
+        self.dump_seq(system, writer)
+
+    def dump_seq(self, system, writer):
+        # todo: allow multiple alignments per reference
+        with writer.loop("_struct_ref_seq",
+                ["align_id", "ref_id", "seq_align_beg", "seq_align_end",
+                 "db_align_beg", "db_align_end"]) as l:
+            for e in system.entities:
+                for r in e.references:
+                    l.write(align_id=r._id, ref_id=r._id, seq_align_beg=1,
+                            seq_align_end=len(e.sequence),
+                            db_align_beg=r.align_begin,
+                            db_align_end=r.align_begin + len(e.sequence) - 1)
+
+
 class _EntityPolyDumper(Dumper):
     def __init__(self):
         super(_EntityPolyDumper, self).__init__()
@@ -2888,7 +2926,8 @@ def write(fh, systems, format='mmCIF', dumpers=[]):
                _AuditAuthorDumper(), _GrantDumper(),
                _ChemCompDumper(), _ChemDescriptorDumper(),
                _EntityDumper(), _EntitySrcGenDumper(), _EntitySrcNatDumper(),
-               _EntitySrcSynDumper(), _EntityPolyDumper(),
+               _EntitySrcSynDumper(), _StructRefDumper(),
+               _EntityPolyDumper(),
                _EntityNonPolyDumper(),
                _EntityPolySeqDumper(), _EntityPolySegmentDumper(),
                _StructAsymDumper(),

@@ -556,6 +556,55 @@ _pdbx_entity_src_syn.strain 'test strain'
                 # _pdbx_entity_src_syn.strain is not used in current PDB
                 self.assertIsNone(e.source.strain)
 
+    def test_struct_ref_handler(self):
+        """Test StructRefHandler"""
+        entity = """
+loop_
+_entity.id
+_entity.type
+_entity.src_method
+_entity.pdbx_description
+_entity.pdbx_number_of_molecules
+_entity.formula_weight
+_entity.details
+1 polymer man test 1 100.0 .
+"""
+        struct_ref = """
+loop_
+_struct_ref.id
+_struct_ref.entity_id
+_struct_ref.db_name
+_struct_ref.db_code
+_struct_ref.pdbx_db_accession
+_struct_ref.pdbx_align_begin
+_struct_ref.pdbx_seq_one_letter_code
+_struct_ref.details
+1 1 UNP NUP84_YEAST P52891 3 MELSPTYQT 'test sequence'
+2 1 MyDatabase testcode testacc 1 MEL 'other sequence'
+"""
+        # Order of the categories shouldn't matter
+        cif1 = entity + struct_ref
+        cif2 = struct_ref + entity
+        for cif in cif1, cif2:
+            for fh in cif_file_handles(cif):
+                s, = ihm.reader.read(fh)
+                e, = s.entities
+                r1, r2 = e.references
+                self.assertIsInstance(r1, ihm.reference.UniProtSequence)
+                self.assertEqual(r1.db_name, 'UNP')
+                self.assertEqual(r1.db_code, 'NUP84_YEAST')
+                self.assertEqual(r1.accession, 'P52891')
+                self.assertEqual(r1.align_begin, 3)
+                self.assertEqual(r1.sequence, 'MELSPTYQT')
+                self.assertEqual(r1.details, 'test sequence')
+                self.assertIsInstance(r2, ihm.reference.Sequence)
+                self.assertEqual(r2.db_name, 'MyDatabase')
+                self.assertEqual(r2.db_code, 'testcode')
+                self.assertEqual(r2.accession, 'testacc')
+                self.assertEqual(r2.align_begin, 1)
+                self.assertEqual(r2.sequence, 'MEL')
+                self.assertEqual(r2.details, 'other sequence')
+
     def test_asym_unit_handler(self):
         """Test AsymUnitHandler"""
         cif = """
