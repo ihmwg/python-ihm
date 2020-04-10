@@ -467,6 +467,44 @@ _struct_ref_seq.db_align_end
 #
 """)
 
+    def test_struct_ref_bad_align_begin(self):
+        """Test StructRefDumper with bad align_begin"""
+        system = ihm.System()
+        r = ihm.reference.UniProtSequence(
+                db_code='NUP84_YEAST', accession='P52891', sequence='MELSPTYQT',
+                align_begin=90, details='test sequence')
+        system.entities.append(ihm.Entity('LSPT', references=[r]))
+        dumper = ihm.dumper._EntityDumper()
+        dumper.finalize(system) # Assign entity IDs
+
+        dumper = ihm.dumper._StructRefDumper()
+        dumper.finalize(system) # Assign IDs
+        self.assertRaises(ValueError, _get_dumper_output, dumper, system)
+        # Cannot use assertRaises as a context manager in Python 2.6
+        try:
+            _get_dumper_output(dumper, system)
+        except ValueError as exc:
+            self.assertIn('is 90, out of range 1-9', str(exc))
+
+    def test_struct_ref_seq_mismatch(self):
+        """Test StructRefDumper with sequence mismatch"""
+        system = ihm.System()
+        r = ihm.reference.UniProtSequence(
+                db_code='NUP84_YEAST', accession='P52891', sequence='MELSPTYQT',
+                align_begin=1, details='test sequence')
+        system.entities.append(ihm.Entity('LSPT', references=[r]))
+        dumper = ihm.dumper._EntityDumper()
+        dumper.finalize(system) # Assign entity IDs
+
+        dumper = ihm.dumper._StructRefDumper()
+        dumper.finalize(system) # Assign IDs
+        self.assertRaises(ValueError, _get_dumper_output, dumper, system)
+        # Cannot use assertRaises as a context manager in Python 2.6
+        try:
+            _get_dumper_output(dumper, system)
+        except ValueError as exc:
+            self.assertIn('does not match entity canonical sequence', str(exc))
+
     def test_chem_comp_dumper(self):
         """Test ChemCompDumper"""
         system = ihm.System()

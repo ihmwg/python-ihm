@@ -347,6 +347,23 @@ class _StructRefDumper(Dumper):
         # Split into lines to get tidier CIF output
         return "\n".join(_prettyprint_seq(reference.sequence, 70))
 
+    def _check_reference_sequence(self, entity, ref):
+        """Make sure that the Entity and Reference sequences match"""
+        if ref.align_begin < 1 or ref.align_begin > len(ref.sequence):
+            raise ValueError("Sequence.align_begin for %s is %d, out of range "
+                             "1-%d" % (ref, ref.align_begin, len(ref.sequence)))
+        canon = "".join(comp.code_canonical for comp in entity.sequence)
+        if not ref.sequence[ref.align_begin - 1:].startswith(canon):
+            refseq = ref.sequence[ref.align_begin - 1:]
+            raise ValueError(
+                    "Reference sequence from %s does not match entity canonical"
+                    " sequence for %s - you may need to adjust "
+                    "Sequence.align_begin:\nReference: %s\nEntity:    %s\n"
+                    "Match:     %s"
+                    % (ref, entity, refseq, canon,
+                       ''.join('*' if a==b else ' '
+                               for (a,b) in zip(refseq, canon))))
+
     def dump(self, system, writer):
         with writer.loop("_struct_ref",
                 ["id", "entity_id", "db_name", "db_code", "pdbx_db_accession",
@@ -354,6 +371,7 @@ class _StructRefDumper(Dumper):
                  "details"]) as l:
             for e in system.entities:
                 for r in e.references:
+                    self._check_reference_sequence(e, r)
                     l.write(id=r._id, entity_id=e._id, db_name=r.db_name,
                             db_code=r.db_code, pdbx_db_accession=r.accession,
                             pdbx_align_begin=r.align_begin, details=r.details,

@@ -59,6 +59,9 @@ class UniProtSequence(Sequence):
                 self._db_name, db_code, accession, sequence, align_begin,
                 details)
 
+    def __str__(self):
+        return "<ihm.reference.UniProtSequence(%s)>" % self.accession
+
     @classmethod
     def from_accession(cls, accession, align_begin=1):
         """Create :class:`UniProtSequence` from just an accession.
