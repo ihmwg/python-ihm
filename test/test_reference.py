@@ -27,17 +27,26 @@ class Tests(unittest.TestCase):
         self.assertEqual(s.sequence, 'CCCG')
         self.assertEqual(s.align_begin, 10)
         self.assertEqual(s.details, 'foo')
+        self.assertEqual(s.seq_dif, [])
 
     def test_uniprot_sequence(self):
         """Test UniProtSequence class"""
+        lpep = ihm.LPeptideAlphabet()
+        sd = ihm.reference.SeqDif(seq_id=1, db_monomer=lpep['C'],
+                                  monomer=lpep['W'], details='Test mutation')
         s = ihm.reference.UniProtSequence(db_code='testcode',
-                accession='testacc', sequence='CCCG')
+                accession='testacc', sequence='CCCG', seq_dif=[sd])
         self.assertEqual(s.db_name, 'UNP')
         self.assertEqual(s.db_code, 'testcode')
         self.assertEqual(s.accession, 'testacc')
         self.assertEqual(s.sequence, 'CCCG')
         self.assertEqual(s.align_begin, 1)
         self.assertIsNone(s.details)
+        self.assertEqual(len(s.seq_dif), 1)
+        self.assertEqual(s.seq_dif[0].seq_id, 1)
+        self.assertEqual(s.seq_dif[0].db_monomer.id, 'CYS')
+        self.assertEqual(s.seq_dif[0].monomer.id, 'TRP')
+        self.assertEqual(s.seq_dif[0].details, 'Test mutation')
 
     def _get_from_uniprot_accession(self, fasta_fname):
         def mock_urlopen(url):

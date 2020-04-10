@@ -347,20 +347,39 @@ class _StructRefDumper(Dumper):
         # Split into lines to get tidier CIF output
         return "\n".join(_prettyprint_seq(reference.sequence, 70))
 
+    def _check_seq_dif(self, ref):
+        """Check all SeqDif objects for the sequence. Return the mutated
+           sequence."""
+        refseq = list(ref.sequence)
+        for sd in ref.seq_dif:
+            if sd.seq_id < 1 or sd.seq_id > len(refseq):
+                raise IndexError("SeqDif.seq_id for %s is %d, out of "
+                                 "range 1-%d"
+                                 % (ref, sd.seq_id, len(refseq)))
+            if sd.db_monomer.code_canonical != refseq[sd.seq_id-1]:
+                raise ValueError("SeqDif.db_monomer one-letter code (%s) does "
+                                 "not match that in %s (%s at position %d)"
+                                 % (sd.db_monomer.code_canonical, ref,
+                                    refseq[sd.seq_id-1], sd.seq_id))
+            refseq[sd.seq_id-1] = sd.monomer.code_canonical
+        return ''.join(refseq)
+
     def _check_reference_sequence(self, entity, ref):
         """Make sure that the Entity and Reference sequences match"""
         if ref.align_begin < 1 or ref.align_begin > len(ref.sequence):
-            raise ValueError("Sequence.align_begin for %s is %d, out of range "
+            raise IndexError("Sequence.align_begin for %s is %d, out of range "
                              "1-%d" % (ref, ref.align_begin, len(ref.sequence)))
         canon = "".join(comp.code_canonical for comp in entity.sequence)
-        if not ref.sequence[ref.align_begin - 1:].startswith(canon):
-            refseq = ref.sequence[ref.align_begin - 1:]
+        refseq = self._check_seq_dif(ref)
+        if not refseq[ref.align_begin - 1:].startswith(canon):
+            refseq = refseq[ref.align_begin - 1:]
             raise ValueError(
                     "Reference sequence from %s does not match entity canonical"
                     " sequence for %s - you may need to adjust "
-                    "Sequence.align_begin:\nReference: %s\nEntity:    %s\n"
+                    "Sequence.align_begin (%d) or add to Sequence.seq_dif:\n"
+                    "Reference: %s\nEntity:    %s\n"
                     "Match:     %s"
-                    % (ref, entity, refseq, canon,
+                    % (ref, entity, ref.align_begin, refseq, canon,
                        ''.join('*' if a==b else ' '
                                for (a,b) in zip(refseq, canon))))
 
@@ -377,6 +396,7 @@ class _StructRefDumper(Dumper):
                             pdbx_align_begin=r.align_begin, details=r.details,
                             pdbx_seq_one_letter_code=self._get_sequence(r))
         self.dump_seq(system, writer)
+        self.dump_seq_dif(system, writer)
 
     def dump_seq(self, system, writer):
         # todo: allow multiple alignments per reference
@@ -389,6 +409,18 @@ class _StructRefDumper(Dumper):
                             seq_align_end=len(e.sequence),
                             db_align_beg=r.align_begin,
                             db_align_end=r.align_begin + len(e.sequence) - 1)
+
+    def dump_seq_dif(self, system, writer):
+        ordinal = itertools.count(1)
+        with writer.loop("_struct_ref_seq_dif",
+                ["pdbx_ordinal", "align_id", "seq_num", "db_mon_id", "mon_id",
+                 "details"]) as l:
+            for e in system.entities:
+                for r in e.references:
+                    for sd in r.seq_dif:
+                        l.write(pdbx_ordinal=next(ordinal), align_id=r._id,
+                                seq_num=sd.seq_id, db_mon_id=sd.db_monomer.id,
+                                mon_id=sd.monomer.id, details=sd.details)
 
 
 class _EntityPolyDumper(Dumper):
