@@ -22,6 +22,9 @@ class Sequence(Reference):
        convenience subclasses are provided for common sequence databases such
        as :class:`UniProtSequence`.
 
+       These objects are typically passed to the :class:`ihm.Entity`
+       constructor.
+
        See also :attr:`alignments` to describe the correspondence between
        the database and entity sequences.
 
@@ -52,6 +55,9 @@ class Sequence(Reference):
 
 class UniProtSequence(Sequence):
     """Point to the sequence of an :class:`ihm.Entity` in UniProt.
+
+       These objects are typically passed to the :class:`ihm.Entity`
+       constructor.
 
        :param str db_code: The UniProt name (e.g. NUP84_YEAST)
        :param str accession: The UniProt accession (e.g. P52891)
