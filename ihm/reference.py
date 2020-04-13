@@ -98,7 +98,7 @@ class UniProtSequence(Sequence):
 class Alignment(object):
     """A sequence range that aligns between the database and the entity.
        This describes part of the sequence in the sequence database
-       (:class:`Entity`) and in the :class:`ihm.Entity`. The two ranges
+       (:class:`Sequence`) and in the :class:`ihm.Entity`. The two ranges
        must be the same length and have the same primary sequence (any
        differences must be described with :class:`SeqDif` objects).
 
@@ -133,7 +133,7 @@ class SeqDif(object):
        :type db_monomer: :class:`ihm.ChemComp`
        :param monomer: The monomer type (as a :class:`~ihm.ChemComp` object)
               in the entity sequence.
-       :type db_monomer: :class:`ihm.ChemComp`
+       :type monomer: :class:`ihm.ChemComp`
        :param str details: Descriptive text for the sequence difference.
     """
     def __init__(self, seq_id, db_monomer, monomer, details=None):
