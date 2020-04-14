@@ -1,5 +1,5 @@
-HEAD
-====
+0.15 - 2020-04-14
+=================
   - :class:`ihm.dataset.Dataset` objects that derive from another dataset
     can now record any transformation involved; see
     :class:`ihm.dataset.TransformedDataset`.
