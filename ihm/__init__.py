@@ -687,7 +687,7 @@ class ChemComp(object):
     type = 'other'
 
     _element_mass = {'H':1.008, 'C':12.011, 'N':14.007, 'O':15.999,
-                     'P':30.974, 'S':32.060, 'Se':78.971}
+                     'P':30.974, 'S':32.060, 'Se':78.971, 'Fe':55.845}
 
     def __init__(self, id, code, code_canonical, name=None, formula=None):
         self.id = id
