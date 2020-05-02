@@ -694,6 +694,10 @@ class ChemComp(object):
         self.code, self.code_canonical, self.name = code, code_canonical, name
         self.formula = formula
 
+    def __str__(self):
+        return '<%s.%s(%s)>' % (
+                self.__class__.__module__, self.__class__.__name__, self.id)
+
     def __get_weight(self):
         # Calculate weight from formula
         if self.formula is None:
