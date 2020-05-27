@@ -4,7 +4,7 @@ import unittest
 import sys
 
 if sys.version_info[0] >= 3:
-    from io import StringIO
+    from io import StringIO, BytesIO
 else:
     from io import BytesIO as StringIO
 
@@ -175,6 +175,13 @@ save_
 
         self.assertEqual(d.linked_items,
                          {'_test_category2.baz': '_test_category1.bar'})
+
+        if sys.version_info[0] >= 3:
+            # Make sure that files can be read in binary mode
+            d = ihm.dictionary.read(BytesIO(cif.encode('latin-1')))
+            self.assertEqual(sorted(d.categories.keys()),
+                             ['test_category1', 'test_category2',
+                              'test_category3'])
 
     def test_add(self):
         """Test adding two Dictionaries"""

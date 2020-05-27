@@ -7,7 +7,7 @@ import sys
 import operator
 import warnings
 if sys.version_info[0] >= 3:
-    from io import StringIO
+    from io import StringIO, BytesIO
 else:
     from io import BytesIO as StringIO
 
@@ -79,6 +79,10 @@ class Tests(unittest.TestCase):
         cif = "data_model\n_struct.entry_id testid\n"
         for fh in cif_file_handles(cif):
             s, = ihm.reader.read(fh)
+            self.assertEqual(s.id, 'testid')
+        if sys.version_info[0] >= 3:
+            # Make sure we can read the file in binary mode too
+            s, = ihm.reader.read(BytesIO(cif.encode('latin-1')))
             self.assertEqual(s.id, 'testid')
 
     def test_read_custom_handler(self):
