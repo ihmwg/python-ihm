@@ -218,6 +218,12 @@ class Category(object):
         self.mandatory = None
 
 
+class _DoNothingRegEx(object):
+    """A mock regex object which always matches"""
+    def match(self, value):
+        return True
+
+
 class ItemType(object):
     """Represent the type of a data item.
        This keeps the set of valid strings for values of a given
@@ -227,7 +233,11 @@ class ItemType(object):
         self.name, self.construct = name, construct
         self.primitive_code = primitive_code
         # Ensure that regex matches the entire value
-        self.regex = re.compile(construct + '$')
+        try:
+            self.regex = re.compile(construct + '$')
+        except re.error:
+            # Some CIF regexes aren't valid Python regexes; skip these
+            self.regex = _DoNothingRegEx()
 
     case_sensitive = property(lambda x: x.primitive_code != 'uchar',
                               doc='True iff this type is case sensitive')
