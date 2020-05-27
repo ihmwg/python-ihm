@@ -61,7 +61,7 @@ class _ValidatorCategoryHandler(Handler):
         super(_ValidatorCategoryHandler, self).__init__(sysr)
         self.category = '_' + category.name
         self.category_obj = category
-        self._keys = [k for k in category.keywords.keys()]
+        self._keys = [k.lower() for k in category.keywords.keys()]
         self.link_keys = set()
         li = sysr.dictionary.linked_items
         for link in itertools.chain(li.keys(), li.values()):
@@ -268,7 +268,7 @@ class _DictionaryReader(object):
         if self.keyword_good:
             for (name, category, mandatory) in self._keyword_info:
                 k = Keyword()
-                k.name, k.mandatory = name, mandatory
+                k.name, k.mandatory = name.lower(), mandatory
                 k.enumeration = self._keyword_enumeration
                 k.item_type = self._keyword_item_type
                 # If the owning category does not exist, make it; this can
