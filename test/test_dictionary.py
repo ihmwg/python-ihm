@@ -312,6 +312,14 @@ _test_mandatory_category.bar 2
         self.assertRaises(ihm.dictionary.ValidatorError, d.validate,
                           StringIO(prefix + 't'))
 
+    def test_item_type_bad_regex(self):
+        """Make sure that ItemType handles invalid regex"""
+        # "+" is not a valid Python regex; it should be skipped and will
+        # match any value
+        it = ihm.dictionary.ItemType("test", "text", "+")
+        self.assertTrue(it.regex.match("something"))
+        self.assertTrue(it.regex.match(None))
+
     def test_validate_linked_items(self):
         """Test validation of linked items"""
         prefix = "_test_mandatory_category.bar 1\n"
