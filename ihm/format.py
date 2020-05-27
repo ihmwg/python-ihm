@@ -317,7 +317,8 @@ class CifReader(_Reader):
         self._token_index = 0
         self._linenum = 0
 
-    # Read a line from the file. Treat it as 8-byte (not Unicode)
+    # Read a line from the file. Treat it as ASCII (not Unicode)
+    # but be tolerant of 8-bit characters by assuming latin-1 encoding
     if sys.version_info[0] == 2:
         def _read_line(self):
             return self.fh.readline()
