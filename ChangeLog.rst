@@ -1,3 +1,10 @@
+HEAD
+====
+  - Bugfix: both the pure Python and C-accelerated mmCIF readers are now more
+    robust, able to handle files in binary mode (e.g. from opening a URL)
+    and in Unicode (mmCIF files are supposed to be ASCII but python-ihm should
+    handle any encoding Python supports).
+
 0.15 - 2020-04-14
 =================
   - :class:`ihm.dataset.Dataset` objects that derive from another dataset

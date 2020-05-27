@@ -69,7 +69,12 @@ static ssize_t pyfile_read_callback(char *buffer, size_t buffer_len,
   PyObject *bytes = NULL;
 #endif
   PyObject *read_method = data;
-  PyObject *result = PyObject_CallFunction(read_method, fmt, buffer_len);
+  /* Note that we can read up to `buffer_len` *bytes*, but Python's read()
+     can return Unicode *characters*. One Unicode character can require up to
+     4 bytes to be represented with UTF-8, so limit the read accordingly.
+     (mmCIF files are supposed to be ASCII but we should be liberal in what
+     we accept.) */
+  PyObject *result = PyObject_CallFunction(read_method, fmt, buffer_len / 4);
   if (!result) {
     ihm_error_set(err, IHM_ERROR_VALUE, "read failed");
     return -1;
