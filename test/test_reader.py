@@ -1282,10 +1282,31 @@ _ihm_model_group_link.group_id
 _ihm_model_group_link.model_id
 1 1
 2 2
+loop_
+_atom_site.group_PDB
+_atom_site.id
+_atom_site.type_symbol
+_atom_site.label_atom_id
+_atom_site.label_alt_id
+_atom_site.label_comp_id
+_atom_site.label_seq_id
+_atom_site.label_asym_id
+_atom_site.Cartn_x
+_atom_site.Cartn_y
+_atom_site.Cartn_z
+_atom_site.occupancy
+_atom_site.label_entity_id
+_atom_site.auth_asym_id
+_atom_site.B_iso_or_equiv
+_atom_site.pdbx_PDB_model_num
+_atom_site.ihm_model_id
+ATOM 1 N N . MET 1 A 14.326 -2.326 8.122 1.000 1 A 0.000 42 42
 """
         for fh in cif_file_handles(cif):
             s, = ihm.reader.read(fh)
-            sg, = s.state_groups
+            sg, sg2 = s.state_groups
+            # sg should contain all models in groups but not explicitly
+            # put in a State
             state, = sg
             self.assertIsNone(state.name) # auto-created state
             mg1, mg2 = state
@@ -1301,6 +1322,14 @@ _ihm_model_group_link.model_id
             self.assertEqual(mg2._id, '2')
             m, = mg2
             self.assertEqual(m._id, '2')
+            # sg2 should contain all models referenced by the file but not
+            # put in groups (in this case, model ID 42 from atom_site)
+            state, = sg2
+            self.assertIsNone(state.name) # auto-created state
+            mg1, = state
+            self.assertIsNone(mg1.name) # auto-created group
+            m, = mg1
+            self.assertEqual(m._id, '42')
 
     def test_multi_state_handler(self):
         """Test MultiStateHandler and MultiStateLinkHandler"""

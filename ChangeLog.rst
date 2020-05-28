@@ -1,5 +1,7 @@
 HEAD
 ====
+  - :func:`ihm.reader.read` no longer discards models read from non-IHM mmCIF
+    files; they are instead placed in their own :class:`ihm.model.ModelGroup`.
   - Bugfix: both the pure Python and C-accelerated mmCIF readers are now more
     robust, able to handle files in binary mode (e.g. from opening a URL)
     and in Unicode (mmCIF files are supposed to be ASCII but python-ihm should
