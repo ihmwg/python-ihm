@@ -1,5 +1,5 @@
-HEAD
-====
+0.16 - 2020-05-29
+=================
   - :func:`ihm.reader.read` no longer discards models read from non-IHM mmCIF
     files; they are instead placed in their own :class:`ihm.model.ModelGroup`.
   - Bugfix: both the pure Python and C-accelerated mmCIF readers are now more
