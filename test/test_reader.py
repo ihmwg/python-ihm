@@ -95,7 +95,8 @@ class Tests(unittest.TestCase):
         # Full Unicode support requires Python 3
         if sys.version_info[0] >= 3:
             s, = ihm.reader.read(BytesIO(cif.encode('utf-8')))
-            self.assertEqual(s.id, 'test\u00dc\U0001f600')
+            # Reading in binary mode should give us the raw text (latin-1)
+            self.assertEqual(s.id, 'test\xc3\x9c\xf0\x9f\x98\x80')
             with utils.temporary_directory() as tmpdir:
                 fname = os.path.join(tmpdir, 'test')
                 with open(fname, 'w', encoding='utf-8') as fh:
