@@ -3027,7 +3027,9 @@ def read(fh, model_class=ihm.model.Model, format='mmCIF', handlers=[],
        module to function.
 
        :param file fh: The file handle to read from. (For BinaryCIF files,
-              the file should be opened in binary mode.)
+              the file should be opened in binary mode. For mmCIF files,
+              files opened in binary mode with Python 3 will be treated as
+              if they are Latin-1-encoded.)
        :param model_class: The class to use to store model information (such
               as coordinates). For use with other software, it is recommended
               to subclass :class:`ihm.model.Model` and override
