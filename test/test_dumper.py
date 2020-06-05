@@ -2639,13 +2639,16 @@ _ihm_2dem_class_average_fitting.tr_vector[3]
         psxl = ihm.restraint.CrossLinkPseudoSite(site=ps)
         xl4 = ihm.restraint.ResidueCrossLink(xxl5, asym1, asym2, d,
                                 psi=0.5, sigma1=1.0, sigma2=2.0,
-                                restrain_all=True, pseudo2=psxl)
+                                restrain_all=True, pseudo2=[psxl])
         m = MockObject()
         m._id = 99
         psxl = ihm.restraint.CrossLinkPseudoSite(site=ps, model=m)
+        m = MockObject()
+        m._id = 990
+        psxl2 = ihm.restraint.CrossLinkPseudoSite(site=ps, model=m)
         xl5 = ihm.restraint.ResidueCrossLink(xxl2, asym1, asym2, d,
                                 psi=0.5, sigma1=1.0, sigma2=2.0,
-                                restrain_all=True, pseudo2=psxl)
+                                restrain_all=True, pseudo2=[psxl, psxl2])
         r.cross_links.extend((xl1, xl2, xl3, xl4, xl5))
 
         model = MockObject()
@@ -2720,6 +2723,7 @@ _ihm_cross_link_pseudo_site.pseudo_site_id
 _ihm_cross_link_pseudo_site.model_id
 1 3 2 89 .
 2 4 2 89 99
+3 4 2 89 990
 #
 #
 loop_

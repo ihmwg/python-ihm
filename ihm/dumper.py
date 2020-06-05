@@ -1955,10 +1955,11 @@ class _CrossLinkDumper(Dumper):
                 seq1 = entity1.sequence
                 seq2 = entity2.sequence
                 pseudo = False
-                for np, p in enumerate((xl.pseudo1, xl.pseudo2)):
-                    if p:
+                for np, ps in enumerate((xl.pseudo1, xl.pseudo2)):
+                    if ps:
                         pseudo = True
-                        pseudo_xls.append((p, np, xl))
+                        for p in ps:
+                            pseudo_xls.append((p, np, xl))
                 l.write(id=xl._id, group_id=ex_xl._id,
                         entity_id_1=entity1._id, asym_id_1=xl.asym1._id,
                         seq_id_1=ex_xl.residue1.seq_id,
