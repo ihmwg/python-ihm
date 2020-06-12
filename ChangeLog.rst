@@ -1,5 +1,8 @@
 HEAD
 ====
+  - Convenience classes are added to describe hydrogen/deuterium exchange
+    data (:class:`ihm.dataset.HDXDataset`) and datasets stored in the
+    PDB-Dev database (:class:`ihm.location.PDBDevLocation`).
   - Multiple :class:`ihm.restraint.CrossLinkPseudoSite` objects can now
     be assigned to a given :class:`ihm.restraint.CrossLink`.
 
