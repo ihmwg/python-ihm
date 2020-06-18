@@ -32,6 +32,6 @@ pdbx_ihm = d_pdbx + d_ihm
 # A correct structure here should result in no output; an invalid structure
 # will result in a ValidatorError Python exception.
 # Here, a structure from PDB-Dev (which should be valid) is used.
-fh = urllib2.urlopen('https://pdb-dev.wwpdb.org/cif/PDBDEV_00000001.cif')
+fh = urllib2.urlopen('http://pdb-dev.wwpdb.org/cif/PDBDEV_00000001.cif')
 pdbx_ihm.validate(fh)
 fh.close()
