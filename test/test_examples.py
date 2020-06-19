@@ -18,6 +18,8 @@ def get_example_path(fname):
 
 class Tests(unittest.TestCase):
 
+    @unittest.skipIf('APPVEYOR' in os.environ,
+            "AppVeyor environments have old SSL certs")
     def test_validator_example(self):
         """Test validator example"""
         subprocess.check_call([sys.executable,
