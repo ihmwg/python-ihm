@@ -55,7 +55,7 @@ bmso = ihm.ChemDescriptor('BMSO',
               inchi_key='PUNDHDZIOGBGHG-UHFFFAOYSA-N')
 
 sda = ihm.ChemDescriptor('SDA',
-              chemical_name="succinimidyl 4,4′-azipentanoate",
+              chemical_name="succinimidyl 4,4'-azipentanoate",
               smiles='CC1(N=N1)CCC(ON2C(CCC2=O)=O)=O',
               inchi='1S/C9H11N3O4/c1-9(10-11-9)5-4-8(15)16-12-6(13)2-3-'
                     '7(12)14/h2-5H2,1H3',
