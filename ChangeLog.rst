@@ -1,5 +1,5 @@
-HEAD
-====
+0.17 - 2020-07-10
+=================
   - Convenience classes are added to describe hydrogen/deuterium exchange
     data (:class:`ihm.dataset.HDXDataset`) and datasets stored in the
     PDB-Dev database (:class:`ihm.location.PDBDevLocation`).
