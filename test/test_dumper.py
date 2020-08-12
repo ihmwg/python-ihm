@@ -3227,7 +3227,7 @@ _ihm_predicted_contact_restraint.software_id
 
         system.entities.extend([cur_entity_1, cur_entity_2])
 
-        asym1 = ihm.AsymUnit(cur_entity_1)
+        asym1 = ihm.AsymUnit(cur_entity_1,id='C')
         system.asym_units.append(asym1)
 
         ## FLR
@@ -3333,7 +3333,7 @@ _ihm_predicted_contact_restraint.software_id
                       modified_chem_descriptor=
                                 cur_chem_descriptor_modified_residue)
         cur_poly_probe_position_2 = ihm.flr.PolyProbePosition(
-                      resatom=cur_entity_1.residue(2).atom('CB'),
+                      resatom=asym1.residue(2).atom('CB'), ## using asym instead of only entity
                       mutation_flag=False,
                       modification_flag=False, auth_name='Position_2')
         cur_poly_probe_position_3 = ihm.flr.PolyProbePosition(
@@ -3793,15 +3793,16 @@ loop_
 _flr_poly_probe_position.id
 _flr_poly_probe_position.entity_id
 _flr_poly_probe_position.entity_description
+_flr_poly_probe_position.asym_id
 _flr_poly_probe_position.seq_id
 _flr_poly_probe_position.comp_id
 _flr_poly_probe_position.atom_id
 _flr_poly_probe_position.mutation_flag
 _flr_poly_probe_position.modification_flag
 _flr_poly_probe_position.auth_name
-1 1 Entity_1 1 ALA . YES YES Position_1
-2 2 Entity_2 10 CYS CB YES YES Position_3
-3 1 Entity_1 2 GLY CB NO NO Position_2
+1 1 Entity_1 . 1 ALA . YES YES Position_1
+2 2 Entity_2 . 10 CYS CB YES YES Position_3
+3 1 Entity_1 C 2 GLY CB NO NO Position_2
 #
 #
 loop_
@@ -4098,8 +4099,8 @@ _flr_FPS_MPP_atom_position.xcoord
 _flr_FPS_MPP_atom_position.ycoord
 _flr_FPS_MPP_atom_position.zcoord
 _flr_FPS_MPP_atom_position.group_id
-1 1 1 ALA CA A 1.000 1.000 1.000 1
-2 1 2 GLY CA A 2.000 2.000 2.000 1
+1 1 1 ALA CA C 1.000 1.000 1.000 1
+2 1 2 GLY CA C 2.000 2.000 2.000 1
 #
 #
 loop_

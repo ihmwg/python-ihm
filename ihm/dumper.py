@@ -2479,16 +2479,21 @@ class _FLRPolyProbePositionDumper(Dumper):
     def dump_position(self, system, writer):
         with writer.loop('_flr_poly_probe_position',
                          ['id', 'entity_id', 'entity_description',
+                          'asym_id',
                           'seq_id', 'comp_id', 'atom_id',
                           'mutation_flag', 'modification_flag',
                           'auth_name']) as l:
             for x in self._positions_by_id:
-                comp = x.resatom.entity.sequence[x.resatom.seq_id-1].id
+                comp = x.resatom.entity.sequence[x.resatom.seq_id-1].id if x.resatom.asym is None else x.resatom.asym.entity.sequence[x.resatom.seq_id-1].id
                 atom = None
                 if isinstance(x.resatom, ihm.Atom):
                     atom = x.resatom.id
-                l.write(id=x._id, entity_id=x.resatom.entity._id,
-                        entity_description=x.resatom.entity.description,
+                a_id = None if (x.resatom.asym is None) else x.resatom.asym._id
+                e_id = x.resatom.entity._id if (x.resatom.asym is None) else x.resatom.asym.entity._id
+                e_desc = x.resatom.entity.description if (x.resatom.asym is None) else x.resatom.asym.entity.description
+                l.write(id=x._id, entity_id=e_id,
+                        entity_description=e_desc,
+                        asym_id=a_id,
                         seq_id=x.resatom.seq_id,
                         comp_id=comp, atom_id=atom,
                         mutation_flag=x.mutation_flag,
