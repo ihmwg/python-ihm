@@ -547,14 +547,13 @@ class _EntityPolySegmentDumper(Dumper):
         self._ranges_by_id = []
         # Need to assign ranges for all starting models too
         for sm in system._all_starting_models():
-            rng = sm._get_seq_id_range_all_templates()
+            rng = sm.asym_unit
             util._remove_id(rng, attr='_range_id')
-            sm._all_template_rng = rng
 
         for rng in system._all_entity_ranges():
             util._remove_id(rng, attr='_range_id')
         for rng in itertools.chain(system._all_entity_ranges(),
-                                   (sm._all_template_rng
+                                   (sm.asym_unit
                                     for sm in system._all_starting_models())):
             entity = rng.entity if hasattr(rng, 'entity') else rng
             if entity.is_polymeric():
@@ -1026,7 +1025,7 @@ class _StartingModelDumper(Dumper):
                         entity_id=sm.asym_unit.entity._id,
                         entity_description=sm.asym_unit.entity.description,
                         asym_id=sm.asym_unit._id,
-                        entity_poly_segment_id=sm._all_template_rng._range_id,
+                        entity_poly_segment_id=sm.asym_unit._range_id,
                         starting_model_source=source_map[sm.dataset.data_type],
                         starting_model_auth_asym_id=sm.asym_id,
                         dataset_list_id=sm.dataset._id,

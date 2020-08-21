@@ -1421,7 +1421,7 @@ _ihm_model_representation_details.description
                                     =ihm.startmodel.SequenceIdentity(40., None),
                              alignment_file=ali)
 
-        sm = TestStartingModel(asym(1,15), dstarget, 'A', [s1, s2], offset=10,
+        sm = TestStartingModel(asym(1,12), dstarget, 'A', [s1, s2], offset=10,
                                script_file=script, software=software)
         system.orphan_starting_models.append(sm)
 
@@ -1448,8 +1448,8 @@ _ihm_entity_poly_segment.seq_id_begin
 _ihm_entity_poly_segment.seq_id_end
 _ihm_entity_poly_segment.comp_id_begin
 _ihm_entity_poly_segment.comp_id_end
-1 42 1 15 ALA ALA
-2 42 1 12 ALA ALA
+1 42 1 12 ALA ALA
+2 42 1 15 ALA ALA
 #
 """)
 
@@ -1468,8 +1468,8 @@ _ihm_starting_model_details.starting_model_auth_asym_id
 _ihm_starting_model_details.starting_model_sequence_offset
 _ihm_starting_model_details.dataset_list_id
 _ihm_starting_model_details.description
-1 42 foo 99 2 'experimental model' A 10 102 .
-2 42 foo 99 1 'experimental model' A 0 102 'test desc'
+1 42 foo 99 1 'experimental model' A 10 102 .
+2 42 foo 99 2 'experimental model' A 0 102 'test desc'
 #
 #
 loop_
