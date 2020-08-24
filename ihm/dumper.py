@@ -749,7 +749,6 @@ class _AssemblyDumper(Dumper):
                           "details"]) as l:
             for a in self._assembly_by_id:
                 for nm_ele in a.not_modeled_elements:
-                    # def __init__(self, model, entity, seq_id_range, reason=None, details=None):
                     a_r = nm_ele.asym_range
                     ent = a_r.entity
                     begin, end = a_r.seq_id_range
