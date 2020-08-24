@@ -1189,11 +1189,24 @@ class AsymUnit(object):
                             doc="Sequence range")
 
 
+class NotModeledElement:
+    """A part of a model that wasn't modeled
+       :param ihm.model.Model model: model that we are referencing
+       :param ihm.AsymUnitRange asym_range: The range of the AsymUnit not modeled
+       :param str reason: reason why this wasn't modeled.
+       :param str details: Longer text that describes this NotModeledElement.
+    """
+    def __init__(self, model, asym_range, reason=None, details=None):
+        self.model, self.asym_range, = model, asym_range
+        self.reason, self.details = reason, details
+
+
 class Assembly(list):
     """A collection of parts of the system that were modeled or probed
        together.
 
        :param sequence elements: Initial set of parts of the system.
+       :param ihm.NotModeledElement not_modeled_elements: not modeled elements
        :param str name: Short text name of this assembly.
        :param str description: Longer text that describes this assembly.
 
@@ -1214,9 +1227,11 @@ class Assembly(list):
     #: :class:`Assembly` that is the immediate parent in a hierarchy, or `None`
     parent = None
 
-    def __init__(self, elements=(), name=None, description=None):
+    def __init__(self, elements=(), not_modeled_elements=None, name=None, description=None):
         super(Assembly, self).__init__(elements)
-        self.name, self.description = name, description
+        if not_modeled_elements is None:
+            not_modeled_elements = []
+        self.name, self.description, self.not_modeled_elements = name, description, not_modeled_elements
 
 
 class ChemDescriptor(object):

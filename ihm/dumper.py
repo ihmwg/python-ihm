@@ -547,14 +547,13 @@ class _EntityPolySegmentDumper(Dumper):
         self._ranges_by_id = []
         # Need to assign ranges for all starting models too
         for sm in system._all_starting_models():
-            rng = sm._get_seq_id_range_all_templates()
+            rng = sm.asym_unit
             util._remove_id(rng, attr='_range_id')
-            sm._all_template_rng = rng
 
         for rng in system._all_entity_ranges():
             util._remove_id(rng, attr='_range_id')
         for rng in itertools.chain(system._all_entity_ranges(),
-                                   (sm._all_template_rng
+                                   (sm.asym_unit
                                     for sm in system._all_starting_models())):
             entity = rng.entity if hasattr(rng, 'entity') else rng
             if entity.is_polymeric():
@@ -689,7 +688,7 @@ class _AssemblyDumper(Dumper):
         seen_assembly_ids = {}
         for a in all_assemblies:
             # list isn't hashable but tuple is
-            hasha = tuple(a)
+            hasha = tuple(a + a.not_modeled_elements)
             if hasha not in seen_assemblies:
                 self._assembly_by_id.append(a)
                 seen_assemblies[hasha] = a._id = len(self._assembly_by_id)
@@ -714,6 +713,7 @@ class _AssemblyDumper(Dumper):
     def dump(self, system, writer):
         self.dump_summary(system, writer)
         self.dump_details(system, writer)
+        self.dump_not_modeled(system, writer)
 
     def dump_summary(self, system, writer):
         with writer.loop("_ihm_struct_assembly",
@@ -739,6 +739,31 @@ class _AssemblyDumper(Dumper):
                             asym_id=comp._id if hasattr(comp, 'entity')
                                              else None,
                             entity_poly_segment_id=comp._range_id)
+
+    def dump_not_modeled(self, system, writer):
+        ordinal = itertools.count(1)
+        with writer.loop("_ihm_residues_not_modeled",
+                         ["id", "model_id", "entity_description",
+                          "entity_id", "asym_id", "seq_id_begin", "seq_id_end",
+                          "comp_id_begin", "comp_id_end", "reason",
+                          "details"]) as l:
+            for a in self._assembly_by_id:
+                for nm_ele in a.not_modeled_elements:
+                    # def __init__(self, model, entity, seq_id_range, reason=None, details=None):
+                    a_r = nm_ele.asym_range
+                    ent = a_r.entity
+                    begin, end = a_r.seq_id_range
+                    l.write(id=next(ordinal),
+                            model_id=nm_ele.model._id,
+                            entity_description=ent.description,
+                            entity_id=ent._id,
+                            asym_id=a_r._id,
+                            seq_id_begin=begin,
+                            seq_id_end=end,
+                            comp_id_begin=ent.sequence[begin-1].code,
+                            comp_id_end=ent.sequence[end-1].code,
+                            reason=nm_ele.reason,
+                            detail=nm_ele.details)
 
 class _ExternalReferenceDumper(Dumper):
     """Output information on externally referenced files
@@ -1026,7 +1051,7 @@ class _StartingModelDumper(Dumper):
                         entity_id=sm.asym_unit.entity._id,
                         entity_description=sm.asym_unit.entity.description,
                         asym_id=sm.asym_unit._id,
-                        entity_poly_segment_id=sm._all_template_rng._range_id,
+                        entity_poly_segment_id=sm.asym_unit._range_id,
                         starting_model_source=source_map[sm.dataset.data_type],
                         starting_model_auth_asym_id=sm.asym_id,
                         dataset_list_id=sm.dataset._id,
@@ -2479,16 +2504,21 @@ class _FLRPolyProbePositionDumper(Dumper):
     def dump_position(self, system, writer):
         with writer.loop('_flr_poly_probe_position',
                          ['id', 'entity_id', 'entity_description',
+                          'asym_id',
                           'seq_id', 'comp_id', 'atom_id',
                           'mutation_flag', 'modification_flag',
                           'auth_name']) as l:
             for x in self._positions_by_id:
-                comp = x.resatom.entity.sequence[x.resatom.seq_id-1].id
+                comp = x.resatom.entity.sequence[x.resatom.seq_id-1].id if x.resatom.asym is None else x.resatom.asym.entity.sequence[x.resatom.seq_id-1].id
                 atom = None
                 if isinstance(x.resatom, ihm.Atom):
                     atom = x.resatom.id
-                l.write(id=x._id, entity_id=x.resatom.entity._id,
-                        entity_description=x.resatom.entity.description,
+                a_id = None if (x.resatom.asym is None) else x.resatom.asym._id
+                e_id = x.resatom.entity._id if (x.resatom.asym is None) else x.resatom.asym.entity._id
+                e_desc = x.resatom.entity.description if (x.resatom.asym is None) else x.resatom.asym.entity.description
+                l.write(id=x._id, entity_id=e_id,
+                        entity_description=e_desc,
+                        asym_id=a_id,
                         seq_id=x.resatom.seq_id,
                         comp_id=comp, atom_id=atom,
                         mutation_flag=x.mutation_flag,
