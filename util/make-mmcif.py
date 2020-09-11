@@ -1,5 +1,22 @@
 #!/usr/bin/env python3
 
+"""
+Add minimal IHM-related tables to an mmCIF file.
+
+Given any mmCIF file as input, this script will add any missing
+IHM-related tables and write out a new file that is minimally compliant
+with the IHM dictionary.
+
+This is done by simply reading in the original file with python-ihm and
+then writing it out again, so
+  a) any data in the input file that is not understood by python-ihm
+     will be lost on output; and
+  b) input files that aren't compliant with the PDBx dictionary, or that
+     contain syntax errors or other problems may crash or otherwise confuse
+     python-ihm.
+"""
+
+
 import ihm.reader
 import ihm.dumper
 import ihm.model
