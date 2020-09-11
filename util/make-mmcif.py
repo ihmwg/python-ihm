@@ -7,6 +7,13 @@ import Bio.PDB
 import sys
 import itertools
 
+def get_input_parser(fname):
+    if fname.endswith('.cif'):
+        return Bio.PDB.MMCIFParser()
+    else:
+        return Bio.PDB.PDBParser()
+
+
 class PDBModel(ihm.model.Model):
     """Pass a BioPython model through to IHM"""
     def __init__(self, file_name, asym_units, chem_comps, **kwargs):
@@ -18,7 +25,7 @@ class PDBModel(ihm.model.Model):
     def get_atoms(self):
         # Use BioPython to read the structure from a PDB file, and then yield
         # a set of ihm.model.Atom objects
-        p = Bio.PDB.PDBParser()
+        p = get_input_parser(self.file_name)
         s = p.get_structure('rep', self.file_name)
         for model in s:
             for nchain, chain in enumerate(model):
@@ -38,7 +45,7 @@ class PDBModel(ihm.model.Model):
 
 def get_sequence(fname, chem_comps):
     """Get the primary sequence as a set of ihm.ChemComp objects"""
-    p = Bio.PDB.PDBParser()
+    p = get_input_parser(fname)
     s = p.get_structure('rep', fname)
     seqs = []
     chains = []
