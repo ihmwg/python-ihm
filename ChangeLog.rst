@@ -1,5 +1,5 @@
-HEAD
-====
+0.18 - 2020-11-06
+=================
   - Update to match latest FLR dictionary.
   - Add a simple utility (util/make-mmcif.py) to make a minimal compliant
     IHM mmCIF file, given an mmCIF file (potentially just coordinates) as input.
