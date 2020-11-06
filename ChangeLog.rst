@@ -1,3 +1,12 @@
+HEAD
+====
+  - Update to match latest FLR dictionary.
+  - Add a simple utility (util/make-mmcif.py) to make a minimal compliant
+    IHM mmCIF file, given an mmCIF file (potentially just coordinates) as input.
+  - Bugfix: the full residue range spanned by a starting model is now reported,
+    rather than just the subset that is mapped to one or more templates (#55).
+  - Bugfix: handle TrEMBL UniProt sequences (#57).
+
 0.17 - 2020-07-10
 =================
   - Convenience classes are added to describe hydrogen/deuterium exchange
