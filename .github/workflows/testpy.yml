@@ -24,13 +24,12 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install coverage nose
-    - name: Test with nose
+        pip install coverage pytest-cov pytest-flake8
+    - name: Test
       run: |
-        nosetests --with-coverage --cover-branches # Test with Python tokenizer
+        # Test with Python tokenizer
+        py.test --cov=ihm --cov-branch -v .
         CFLAGS="-coverage" python setup.py build_ext --inplace -t build
-        nosetests --with-coverage --cover-branches # Test with C tokenizer
-        gcov -o build/src/ src/ihm_format.c
-    - name: Upload coverage to codecov
-      run: |
-        bash <(curl -s https://codecov.io/bash)
+        # Test with C tokenizer
+        py.test --cov=ihm --cov-branch --cov-report=xml --cov-append -v .
+    - uses: codecov/codecov-action@v1
