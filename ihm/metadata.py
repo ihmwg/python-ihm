@@ -413,11 +413,10 @@ class PDBParser(Parser):
                 seq_id = startmodel.SequenceIdentity(
                     float(t['SID']),
                     SequenceIdentityDenominator.NUM_ALIGNED_WITHOUT_GAPS)
-                tmpl = startmodel.Template(dataset=d, asym_id=chain,
-                                   seq_id_range=tgt_rng,
-                                   template_seq_id_range=tmpl_rng,
-                                   sequence_identity=seq_id,
-                                   alignment_file=local_file)
+                tmpl = startmodel.Template(
+                    dataset=d, asym_id=chain, seq_id_range=tgt_rng,
+                    template_seq_id_range=tmpl_rng, sequence_identity=seq_id,
+                    alignment_file=local_file)
                 ret_templates[chain] = [tmpl]
         return ret_templates
 
@@ -429,7 +428,8 @@ class PDBParser(Parser):
     def _handle_comparative_model(self, local_file, pdbname, ret):
         d = dataset.ComparativeModelDataset(local_file)
         ret['dataset'] = d
-        ret['templates'], ret['script'] = self._get_templates_script(pdbname, d)
+        ret['templates'], ret['script'] \
+            = self._get_templates_script(pdbname, d)
 
     def _get_templates_script(self, pdbname, target_dataset):
         template_path_map = {}
@@ -491,31 +491,31 @@ class PDBParser(Parser):
         seq_id_range = (int(info.group(5)), int(info.group(7)))
         target_asym_id = info.group(6)
         sequence_identity = startmodel.SequenceIdentity(
-                          float(info.group(8)),
-                          SequenceIdentityDenominator.SHORTER_LENGTH)
+            float(info.group(8)), SequenceIdentityDenominator.SHORTER_LENGTH)
 
         # Assume a code of 1abc, 1abc_N, 1abcX, or 1abcX_N refers
         # to a real PDB structure
         m = re.match(r'(\d[a-zA-Z0-9]{3})[a-zA-Z]?(_.*)?$', template_code)
         if m:
             template_db_code = m.group(1).upper()
-            l = location.PDBLocation(template_db_code)
+            loc = location.PDBLocation(template_db_code)
         else:
             # Otherwise, look up the PDB file in TEMPLATE PATH remarks
             fname = template_path_map[template_code]
-            l = location.InputFileLocation(fname,
-                             details="Template for comparative modeling")
-        d = dataset.PDBDataset(l)
+            loc = location.InputFileLocation(
+                fname, details="Template for comparative modeling")
+        d = dataset.PDBDataset(loc)
 
         # Make the comparative model dataset derive from the template's
         target_dataset.parents.append(d)
 
         return (target_asym_id,
-                startmodel.Template(dataset=d, asym_id=template_asym_id,
-                                   seq_id_range=seq_id_range,
-                                   template_seq_id_range=template_seq_id_range,
-                                   sequence_identity=sequence_identity,
-                                   alignment_file=alnfile))
+                startmodel.Template(
+                    dataset=d, asym_id=template_asym_id,
+                    seq_id_range=seq_id_range,
+                    template_seq_id_range=template_seq_id_range,
+                    sequence_identity=sequence_identity,
+                    alignment_file=alnfile))
 
     def _parse_pdb_records(self, fh, first_line):
         """Extract information from an official PDB"""
@@ -546,10 +546,10 @@ class PDBParser(Parser):
         if compnd.get('ENGINEERED', None) == 'YES':
             gene = make_from_source(ihm.source.Details)
             host = ihm.source.Details(
-                    scientific_name=source.get('EXPRESSION_SYSTEM'),
-                    common_name=source.get('EXPRESSION_SYSTEM_COMMON'),
-                    strain=source.get('EXPRESSION_SYSTEM_STRAIN'),
-                    ncbi_taxonomy_id=source.get('EXPRESSION_SYSTEM_TAXID'))
+                scientific_name=source.get('EXPRESSION_SYSTEM'),
+                common_name=source.get('EXPRESSION_SYSTEM_COMMON'),
+                strain=source.get('EXPRESSION_SYSTEM_STRAIN'),
+                ncbi_taxonomy_id=source.get('EXPRESSION_SYSTEM_TAXID'))
             return ihm.source.Manipulated(gene=gene, host=host)
         else:
             if source.get('SYNTHETIC', None) == 'YES':
