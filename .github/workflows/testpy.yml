@@ -35,5 +35,5 @@ jobs:
         py.test --cov=ihm --cov-branch -v .
         CFLAGS="-coverage" python setup.py build_ext --inplace -t build
         # Test with C tokenizer
-        py.test --cov=ihm --cov-branch --cov-report=xml --cov-append -v .
+        py.test --cov=ihm --cov-branch --cov-report=xml --cov-append --flake8 -v .
     - uses: codecov/codecov-action@v1
