@@ -65,7 +65,7 @@ class _StringArrayDecoder(_Decoder):
         substr = []
         string_data = _decode_bytes(enc[b'stringData'])
         for i in range(0, len(offsets) - 1):
-            substr.append(string_data[offsets[i]:offsets[i+1]])
+            substr.append(string_data[offsets[i]:offsets[i + 1]])
         # todo: return a listlike class instead?
         for i in indices:
             yield None if i < 0 else substr[i]
@@ -152,7 +152,7 @@ class _RunLengthDecoder(_Decoder):
     def __call__(self, enc, data):
         data = list(data)
         for i in range(0, len(data), 2):
-            for j in range(data[i+1]):
+            for j in range(data[i + 1]):
                 yield data[i]
 
 
@@ -374,7 +374,7 @@ class _DeltaEncoder(_Encoder):
         data_type = _get_int_float_type(data)
         encdict = {b'kind': b'Delta', b'origin': data[0],
                    b'srcType': data_type}
-        encdata = [0] + [data[i] - data[i-1] for i in range(1, len(data))]
+        encdata = [0] + [data[i] - data[i - 1] for i in range(1, len(data))]
         return encdata, encdict
 
 
