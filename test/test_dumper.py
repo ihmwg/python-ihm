@@ -926,7 +926,7 @@ _ihm_entity_poly_segment.comp_id_end
         d = ihm.dumper._AssemblyDumper()
         d.finalize(system)
         self.assertEqual(system.complete_assembly._id, 1)
-        self.assertEqual([a._id for a in system.orphan_assemblies],
+        self.assertEqual([asmb._id for asmb in system.orphan_assemblies],
                          [2, 3, 3, 3, 3])
         out = _get_dumper_output(d, system)
         self.assertEqual(out, """#
