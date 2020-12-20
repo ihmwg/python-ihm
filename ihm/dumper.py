@@ -1551,7 +1551,7 @@ class _EnsembleDumper(Dumper):
                              model_group_id=s.model_group._id
                              if s.model_group else None,
                              file_id=s.file._id if s.file else None)
-                    if type(s) != type(e.subsamples[0]):
+                    if type(s) != type(e.subsamples[0]):    # noqa: E721
                         raise TypeError(
                             "Subsamples are not all of the same type "
                             "(%s vs %s) for ensemble %s"
