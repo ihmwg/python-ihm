@@ -26,7 +26,7 @@ except ImportError:
 if sys.version_info[0] >= 3:
     _long_type = int
 else:
-    _long_type = long
+    _long_type = long   # noqa: F821
 
 
 class _LineWriter(object):

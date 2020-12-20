@@ -231,9 +231,10 @@ class System(object):
                          top_directory="repo-top", root="..")
                system.update_locations_in_repositories([r])
         """
+        import ihm.location
         for loc in self._all_locations():
-            if isinstance(loc, location.FileLocation):
-                location.Repository._update_in_repos(loc, repos)
+            if isinstance(loc, ihm.location.FileLocation):
+                ihm.location.Repository._update_in_repos(loc, repos)
 
     def _all_restraints(self):
         """Iterate over all Restraints in the system.

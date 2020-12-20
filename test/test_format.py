@@ -194,7 +194,7 @@ x
         self.assertEqual(w._repr(False), 'NO')
         self.assertEqual(w._repr(True), 'YES')
         if sys.version_info[0] == 2:
-            self.assertEqual(w._repr(long(4)), '4')
+            self.assertEqual(w._repr(long(4)), '4')    # noqa: F821
         # data_ should be quoted to distinguish from data blocks
         self.assertEqual(w._repr('data_foo'), "'data_foo'")
         self.assertEqual(w._repr('data_'), "'data_'")

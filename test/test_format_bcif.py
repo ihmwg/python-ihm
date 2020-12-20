@@ -500,7 +500,8 @@ class Tests(unittest.TestCase):
             # long type is only in Python 2
             # Use long(x) rather than xL since the latter will cause a syntax
             # error in Python 3
-            data = [long(1), long(2), long(3), None, ihm.unknown, long(4)]
+            data = [long(1), long(2), long(3),    # noqa: F821
+                    None, ihm.unknown, long(4)]   # noqa: F821
             mask, typ = ihm.format_bcif._get_mask_and_type(data)
             self.assertEqual(mask, [0, 0, 0, 1, 2, 0])
             self.assertEqual(typ, int)

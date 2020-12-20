@@ -393,7 +393,7 @@ class _RunLengthEncoder(_Encoder):
         for d in data:
             if d != val:
                 if val is not None:
-                    encdata.extend((val, repeat))
+                    encdata.extend((val, repeat))   # noqa: F821
                 val = d
                 repeat = 1
             else:
@@ -509,7 +509,7 @@ def _get_mask_and_type(data):
         return mask, float
     elif int in seen_types:
         return mask, int
-    elif sys.version_info[0] < 3 and long in seen_types:
+    elif sys.version_info[0] < 3 and long in seen_types:   # noqa: F821
         # Handle long like int (we don't have a 64-bit int type in BCIF anyway,
         # so hopefully the data can be represented in an int)
         return mask, int
