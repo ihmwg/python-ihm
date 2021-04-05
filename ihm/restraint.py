@@ -259,10 +259,12 @@ class DistanceRestraint(object):
        or :class:`LowerUpperBoundDistanceRestraint`.
     """
 
-    #: The minimum distance allowed for this restraint, or None if unconstrained
+    #: The minimum distance allowed for this restraint,
+    #: or None if unconstrained
     distance_lower_limit = None
 
-    #: The maximum distance allowed for this restraint, or None if unconstrained
+    #: The maximum distance allowed for this restraint,
+    #: or None if unconstrained
     distance_upper_limit = None
 
 
