@@ -7,7 +7,7 @@ except ImportError:
 import sys
 import os
 
-VERSION = "0.18"
+VERSION = "0.19"
 
 copy_args = sys.argv[1:]
 

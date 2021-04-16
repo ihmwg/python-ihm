@@ -1,5 +1,5 @@
-HEAD
-====
+0.19 - 2021-04-16
+=================
   - A convenience class is added to describe datasets stored in the
     ProXL database (:class:`ihm.location.ProXLLocation`).
 
