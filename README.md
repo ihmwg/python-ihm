@@ -3,7 +3,7 @@
 [![pypi package](https://badge.fury.io/py/ihm.svg)](https://badge.fury.io/py/ihm)
 [![Linux Build Status](https://github.com/ihmwg/python-ihm/workflows/build/badge.svg)](https://github.com/ihmwg/python-ihm/actions?query=workflow%3Abuild)
 [![Windows Build Status](https://ci.appveyor.com/api/projects/status/5o28oe477ii8ur4h?svg=true)](https://ci.appveyor.com/project/benmwebb/python-ihm)
-[![codecov](https://codecov.io/gh/ihmwg/python-ihm/branch/master/graph/badge.svg)](https://codecov.io/gh/ihmwg/python-ihm)
+[![codecov](https://codecov.io/gh/ihmwg/python-ihm/branch/main/graph/badge.svg)](https://codecov.io/gh/ihmwg/python-ihm)
 
 This is a Python package to assist in handling [mmCIF](http://mmcif.wwpdb.org/)
 and [BinaryCIF](https://github.com/dsehnal/BinaryCIF) files compliant with the
@@ -12,7 +12,7 @@ extension. It works with Python 2.6 or later (Python 3 is fully supported).
 
 Please [see the documentation](https://python-ihm.readthedocs.org/)
 or some
-[worked examples](https://github.com/ihmwg/python-ihm/tree/master/examples)
+[worked examples](https://github.com/ihmwg/python-ihm/tree/main/examples)
 for more details.
 
 # Installation with pip
