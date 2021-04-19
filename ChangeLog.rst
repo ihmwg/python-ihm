@@ -1,3 +1,8 @@
+HEAD
+====
+  - Support for Python 2.6 has been dropped. The library needs Python 2.7
+    or Python 3.
+
 0.19 - 2021-04-16
 =================
   - A convenience class is added to describe datasets stored in the

@@ -8,7 +8,7 @@
 This is a Python package to assist in handling [mmCIF](http://mmcif.wwpdb.org/)
 and [BinaryCIF](https://github.com/dsehnal/BinaryCIF) files compliant with the
 [integrative/hybrid modeling (IHM)](http://mmcif.wwpdb.org/dictionaries/mmcif_ihm.dic/Index/)
-extension. It works with Python 2.6 or later (Python 3 is fully supported).
+extension. It works with Python 2.7 or Python 3.
 
 Please [see the documentation](https://python-ihm.readthedocs.org/)
 or some

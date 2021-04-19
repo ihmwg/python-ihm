@@ -507,12 +507,9 @@ _struct_ref_seq_dif.details
 
         dumper = ihm.dumper._StructRefDumper()
         dumper.finalize(system)  # Assign IDs
-        self.assertRaises(IndexError, _get_dumper_output, dumper, system)
-        # Cannot use assertRaises as a context manager in Python 2.6
-        try:
+        with self.assertRaises(IndexError) as cm:
             _get_dumper_output(dumper, system)
-        except IndexError as exc:
-            self.assertIn('is (90-4), out of range 1-4', str(exc))
+        self.assertIn('is (90-4), out of range 1-4', str(cm.exception))
 
     def test_struct_ref_bad_db_align(self):
         """Test StructRefDumper with bad db align"""
@@ -527,12 +524,9 @@ _struct_ref_seq_dif.details
 
         dumper = ihm.dumper._StructRefDumper()
         dumper.finalize(system)  # Assign IDs
-        self.assertRaises(IndexError, _get_dumper_output, dumper, system)
-        # Cannot use assertRaises as a context manager in Python 2.6
-        try:
+        with self.assertRaises(IndexError) as cm:
             _get_dumper_output(dumper, system)
-        except IndexError as exc:
-            self.assertIn('is (90-9), out of range 1-9', str(exc))
+        self.assertIn('is (90-9), out of range 1-9', str(cm.exception))
 
     def test_struct_ref_seq_mismatch(self):
         """Test StructRefDumper with sequence mismatch"""
@@ -546,12 +540,10 @@ _struct_ref_seq_dif.details
 
         dumper = ihm.dumper._StructRefDumper()
         dumper.finalize(system)  # Assign IDs
-        self.assertRaises(ValueError, _get_dumper_output, dumper, system)
-        # Cannot use assertRaises as a context manager in Python 2.6
-        try:
+        with self.assertRaises(ValueError) as cm:
             _get_dumper_output(dumper, system)
-        except ValueError as exc:
-            self.assertIn('does not match entity canonical sequence', str(exc))
+        self.assertIn('does not match entity canonical sequence',
+                      str(cm.exception))
 
     def test_struct_ref_seq_dif_outrange(self):
         """Test StructRefDumper with SeqDif out of range"""
@@ -569,12 +561,9 @@ _struct_ref_seq_dif.details
 
         dumper = ihm.dumper._StructRefDumper()
         dumper.finalize(system)  # Assign IDs
-        self.assertRaises(IndexError, _get_dumper_output, dumper, system)
-        # Cannot use assertRaises as a context manager in Python 2.6
-        try:
+        with self.assertRaises(IndexError) as cm:
             _get_dumper_output(dumper, system)
-        except IndexError as exc:
-            self.assertIn('is 40, out of range 1-4', str(exc))
+        self.assertIn('is 40, out of range 1-4', str(cm.exception))
 
     def test_struct_ref_seq_dif_mismatch(self):
         """Test StructRefDumper with SeqDif code mismatch"""
@@ -592,13 +581,10 @@ _struct_ref_seq_dif.details
 
         dumper = ihm.dumper._StructRefDumper()
         dumper.finalize(system)  # Assign IDs
-        self.assertRaises(ValueError, _get_dumper_output, dumper, system)
-        # Cannot use assertRaises as a context manager in Python 2.6
-        try:
+        with self.assertRaises(ValueError) as cm:
             _get_dumper_output(dumper, system)
-        except ValueError as exc:
-            self.assertIn('one-letter code (Y) does not match', str(exc))
-            self.assertIn('(S at position 2)', str(exc))
+        self.assertIn('one-letter code (Y) does not match', str(cm.exception))
+        self.assertIn('(S at position 2)', str(cm.exception))
 
     def test_chem_comp_dumper(self):
         """Test ChemCompDumper"""
