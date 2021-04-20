@@ -1,5 +1,6 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2603378.svg)](https://doi.org/10.5281/zenodo.2603378)
 [![docs](https://readthedocs.org/projects/python-ihm/badge/)](https://python-ihm.readthedocs.org/)
+[![conda package](https://img.shields.io/conda/vn/conda-forge/ihm.svg)](https://anaconda.org/conda-forge/ihm)
 [![pypi package](https://badge.fury.io/py/ihm.svg)](https://badge.fury.io/py/ihm)
 [![Linux Build Status](https://github.com/ihmwg/python-ihm/workflows/build/badge.svg)](https://github.com/ihmwg/python-ihm/actions?query=workflow%3Abuild)
 [![Windows Build Status](https://ci.appveyor.com/api/projects/status/5o28oe477ii8ur4h?svg=true)](https://ci.appveyor.com/project/benmwebb/python-ihm)
@@ -15,16 +16,24 @@ or some
 [worked examples](https://github.com/ihmwg/python-ihm/tree/main/examples)
 for more details.
 
-# Installation with pip
+# Installation with conda or pip
+
+If you are using [Anaconda Python](https://www.anaconda.com/), install with
+
+```
+conda install -c conda-forge ihm
+```
+
+Alternatively, install with pip:
 
 ```
 pip install ihm
 ```
 
-Note that a C extension module is built for faster parsing of mmCIF files.
+(Note that pip builds a C extension module for faster parsing of mmCIF files.
 This requires that your system has a C compiler. If you don't want to build
 the C extension module, install with
-`pip install ihm --install-option="--without-ext"`.
+`pip install ihm --install-option="--without-ext"`.)
 
 # Installation from source code
 
