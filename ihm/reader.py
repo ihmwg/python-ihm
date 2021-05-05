@@ -1058,7 +1058,7 @@ class _StructRefHandler(Handler):
         # Strip newlines if code is split over multiple lines
         if pdbx_seq_one_letter_code is not None:
             pdbx_seq_one_letter_code \
-                    = pdbx_seq_one_letter_code.replace('\n', '')
+                = pdbx_seq_one_letter_code.replace('\n', '')
         self.copy_if_present(
             ref, locals(), keys=('db_name', 'db_code', 'details'),
             mapkeys={'pdbx_db_accession': 'accession',
