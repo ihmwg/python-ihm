@@ -1334,6 +1334,7 @@ class _RangeChecker(object):
                 self._last_asmb_asym_matched = asym._id
                 self._last_asmb_range_matched = rng
                 return
+
         def print_range(rng):
             if rng == (None, None):
                 return "None"
