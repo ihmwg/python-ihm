@@ -616,7 +616,11 @@ _struct_ref.pdbx_db_accession
 _struct_ref.pdbx_align_begin
 _struct_ref.pdbx_seq_one_letter_code
 _struct_ref.details
-1 1 UNP NUP84_YEAST P52891 3 MELSPTYQT 'test sequence'
+1 1 UNP NUP84_YEAST P52891 3
+;MELSP
+TYQT
+;
+'test sequence'
 2 1 MyDatabase testcode testacc 1 MEL 'other sequence'
 #
 #
