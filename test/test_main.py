@@ -456,6 +456,13 @@ class Tests(unittest.TestCase):
                                   model_group=model_group4)
         e1.subsamples.extend((ss1, ss2))
         s.ensembles.append(e1)
+        # Ensemble without a model_group
+        e2 = ihm.model.Ensemble(model_group=None, num_models=10,
+                                post_process=None, name='cluster1',
+                                clustering_method='Hierarchical',
+                                clustering_feature='RMSD',
+                                precision=4.2)
+        s.ensembles.append(e2)
 
         mg = s._all_model_groups()
         # List may contain duplicates but only includes states

@@ -272,7 +272,8 @@ class System(object):
                     yield model_group
         if not only_in_states:
             for ensemble in self.ensembles:
-                yield ensemble.model_group
+                if ensemble.model_group:
+                    yield ensemble.model_group
                 for ss in ensemble.subsamples:
                     if ss.model_group:
                         yield ss.model_group
