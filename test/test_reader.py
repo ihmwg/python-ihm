@@ -622,6 +622,7 @@ TYQT
 ;
 'test sequence'
 2 1 MyDatabase testcode testacc 1 MEL 'other sequence'
+3 1 MyDatabase testcode2 testacc2 1 . 'other sequence'
 #
 #
 loop_
@@ -652,13 +653,14 @@ _struct_ref_seq_dif.details
             for fh in cif_file_handles(cif):
                 s, = ihm.reader.read(fh)
                 e, = s.entities
-                r1, r2 = e.references
+                r1, r2, r3 = e.references
                 self.assertIsInstance(r1, ihm.reference.UniProtSequence)
                 self.assertEqual(r1.db_name, 'UNP')
                 self.assertEqual(r1.db_code, 'NUP84_YEAST')
                 self.assertEqual(r1.accession, 'P52891')
                 self.assertEqual(r1.sequence, 'MELSPTYQT')
                 self.assertEqual(r1.details, 'test sequence')
+                self.assertIsNone(r3.sequence)
                 a1, a2 = r1.alignments
                 self.assertEqual(a1.db_begin, 3)
                 self.assertEqual(a1.db_end, 6)
