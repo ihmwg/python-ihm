@@ -17,6 +17,15 @@ from . import restraint
 from . import geometry
 
 
+def _is_subrange(rng1, rng2):
+    """Return True iff rng1 is wholly inside rng2"""
+    # Nonpolymers should have an empty range
+    if rng1 == (None, None) or rng2 == (None, None):
+        return rng1 == rng2
+    else:
+        return rng1[0] >= rng2[0] and rng1[1] <= rng2[1]
+
+
 class Dumper(object):
     """Base class for helpers to dump output to mmCIF or BinaryCIF.
        See :func:`write`."""
@@ -1310,8 +1319,7 @@ class _RangeChecker(object):
         # Check last match first
         last_rng = self._last_asmb_range_matched
         if last_rng and asym._id == self._last_asmb_asym_matched \
-           and seq_id_range[0] >= last_rng[0] \
-           and seq_id_range[1] <= last_rng[1]:
+           and _is_subrange(seq_id_range, last_rng):
             return
         # Check asym_id
         if asym._id not in self.asmb_asym_ids:
@@ -1322,22 +1330,27 @@ class _RangeChecker(object):
                    ", ".join(sorted(a for a in self.asmb_asym_ids))))
         # Check range
         for rng in self.asmb_asym_ids[asym._id]:
-            if seq_id_range[0] >= rng[0] and seq_id_range[1] <= rng[1]:
+            if _is_subrange(seq_id_range, rng):
                 self._last_asmb_asym_matched = asym._id
                 self._last_asmb_range_matched = rng
                 return
+        def print_range(rng):
+            if rng == (None, None):
+                return "None"
+            else:
+                return "%d-%d" % rng
         raise ValueError(
-            "%s seq_id range (%d-%d) does not match any range "
+            "%s seq_id range (%s) does not match any range "
             "in the assembly for asym ID %s (ranges are %s)"
-            % (obj, seq_id_range[0], seq_id_range[1], asym._id,
-               ", ".join("%d-%d" % x for x in self.asmb_asym_ids[asym._id])))
+            % (obj, print_range(seq_id_range), asym._id,
+               ", ".join(print_range(x)
+                         for x in self.asmb_asym_ids[asym._id])))
 
     def _check_representation(self, obj, asym, type_check, seq_id_range):
         # Check last match first
         last_seg = self._last_repr_segment_matched
         if last_seg and asym._id == last_seg.asym_unit._id \
-           and seq_id_range[0] >= last_seg.asym_unit.seq_id_range[0] \
-           and seq_id_range[1] <= last_seg.asym_unit.seq_id_range[1] \
+           and _is_subrange(seq_id_range, last_seg.asym_unit.seq_id_range) \
            and type_check(obj, last_seg):
             return
         # Check asym_id
@@ -1352,7 +1365,7 @@ class _RangeChecker(object):
         bad_type_segments = []
         for segment in self.repr_asym_ids[asym._id]:
             rng = segment.asym_unit.seq_id_range
-            if seq_id_range[0] >= rng[0] and seq_id_range[1] <= rng[1]:
+            if _is_subrange(seq_id_range, rng):
                 if type_check(obj, segment):
                     self._last_repr_segment_matched = segment
                     return

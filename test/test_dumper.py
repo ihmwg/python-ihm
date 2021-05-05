@@ -1876,11 +1876,24 @@ _ihm_model_group_link.model_id
         system.asym_units.append(asym2)
         model.assembly.append(asym2)
 
+        heme = ihm.NonPolymerChemComp("HEM", name='heme',
+                                      formula='C34 H32 Fe N4 O4')
+        entity_heme = ihm.Entity([heme], description='Heme')
+        entity_heme._id = 99
+        system.entities.append(entity_heme)
+        asym_nonpol = ihm.AsymUnit(entity_heme, 'baz')
+        asym_nonpol._id = 'Z'
+        system.asym_units.append(asym_nonpol)
+        model.assembly.append(asym_nonpol)
+
         # Add multiple representation segments for asym2
         s = ihm.representation.AtomicSegment(asym2(1, 2), rigid=True)
         model.representation.append(s)
         s = ihm.representation.FeatureSegment(asym2(1, 2), rigid=False,
                                               primitive='sphere', count=2)
+        model.representation.append(s)
+
+        s = ihm.representation.AtomicSegment(asym_nonpol, rigid=True)
         model.representation.append(s)
 
         rngcheck = ihm.dumper._RangeChecker(model)
@@ -1908,6 +1921,17 @@ _ihm_model_group_link.model_id
         sphere = ihm.model.Sphere(asym_unit=asym2, seq_id_range=(1, 4),
                                   x=1.0, y=2.0, z=3.0, radius=4.0)
         self.assertRaises(ValueError, rngcheck, sphere)
+
+        # Atom in a nonpolymer must have no seq_id
+        atom = ihm.model.Atom(asym_unit=asym_nonpol, seq_id=None, atom_id='C',
+                              type_symbol='C', x=1.0, y=2.0, z=3.0)
+        rngcheck(atom)
+        atom = ihm.model.Atom(asym_unit=asym2, seq_id=None, atom_id='C',
+                              type_symbol='C', x=1.0, y=2.0, z=3.0)
+        self.assertRaises(ValueError, rngcheck, atom)
+        atom = ihm.model.Atom(asym_unit=asym_nonpol, seq_id=1, atom_id='C',
+                              type_symbol='C', x=1.0, y=2.0, z=3.0)
+        self.assertRaises(ValueError, rngcheck, atom)
 
     def test_range_checker_repr_type_atomic(self):
         """Test RangeChecker class type checking against AtomicSegments"""
