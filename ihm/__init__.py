@@ -34,6 +34,11 @@ class __UnknownValue(object):
     # Python2 compatibility
     __nonzero__ = __bool__
 
+    # Needs to be hashable so that classes like Software (that might
+    # use unknown values as attributes) are hashable
+    def __hash__(self):
+        return 0
+
     # Unknown value is a singleton and should only compare equal to itself
     def __eq__(self, other):
         return self is other

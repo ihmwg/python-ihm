@@ -236,11 +236,16 @@ class Tests(unittest.TestCase):
                           classification='7', description='8', location='9')
         s4 = ihm.Software(name='bar', version='1.0',
                           classification='a', description='b', location='c')
+        s5 = ihm.Software(name='bar', version=ihm.unknown,
+                          classification='a', description='b', location='c')
         # Should compare equal iff name and version both match
         self.assertEqual(s1, s3)
         self.assertEqual(hash(s1), hash(s3))
         self.assertNotEqual(s1, s2)
         self.assertNotEqual(s1, s4)
+        # Unknown values should not compare equal to known
+        self.assertNotEqual(s4, s5)
+        self.assertNotEqual(hash(s4), hash(s5))
 
     def test_citation(self):
         """Test Citation class"""
