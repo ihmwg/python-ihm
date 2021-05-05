@@ -1176,7 +1176,7 @@ _ihm_starting_comparative_models.alignment_file_id
             self.assertEqual(t1.asym_id, 'C')
             self.assertEqual(t1.seq_id_range, (7, 436))
             self.assertEqual(t1.template_seq_id_range, (9, 438))
-            self.assertAlmostEqual(float(t1.sequence_identity), 90.0,
+            self.assertAlmostEqual(t1.sequence_identity.value, 90.0,
                                    delta=0.1)
             self.assertEqual(t1.sequence_identity.denominator, 1)
             self.assertEqual(t1.alignment_file._id, '2')
