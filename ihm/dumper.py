@@ -1026,7 +1026,8 @@ class _StartingModelDumper(Dumper):
         source_map = {'Comparative model': 'comparative model',
                       'Integrative model': 'integrative model',
                       'Experimental model': 'experimental model',
-                      'De Novo model': 'ab initio model'}
+                      'De Novo model': 'ab initio model',
+                      'Other': 'other'}
         with writer.loop(
                 "_ihm_starting_model_details",
                 ["starting_model_id", "entity_id", "entity_description",
