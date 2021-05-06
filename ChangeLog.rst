@@ -1,5 +1,5 @@
-HEAD
-====
+0.20 - 2021-05-06
+=================
   - Support for Python 2.6 has been dropped. The library needs Python 2.7
     or Python 3.
   - Bugfix: correctly read in multiline reference sequence one-letter codes.

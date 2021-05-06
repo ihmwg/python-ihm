@@ -19,7 +19,7 @@ except ImportError:
     import urllib2
 import json
 
-__version__ = '0.19'
+__version__ = '0.20'
 
 
 class __UnknownValue(object):
