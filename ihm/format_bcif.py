@@ -36,7 +36,7 @@ if sys.version_info[0] >= 3:
         return s
 else:
     def _decode_bytes(bs):
-        if isinstance(bs, unicode):
+        if isinstance(bs, unicode):  # noqa: F821
             return bs.encode('ascii', errors='replace')
         else:
             return bs
