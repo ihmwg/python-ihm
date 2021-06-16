@@ -2285,7 +2285,19 @@ class _PolySeqSchemeHandler(Handler):
 class _NonPolySchemeHandler(Handler):
     category = '_pdbx_nonpoly_scheme'
 
-    def __call__(self, asym_id, auth_seq_num):
+    def __call__(self, asym_id, entity_id, auth_seq_num, mon_id):
+        entity = self.sysr.entities.get_by_id(entity_id)
+        # nonpolymer entities generally have information on their chemical
+        # component in pdbx_entity_nonpoly, but if that's missing, at least
+        # get the name from mon_id here, so that we don't end up with an
+        # empty sequence
+        if len(entity.sequence) == 0 and mon_id:
+            if mon_id == 'HOH':
+                s = ihm.WaterChemComp()
+            else:
+                s = ihm.NonPolymerChemComp(
+                    mon_id, name=entity.description)
+            entity.sequence.append(s)
         asym = self.sysr.asym_units.get_by_id(asym_id)
         # todo: handle multiple instances (e.g. water)
         auth_seq_num = self.get_int_or_string(auth_seq_num)
