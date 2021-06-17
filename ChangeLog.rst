@@ -1,10 +1,13 @@
+HEAD
+====
+  - BinaryCIF files now use UTF8 msgpack strings for all text, rather than
+    raw bytes. This should make python-ihm's BinaryCIF files interoperable
+    with those used by, e.g., CoordinateServer.
+
 0.20 - 2021-05-06
 =================
   - Support for Python 2.6 has been dropped. The library needs Python 2.7
     or Python 3.
-  - BinaryCIF files now use UTF8 msgpack strings for all text, rather than
-    raw bytes. This should make python-ihm's BinaryCIF files interoperable
-    with those used by, e.g., CoordinateServer.
   - Bugfix: correctly read in multiline reference sequence one-letter codes.
   - Bugfix: the reader is now more tolerant of omitted or unknown values
     (. or ?) in input mmCIF files.
