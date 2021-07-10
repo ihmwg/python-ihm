@@ -1042,7 +1042,7 @@ class Entity(object):
            rna_with_psu = ihm.Entity(('A', 'C', psu), alphabet=ihm.RNAAlphabet)
 
        For more examples, see the
-       `ligands and water example <https://github.com/ihmwg/python-ihm/blob/master/examples/ligands_water.py>`_.
+       `ligands and water example <https://github.com/ihmwg/python-ihm/blob/main/examples/ligands_water.py>`_.
 
        All entities should be stored in the top-level System object;
        see :attr:`System.entities`.

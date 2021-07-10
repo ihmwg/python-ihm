@@ -95,7 +95,7 @@ class Model(object):
            software's own data structures. It is recommended to subclass
            and provide a more efficient implementation. For example, the
            `modeling of Nup133 <https://github.com/integrativemodeling/nup133/>`_
-           uses a `custom subclass <https://github.com/integrativemodeling/nup133/blob/master/outputs_foxs_ensemble_new/pdb-dev/pdb.py>`_
+           uses a `custom subclass <https://github.com/integrativemodeling/nup133/blob/main/outputs_foxs_ensemble_new/pdb-dev/pdb.py>`_
            to pass `BioPython <https://biopython.org/>`_ objects through
            to python-ihm.
 
