@@ -95,6 +95,11 @@ class Tests(unittest.TestCase):
             s, = ihm.reader.read(fh)
         os.unlink(out)
 
+    def test_stream_parser_example(self):
+        """Test stream_parser example"""
+        subprocess.check_call([sys.executable, "stream_parser.py"],
+                              cwd=get_example_dir())
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -4,7 +4,9 @@
    only concerned with handling syntactically correct CIF - it does not know
    the set of tables or the mapping to ihm objects. For that,
    see :mod:`ihm.dumper` for writing and :mod:`ihm.reader` for reading.
-"""
+
+   See also the `stream parser example <https://github.com/ihmwg/python-ihm/blob/main/examples/stream_parser.py>`_.
+"""  # noqa: E501
 
 from __future__ import print_function
 import sys
