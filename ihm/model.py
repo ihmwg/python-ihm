@@ -33,7 +33,7 @@ class Sphere(object):
 class Atom(object):
     """Coordinates of part of the model represented by an atom.
 
-       :param asym_unit: The asymmetric unit that this sphere represents
+       :param asym_unit: The asymmetric unit that this atom represents
        :type asym_unit: :class:`ihm.AsymUnit`
        :param int seq_id: The residue index represented by this atom
               (can be None for HETATM sites)
