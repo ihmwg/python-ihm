@@ -3,6 +3,10 @@ HEAD
   - BinaryCIF files now use UTF8 msgpack strings for all text, rather than
     raw bytes. This should make python-ihm's BinaryCIF files interoperable
     with those used by, e.g., CoordinateServer.
+  - Output mmCIF files now include author-provided numbering (auth_seq_id)
+    for atoms in the atom_site table. This should help packages that don't
+    read the pdbx_poly_seq_scheme table to show the desired residue
+    numbering (#61).
 
 0.20 - 2021-05-06
 =================
