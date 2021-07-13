@@ -2165,14 +2165,16 @@ N
         # With auth_seq_id == seq_id-1
         asym.auth_seq_id_map = -1
         out = _get_dumper_output(dumper, system)
-        self.assertEqual(out.split('\n')[42:45:2],
+        self.assertEqual(
+            out.split('\n')[42:45:2],
             ["ATOM 1 C C . ALA 1 0 X 1.000 2.000 3.000 . 9 X . 1 1",
              "ATOM 3 N N . CYS 2 1 X 4.000 5.000 6.000 0.200 9 X 42.000 1 1"])
 
         # With auth_seq_id map
-        asym.auth_seq_id_map = {1:42, 2: 99}
+        asym.auth_seq_id_map = {1: 42, 2: 99}
         out = _get_dumper_output(dumper, system)
-        self.assertEqual(out.split('\n')[42:45:2],
+        self.assertEqual(
+            out.split('\n')[42:45:2],
             ["ATOM 1 C C . ALA 1 42 X 1.000 2.000 3.000 . 9 X . 1 1",
              "ATOM 3 N N . CYS 2 99 X 4.000 5.000 6.000 0.200 9 X 42.000 1 1"])
 
