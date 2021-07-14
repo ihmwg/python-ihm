@@ -958,6 +958,9 @@ class EntityRange(object):
 class Atom(object):
     """A single atom in an entity or asymmetric unit. Usually these objects
        are created by calling :meth:`Residue.atom`.
+
+       Note that this class does not store atomic coordinates of a given
+       atom in a given model; for that, see :class:`ihm.model.Atom`.
     """
 
     __slots__ = ['residue', 'id']

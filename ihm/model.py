@@ -35,7 +35,9 @@ class Sphere(object):
 class Atom(object):
     """Coordinates of part of the model represented by an atom.
 
-       See :meth:`Model.get_atoms` for more details.
+       See :meth:`Model.get_atoms` for more details. Note that this class
+       is used only to represent the coordinates of an atom. To access
+       atom-specific properties of the model, see the :class:`ihm.Atom` class.
 
        :param asym_unit: The asymmetric unit that this atom represents
        :type asym_unit: :class:`ihm.AsymUnit`
