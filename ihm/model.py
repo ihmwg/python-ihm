@@ -9,6 +9,8 @@ import itertools
 class Sphere(object):
     """Coordinates of part of the model represented by a sphere.
 
+       See :meth:`Model.get_spheres` for more details.
+
        :param asym_unit: The asymmetric unit that this sphere represents
        :type asym_unit: :class:`ihm.AsymUnit`
        :param tuple seq_id_range: The range of residues represented by this
@@ -32,6 +34,8 @@ class Sphere(object):
 
 class Atom(object):
     """Coordinates of part of the model represented by an atom.
+
+       See :meth:`Model.get_atoms` for more details.
 
        :param asym_unit: The asymmetric unit that this atom represents
        :type asym_unit: :class:`ihm.AsymUnit`
