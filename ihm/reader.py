@@ -1056,7 +1056,7 @@ class _StructRefHandler(Handler):
         typ = self.type_map.get(db_name.lower())
         ref = self.sysr.references.get_by_id(id, typ)
         # Strip newlines if code is split over multiple lines
-        if pdbx_seq_one_letter_code is not None:
+        if pdbx_seq_one_letter_code not in (None, ihm.unknown):
             pdbx_seq_one_letter_code \
                 = pdbx_seq_one_letter_code.replace('\n', '')
         self.copy_if_present(
