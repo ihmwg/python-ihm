@@ -113,12 +113,14 @@ class _SoftwareDumper(Dumper):
         # Software class)
         with writer.loop("_software",
                          ["pdbx_ordinal", "name", "classification",
-                          "description", "version", "type", "location"]) as lp:
+                          "description", "version", "type", "location",
+                          "citation_id"]) as lp:
             for s in self._software_by_id:
                 lp.write(pdbx_ordinal=s._id, name=s.name,
                          classification=s.classification,
                          description=s.description, version=s.version,
-                         type=s.type, location=s.location)
+                         type=s.type, location=s.location,
+                         citation_id=s.citation._id if s.citation else None)
 
 
 class _CitationDumper(Dumper):
