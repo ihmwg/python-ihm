@@ -3109,8 +3109,7 @@ def write(fh, systems, format='mmCIF', dumpers=[]):
               These can be used to add extra categories to the file."""
     dumpers = [_EntryDumper(),  # must be first
                _StructDumper(), _CommentDumper(),
-               _AuditConformDumper(), _SoftwareDumper(),
-               _CitationDumper(),
+               _AuditConformDumper(), _CitationDumper(), _SoftwareDumper(),
                _AuditAuthorDumper(), _GrantDumper(),
                _ChemCompDumper(), _ChemDescriptorDumper(),
                _EntityDumper(), _EntitySrcGenDumper(), _EntitySrcNatDumper(),
