@@ -244,6 +244,17 @@ _citation_author.ordinal
             year=2014, authors=['auth2', 'auth4'], doi='doi2')
         system.citations.extend((c1, c2))
 
+        # Citations indirectly referenced by software should *not* be used
+        c3 = ihm.Citation(
+            pmid='455', title='baz',
+            journal="Mol Cell Proteomics", volume=13, page_range=(2927, 2943),
+            year=2014, authors=['auth5', 'auth6', 'auth7'], doi='doi3')
+        software = ihm.Software(name='test', classification='test code',
+                                description='Some test program',
+                                version=1, location='http://test.org',
+                                citation=c3)
+        system.software.append(software)
+
         dumper = ihm.dumper._AuditAuthorDumper()
         out = _get_dumper_output(dumper, system)
         # auth2 is repeated in the input; we should see it only once in the
