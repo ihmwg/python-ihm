@@ -68,3 +68,24 @@ relion = ihm.Citation(
           'structure determination.',
     journal='J Struct Biol', volume=180, page_range=(519, 530), year=2012,
     authors=['Scheres SH'], doi='10.1016/j.jsb.2012.09.006')
+
+
+phyre2 = ihm.Citation(
+    pmid='25950237',
+    title='The Phyre2 web portal for protein modeling, prediction '
+          'and analysis.',
+    journal='Nat Protoc', volume=10, page_range=('845', '858'), year=2015,
+    authors=['Kelley LA', 'Mezulis S', 'Yates CM', 'Wass MN', 'Sternberg MJ'],
+    doi='10.1038/nprot.2015.053')
+
+
+swiss_model = ihm.Citation(
+    pmid='29788355',
+    title='SWISS-MODEL: homology modelling of protein structures '
+          'and complexes.',
+    journal='Nucleic Acids Res', volume=46, page_range=('W296', 'W303'),
+    year=2018,
+    authors=['Waterhouse A', 'Bertoni M', 'Bienert S', 'Studer G',
+             'Tauriello G', 'Gumienny R', 'Heer FT', 'de Beer TAP',
+             'Rempfer C', 'Bordoli L', 'Lepore R', 'Schwede T'],
+    doi='10.1093/nar/gky427')

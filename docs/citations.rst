@@ -35,3 +35,11 @@ The :mod:`ihm.citations` Python module
 .. data:: relion
 
    RELION, a Bayesian approach for cryo-EM structure determination.
+
+.. data:: phyre2
+
+   Phyre2, a web portal for protein modeling, prediction and analysis.
+
+.. data:: swiss_model
+
+   SWISS-MODEL: homology modeling of protein structures and complexes.
