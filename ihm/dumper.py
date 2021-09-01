@@ -3103,6 +3103,14 @@ def write(fh, systems, format='mmCIF', dumpers=[]):
        BinaryCIF format. The BinaryCIF writer needs the msgpack Python
        module to function.
 
+       The file handle should be opened in binary mode for BinaryCIF files.
+       For mmCIF, text mode should be used, usually with UTF-8 encoding, e.g.::
+
+           with open('output.cif', 'w', encoding='utf-8') as fh:
+               ihm.dumper.write(fh, systems)
+           with open('output.bcif', 'wb') as fh:
+               ihm.dumper.write(fh, systems, format='BCIF')
+
        :param file fh: The file handle to write to.
        :param list systems: The list of :class:`ihm.System` objects to write.
        :param str format: The format of the file. This can be 'mmCIF' (the
