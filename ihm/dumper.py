@@ -368,6 +368,8 @@ class _StructRefDumper(Dumper):
 
     def _get_sequence(self, reference):
         """Get the sequence string"""
+        if reference.sequence in (None, ihm.unknown):
+            return reference.sequence
         # Split into lines to get tidier CIF output
         return "\n".join(_prettyprint_seq(reference.sequence, 70))
 
@@ -403,6 +405,9 @@ class _StructRefDumper(Dumper):
 
     def _check_alignment(self, entity, ref, align):
         """Make sure that an alignment makes sense"""
+        if ref.sequence in (None, ihm.unknown):
+            # We just have to trust the range if the ref sequence is blank
+            return
         entseq = self._check_seq_dif(entity, ref, align)
 
         def check_rng(rng, seq, rngstr, obj):
