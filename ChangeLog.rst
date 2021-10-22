@@ -1,5 +1,5 @@
-HEAD
-====
+0.22 - 2021-10-22
+=================
   - The :class:`ihm.Software` class now allows a citation for the software
     to be provided.
   - A new :mod:`ihm.citations` module contains citations for some packages
