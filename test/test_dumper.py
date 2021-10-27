@@ -1618,7 +1618,6 @@ _ihm_modeling_protocol_details.protocol_id
 _ihm_modeling_protocol_details.step_id
 _ihm_modeling_protocol_details.struct_assembly_id
 _ihm_modeling_protocol_details.dataset_group_id
-_ihm_modeling_protocol_details.struct_assembly_description
 _ihm_modeling_protocol_details.step_name
 _ihm_modeling_protocol_details.step_method
 _ihm_modeling_protocol_details.num_models_begin
@@ -1629,9 +1628,9 @@ _ihm_modeling_protocol_details.ordered_flag
 _ihm_modeling_protocol_details.software_id
 _ihm_modeling_protocol_details.script_file_id
 _ihm_modeling_protocol_details.description
-1 1 1 42 99 foo s1 'Monte Carlo' 0 500 YES NO NO . . .
-2 1 2 42 99 foo . 'Replica exchange' 500 2000 YES NO NO . . .
-3 2 1 42 101 foo . 'Replica exchange' 2000 1000 YES NO NO 80 90 'test step'
+1 1 1 42 99 s1 'Monte Carlo' 0 500 YES NO NO . . .
+2 1 2 42 99 . 'Replica exchange' 500 2000 YES NO NO . . .
+3 2 1 42 101 . 'Replica exchange' 2000 1000 YES NO NO 80 90 'test step'
 #
 """)
 

@@ -1191,7 +1191,6 @@ class _ProtocolDumper(Dumper):
         with writer.loop("_ihm_modeling_protocol_details",
                          ["id", "protocol_id", "step_id",
                           "struct_assembly_id", "dataset_group_id",
-                          "struct_assembly_description",
                           "step_name", "step_method", "num_models_begin",
                           "num_models_end", "multi_scale_flag",
                           "multi_state_flag", "ordered_flag",
@@ -1205,7 +1204,6 @@ class _ProtocolDumper(Dumper):
                         struct_assembly_id=s.assembly._id,
                         dataset_group_id=s.dataset_group._id
                         if s.dataset_group else None,
-                        struct_assembly_description=s.assembly.description,
                         step_name=s.name, step_method=s.method,
                         num_models_begin=s.num_models_begin,
                         num_models_end=s.num_models_end,
