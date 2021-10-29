@@ -376,7 +376,7 @@ class _StructRefDumper(Dumper):
         db_end = max(a.db_end for a in reference._get_alignments())
         # Split into lines to get tidier CIF output
         return "\n".join(_prettyprint_seq(
-            reference.sequence[db_begin-1:db_end], 70))
+            reference.sequence[db_begin - 1:db_end], 70))
 
     def _check_seq_dif(self, entity, ref, align):
         """Check all SeqDif objects for the Entity sequence. Return the mutated
