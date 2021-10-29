@@ -370,8 +370,13 @@ class _StructRefDumper(Dumper):
         """Get the sequence string"""
         if reference.sequence in (None, ihm.unknown):
             return reference.sequence
+        # We only want the subset of the sequence that overlaps with
+        # our entities
+        db_begin = min(a.db_begin for a in reference._get_alignments())
+        db_end = max(a.db_end for a in reference._get_alignments())
         # Split into lines to get tidier CIF output
-        return "\n".join(_prettyprint_seq(reference.sequence, 70))
+        return "\n".join(_prettyprint_seq(
+            reference.sequence[db_begin-1:db_end], 70))
 
     def _check_seq_dif(self, entity, ref, align):
         """Check all SeqDif objects for the Entity sequence. Return the mutated

@@ -494,8 +494,8 @@ _struct_ref.pdbx_db_accession
 _struct_ref.pdbx_align_begin
 _struct_ref.pdbx_seq_one_letter_code
 _struct_ref.details
-1 1 UNP NUP84_YEAST P52891 3 MELWPTYQT 'test sequence'
-2 1 UNP testcode testacc 4 MELSPTYQT test2
+1 1 UNP NUP84_YEAST P52891 3 LWPTYQT 'test sequence'
+2 1 UNP testcode testacc 4 SPTYQT test2
 3 1 UNP testcode2 testacc2 4 . .
 4 1 UNP testcode3 testacc3 4 ? .
 #
