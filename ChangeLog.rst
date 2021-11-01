@@ -1,5 +1,5 @@
-HEAD
-====
+0.23 - 2021-11-01
+=================
   - Bugfix: _struct_ref.pdbx_seq_one_letter_code is now treated as the subset
     of the reference (e.g. UniProt) sequence that overlaps with our Entities,
     not the entire sequence (#64).
