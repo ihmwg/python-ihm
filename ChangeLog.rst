@@ -1,3 +1,9 @@
+HEAD
+====
+  - Bugfix: if two :class:`ihm.Dictionary` objects both contain information
+    about a given category, adding the two dictionaries together now combines
+    the category information, rather than just using that from one dictionary.
+
 0.23 - 2021-11-01
 =================
   - Bugfix: _struct_ref.pdbx_seq_one_letter_code is now treated as the subset
