@@ -2171,6 +2171,7 @@ _atom_site.label_alt_id
 _atom_site.label_comp_id
 _atom_site.label_seq_id
 _atom_site.auth_seq_id
+_atom_site.pdbx_PDB_ins_code
 _atom_site.label_asym_id
 _atom_site.Cartn_x
 _atom_site.Cartn_y
@@ -2181,9 +2182,9 @@ _atom_site.auth_asym_id
 _atom_site.B_iso_or_equiv
 _atom_site.pdbx_PDB_model_num
 _atom_site.ihm_model_id
-ATOM 1 C C . ALA 1 1 X 1.000 2.000 3.000 . 9 X . 1 1
-HETATM 2 C CA . ALA 1 1 X 10.000 20.000 30.000 . 9 X . 1 1
-ATOM 3 N N . CYS 2 2 X 4.000 5.000 6.000 0.200 9 X 42.000 1 1
+ATOM 1 C C . ALA 1 1 ? X 1.000 2.000 3.000 . 9 X . 1 1
+HETATM 2 C CA . ALA 1 1 ? X 10.000 20.000 30.000 . 9 X . 1 1
+ATOM 3 N N . CYS 2 2 ? X 4.000 5.000 6.000 0.200 9 X 42.000 1 1
 #
 #
 loop_
@@ -2196,17 +2197,19 @@ N
         asym.auth_seq_id_map = -1
         out = _get_dumper_output(dumper, system)
         self.assertEqual(
-            out.split('\n')[42:45:2],
-            ["ATOM 1 C C . ALA 1 0 X 1.000 2.000 3.000 . 9 X . 1 1",
-             "ATOM 3 N N . CYS 2 1 X 4.000 5.000 6.000 0.200 9 X 42.000 1 1"])
+            out.split('\n')[43:46:2],
+            ["ATOM 1 C C . ALA 1 0 ? X 1.000 2.000 3.000 . 9 X . 1 1",
+             "ATOM 3 N N . CYS 2 1 ? X 4.000 5.000 6.000 "
+             "0.200 9 X 42.000 1 1"])
 
         # With auth_seq_id map
         asym.auth_seq_id_map = {1: 42, 2: 99}
         out = _get_dumper_output(dumper, system)
         self.assertEqual(
-            out.split('\n')[42:45:2],
-            ["ATOM 1 C C . ALA 1 42 X 1.000 2.000 3.000 . 9 X . 1 1",
-             "ATOM 3 N N . CYS 2 99 X 4.000 5.000 6.000 0.200 9 X 42.000 1 1"])
+            out.split('\n')[43:46:2],
+            ["ATOM 1 C C . ALA 1 42 ? X 1.000 2.000 3.000 . 9 X . 1 1",
+             "ATOM 3 N N . CYS 2 99 ? X 4.000 5.000 6.000 "
+             "0.200 9 X 42.000 1 1"])
 
     def test_ensemble_dumper(self):
         """Test EnsembleDumper"""

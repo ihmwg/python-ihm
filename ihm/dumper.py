@@ -1477,7 +1477,7 @@ class _ModelDumper(Dumper):
         with writer.loop("_atom_site",
                          ["group_PDB", "id", "type_symbol",
                           "label_atom_id", "label_alt_id", "label_comp_id",
-                          "label_seq_id", "auth_seq_id",
+                          "label_seq_id", "auth_seq_id", "pdbx_PDB_ins_code",
                           "label_asym_id", "Cartn_x",
                           "Cartn_y", "Cartn_z", "occupancy", "label_entity_id",
                           "auth_asym_id",
@@ -1500,6 +1500,8 @@ class _ModelDumper(Dumper):
                              label_entity_id=atom.asym_unit.entity._id,
                              label_seq_id=atom.seq_id,
                              auth_seq_id=auth_seq_id,
+                             # our residues don't have insertion codes
+                             pdbx_PDB_ins_code=ihm.unknown,
                              auth_asym_id=atom.asym_unit._id,
                              Cartn_x=atom.x, Cartn_y=atom.y, Cartn_z=atom.z,
                              B_iso_or_equiv=atom.biso,
