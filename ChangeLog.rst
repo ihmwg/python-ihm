@@ -1,5 +1,9 @@
 HEAD
 ====
+  - :class:`ihm.AsymUnit` now supports insertion codes in its
+    ``auth_seq_id_map``. The target of this mapping can either be an
+    author-provided residue number (as previously) or a 2-element tuple
+    containing this number and an insertion code.
   - Bugfix: if two :class:`ihm.Dictionary` objects both contain information
     about a given category, adding the two dictionaries together now combines
     the category information, rather than just using that from one dictionary.

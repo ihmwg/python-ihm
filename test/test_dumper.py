@@ -790,7 +790,9 @@ _entity_poly_seq.hetero
         system.asym_units.append(ihm.AsymUnit(e1, 'foo'))
         system.asym_units.append(ihm.AsymUnit(e2, 'bar', auth_seq_id_map=5))
         system.asym_units.append(ihm.AsymUnit(e3, 'baz'))
-        system.asym_units.append(ihm.AsymUnit(e4, 'test'))
+        system.asym_units.append(ihm.AsymUnit(e4, 'test',
+                                              auth_seq_id_map={1: (1, 'A'),
+                                                               2: (1, 'B')}))
         system.asym_units.append(ihm.AsymUnit(e5, 'heme'))
         ihm.dumper._EntityDumper().finalize(system)
         ihm.dumper._StructAsymDumper().finalize(system)
@@ -807,17 +809,18 @@ _pdbx_poly_seq_scheme.auth_seq_num
 _pdbx_poly_seq_scheme.pdb_mon_id
 _pdbx_poly_seq_scheme.auth_mon_id
 _pdbx_poly_seq_scheme.pdb_strand_id
-A 1 1 ALA 1 1 ALA ALA A
-A 1 2 CYS 2 2 CYS CYS A
-A 1 3 GLY 3 3 GLY GLY A
-A 1 4 THR 4 4 THR THR A
-B 2 1 ALA 6 6 ALA ALA B
-B 2 2 CYS 7 7 CYS CYS B
-B 2 3 CYS 8 8 CYS CYS B
-C 3 1 A 1 1 A A C
-C 3 2 C 2 2 C C C
-D 4 1 DA 1 1 DA DA D
-D 4 2 DC 2 2 DC DC D
+_pdbx_poly_seq_scheme.pdb_ins_code
+A 1 1 ALA 1 1 ALA ALA A .
+A 1 2 CYS 2 2 CYS CYS A .
+A 1 3 GLY 3 3 GLY GLY A .
+A 1 4 THR 4 4 THR THR A .
+B 2 1 ALA 6 6 ALA ALA B .
+B 2 2 CYS 7 7 CYS CYS B .
+B 2 3 CYS 8 8 CYS CYS B .
+C 3 1 A 1 1 A A C .
+C 3 2 C 2 2 C C C .
+D 4 1 DA 1 1 DA DA D A
+D 4 2 DC 1 1 DC DC D B
 #
 """)
 
@@ -845,8 +848,9 @@ _pdbx_nonpoly_scheme.auth_seq_num
 _pdbx_nonpoly_scheme.pdb_mon_id
 _pdbx_nonpoly_scheme.auth_mon_id
 _pdbx_nonpoly_scheme.pdb_strand_id
-B 2 HEM 1 1 HEM HEM B
-C 3 ZN 6 6 ZN ZN C
+_pdbx_nonpoly_scheme.pdb_ins_code
+B 2 HEM 1 1 HEM HEM B .
+C 3 ZN 6 6 ZN ZN C .
 #
 """)
 

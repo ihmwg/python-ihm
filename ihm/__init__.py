@@ -998,10 +998,17 @@ class Residue(object):
         return Atom(residue=self, id=atom_id)
 
     def _get_auth_seq_id(self):
-        return self.asym._get_auth_seq_id(self.seq_id)
+        return self.asym._get_auth_seq_id_ins_code(self.seq_id)[0]
     auth_seq_id = property(_get_auth_seq_id,
                            doc="Author-provided seq_id; only makes sense "
                                "for asymmetric units")
+
+    def _get_ins_code(self):
+        return self.asym._get_auth_seq_id_ins_code(self.seq_id)[1]
+    ins_code = property(_get_ins_code,
+                        doc="Insertion code; only makes sense "
+                            "for asymmetric units")
+
     # Allow passing residues where a range is requested
     # (e.g. to ResidueFeature)
     seq_id_range = property(lambda self: (self.seq_id, self.seq_id))
@@ -1179,15 +1186,21 @@ class AsymUnit(object):
        :param str details: Longer text description of this unit.
        :param auth_seq_id_map: Mapping from internal 1-based consecutive
               residue numbering (`seq_id`) to "author-provided" numbering
-              (`auth_seq_id`). This can be either be an int offset, in
-              which case ``auth_seq_id = seq_id + auth_seq_id_map``, or
-              a mapping type (dict, list, tuple) in which case
-              ``auth_seq_id = auth_seq_id_map[seq_id]``. (Note that if a `list`
-              or `tuple` is used, the first element in the list or tuple does
+              (`auth_seq_id` plus an optional `ins_code`). This can be either
+              be an int offset, in which case
+              ``auth_seq_id = seq_id + auth_seq_id_map`` with no insertion
+              codes, or a mapping type (dict, list, tuple) in which case
+              ``auth_seq_id = auth_seq_id_map[seq_id]`` with no insertion
+              codes, or
+              ``auth_seq_id, ins_code = auth_seq_id_map[seq_id]`` - i.e. the
+              output of the mapping is either the author-provided number, or a
+              2-element tuple containing that number and an insertion code.
+              (Note that if a `list` or `tuple` is used for the mapping, the
+              first element in the list or tuple does
               **not** correspond to the first residue and will never be used -
               since `seq_id` can never be zero.) The default if
               not specified, or not in the mapping, is for
-              ``auth_seq_id == seq_id``.
+              ``auth_seq_id == seq_id`` and for no insertion codes to be used.
        :param str id: User-specified ID (usually a string of one or more
               upper-case letters, e.g. A, B, C, AA). If not specified,
               IDs are automatically assigned alphabetically.
@@ -1200,14 +1213,18 @@ class AsymUnit(object):
         self.auth_seq_id_map = auth_seq_id_map
         self.id = id
 
-    def _get_auth_seq_id(self, seq_id):
+    def _get_auth_seq_id_ins_code(self, seq_id):
         if isinstance(self.auth_seq_id_map, int):
-            return seq_id + self.auth_seq_id_map
+            return seq_id + self.auth_seq_id_map, None
         else:
             try:
-                return self.auth_seq_id_map[seq_id]
+                ret = self.auth_seq_id_map[seq_id]
+                if isinstance(ret, (int, str)):
+                    return ret, None
+                else:
+                    return ret
             except (KeyError, IndexError):
-                return seq_id
+                return seq_id, None
 
     def __call__(self, seq_id_begin, seq_id_end):
         return AsymUnitRange(self, seq_id_begin, seq_id_end)
