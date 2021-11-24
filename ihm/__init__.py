@@ -1204,14 +1204,18 @@ class AsymUnit(object):
        :param str id: User-specified ID (usually a string of one or more
               upper-case letters, e.g. A, B, C, AA). If not specified,
               IDs are automatically assigned alphabetically.
+       :param str strand_id: PDB or "author-provided" strand/chain ID.
+              If not specified, it will be the same as the regular ID.
 
        See :attr:`System.asym_units`.
     """
 
-    def __init__(self, entity, details=None, auth_seq_id_map=0, id=None):
+    def __init__(self, entity, details=None, auth_seq_id_map=0, id=None,
+                 strand_id=None):
         self.entity, self.details = entity, details
         self.auth_seq_id_map = auth_seq_id_map
         self.id = id
+        self._strand_id = strand_id
 
     def _get_auth_seq_id_ins_code(self, seq_id):
         if isinstance(self.auth_seq_id_map, int):
@@ -1235,6 +1239,9 @@ class AsymUnit(object):
 
     seq_id_range = property(lambda self: self.entity.seq_id_range,
                             doc="Sequence range")
+
+    strand_id = property(lambda self: self._strand_id or self._id,
+                         doc="PDB or author-provided strand/chain ID")
 
 
 class Assembly(list):

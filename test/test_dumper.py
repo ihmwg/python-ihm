@@ -685,8 +685,8 @@ _ihm_chemical_component_descriptor.inchi_key
         system.entities.extend((e1, e2, e3, e4, e5, e6))
         # One protein entity is modeled (with an asym unit) the other not;
         # this should be reflected in pdbx_strand_id
-        system.asym_units.append(ihm.AsymUnit(e1, 'foo'))
-        system.asym_units.append(ihm.AsymUnit(e1, 'bar'))
+        system.asym_units.append(ihm.AsymUnit(e1, 'foo', strand_id='a'))
+        system.asym_units.append(ihm.AsymUnit(e1, 'bar', strand_id='b'))
 
         rna = ihm.Entity('AC', alphabet=ihm.RNAAlphabet)
         dna = ihm.Entity(('DA', 'DC'), alphabet=ihm.DNAAlphabet)
@@ -708,7 +708,7 @@ _entity_poly.nstd_monomer
 _entity_poly.pdbx_strand_id
 _entity_poly.pdbx_seq_one_letter_code
 _entity_poly.pdbx_seq_one_letter_code_can
-1 polypeptide(L) no no A ACGT ACGT
+1 polypeptide(L) no no a ACGT ACGT
 2 polypeptide(L) no no . ACC(MSE) ACCM
 3 polypeptide(D) no no . (DAL)(DCY)G ACG
 4 polypeptide(D) no no . (DAL)(DCY) AC
@@ -790,7 +790,7 @@ _entity_poly_seq.hetero
         system.asym_units.append(ihm.AsymUnit(e1, 'foo'))
         system.asym_units.append(ihm.AsymUnit(e2, 'bar', auth_seq_id_map=5))
         system.asym_units.append(ihm.AsymUnit(e3, 'baz'))
-        system.asym_units.append(ihm.AsymUnit(e4, 'test',
+        system.asym_units.append(ihm.AsymUnit(e4, 'test', strand_id='X',
                                               auth_seq_id_map={1: (1, 'A'),
                                                                2: (1, 'B')}))
         system.asym_units.append(ihm.AsymUnit(e5, 'heme'))
@@ -819,8 +819,8 @@ B 2 2 CYS 7 7 CYS CYS B .
 B 2 3 CYS 8 8 CYS CYS B .
 C 3 1 A 1 1 A A C .
 C 3 2 C 2 2 C C C .
-D 4 1 DA 1 1 DA DA D A
-D 4 2 DC 1 1 DC DC D B
+D 4 1 DA 1 1 DA DA X A
+D 4 2 DC 1 1 DC DC X B
 #
 """)
 
@@ -832,7 +832,7 @@ D 4 2 DC 1 1 DC DC D B
         e3 = ihm.Entity([ihm.NonPolymerChemComp('ZN')])
         system.entities.extend((e1, e2, e3))
         system.asym_units.append(ihm.AsymUnit(e1, 'foo'))
-        system.asym_units.append(ihm.AsymUnit(e2, 'baz'))
+        system.asym_units.append(ihm.AsymUnit(e2, 'baz', strand_id='Q'))
         system.asym_units.append(ihm.AsymUnit(e3, 'bar', auth_seq_id_map=5))
         ihm.dumper._EntityDumper().finalize(system)
         ihm.dumper._StructAsymDumper().finalize(system)
@@ -849,7 +849,7 @@ _pdbx_nonpoly_scheme.pdb_mon_id
 _pdbx_nonpoly_scheme.auth_mon_id
 _pdbx_nonpoly_scheme.pdb_strand_id
 _pdbx_nonpoly_scheme.pdb_ins_code
-B 2 HEM 1 1 HEM HEM B .
+B 2 HEM 1 1 HEM HEM Q .
 C 3 ZN 6 6 ZN ZN C .
 #
 """)

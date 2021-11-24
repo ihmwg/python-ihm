@@ -538,7 +538,7 @@ class _EntityPolyDumper(Dumper):
         strand = {}
         for asym in system.asym_units:
             if asym.entity._id not in strand:
-                strand[asym.entity._id] = asym._id
+                strand[asym.entity._id] = asym.strand_id
         with writer.loop("_entity_poly",
                          ["entity_id", "type", "nstd_linkage",
                           "nstd_monomer", "pdbx_strand_id",
@@ -631,7 +631,7 @@ class _PolySeqSchemeDumper(Dumper):
                     continue
                 for num, comp in enumerate(entity.sequence):
                     auth_seq_num, ins = asym._get_auth_seq_id_ins_code(num + 1)
-                    lp.write(asym_id=asym._id, pdb_strand_id=asym._id,
+                    lp.write(asym_id=asym._id, pdb_strand_id=asym.strand_id,
                              entity_id=entity._id,
                              seq_id=num + 1, pdb_seq_num=auth_seq_num,
                              auth_seq_num=auth_seq_num,
@@ -656,7 +656,7 @@ class _NonPolySchemeDumper(Dumper):
                 # todo: handle multiple waters
                 for num, comp in enumerate(entity.sequence):
                     auth_seq_num, ins = asym._get_auth_seq_id_ins_code(num + 1)
-                    lp.write(asym_id=asym._id, pdb_strand_id=asym._id,
+                    lp.write(asym_id=asym._id, pdb_strand_id=asym.strand_id,
                              entity_id=entity._id,
                              pdb_seq_num=auth_seq_num,
                              auth_seq_num=auth_seq_num,
@@ -1505,7 +1505,7 @@ class _ModelDumper(Dumper):
                              label_seq_id=atom.seq_id,
                              auth_seq_id=auth_seq_id,
                              pdbx_PDB_ins_code=ins or ihm.unknown,
-                             auth_asym_id=atom.asym_unit._id,
+                             auth_asym_id=atom.asym_unit.strand_id,
                              Cartn_x=atom.x, Cartn_y=atom.y, Cartn_z=atom.z,
                              B_iso_or_equiv=atom.biso,
                              occupancy=atom.occupancy,

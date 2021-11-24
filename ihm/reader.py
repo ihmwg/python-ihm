@@ -2248,11 +2248,14 @@ class _PolySeqSchemeHandler(Handler):
     if _format is not None:
         _add_c_handler = _format.add_poly_seq_scheme_handler
 
-    # Note: do not change the ordering of the first 5 parameters to this
+    # Note: do not change the ordering of the first 6 parameters to this
     # function; the C parser expects them in this order
-    def __call__(self, asym_id, seq_id, auth_seq_num, pdb_ins_code):
+    def __call__(self, asym_id, seq_id, auth_seq_num, pdb_ins_code,
+                 pdb_strand_id):
         asym = self.sysr.asym_units.get_by_id(asym_id)
         seq_id = self.get_int(seq_id)
+        if pdb_strand_id not in (None, ihm.unknown, asym_id):
+            asym._strand_id = pdb_strand_id
         auth_seq_num = self.get_int_or_string(auth_seq_num)
         # Note any residues that have different seq_id and auth_seq_id
         if seq_id is not None and auth_seq_num is not None \
@@ -2307,7 +2310,8 @@ class _PolySeqSchemeHandler(Handler):
 class _NonPolySchemeHandler(Handler):
     category = '_pdbx_nonpoly_scheme'
 
-    def __call__(self, asym_id, entity_id, auth_seq_num, mon_id, pdb_ins_code):
+    def __call__(self, asym_id, entity_id, auth_seq_num, mon_id, pdb_ins_code,
+                 pdb_strand_id):
         entity = self.sysr.entities.get_by_id(entity_id)
         # nonpolymer entities generally have information on their chemical
         # component in pdbx_entity_nonpoly, but if that's missing, at least
@@ -2321,6 +2325,8 @@ class _NonPolySchemeHandler(Handler):
                     mon_id, name=entity.description)
             entity.sequence.append(s)
         asym = self.sysr.asym_units.get_by_id(asym_id)
+        if pdb_strand_id not in (None, ihm.unknown, asym_id):
+            asym._strand_id = pdb_strand_id
         # todo: handle multiple instances (e.g. water)
         auth_seq_num = self.get_int_or_string(auth_seq_num)
         if auth_seq_num != 1 or pdb_ins_code not in (None, ihm.unknown):

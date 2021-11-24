@@ -2297,14 +2297,16 @@ _pdbx_poly_seq_scheme.asym_id
 _pdbx_poly_seq_scheme.entity_id
 _pdbx_poly_seq_scheme.seq_id
 _pdbx_poly_seq_scheme.auth_seq_num
-A 1 1 6
-A 1 2 7
-A 1 3 8
-A 1 4 9
+_pdbx_poly_seq_scheme.pdb_strand_id
+A 1 1 6 A
+A 1 2 7 A
+A 1 3 8 A
+A 1 4 9 A
 """)
         s, = ihm.reader.read(fh)
         asym, = s.asym_units
         self.assertEqual(asym.auth_seq_id_map, 5)
+        self.assertIsNone(asym._strand_id)
         self.assertEqual([asym.residue(i).auth_seq_id for i in range(1, 5)],
                          [6, 7, 8, 9])
 
@@ -2316,17 +2318,19 @@ _pdbx_poly_seq_scheme.asym_id
 _pdbx_poly_seq_scheme.entity_id
 _pdbx_poly_seq_scheme.seq_id
 _pdbx_poly_seq_scheme.auth_seq_num
+_pdbx_poly_seq_scheme.pdb_strand_id
 _pdbx_poly_seq_scheme.pdb_ins_code
-A 1 1 6 .
-A 1 2 7 .
-A 1 3 8 .
-A 1 4 9 A
+A 1 1 6 A .
+A 1 2 7 A .
+A 1 3 8 A .
+A 1 4 9 A A
 """)
         s, = ihm.reader.read(fh)
         asym, = s.asym_units
         self.assertEqual(asym.auth_seq_id_map,
                          {1: (6, None), 2: (7, None), 3: (8, None),
                           4: (9, 'A')})
+        self.assertIsNone(asym._strand_id)
         self.assertEqual([asym.residue(i).auth_seq_id for i in range(1, 5)],
                          [6, 7, 8, 9])
         self.assertIsNone(asym.residue(1).ins_code)
@@ -2388,13 +2392,15 @@ _pdbx_poly_seq_scheme.asym_id
 _pdbx_poly_seq_scheme.entity_id
 _pdbx_poly_seq_scheme.seq_id
 _pdbx_poly_seq_scheme.auth_seq_num
-A 1 1 6
-A 1 2 7
-A 1 3 8
-A 1 4 10
+_pdbx_poly_seq_scheme.pdb_strand_id
+A 1 1 6 X
+A 1 2 7 X
+A 1 3 8 X
+A 1 4 10 X
 """)
         s, = ihm.reader.read(fh)
         asym, = s.asym_units
+        self.assertEqual(asym._strand_id, 'X')
         self.assertEqual(asym.auth_seq_id_map, {1: (6, None), 2: (7, None),
                                                 3: (8, None), 4: (10, None)})
         self.assertEqual([asym.residue(i).auth_seq_id for i in range(1, 5)],
@@ -2409,14 +2415,16 @@ _pdbx_poly_seq_scheme.asym_id
 _pdbx_poly_seq_scheme.entity_id
 _pdbx_poly_seq_scheme.seq_id
 _pdbx_poly_seq_scheme.auth_seq_num
+_pdbx_poly_seq_scheme.pdb_strand_id
 _pdbx_poly_seq_scheme.pdb_ins_code
-A 1 1 6 .
-A 1 2 7 .
-A 1 3 8 X
-A 1 4 9A .
+A 1 1 6 ? .
+A 1 2 7 ? .
+A 1 3 8 ? X
+A 1 4 9A ? .
 """)
         s, = ihm.reader.read(fh)
         asym, = s.asym_units
+        self.assertIsNone(asym._strand_id)
         self.assertEqual(asym.auth_seq_id_map, {1: (6, None), 2: (7, None),
                                                 3: (8, 'X'), 4: ('9A', None)})
         self.assertEqual([asym.residue(i).auth_seq_id for i in range(1, 5)],
@@ -2460,11 +2468,12 @@ _pdbx_nonpoly_scheme.asym_id
 _pdbx_nonpoly_scheme.entity_id
 _pdbx_nonpoly_scheme.mon_id
 _pdbx_nonpoly_scheme.auth_seq_num
+_pdbx_nonpoly_scheme.pdb_strand_id
 _pdbx_nonpoly_scheme.pdb_ins_code
-A 1 FOO 1 .
-A 1 BAR 101 .
-B 2 BAR 1 X
-C 3 HOH 1 .
+A 1 FOO 1 . .
+A 1 BAR 101 . .
+B 2 BAR 1 Q X
+C 3 HOH 1 . .
 """)
         s, = ihm.reader.read(fh)
         e1, e2, e3 = s.entities
@@ -2481,10 +2490,14 @@ C 3 HOH 1 .
         self.assertEqual(asym.auth_seq_id_map, {1: (101, None)})
         self.assertEqual(asym.residue(1).auth_seq_id, 101)
         self.assertIsNone(asym.residue(1).ins_code)
+        self.assertEqual(asym.strand_id, asym._id)
+        self.assertIsNone(asym._strand_id)
 
         self.assertEqual(a2.auth_seq_id_map, {1: (1, 'X')})
         self.assertEqual(a2.residue(1).auth_seq_id, 1)
         self.assertEqual(a2.residue(1).ins_code, 'X')
+        self.assertEqual(a2.strand_id, 'Q')
+        self.assertEqual(a2._strand_id, 'Q')
 
     def test_cross_link_list_handler(self):
         """Test CrossLinkListHandler"""
