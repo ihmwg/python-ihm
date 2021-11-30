@@ -9,6 +9,8 @@ HEAD
   - Bugfix: if two :class:`ihm.Dictionary` objects both contain information
     about a given category, adding the two dictionaries together now combines
     the category information, rather than just using that from one dictionary.
+  - Bugfix: :class:`ihm.Dictionary` should now be able to validate BinaryCIF
+    files containing integer or float values (#66).
 
 0.23 - 2021-11-01
 =================
