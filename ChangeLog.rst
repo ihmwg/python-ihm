@@ -6,11 +6,12 @@ HEAD
     containing this number and an insertion code.
   - :class:`ihm.AsymUnit` now allows the PDB or author-provided strand/chain ID
     to be different from the regular ID.
-  - Bugfix: if two :class:`ihm.Dictionary` objects both contain information
-    about a given category, adding the two dictionaries together now combines
-    the category information, rather than just using that from one dictionary.
-  - Bugfix: :class:`ihm.Dictionary` should now be able to validate BinaryCIF
-    files containing integer or float values (#66).
+  - Bugfix: if two :class:`ihm.dictionary.Dictionary` objects both contain
+    information about a given category, adding the two dictionaries together
+    now combines the category information, rather than just using that from
+    one dictionary.
+  - Bugfix: :class:`ihm.dictionary.Dictionary` should now be able to validate
+    BinaryCIF files containing integer or float values (#66).
 
 0.23 - 2021-11-01
 =================
