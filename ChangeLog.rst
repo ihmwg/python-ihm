@@ -1,3 +1,9 @@
+HEAD
+====
+  - :func:`ihm.dictionary.Dictionary.validate` will now report errors for
+    any keywords or categories in the file that are not present in the
+    dictionary.
+
 0.24 - 2021-12-01
 =================
   - :class:`ihm.AsymUnit` now supports insertion codes in its
