@@ -1,5 +1,5 @@
-HEAD
-====
+0.25 - 2021-12-03
+=================
   - :func:`ihm.dictionary.Dictionary.validate` will now report errors for
     any keywords or categories in the file that are not present in the
     dictionary.
