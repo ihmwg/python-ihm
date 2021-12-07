@@ -86,7 +86,7 @@ class System(object):
 
         #: List of all authors of this system, as a list of strings (last name
         #: followed by initials, e.g. "Smith AJ"). When writing out a file,
-        #: if this is list is empty, the set of all citation authors (see
+        #: if this list is empty, the set of all citation authors (see
         #: :attr:`Citation.authors`) is used instead.
         self.authors = []
 
