@@ -11,6 +11,7 @@ The :mod:`ihm` Python module
 
 .. autoclass:: System
    :members:
+   :inherited-members:
 
 .. autoclass:: Software
    :members:
