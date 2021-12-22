@@ -3235,6 +3235,7 @@ def read(fh, model_class=ihm.model.Model, format='mmCIF', handlers=[],
               read. This primarily controls the set of tables that are
               read from the file. In most cases the default
               :class:`IHMVariant` should be used.
+       :type variant: :class:`Variant`
        :return: A list of :class:`ihm.System` objects.
     """
     if isinstance(variant, type):
