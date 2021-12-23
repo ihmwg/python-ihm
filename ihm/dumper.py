@@ -3178,8 +3178,6 @@ def write(fh, systems, format='mmCIF', dumpers=[], variant=IHMVariant):
     writer = writer_map[format](fh)
     for system in systems:
         system._before_write()
-        # Fill in complete assembly
-        system._make_complete_assembly()
 
         for d in dumpers:
             d.finalize(system)

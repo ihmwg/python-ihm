@@ -544,6 +544,8 @@ class System(object):
         # Here, we initialize all RestraintGroups by removing any assigned ID
         for g in self.restraint_groups:
             util._remove_id(g)
+        # Fill in complete assembly
+        self._make_complete_assembly()
 
     def _check_after_write(self):
         """Make sure everything was successfully written"""
