@@ -388,8 +388,15 @@ class _XLRestraintMapper(object):
         return self._seen_rsrs.values()
 
 
-class _SystemReaderBase(object):
+class SystemReader(object):
+    """Utility class to track global information for a :class:`ihm.System`
+       being read from a file, such as the mapping from IDs to objects
+       (as :class:`IDMapper` objects). This can be used by :class:`Handler`
+       subclasses."""
     def __init__(self, model_class, starting_model_class):
+        #: The :class:`ihm.System` object being read in
+        self.system = ihm.System()
+
         #: Mapping from ID to :class:`ihm.Software` objects
         self.software = IDMapper(self.system.software, ihm.Software,
                                  *(None,) * 4)
@@ -415,23 +422,6 @@ class _SystemReaderBase(object):
 
         #: Mapping from ID to :class:`ihm.ChemComp` objects
         self.chem_comps = _ChemCompIDMapper(None, ihm.ChemComp, *(None,) * 3)
-
-    def finalize(self):
-        # make sequence immutable (see also _make_new_entity)
-        for e in self.system.entities:
-            e.sequence = tuple(e.sequence)
-
-
-class SystemReader(_SystemReaderBase):
-    """Utility class to track global information for a :class:`ihm.System`
-       being read from a file, such as the mapping from IDs to objects
-       (as :class:`IDMapper` objects). This can be used by :class:`Handler`
-       subclasses."""
-    def __init__(self, model_class, starting_model_class):
-        #: The :class:`ihm.System` object being read in
-        self.system = ihm.System()
-
-        super(SystemReader, self).__init__(model_class, starting_model_class)
 
         #: Mapping from ID to :class:`ihm.reference.Alignment` objects
         self.alignments = IDMapper(None, ihm.reference.Alignment)
@@ -768,6 +758,11 @@ class SystemReader(_SystemReaderBase):
         self.flr_fps_mpp_modeling = _FLRIDMapper(
             '_collection_flr_fps_mpp_modeling', 'fps_modeling',
             self.flr_data, ihm.flr.FPSMPPModeling, *(None,) * 3)
+
+    def finalize(self):
+        # make sequence immutable (see also _make_new_entity)
+        for e in self.system.entities:
+            e.sequence = tuple(e.sequence)
 
 
 class Handler(object):
