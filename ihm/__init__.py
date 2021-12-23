@@ -67,7 +67,13 @@ def _remove_identical(gen):
         yield obj
 
 
-class _SystemBase(object):
+class System(object):
+    """Top-level class representing a complete modeled system.
+
+       :param str title: Title (longer text description) of the system.
+       :param str id: Unique identifier for this system in the mmCIF file.
+    """
+
     def __init__(self, title=None, id='model'):
         self.id = id
         self.title = title
@@ -122,35 +128,6 @@ class _SystemBase(object):
         #: See :class:`~ihm.location.Location`.
         self.locations = []
 
-    def _make_complete_assembly(self):
-        """Fill in the complete assembly with all asym units"""
-        # Clear out any existing components
-        self.complete_assembly[:] = []
-
-        # Include all asym units
-        for asym in self.asym_units:
-            self.complete_assembly.append(asym)
-
-    def _all_models(self):
-        """Iterate over all Models in the system"""
-        # todo: raise an error if a model is present in multiple groups
-        for group in self._all_model_groups():
-            seen_models = {}
-            for model in group:
-                if model in seen_models:
-                    continue
-                seen_models[model] = None
-                yield group, model
-
-
-class System(_SystemBase):
-    """Top-level class representing a complete modeled system.
-
-       :param str title: Title (longer text description) of the system.
-       :param str id: Unique identifier for this system in the mmCIF file.
-    """
-    def __init__(self, title=None, id='model'):
-        _SystemBase.__init__(self, title, id)
         #: All orphaned datasets.
         #: This can be used to keep track of all datasets that are not
         #: otherwise used - normally a dataset is assigned to a
@@ -234,6 +211,26 @@ class System(_SystemBase):
         #: Contains the fluorescence (FLR) part.
         #: See :class:`~ihm.flr.FLRData`.
         self.flr_data = []
+
+    def _make_complete_assembly(self):
+        """Fill in the complete assembly with all asym units"""
+        # Clear out any existing components
+        self.complete_assembly[:] = []
+
+        # Include all asym units
+        for asym in self.asym_units:
+            self.complete_assembly.append(asym)
+
+    def _all_models(self):
+        """Iterate over all Models in the system"""
+        # todo: raise an error if a model is present in multiple groups
+        for group in self._all_model_groups():
+            seen_models = {}
+            for model in group:
+                if model in seen_models:
+                    continue
+                seen_models[model] = None
+                yield group, model
 
     def update_locations_in_repositories(self, repos):
         """Update all :class:`Location` objects in the system that lie within
