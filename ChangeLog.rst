@@ -1,3 +1,10 @@
+HEAD
+====
+  - :func:`ihm.dumper.write` and :func:`ihm.reader.read` both now take
+    a ``variant`` argument which can be used to control the set of tables
+    that are read/written. This can be used by other libraries (such as
+    python-ma) to support other mmCIF extensions.
+
 0.25 - 2021-12-03
 =================
   - :func:`ihm.dictionary.Dictionary.validate` will now report errors for
