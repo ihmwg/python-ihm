@@ -1,5 +1,5 @@
-HEAD
-====
+0.26 - 2022-01-12
+=================
   - :func:`ihm.dumper.write` and :func:`ihm.reader.read` both now take
     a ``variant`` argument which can be used to control the set of tables
     that are read/written. This can be used by other libraries (such as
