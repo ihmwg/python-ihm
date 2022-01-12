@@ -549,7 +549,11 @@ class BinaryCifWriter(ihm.format._Writer):
 
     def write_comment(self, comment):
         """See :meth:`ihm.format.CifWriter.write_comment`.
-           @note BinaryCIF does not support comments, so this is a noop"""
+
+           .. note::
+
+              BinaryCIF does not support comments, so this is a noop.
+        """
         pass
 
     def _encode_data(self, data):
