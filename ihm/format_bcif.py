@@ -206,6 +206,7 @@ class BinaryCifReader(ihm.format._Reader):
 
     def read_file(self):
         """Read the file and extract data.
+
            :return: True iff more data blocks are available to be read.
         """
         self._add_category_keys()
