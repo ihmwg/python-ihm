@@ -191,7 +191,10 @@ class CifWriter(_Writer):
            and obj not in ('save_', 'loop_', 'stop_', 'global_', '?', '.'):
             return obj
         elif isinstance(obj, float):
-            return "%.3f" % obj
+            if obj < 1e-3:
+                return "%.3g" % obj
+            else:
+                return "%.3f" % obj
         elif isinstance(obj, bool):
             return self._boolmap[obj]
         # Don't use repr(x) if type(x) == long since that adds an 'L' suffix,
