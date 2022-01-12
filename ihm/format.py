@@ -191,7 +191,7 @@ class CifWriter(_Writer):
            and obj not in ('save_', 'loop_', 'stop_', 'global_', '?', '.'):
             return obj
         elif isinstance(obj, float):
-            if obj < 1e-3:
+            if abs(obj) < 1e-3:
                 return "%.3g" % obj
             else:
                 return "%.3f" % obj
