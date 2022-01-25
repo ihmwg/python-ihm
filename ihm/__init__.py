@@ -74,6 +74,8 @@ class System(object):
        :param str id: Unique identifier for this system in the mmCIF file.
     """
 
+    structure_determination_methodology = "integrative"
+
     def __init__(self, title=None, id='model'):
         self.id = id
         self.title = title
