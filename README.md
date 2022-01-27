@@ -12,9 +12,9 @@ and [BinaryCIF](https://github.com/dsehnal/BinaryCIF) files compliant with the
 extension. It works with Python 2.7 or Python 3.
 
 To handle non-integrative theoretical models (for example, homology models),
-see the [python-ma](https://github.com/ihmwg/python-ma) package which
-supports files compliant with the
-[Model Archive (MA)](https://mmcif.wwpdb.org/dictionaries/mmcif_ma.dic/Index/)
+see the [python-modelcif](https://github.com/ihmwg/python-modelcif) package
+which supports files compliant with the
+[ModelCIF](https://mmcif.wwpdb.org/dictionaries/mmcif_ma.dic/Index/)
 extension.
 
 Please [see the documentation](https://python-ihm.readthedocs.org/)
