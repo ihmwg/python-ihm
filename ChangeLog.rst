@@ -1,3 +1,9 @@
+0.27 - 2022-01-27
+=================
+  - Minor documentation improvements.
+  - Add support for the _struct.pdbx_structure_determination_methodology
+    mmCIF data item.
+
 0.26 - 2022-01-12
 =================
   - :func:`ihm.dumper.write` and :func:`ihm.reader.read` both now take
