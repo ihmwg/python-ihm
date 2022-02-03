@@ -96,6 +96,14 @@ class Tests(unittest.TestCase):
         out = _get_dumper_output(dumper, system)
         self.assertEqual(out, "data_test_model\n_entry.id test_model\n")
 
+    def test_entry_dumper_data_chars(self):
+        """Test allowed characters in data_ block with EntryDumper"""
+        system = ihm.System(id='foo99-bar94_ABC $#% x')
+        dumper = ihm.dumper._EntryDumper()
+        out = _get_dumper_output(dumper, system).split('\n')[0]
+        # Whitespace and special characters (except - _) should be removed
+        self.assertEqual(out, "data_foo99-bar94_ABCx")
+
     def test_audit_conform_dumper(self):
         """Test AuditConformDumper"""
         system = ihm.System()
