@@ -214,6 +214,16 @@ class Tests(unittest.TestCase):
         self.assertEqual(water.type, 'water')
         self.assertFalse(water.is_polymeric())
 
+        # A single amino acid should be classified non-polymer
+        single_aa = ihm.Entity('A')
+        self.assertEqual(single_aa.type, 'non-polymer')
+        self.assertFalse(single_aa.is_polymeric())
+
+        # An entity with no sequence is a polymer
+        empty = ihm.Entity([])
+        self.assertEqual(empty.type, 'polymer')
+        self.assertTrue(empty.is_polymeric())
+
     def test_entity_src_method_default(self):
         """Test default values of Entity.src_method"""
         protein = ihm.Entity('AHCD')

@@ -1150,8 +1150,10 @@ class Entity(object):
     def is_polymeric(self):
         """Return True iff this entity represents a polymer, such as an
            amino acid sequence or DNA/RNA chain (and not a ligand or water)"""
-        return len(self.sequence) != 1 or not isinstance(self.sequence[0],
-                                                         NonPolymerChemComp)
+        return (len(self.sequence) == 0 or
+                len(self.sequence) > 1
+                and any(isinstance(x, (PeptideChemComp, DNAChemComp,
+                                       RNAChemComp)) for x in self.sequence))
 
     def residue(self, seq_id):
         """Get a :class:`Residue` at the given sequence position"""

@@ -759,7 +759,9 @@ _entity_poly_seq.entity_id
 _entity_poly_seq.num
 _entity_poly_seq.mon_id
 1 1 ALA
+1 2 ALA
 2 1 ALA
+2 2 ALA
 #
 loop_
 _ihm_entity_poly_segment.id
@@ -768,9 +770,9 @@ _ihm_entity_poly_segment.seq_id_begin
 _ihm_entity_poly_segment.seq_id_end
 1 1 1 726
 2 2 1 744
-3 1 1 1
+3 1 1 2
 4 2 1 50
-5 2 1 1
+5 2 1 2
 #
 loop_
 _struct_asym.id
