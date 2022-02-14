@@ -813,19 +813,22 @@ class RNAChemComp(ChemComp):
 
 
 class NonPolymerChemComp(ChemComp):
-    """A non-polymer chemical component, such as a ligand
-       (for crystal waters, use :class:`WaterChemComp`).
+    """A non-polymer chemical component, such as a ligand or a non-standard
+       residue (for crystal waters, use :class:`WaterChemComp`).
 
        :param str id: A globally unique identifier for this component.
+       :param str code_canonical: Canonical one-letter identifier. This is
+              used for non-standard residues and should be the one-letter code
+              of the closest standard residue (or by default, 'X').
        :param str name: A longer human-readable name for the component.
        :param str formula: The chemical formula. See :class:`ChemComp` for
               more details.
     """
     type = "non-polymer"
 
-    def __init__(self, id, name=None, formula=None):
-        super(NonPolymerChemComp, self).__init__(id, id, id, name=name,
-                                                 formula=formula)
+    def __init__(self, id, code_canonical='X', name=None, formula=None):
+        super(NonPolymerChemComp, self).__init__(id, id, code_canonical,
+                                                 name=name, formula=formula)
 
 
 class WaterChemComp(NonPolymerChemComp):

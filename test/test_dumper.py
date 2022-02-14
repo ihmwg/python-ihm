@@ -681,7 +681,7 @@ _ihm_chemical_component_descriptor.inchi_key
         """Test EntityPolyDumper"""
         system = ihm.System()
         e1 = ihm.Entity('ACGT')  # sequence containing glycine
-        e2 = ihm.Entity(('A', 'C', 'C', 'MSE'))  # no glycine
+        e2 = ihm.Entity(('A', 'C', 'C', 'UNK', 'MSE'))  # no glycine
         # All D-peptides (with glycine)
         e3 = ihm.Entity(('DAL', 'DCY', 'G'), alphabet=ihm.DPeptideAlphabet)
         # All D-peptides (without glycine)
@@ -691,7 +691,9 @@ _ihm_chemical_component_descriptor.inchi_key
         e5 = ihm.Entity(('A', dpep_al['DCY'], 'G'))
         # Non-polymeric entity
         e6 = ihm.Entity([ihm.NonPolymerChemComp('HEM')])
-        system.entities.extend((e1, e2, e3, e4, e5, e6))
+        # Sequence containing a non-standard residue
+        e7 = ihm.Entity((ihm.NonPolymerChemComp('ACE'), 'C', 'C'))
+        system.entities.extend((e1, e2, e3, e4, e5, e6, e7))
         # One protein entity is modeled (with an asym unit) the other not;
         # this should be reflected in pdbx_strand_id
         system.asym_units.append(ihm.AsymUnit(e1, 'foo', strand_id='a'))
@@ -718,13 +720,14 @@ _entity_poly.pdbx_strand_id
 _entity_poly.pdbx_seq_one_letter_code
 _entity_poly.pdbx_seq_one_letter_code_can
 1 polypeptide(L) no no a ACGT ACGT
-2 polypeptide(L) no no . ACC(MSE) ACCM
+2 polypeptide(L) no no . ACC(UNK)(MSE) ACCXM
 3 polypeptide(D) no no . (DAL)(DCY)G ACG
 4 polypeptide(D) no no . (DAL)(DCY) AC
 5 polypeptide(L) no no . A(DCY)G ACG
-7 polyribonucleotide no no . AC AC
-8 polydeoxyribonucleotide no no . (DA)(DC) AC
-9 'polydeoxyribonucleotide/polyribonucleotide hybrid' no no . AC(DA)(DC) ACAC
+7 polypeptide(L) no yes . (ACE)CC XCC
+8 polyribonucleotide no no . AC AC
+9 polydeoxyribonucleotide no no . (DA)(DC) AC
+10 'polydeoxyribonucleotide/polyribonucleotide hybrid' no no . AC(DA)(DC) ACAC
 #
 """)
 

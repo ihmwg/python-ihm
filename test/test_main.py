@@ -84,6 +84,9 @@ class Tests(unittest.TestCase):
         """Test NonPolymerChemComp class"""
         cc1 = ihm.NonPolymerChemComp('HEM')
         self.assertEqual(cc1.type, 'non-polymer')
+        self.assertEqual(cc1.code_canonical, 'X')
+        cc2 = ihm.NonPolymerChemComp('HEM', code_canonical='G')
+        self.assertEqual(cc2.code_canonical, 'G')
 
     def test_water_chem_comp(self):
         """Test WaterChemComp class"""

@@ -549,8 +549,11 @@ class _EntityPolyDumper(Dumper):
             for entity in system.entities:
                 if not entity.is_polymeric():
                     continue
+                nstd = any(isinstance(x, ihm.NonPolymerChemComp)
+                           for x in entity.sequence)
                 lp.write(entity_id=entity._id, type=self._get_seq_type(entity),
-                         nstd_linkage='no', nstd_monomer='no',
+                         nstd_linkage='no',
+                         nstd_monomer='yes' if nstd else 'no',
                          pdbx_strand_id=strand.get(entity._id, None),
                          pdbx_seq_one_letter_code=self._get_sequence(entity),
                          pdbx_seq_one_letter_code_can=self._get_canon(entity))
