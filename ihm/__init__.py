@@ -631,9 +631,11 @@ class Citation(object):
        :param str pmid: The PubMed ID.
        :param str title: Full title of the publication.
        :param str journal: Abbreviated journal name.
-       :param int volume: Journal volume number.
+       :param volume: Journal volume as int for a plain number or str for
+                      journals adding a label to the number (e.g. "46(W1)" for
+                      a web server issue).
        :param page_range: The page (int) or page range (as a 2-element
-              int tuple).
+              int tuple). Using str also works for labelled page numbers.
        :param int year: Year of publication.
        :param authors: All authors in order, as a list of strings (last name
               followed by initials, e.g. "Smith AJ").
