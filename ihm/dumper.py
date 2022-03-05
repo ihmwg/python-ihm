@@ -127,13 +127,25 @@ class _SoftwareDumper(Dumper):
 
 class _CitationDumper(Dumper):
     def finalize(self, system):
-        for nc, c in enumerate(system._all_citations()):
+        primaries = []
+        non_primaries = []
+        for c in system._all_citations():
+            (primaries if c.is_primary else non_primaries).append(c)
+        # Put primary citations first in list
+        self._all_citations = primaries + non_primaries
+        for nc, c in enumerate(self._all_citations):
             c._id = nc + 1
+        if primaries:
+            if len(primaries) > 1:
+                raise ValueError(
+                    "Multiple Citations with is_primary=True; only one can "
+                    "be primary: %s" % primaries)
+            else:
+                primaries[0]._id = 'primary'
 
     def dump(self, system, writer):
-        citations = list(system._all_citations())
-        self.dump_citations(citations, writer)
-        self.dump_authors(citations, writer)
+        self.dump_citations(self._all_citations, writer)
+        self.dump_authors(self._all_citations, writer)
 
     def dump_citations(self, citations, writer):
         with writer.loop("_citation",

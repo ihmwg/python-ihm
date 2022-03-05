@@ -289,7 +289,7 @@ _citation.page_last
 _citation.year
 _citation.pdbx_database_id_PubMed
 _citation.pdbx_database_id_DOI
-2 'Mol Cell Proteomics' 9 2943 . 2014 1234 .
+primary 'Mol Cell Proteomics' 9 2943 . 2014 1234 .
 3 'Mol Cell Proteomics' 9 2943 2946 2014 1234 1.2.3.4
 4 'Mol Cell Proteomics' 9 . . 2014 1234 1.2.3.4
 #
@@ -306,18 +306,21 @@ _citation_author.ordinal
         for fh in cif_file_handles(cif):
             s, = ihm.reader.read(fh)
             citation1, citation2, citation3, citation4 = s.citations
-            self.assertEqual(citation1._id, '2')
+            self.assertEqual(citation1._id, 'primary')
+            self.assertTrue(citation1.is_primary)
             self.assertEqual(citation1.page_range, '2943')
             self.assertEqual(citation1.authors, [])
             self.assertEqual(citation1.pmid, '1234')
             self.assertIsNone(citation1.doi)
 
             self.assertEqual(citation2._id, '3')
+            self.assertFalse(citation2.is_primary)
             self.assertEqual(citation2.page_range, ('2943', '2946'))
             self.assertEqual(citation2.authors, ['Foo A', 'Bar C'])
             self.assertEqual(citation2.doi, '1.2.3.4')
 
             self.assertEqual(citation3._id, '4')
+            self.assertFalse(citation3.is_primary)
             self.assertEqual(citation3.authors, [])
             self.assertIsNone(citation3.page_range)
 
