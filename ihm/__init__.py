@@ -640,13 +640,18 @@ class Citation(object):
        :param authors: All authors in order, as a list of strings (last name
               followed by initials, e.g. "Smith AJ").
        :param str doi: Digital Object Identifier of the publication.
+       :param bool is_primary: Denotes the most pertinent publication for the
+              modeling itself (as opposed to a method or piece of software used
+              in the protocol). Only one such publication is allowed, and it
+              is assigned the ID "primary" in the mmCIF file.
     """
     def __init__(self, pmid, title, journal, volume, page_range, year, authors,
-                 doi):
+                 doi, is_primary=False):
         self.title, self.journal, self.volume = title, journal, volume
         self.page_range, self.year = page_range, year
         self.pmid, self.doi = pmid, doi
         self.authors = authors if authors is not None else []
+        self.is_primary = is_primary
 
     @classmethod
     def from_pubmed_id(cls, pubmed_id):

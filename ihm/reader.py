@@ -916,6 +916,7 @@ class _CitationHandler(Handler):
                  journal_abbrev, journal_volume, pdbx_database_id_doi,
                  page_first, page_last):
         s = self.sysr.citations.get_by_id(id)
+        s.is_primary = (id == 'primary')
         self.copy_if_present(
             s, locals(), keys=('title', 'year'),
             mapkeys={'pdbx_database_id_pubmed': 'pmid',

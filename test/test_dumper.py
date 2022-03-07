@@ -236,8 +236,50 @@ _citation_author.ordinal
         # Handle no last page
         c1.page_range = 'e1637'
         dumper = ihm.dumper._CitationDumper()
+        dumper.finalize(system)  # Assign IDs
         out = _get_dumper_output(dumper, system)
         self.assertIn("'Mol Cell Proteomics' 13 e1637 . 2014 ", out)
+
+    def test_citation_primary(self):
+        """Test CitationDumper with a primary citation"""
+        system = ihm.System()
+        c1 = ihm.Citation(pmid='x', title='y', journal='z', year=2014,
+                          authors=[], volume=1, page_range=1, doi='d')
+        c2 = ihm.Citation(pmid='x2', title='y2', journal='z2', year=2015,
+                          authors=[], volume=1, page_range=1, doi='e',
+                          is_primary=True)
+        system.citations.extend((c1, c2))
+        dumper = ihm.dumper._CitationDumper()
+        dumper.finalize(system)  # Assign IDs
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_citation.id
+_citation.title
+_citation.journal_abbrev
+_citation.journal_volume
+_citation.page_first
+_citation.page_last
+_citation.year
+_citation.pdbx_database_id_PubMed
+_citation.pdbx_database_id_DOI
+primary y2 z2 1 1 . 2015 x2 e
+2 y z 1 1 . 2014 x d
+#
+""")
+
+    def test_citation_multiple_primary(self):
+        """Test CitationDumper with multiple primary citations"""
+        system = ihm.System()
+        c1 = ihm.Citation(pmid='x', title='y', journal='z', year=2014,
+                          authors=[], volume=1, page_range=1, doi='d',
+                          is_primary=True)
+        c2 = ihm.Citation(pmid='x2', title='y2', journal='z2', year=2015,
+                          authors=[], volume=1, page_range=1, doi='e',
+                          is_primary=True)
+        system.citations.extend((c1, c2))
+        dumper = ihm.dumper._CitationDumper()
+        self.assertRaises(ValueError, dumper.finalize, system)
 
     def test_audit_author_empty(self):
         """Test AuditAuthorDumper with empty list"""
