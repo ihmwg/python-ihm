@@ -1,3 +1,10 @@
+0.28 - 2022-03-21
+=================
+  - :class:`ihm.Citation` now takes a ``is_primary`` argument, which can
+    be used to denote the most pertinent publication for the modeling.
+  - Improved support for non-standard residues, and for standard amino acids
+    used as nonpolymers.
+
 0.27 - 2022-01-27
 =================
   - Minor documentation improvements.
