@@ -187,6 +187,7 @@ class CifWriter(_Writer):
         if isinstance(obj, str) and '"' not in obj \
            and "'" not in obj and " " not in obj \
            and len(obj) > 0 \
+           and not obj.startswith('_') \
            and not obj.startswith('data_') \
            and not obj.startswith('[') \
            and obj not in ('save_', 'loop_', 'stop_', 'global_', '?', '.'):
