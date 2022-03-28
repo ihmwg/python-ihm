@@ -897,14 +897,15 @@ loop_
 _pdbx_nonpoly_scheme.asym_id
 _pdbx_nonpoly_scheme.entity_id
 _pdbx_nonpoly_scheme.mon_id
+_pdbx_nonpoly_scheme.ndb_seq_num
 _pdbx_nonpoly_scheme.pdb_seq_num
 _pdbx_nonpoly_scheme.auth_seq_num
 _pdbx_nonpoly_scheme.pdb_mon_id
 _pdbx_nonpoly_scheme.auth_mon_id
 _pdbx_nonpoly_scheme.pdb_strand_id
 _pdbx_nonpoly_scheme.pdb_ins_code
-B 2 HEM 1 1 HEM HEM Q .
-C 3 ZN 6 6 ZN ZN C .
+B 2 HEM 1 1 1 HEM HEM Q .
+C 3 ZN 1 6 6 ZN ZN C .
 #
 """)
 
