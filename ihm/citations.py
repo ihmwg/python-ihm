@@ -96,7 +96,7 @@ alphafold2 = ihm.Citation(
     title='Highly accurate protein structure prediction with AlphaFold.',
     journal='Nature', volume=596, page_range=(583, 589), year=2021,
     authors=['Jumper J', 'Evans R', 'Pritzel A', 'Green T', 'Figurnov M',
-             'Ronneberger O', 'Tunyasuvunakool K', 'Bates R', 'Žídek A',
+             'Ronneberger O', 'Tunyasuvunakool K', 'Bates R', 'Zidek A',
              'Potapenko A', 'Bridgland A', 'Meyer C', 'Kohl SAA', 'Ballard AJ',
              'Cowie A', 'Romera-Paredes B', 'Nikolov S', 'Jain R', 'Adler J',
              'Back T', 'Petersen S', 'Reiman D', 'Clancy E', 'Zielinski M',
