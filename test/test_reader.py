@@ -4031,6 +4031,19 @@ _flr_FPS_MPP_modeling.mpp_atom_position_group_id
                               ihm.flr.FPSMPPAtomPositionGroup)
         self.assertEqual(m.mpp_atom_position_group._id, '5')
 
+    def test_variant_base(self):
+        """Test Variant base class"""
+        v = ihm.reader.Variant()
+        self.assertIsNone(v.get_handlers(None))
+        self.assertIsNone(v.get_audit_conform_handler(None))
+
+    def test_write_variant(self):
+        """Test write() function with Variant object"""
+        cif = "data_model\n_struct.entry_id testid\n"
+        for fh in cif_file_handles(cif):
+            s, = ihm.reader.read(fh, variant=ihm.reader.IHMVariant())
+            self.assertEqual(s.id, 'testid')
+
 
 if __name__ == '__main__':
     unittest.main()
