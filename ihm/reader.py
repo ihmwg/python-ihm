@@ -1009,6 +1009,10 @@ class _EntityHandler(Handler):
             source_cls = self.src_map.get(src_method.lower(), None)
             if source_cls and s.source is None:
                 s.source = source_cls()
+        # Force polymer if _entity.type says so, even if it doesn't look like
+        # one (e.g. just a single amino acid)
+        if type.lower() == 'polymer':
+            s._force_polymer = True
 
 
 class _EntitySrcNatHandler(Handler):

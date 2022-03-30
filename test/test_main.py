@@ -219,6 +219,11 @@ class Tests(unittest.TestCase):
         self.assertEqual(single_aa.type, 'non-polymer')
         self.assertFalse(single_aa.is_polymeric())
 
+        # ... unless forced polymer
+        single_aa._force_polymer = True
+        self.assertEqual(single_aa.type, 'polymer')
+        self.assertTrue(single_aa.is_polymeric())
+
         # An entity with no sequence is a polymer
         empty = ihm.Entity([])
         self.assertEqual(empty.type, 'polymer')

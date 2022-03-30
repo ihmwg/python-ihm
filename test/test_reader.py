@@ -495,6 +495,7 @@ _entity.details
             s, = ihm.reader.read(fh)
             e1, e2, e3, e4 = s.entities
             self.assertEqual(e1.description, 'Nup84')
+            self.assertTrue(e1._force_polymer)
             self.assertEqual(
                 e1.number_of_molecules, '2')  # todo: coerce to int
             self.assertEqual(e1.source.src_method, 'nat')

@@ -1102,6 +1102,7 @@ class Entity(object):
     """  # noqa: E501
 
     number_of_molecules = 1
+    _force_polymer = None
 
     def __get_type(self):
         if self.is_polymeric():
@@ -1157,7 +1158,8 @@ class Entity(object):
     def is_polymeric(self):
         """Return True iff this entity represents a polymer, such as an
            amino acid sequence or DNA/RNA chain (and not a ligand or water)"""
-        return (len(self.sequence) == 0 or
+        return (self._force_polymer or
+                len(self.sequence) == 0 or
                 len(self.sequence) > 1
                 and any(isinstance(x, (PeptideChemComp, DNAChemComp,
                                        RNAChemComp)) for x in self.sequence))
