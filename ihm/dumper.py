@@ -3140,6 +3140,11 @@ class Variant(object):
         """
         pass
 
+    def get_system_writer(self, system, writer_class, writer):
+        """Get a writer tailored to the given system.
+           By default, this just returns the ``writer`` unchanged."""
+        return writer
+
 
 class IHMVariant(Variant):
     """Used to select typical PDBx/IHM file output. See :func:`write`."""
@@ -3199,11 +3204,13 @@ def write(fh, systems, format='mmCIF', dumpers=[], variant=IHMVariant):
 
     writer = writer_map[format](fh)
     for system in systems:
+        w = variant.get_system_writer(system, writer_map[format], writer)
         system._before_write()
 
         for d in dumpers:
             d.finalize(system)
         system._check_after_write()
         for d in dumpers:
-            d.dump(system, writer)
+            d.dump(system, w)
+        w.end_block()  # start_block is called by EntryDumper
     writer.flush()

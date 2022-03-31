@@ -133,6 +133,10 @@ class CifWriter(_Writer):
         """Start a new data block in the file with the given name."""
         self.fh.write('data_%s\n' % name)
 
+    def end_block(self):
+        # noop - mmCIF has no end-of-block indicator
+        pass
+
     def category(self, category):
         """Return a context manager to write a CIF category.
            A CIF category is a simple list of key:value pairs.

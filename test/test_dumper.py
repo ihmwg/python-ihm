@@ -4254,6 +4254,8 @@ _flr_FPS_MPP_modeling.mpp_atom_position_group_id
         """Test Variant base class"""
         v = ihm.dumper.Variant()
         self.assertIsNone(v.get_dumpers())
+        self.assertEqual(
+            v.get_system_writer('system', 'writer_class', 'writer'), 'writer')
 
     def test_write_variant(self):
         """Test write() function with Variant object"""
