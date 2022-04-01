@@ -62,11 +62,11 @@ protocol = ihm.protocol.Protocol(name='Modeling')
 class MyModel(ihm.model.Model):
     def get_atoms(self):
         # seq_id only makes sense for polymers; for ligands it should be None
-        yield ihm.model.Atom(asym_unit=asym_heme1, type_symbol='FE',
+        yield ihm.model.Atom(asym_unit=asym_heme1, type_symbol='FE', het=True,
                              seq_id=None, atom_id='FE', x=0., y=0., z=0.)
-        yield ihm.model.Atom(asym_unit=asym_heme2, type_symbol='FE',
+        yield ihm.model.Atom(asym_unit=asym_heme2, type_symbol='FE', het=True,
                              seq_id=None, atom_id='FE', x=10., y=10., z=10.)
-        yield ihm.model.Atom(asym_unit=asym_h2o, type_symbol='O',
+        yield ihm.model.Atom(asym_unit=asym_h2o, type_symbol='O', het=True,
                              seq_id=None, atom_id='O', x=20., y=20., z=20.)
 
 
