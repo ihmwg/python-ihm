@@ -1,3 +1,13 @@
+0.29 - 2022-04-01
+=================
+  - Output mmCIF files containing non-polymers should now validate against
+    the PDBx dictionary (#76).
+  - Bugfix: non-polymers that are errnoeously marked as polymers in
+    the input mmCIF can now be read in without causing a Python
+    exception (#78).
+  - Bugfix: strings starting with an underscore (e.g. chain names) are now
+    quoted in mmCIF output to conform to the CIF syntax (#75).
+
 0.28 - 2022-03-21
 =================
   - :class:`ihm.Citation` now takes a ``is_primary`` argument, which can
