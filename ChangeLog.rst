@@ -2,7 +2,7 @@
 =================
   - Output mmCIF files containing non-polymers should now validate against
     the PDBx dictionary (#76).
-  - Bugfix: non-polymers that are errnoeously marked as polymers in
+  - Bugfix: non-polymers that are erroneously marked as polymers in
     the input mmCIF can now be read in without causing a Python
     exception (#78).
   - Bugfix: strings starting with an underscore (e.g. chain names) are now
