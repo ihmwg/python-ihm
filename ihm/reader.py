@@ -1011,7 +1011,7 @@ class _EntityHandler(Handler):
                 s.source = source_cls()
         # Force polymer if _entity.type says so, even if it doesn't look like
         # one (e.g. just a single amino acid)
-        if type.lower() == 'polymer':
+        if type and type.lower() == 'polymer':
             s._force_polymer = True
 
 
