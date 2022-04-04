@@ -512,7 +512,7 @@ _entity.id
 """
         for fh in cif_file_handles(cif):
             s, = ihm.reader.read(fh)
-            e1,= s.entities
+            e1, = s.entities
             self.assertIsNone(e1.description)
 
     def test_entity_src_gen_handler(self):
