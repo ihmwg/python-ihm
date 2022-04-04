@@ -503,6 +503,18 @@ _entity.details
             self.assertIsNone(e3.source)
             self.assertIsNone(e4.source)
 
+    def test_entity_handler_minimal(self):
+        """Test EntityHandler with minimal entity category"""
+        cif = """
+loop_
+_entity.id
+1
+"""
+        for fh in cif_file_handles(cif):
+            s, = ihm.reader.read(fh)
+            e1,= s.entities
+            self.assertIsNone(e1.description)
+
     def test_entity_src_gen_handler(self):
         """Test EntitySrcGenHandler"""
         entity = """
