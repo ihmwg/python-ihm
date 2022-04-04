@@ -83,8 +83,8 @@ class _AuditConformDumper(Dumper):
     def dump(self, system, writer):
         with writer.category("_audit_conform") as lp:
             # Update to match the version of the IHM dictionary we support:
-            lp.write(dict_name="ihm-extension.dic", dict_version="1.09",
-                     dict_location=self.URL % "b4fe8af")
+            lp.write(dict_name="ihm-extension.dic", dict_version="1.17",
+                     dict_location=self.URL % "f15a6bb")
 
 
 class _StructDumper(Dumper):
@@ -662,7 +662,7 @@ class _NonPolySchemeDumper(Dumper):
        For now we assume we're using auth_seq_num==pdb_seq_num."""
     def dump(self, system, writer):
         with writer.loop("_pdbx_nonpoly_scheme",
-                         ["asym_id", "entity_id", "mon_id",
+                         ["asym_id", "entity_id", "mon_id", "ndb_seq_num",
                           "pdb_seq_num", "auth_seq_num", "pdb_mon_id",
                           "auth_mon_id", "pdb_strand_id",
                           "pdb_ins_code"]) as lp:
@@ -673,8 +673,13 @@ class _NonPolySchemeDumper(Dumper):
                 # todo: handle multiple waters
                 for num, comp in enumerate(entity.sequence):
                     auth_seq_num, ins = asym._get_auth_seq_id_ins_code(num + 1)
+                    # ndb_seq_num is described as the "NDB/RCSB residue
+                    # number". We don't have one of those but real PDBs
+                    # usually seem to just count sequentially from 1, so
+                    # we'll do that too.
                     lp.write(asym_id=asym._id, pdb_strand_id=asym.strand_id,
                              entity_id=entity._id,
+                             ndb_seq_num=num + 1,
                              pdb_seq_num=auth_seq_num,
                              auth_seq_num=auth_seq_num,
                              mon_id=comp.id, pdb_mon_id=comp.id,
@@ -3135,6 +3140,11 @@ class Variant(object):
         """
         pass
 
+    def get_system_writer(self, system, writer_class, writer):
+        """Get a writer tailored to the given system.
+           By default, this just returns the ``writer`` unchanged."""
+        return writer
+
 
 class IHMVariant(Variant):
     """Used to select typical PDBx/IHM file output. See :func:`write`."""
@@ -3194,11 +3204,13 @@ def write(fh, systems, format='mmCIF', dumpers=[], variant=IHMVariant):
 
     writer = writer_map[format](fh)
     for system in systems:
+        w = variant.get_system_writer(system, writer_map[format], writer)
         system._before_write()
 
         for d in dumpers:
             d.finalize(system)
         system._check_after_write()
         for d in dumpers:
-            d.dump(system, writer)
+            d.dump(system, w)
+        w.end_block()  # start_block is called by EntryDumper
     writer.flush()

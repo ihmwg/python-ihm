@@ -897,14 +897,15 @@ loop_
 _pdbx_nonpoly_scheme.asym_id
 _pdbx_nonpoly_scheme.entity_id
 _pdbx_nonpoly_scheme.mon_id
+_pdbx_nonpoly_scheme.ndb_seq_num
 _pdbx_nonpoly_scheme.pdb_seq_num
 _pdbx_nonpoly_scheme.auth_seq_num
 _pdbx_nonpoly_scheme.pdb_mon_id
 _pdbx_nonpoly_scheme.auth_mon_id
 _pdbx_nonpoly_scheme.pdb_strand_id
 _pdbx_nonpoly_scheme.pdb_ins_code
-B 2 HEM 1 1 HEM HEM Q .
-C 3 ZN 6 6 ZN ZN C .
+B 2 HEM 1 1 1 HEM HEM Q .
+C 3 ZN 1 6 6 ZN ZN C .
 #
 """)
 
@@ -2251,6 +2252,12 @@ C
 N
 #
 """)
+        # Test dump_atoms with add_ihm=False
+        fh = StringIO()
+        writer = ihm.format.CifWriter(fh)
+        dumper.dump_atoms(system, writer, add_ihm=False)
+        self.assertNotIn('ihm_model_id', fh.getvalue())
+
         # With auth_seq_id == seq_id-1
         asym.auth_seq_id_map = -1
         out = _get_dumper_output(dumper, system)
@@ -4242,6 +4249,19 @@ _flr_FPS_MPP_modeling.mpp_atom_position_group_id
 2 2 2 1
 #
 """)
+
+    def test_variant_base(self):
+        """Test Variant base class"""
+        v = ihm.dumper.Variant()
+        self.assertIsNone(v.get_dumpers())
+        self.assertEqual(
+            v.get_system_writer('system', 'writer_class', 'writer'), 'writer')
+
+    def test_write_variant(self):
+        """Test write() function with Variant object"""
+        sys1 = ihm.System(id='system1')
+        fh = StringIO()
+        ihm.dumper.write(fh, [sys1], variant=ihm.dumper.IHMVariant())
 
 
 if __name__ == '__main__':
