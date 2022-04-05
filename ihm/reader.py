@@ -878,6 +878,7 @@ class _StructHandler(Handler):
                              mapkeys={'entry_id': 'id',
                                       'pdbx_model_details': 'model_details'})
 
+
 class _AuditConformHandler(Handler):
     category = '_audit_conform'
 
