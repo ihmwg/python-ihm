@@ -72,13 +72,16 @@ class System(object):
 
        :param str title: Title (longer text description) of the system.
        :param str id: Unique identifier for this system in the mmCIF file.
+       :param str model_details: Detailed description of the system, like an
+                                 abstract.
     """
 
     structure_determination_methodology = "integrative"
 
-    def __init__(self, title=None, id='model'):
+    def __init__(self, title=None, id='model', model_details=None):
         self.id = id
         self.title = title
+        self.model_details = model_details
 
         #: List of plain text comments. These will be added to the top of
         #: the mmCIF file.

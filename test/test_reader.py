@@ -177,11 +177,16 @@ class Tests(unittest.TestCase):
 
     def test_struct_handler(self):
         """Test StructHandler"""
-        cif = "_struct.entry_id eid\n_struct.title 'Test title'"
+        cif = """
+_struct.entry_id eid
+_struct.title 'Test title'
+_struct.pdbx_model_details 'Test details'
+"""
         for fh in cif_file_handles(cif):
             s, = ihm.reader.read(fh)
             self.assertEqual(s.id, 'eid')
             self.assertEqual(s.title, 'Test title')
+            self.assertEqual(s.model_details, 'Test details')
 
     def test_multiple_systems(self):
         """Test multiple systems from data blocks"""
