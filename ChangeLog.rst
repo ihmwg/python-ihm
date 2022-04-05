@@ -1,3 +1,9 @@
+0.30 - 2022-04-05
+=================
+  - Add support for a long description of the system (like an abstract)
+    using struct.pdbx_model_details (#80).
+  - Bugfix: correctly read mmCIF files with missing entity.type.
+
 0.29 - 2022-04-01
 =================
   - Output mmCIF files containing non-polymers should now validate against

@@ -20,7 +20,7 @@ except ImportError:
 import json
 from . import util
 
-__version__ = '0.29'
+__version__ = '0.30'
 
 
 class __UnknownValue(object):
