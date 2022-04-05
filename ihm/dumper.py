@@ -92,7 +92,8 @@ class _StructDumper(Dumper):
         with writer.category("_struct") as lp:
             mth = system.structure_determination_methodology
             lp.write(title=system.title, entry_id=system.id,
-                     pdbx_structure_determination_methodology=mth)
+                     pdbx_structure_determination_methodology=mth,
+                     pdbx_model_details=system.model_details)
 
 
 class _CommentDumper(Dumper):

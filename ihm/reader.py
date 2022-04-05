@@ -873,10 +873,10 @@ class Handler(object):
 class _StructHandler(Handler):
     category = '_struct'
 
-    def __call__(self, title, entry_id):
+    def __call__(self, title, entry_id, pdbx_model_details):
         self.copy_if_present(self.system, locals(), keys=('title',),
-                             mapkeys={'entry_id': 'id'})
-
+                             mapkeys={'entry_id': 'id',
+                                      'pdbx_model_details': 'model_details'})
 
 class _AuditConformHandler(Handler):
     category = '_audit_conform'
