@@ -664,7 +664,7 @@ class _NonPolySchemeDumper(Dumper):
     def dump(self, system, writer):
         with writer.loop("_pdbx_nonpoly_scheme",
                          ["asym_id", "entity_id", "mon_id", "ndb_seq_num",
-                          "pdb_seq_num", "auth_seq_num", "pdb_mon_id",
+                          "pdb_seq_num", "auth_seq_num",
                           "auth_mon_id", "pdb_strand_id",
                           "pdb_ins_code"]) as lp:
             for asym in system.asym_units:
@@ -683,7 +683,7 @@ class _NonPolySchemeDumper(Dumper):
                              ndb_seq_num=num + 1,
                              pdb_seq_num=auth_seq_num,
                              auth_seq_num=auth_seq_num,
-                             mon_id=comp.id, pdb_mon_id=comp.id,
+                             mon_id=comp.id,
                              auth_mon_id=comp.id, pdb_ins_code=ins)
 
 
