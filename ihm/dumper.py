@@ -1296,6 +1296,7 @@ class _RangeChecker(object):
     def __init__(self, model):
         self._setup_representation(model)
         self._setup_assembly(model)
+        self._seen_atoms = set()
 
     def _setup_representation(self, model):
         """Make map from asym_id to representation segments for that ID"""
@@ -1353,8 +1354,18 @@ class _RangeChecker(object):
         else:
             type_check = self._type_check_atom
             seq_id_range = (obj.seq_id, obj.seq_id)
+            self._check_duplicate_atom(obj)
         self._check_assembly(obj, asym, seq_id_range)
         self._check_representation(obj, asym, type_check, seq_id_range)
+
+    def _check_duplicate_atom(self, atom):
+        k = (atom.asym_unit._id, atom.atom_id, atom.seq_id)
+        if k in self._seen_atoms:
+            raise ValueError(
+                "Multiple atoms with same atom_id (%s) and seq_id (%d) "
+                "found in asym ID %s"
+                % (atom.atom_id, atom.seq_id, atom.asym_unit._id))
+        self._seen_atoms.add(k)
 
     def _check_assembly(self, obj, asym, seq_id_range):
         # Check last match first

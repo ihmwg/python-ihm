@@ -1905,7 +1905,9 @@ _ihm_model_group_link.model_id
         # Cache should now be set
         self.assertEqual(rngcheck._last_asmb_range_matched, (1, 2))
         self.assertEqual(rngcheck._last_asmb_asym_matched, 'X')
-        # 2nd check should use the cache
+        # 2nd check with same seq_id should use the cache
+        atom = ihm.model.Atom(asym_unit=asym, seq_id=1, atom_id='CA',
+                              type_symbol='C', x=1.0, y=2.0, z=3.0)
         rngcheck(atom)
         # Sphere is OK (good range)
         sphere = ihm.model.Sphere(asym_unit=asym, seq_id_range=(1, 2),
@@ -1921,6 +1923,25 @@ _ihm_model_group_link.model_id
         sphere = ihm.model.Sphere(asym_unit=asym, seq_id_range=(1, 10),
                                   x=1.0, y=2.0, z=3.0, radius=4.0)
         self.assertRaises(ValueError, rngcheck, sphere)
+
+    def test_range_checker_duplicate_atoms(self):
+        """Test RangeChecker class checking duplicate atoms"""
+        system, model, asym = self._make_test_model()
+        asmb = ihm.Assembly([asym])
+        model.assembly = asmb
+
+        # Everything is represented
+        s = ihm.representation.AtomicSegment(asym, rigid=True)
+        model.representation.append(s)
+
+        rngcheck = ihm.dumper._RangeChecker(model)
+        atom = ihm.model.Atom(asym_unit=asym, seq_id=1, atom_id='CA',
+                              type_symbol='C', x=1.0, y=2.0, z=3.0)
+        rngcheck(atom)
+        # Error to write another atom with same atom_id to same seq_id
+        atom = ihm.model.Atom(asym_unit=asym, seq_id=1, atom_id='CA',
+                              type_symbol='C', x=1.0, y=2.0, z=3.0)
+        self.assertRaises(ValueError, rngcheck, atom)
 
     def test_range_checker_repr_asym(self):
         """Test RangeChecker class checking representation asym ID match"""
@@ -1994,7 +2015,9 @@ _ihm_model_group_link.model_id
         # Cache should now be set
         self.assertEqual(
             rngcheck._last_repr_segment_matched.asym_unit.seq_id_range, (1, 2))
-        # 2nd check should use the cache
+        # 2nd check with same seq_id should use the cache
+        atom = ihm.model.Atom(asym_unit=asym2, seq_id=1, atom_id='CA',
+                              type_symbol='C', x=1.0, y=2.0, z=3.0)
         rngcheck(atom)
         # Sphere is OK (good range)
         sphere = ihm.model.Sphere(asym_unit=asym2, seq_id_range=(1, 2),
