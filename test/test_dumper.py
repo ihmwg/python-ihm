@@ -4286,6 +4286,26 @@ _flr_FPS_MPP_modeling.mpp_atom_position_group_id
         fh = StringIO()
         ihm.dumper.write(fh, [sys1], variant=ihm.dumper.IHMVariant())
 
+    def test_write_ignore_variant(self):
+        """Test write() function with IgnoreVariant object"""
+        sys1 = ihm.System(id='system1')
+        fh = StringIO()
+        ihm.dumper.write(fh, [sys1])
+        self.assertIn('_ihm_struct_assembly', fh.getvalue())
+        # Test exclude of ihm_struct_assembly category
+        fh = StringIO()
+        ihm.dumper.write(
+            fh, [sys1],
+            variant=ihm.dumper.IgnoreVariant(['_ihm_struct_assembly']))
+        self.assertNotIn('_ihm_struct_assembly', fh.getvalue())
+        # Should be case-insensitive and tolerant of missing underscore
+        fh = StringIO()
+        ihm.dumper.write(
+            fh, [sys1],
+            variant=ihm.dumper.IgnoreVariant(['IHM_STRUCT_ASSEMBLY',
+                                              'AUDIT_CONFORM']))
+        self.assertNotIn('_ihm_struct_assembly', fh.getvalue())
+
 
 if __name__ == '__main__':
     unittest.main()

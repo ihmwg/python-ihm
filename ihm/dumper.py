@@ -3142,6 +3142,54 @@ _flr_dumpers = [_FLRExperimentDumper, _FLRInstSettingDumper,
                 _FLRFPSMPPModelingDumper]
 
 
+class _NullLoopCategoryWriter(object):
+    """A do-nothing replacement for format._CifLoopWriter
+       or format._CifCategoryWriter"""
+    def write(self, *args, **keys):
+        pass
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        pass
+
+
+class _IgnoreWriter(object):
+    """Utility class which normally just passes through to the default
+       ``base_writer``, but ignores selected categories."""
+    def __init__(self, base_writer, ignores):
+        self._base_writer = base_writer
+        # Allow for categories with or without leading underscore
+        self._ignore_category = frozenset('_' + c.lstrip('_').lower()
+                                          for c in ignores)
+
+    def category(self, category):
+        if category in self._ignore_category:
+            return _NullLoopCategoryWriter()
+        else:
+            return self._base_writer.category(category)
+
+    def loop(self, category, keys):
+        if category in self._ignore_category:
+            return _NullLoopCategoryWriter()
+        else:
+            return self._base_writer.loop(category, keys)
+
+    # Pass through other methods to base_writer
+    def flush(self):
+        return self._base_writer.flush()
+
+    def end_block(self):
+        return self._base_writer.end_block()
+
+    def start_block(self, name):
+        return self._base_writer.start_block(name)
+
+    def write_comment(self, comment):
+        return self._base_writer.write_comment(comment)
+
+
 class Variant(object):
     """Utility class to select the type of file to output by :func:`write`."""
 
@@ -3179,6 +3227,27 @@ class IHMVariant(Variant):
 
     def get_dumpers(self):
         return [d() for d in self._dumpers + _flr_dumpers]
+
+
+class IgnoreVariant(IHMVariant):
+    """Exclude selected CIF categories from output.
+
+       This generates the same PDBx/IHM output as :class:`IHMVariant`,
+       but explicitly listed CIF categories are discarded, for example::
+
+           ihm.dumper.write(fh, systems,
+                            variant=IgnoreVariant(['_audit_conform']))
+
+       This is intended for advanced users that have a working knowledge
+       of the PDBx and IHM CIF dictionaries.
+
+       :param sequence ignores: A list or tuple of CIF categories to exclude.
+    """
+    def __init__(self, ignores):
+        self._ignores = ignores
+
+    def get_system_writer(self, system, writer_class, writer):
+        return _IgnoreWriter(writer, self._ignores)
 
 
 def write(fh, systems, format='mmCIF', dumpers=[], variant=IHMVariant):
