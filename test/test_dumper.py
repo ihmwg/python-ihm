@@ -4286,6 +4286,21 @@ _flr_FPS_MPP_modeling.mpp_atom_position_group_id
         fh = StringIO()
         ihm.dumper.write(fh, [sys1], variant=ihm.dumper.IHMVariant())
 
+    def test_ignore_writer(self):
+        """Test _IgnoreWriter utility class"""
+        class BaseWriter(object):
+            def flush(self):
+                return 'flush called'
+
+            def write_comment(self, comment):
+                return 'write comment ' + comment
+
+        s = ihm.dumper._IgnoreWriter(BaseWriter(), [])
+        # These methods are not usually called in ordinary operation, but
+        # we should provide them for Writer compatibility
+        self.assertEqual(s.flush(), 'flush called')
+        self.assertEqual(s.write_comment('foo'), 'write comment foo')
+
     def test_write_ignore_variant(self):
         """Test write() function with IgnoreVariant object"""
         sys1 = ihm.System(id='system1')
