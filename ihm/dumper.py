@@ -1230,10 +1230,14 @@ class _ProtocolDumper(Dumper):
                           "step_name", "step_method", "num_models_begin",
                           "num_models_end", "multi_scale_flag",
                           "multi_state_flag", "ordered_flag",
-                          "software_id", "script_file_id",
+                          "ensemble_flag", "software_id", "script_file_id",
                           "description"]) as lp:
             for p in system._all_protocols():
                 for s in p.steps:
+                    if s.ensemble == 'default':
+                        ensemble = len(system.ensembles) > 0
+                    else:
+                        ensemble = s.ensemble
                     lp.write(
                         id=next(ordinal), protocol_id=p._id,
                         step_id=s._id,
@@ -1246,6 +1250,7 @@ class _ProtocolDumper(Dumper):
                         multi_state_flag=s.multi_state,
                         ordered_flag=s.ordered,
                         multi_scale_flag=s.multi_scale,
+                        ensemble_flag=ensemble,
                         software_id=s.software._id if s.software else None,
                         script_file_id=s.script_file._id
                         if s.script_file else None,
