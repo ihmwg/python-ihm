@@ -2848,7 +2848,7 @@ class _FLRFretAnalysisLifetimeHandler(Handler):
                  details):
         f = self.sysr.flr_fret_analyses.get_by_id(analysis_id)
         f.type = 'lifetime-based'
-        f.reference_measurement_group \
+        f.ref_measurement_group \
             = self.sysr.flr_ref_measurement_groups.get_by_id(
                 reference_measurement_group_id)
         f.lifetime_fit_model = self.sysr.flr_lifetime_fit_models.get_by_id(

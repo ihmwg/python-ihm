@@ -3638,9 +3638,9 @@ _flr_fret_analysis_lifetime.details
         flr, = s.flr_data
         a = flr._collection_flr_fret_analysis['2']
         self.assertEqual(a.type, 'lifetime-based')
-        self.assertIsInstance(a.reference_measurement_group,
+        self.assertIsInstance(a.ref_measurement_group,
                               ihm.flr.RefMeasurementGroup)
-        self.assertEqual(a.reference_measurement_group._id, '19')
+        self.assertEqual(a.ref_measurement_group._id, '19')
         self.assertIsInstance(a.lifetime_fit_model, ihm.flr.LifetimeFitModel)
         self.assertEqual(a.lifetime_fit_model._id, '23')
         self.assertAlmostEqual(a.donor_only_fraction, 0.3, delta=0.1)
