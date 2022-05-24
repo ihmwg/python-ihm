@@ -2,6 +2,7 @@
 
 import re
 import os
+import collections
 import operator
 import itertools
 import ihm.format
@@ -552,11 +553,10 @@ class _EntityPolyDumper(Dumper):
             return self._seq_type_map.get(all_types, 'other')
 
     def dump(self, system, writer):
-        # Get the first asym unit (if any) for each entity
-        strand = {}
+        # Get all asym units (if any) for each entity
+        strands = collections.defaultdict(list)
         for asym in system.asym_units:
-            if asym.entity._id not in strand:
-                strand[asym.entity._id] = asym.strand_id
+            strands[asym.entity._id].append(asym.strand_id)
         with writer.loop("_entity_poly",
                          ["entity_id", "type", "nstd_linkage",
                           "nstd_monomer", "pdbx_strand_id",
@@ -567,10 +567,11 @@ class _EntityPolyDumper(Dumper):
                     continue
                 nstd = any(isinstance(x, ihm.NonPolymerChemComp)
                            for x in entity.sequence)
+                sids = strands[entity._id]
                 lp.write(entity_id=entity._id, type=self._get_seq_type(entity),
                          nstd_linkage='no',
                          nstd_monomer='yes' if nstd else 'no',
-                         pdbx_strand_id=strand.get(entity._id, None),
+                         pdbx_strand_id=",".join(sids) if sids else None,
                          pdbx_seq_one_letter_code=self._get_sequence(entity),
                          pdbx_seq_one_letter_code_can=self._get_canon(entity))
 

@@ -765,7 +765,7 @@ _entity_poly.nstd_monomer
 _entity_poly.pdbx_strand_id
 _entity_poly.pdbx_seq_one_letter_code
 _entity_poly.pdbx_seq_one_letter_code_can
-1 polypeptide(L) no no a ACGT ACGT
+1 polypeptide(L) no no a,b ACGT ACGT
 2 polypeptide(L) no no . ACC(UNK)(MSE) ACCXM
 3 polypeptide(D) no no . (DAL)(DCY)G ACG
 4 polypeptide(D) no no . (DAL)(DCY) AC
