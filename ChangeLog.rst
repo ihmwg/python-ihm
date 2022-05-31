@@ -1,5 +1,5 @@
-HEAD
-====
+0.32 - 2022-05-31
+=================
   - :class:`ihm.protocol.Step` now takes an ``ensemble`` flag, to indicate
     whether the modeling involved an ensemble, and which defaults to True if
     the system contains at least one :class:`ihm.model.Ensemble` (#83).
