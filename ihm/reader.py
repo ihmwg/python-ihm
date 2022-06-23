@@ -2081,11 +2081,15 @@ def _make_lower_upper_bound(low, up, _get_float):
         distance_lower_limit=low, distance_upper_limit=up)
 
 
-# todo: add a handler for an unknown restraint_type
+def _make_unknown_distance(low, up, _get_float):
+    return ihm.restraint.DistanceRestraint()
+
+
 _handle_distance = {'harmonic': _make_harmonic,
                     'upper bound': _make_upper_bound,
                     'lower bound': _make_lower_bound,
-                    'lower and upper bound': _make_lower_upper_bound}
+                    'lower and upper bound': _make_lower_upper_bound,
+                    None: _make_unknown_distance}
 
 
 class _DerivedDistanceRestraintHandler(Handler):
