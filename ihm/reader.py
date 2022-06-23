@@ -1499,15 +1499,26 @@ class _StartingModelDetailsHandler(Handler):
                  dataset_list_id, starting_model_auth_asym_id,
                  starting_model_sequence_offset, description):
         m = self.sysr.starting_models.get_by_id(starting_model_id)
-        asym = self.sysr.ranges.get(
-            self.sysr.asym_units.get_by_id(asym_id), entity_poly_segment_id)
-        m.asym_unit = asym
+        # We might not have a suitable range yet for this ID, so fill this
+        # in at finalize time
+        m.asym_unit = (asym_id, entity_poly_segment_id)
         m.dataset = self.sysr.datasets.get_by_id(dataset_list_id)
         self.copy_if_present(
             m, locals(), keys=('description',),
             mapkeys={'starting_model_auth_asym_id': 'asym_id'})
         if starting_model_sequence_offset is not None:
             m.offset = int(starting_model_sequence_offset)
+
+    def finalize(self):
+        for m in self.sysr.system.orphan_starting_models:
+            # Skip any auto-generated models without range info
+            if m.asym_unit is None:
+                continue
+            # Replace tuple with real Asym/Entity range object
+            (asym_id, entity_poly_segment_id) = m.asym_unit
+            m.asym_unit = self.sysr.ranges.get(
+                self.sysr.asym_units.get_by_id(asym_id),
+                entity_poly_segment_id)
 
 
 class _StartingComputationalModelsHandler(Handler):

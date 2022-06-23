@@ -1143,14 +1143,15 @@ _ihm_model_representation_details.description
 
     def test_starting_model_details_handler(self):
         """Test StartingModelDetailsHandler"""
-        cif = """
+        ps_cif = """
 loop_
 _ihm_entity_poly_segment.id
 _ihm_entity_poly_segment.entity_id
 _ihm_entity_poly_segment.seq_id_begin
 _ihm_entity_poly_segment.seq_id_end
 1 1 7 483
-#
+"""
+        sm_cif = """
 loop_
 _ihm_starting_model_details.starting_model_id
 _ihm_starting_model_details.entity_id
@@ -1165,21 +1166,23 @@ _ihm_starting_model_details.description
 1 1 Nup84 A 1 'comparative model' Q 8 4 .
 2 1 Nup84 A . 'comparative model' X . 6 'test desc'
 """
-        for fh in cif_file_handles(cif):
-            s, = ihm.reader.read(fh)
-            m1, m2 = s.orphan_starting_models
-            self.assertEqual(m1.asym_unit._id, 'A')
-            self.assertEqual(m1.asym_unit.seq_id_range, (7, 483))
-            self.assertEqual(m1.asym_id, 'Q')
-            self.assertEqual(m1.offset, 8)
-            self.assertEqual(m1.dataset._id, '4')
-            self.assertIsNone(m1.description)
+        # Order of the two categories shouldn't matter
+        for cif in ps_cif + sm_cif, sm_cif + ps_cif:
+            for fh in cif_file_handles(cif):
+                s, = ihm.reader.read(fh)
+                m1, m2 = s.orphan_starting_models
+                self.assertEqual(m1.asym_unit._id, 'A')
+                self.assertEqual(m1.asym_unit.seq_id_range, (7, 483))
+                self.assertEqual(m1.asym_id, 'Q')
+                self.assertEqual(m1.offset, 8)
+                self.assertEqual(m1.dataset._id, '4')
+                self.assertIsNone(m1.description)
 
-            self.assertEqual(m2.asym_unit._id, 'A')
-            self.assertEqual(m2.asym_id, 'X')
-            self.assertEqual(m2.offset, 0)
-            self.assertEqual(m2.dataset._id, '6')
-            self.assertEqual(m2.description, 'test desc')
+                self.assertEqual(m2.asym_unit._id, 'A')
+                self.assertEqual(m2.asym_id, 'X')
+                self.assertEqual(m2.offset, 0)
+                self.assertEqual(m2.dataset._id, '6')
+                self.assertEqual(m2.description, 'test desc')
 
     def test_starting_computational_models_handler(self):
         """Test StartingComputationModelsHandler"""
