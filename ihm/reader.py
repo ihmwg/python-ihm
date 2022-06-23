@@ -1537,8 +1537,8 @@ class _StartingComparativeModelsHandler(Handler):
         asym_id = template_auth_asym_id
         seq_id_range = (int(starting_model_seq_id_begin),
                         int(starting_model_seq_id_end))
-        template_seq_id_range = (int(template_seq_id_begin),
-                                 int(template_seq_id_end))
+        template_seq_id_range = (self.get_int(template_seq_id_begin),
+                                 self.get_int(template_seq_id_end))
         identity = ihm.startmodel.SequenceIdentity(
             self.get_float(template_sequence_identity),
             self.get_int(template_sequence_identity_denominator))
