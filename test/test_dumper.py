@@ -1819,13 +1819,16 @@ _ihm_model_group_link.model_id
 #
 """)
 
-    def _make_test_model(self):
+    def _make_test_model(self, water=False):
         class MockObject(object):
             pass
         system = ihm.System()
         state = ihm.model.State()
         system.state_groups.append(ihm.model.StateGroup([state]))
-        e1 = ihm.Entity('ACGT')
+        if water:
+            e1 = ihm.Entity([ihm.WaterChemComp()] * 3)
+        else:
+            e1 = ihm.Entity('ACGT')
         e1._id = 9
         system.entities.append(e1)
         asym = ihm.AsymUnit(e1, 'foo')
@@ -1946,6 +1949,24 @@ _ihm_model_group_link.model_id
         atom = ihm.model.Atom(asym_unit=asym, seq_id=1, atom_id='CA',
                               type_symbol='C', x=1.0, y=2.0, z=3.0)
         self.assertRaises(ValueError, rngcheck, atom)
+
+    def test_range_checker_duplicate_atoms_water(self):
+        """Test RangeChecker class checking duplicate water atoms"""
+        system, model, asym = self._make_test_model(water=True)
+        asmb = ihm.Assembly([asym])
+        model.assembly = asmb
+
+        # Everything is represented
+        s = ihm.representation.AtomicSegment(asym, rigid=True)
+        model.representation.append(s)
+
+        rngcheck = ihm.dumper._RangeChecker(model)
+        atom = ihm.model.Atom(asym_unit=asym, seq_id=None, atom_id='O',
+                              type_symbol='O', x=1.0, y=2.0, z=3.0, het=True)
+        rngcheck(atom)
+        atom = ihm.model.Atom(asym_unit=asym, seq_id=None, atom_id='O',
+                              type_symbol='O', x=1.0, y=2.0, z=3.0, het=True)
+        rngcheck(atom)
 
     def test_range_checker_repr_asym(self):
         """Test RangeChecker class checking representation asym ID match"""
