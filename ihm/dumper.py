@@ -216,6 +216,10 @@ class _ChemCompDumper(Dumper):
         with writer.loop("_chem_comp", ["id", "type", "name",
                                         "formula", "formula_weight"]) as lp:
             for comp in sorted(comps, key=operator.attrgetter('id')):
+                if comp.ccd or comp.descriptors:
+                    raise ValueError(
+                        "Non-default values for 'ccd' or 'descriptors' are "
+                        "not supported by the IHM dictionary for %s" % comp)
                 lp.write(id=comp.id, type=comp.type, name=comp.name,
                          formula=comp.formula,
                          formula_weight=comp.formula_weight)

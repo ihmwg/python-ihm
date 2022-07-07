@@ -731,6 +731,18 @@ class ChemComp(object):
               in which case C and H precede the rest of the elements. For
               example, water would be "H2 O" and arginine (with +1 formal
               charge) "C6 H15 N4 O2 1".
+       :param str ccd: The chemical component dictionary (CCD) where
+              this component is defined. Can be "core" for the wwPDB CCD
+              (https://www.wwpdb.org/data/ccd), "ma" for the ModelArchive CCD,
+              or "local" for a novel component that is defined in the mmCIF
+              file itself. If unspecified, defaults to "core" unless
+              ``descriptors`` is given in which case it defaults to "local".
+              This information is essentially ignored by python-ihm (since
+              the IHM dictionary has no support for custom CCDs) but is used
+              by python-modelcif.
+       :param list descriptors: When ``ccd`` is "local", this can be one or
+              more descriptor objects that describe the chemistry. python-ihm
+              does not define any, but python-modelcif does.
 
        For example, glycine would have
        ``id='GLY', code='G', code_canonical='G'`` while selenomethionine would
@@ -744,10 +756,12 @@ class ChemComp(object):
     _element_mass = {'H': 1.008, 'C': 12.011, 'N': 14.007, 'O': 15.999,
                      'P': 30.974, 'S': 32.060, 'Se': 78.971, 'Fe': 55.845}
 
-    def __init__(self, id, code, code_canonical, name=None, formula=None):
+    def __init__(self, id, code, code_canonical, name=None, formula=None,
+                 ccd=None, descriptors=None):
         self.id = id
         self.code, self.code_canonical, self.name = code, code_canonical, name
         self.formula = formula
+        self.ccd, self.descriptors = ccd, descriptors
 
     def __str__(self):
         return ('<%s.%s(%s)>'
@@ -833,12 +847,19 @@ class NonPolymerChemComp(ChemComp):
        :param str name: A longer human-readable name for the component.
        :param str formula: The chemical formula. See :class:`ChemComp` for
               more details.
+       :param str ccd: The chemical component dictionary (CCD) where
+              this component is defined. See :class:`ChemComp` for
+              more details.
+       :param list descriptors: Information on the component's chemistry.
+              See :class:`ChemComp` for more details.
     """
     type = "non-polymer"
 
-    def __init__(self, id, code_canonical='X', name=None, formula=None):
-        super(NonPolymerChemComp, self).__init__(id, id, code_canonical,
-                                                 name=name, formula=formula)
+    def __init__(self, id, code_canonical='X', name=None, formula=None,
+                 ccd=None, descriptors=None):
+        super(NonPolymerChemComp, self).__init__(
+            id, id, code_canonical, name=name, formula=formula,
+            ccd=ccd, descriptors=descriptors)
 
 
 class WaterChemComp(NonPolymerChemComp):
