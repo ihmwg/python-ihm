@@ -1480,23 +1480,39 @@ class _ModelRepresentationDetailsHandler(Handler):
                         'multi-residue': _make_multi_residue_segment,
                         'by-feature': _make_feature_segment}
 
+    def __init__(self, *args):
+        super(_ModelRepresentationDetailsHandler, self).__init__(*args)
+        self._read_args = []
+
     def __call__(self, entity_asym_id, entity_poly_segment_id,
                  representation_id, starting_model_id, model_object_primitive,
                  model_granularity, model_object_count, model_mode,
                  description):
-        asym = self.sysr.ranges.get(
-            self.sysr.asym_units.get_by_id(entity_asym_id),
-            entity_poly_segment_id)
-        rep = self.sysr.representations.get_by_id(representation_id)
-        smodel = self.sysr.starting_models.get_by_id_or_none(starting_model_id)
-        primitive = self.get_lower(model_object_primitive)
-        gran = self.get_lower(model_granularity)
-        primitive = self.get_lower(model_object_primitive)
-        count = self.get_int(model_object_count)
-        rigid = self._rigid_map[self.get_lower(model_mode)]
-        segment = self._segment_factory[gran](asym, rigid, primitive,
-                                              count, smodel, description)
-        rep.append(segment)
+        # Postpone until finalize time as we may not have segments yet
+        self._read_args.append(
+            (entity_asym_id, entity_poly_segment_id,
+             representation_id, starting_model_id, model_object_primitive,
+             model_granularity, model_object_count, model_mode, description))
+
+    def finalize(self):
+        for (entity_asym_id, entity_poly_segment_id,
+             representation_id, starting_model_id, model_object_primitive,
+             model_granularity, model_object_count, model_mode,
+             description) in self._read_args:
+            asym = self.sysr.ranges.get(
+                self.sysr.asym_units.get_by_id(entity_asym_id),
+                entity_poly_segment_id)
+            rep = self.sysr.representations.get_by_id(representation_id)
+            smodel = self.sysr.starting_models.get_by_id_or_none(
+                starting_model_id)
+            primitive = self.get_lower(model_object_primitive)
+            gran = self.get_lower(model_granularity)
+            primitive = self.get_lower(model_object_primitive)
+            count = self.get_int(model_object_count)
+            rigid = self._rigid_map[self.get_lower(model_mode)]
+            segment = self._segment_factory[gran](
+                asym, rigid, primitive, count, smodel, description)
+            rep.append(segment)
 
 
 # todo: support user subclass of StartingModel, pass it coordinates, seqdif

@@ -1087,7 +1087,7 @@ _ihm_model_representation.details
 
     def test_model_representation_details_handler(self):
         """Test ModelRepresentationDetailsHandler"""
-        cif = """
+        range_cif = """
 loop_
 _ihm_entity_poly_segment.id
 _ihm_entity_poly_segment.entity_id
@@ -1095,7 +1095,8 @@ _ihm_entity_poly_segment.seq_id_begin
 _ihm_entity_poly_segment.seq_id_end
 1 1 1 6
 2 1 7 20
-#
+"""
+        repr_cif = """
 loop_
 _ihm_model_representation_details.id
 _ihm_model_representation_details.representation_id
@@ -1114,35 +1115,40 @@ _ihm_model_representation_details.description
 3 2 1 Nup84 A . atomistic . flexible by-atom . .
 4 3 2 Nup85 B . sphere . . multi-residue . .
 """
-        for fh in cif_file_handles(cif):
-            s, = ihm.reader.read(fh)
-            r1, r2, r3 = s.orphan_representations
-            self.assertEqual(len(r1), 2)
-            s1, s2 = r1
-            self.assertEqual(s1.__class__, ihm.representation.FeatureSegment)
-            self.assertEqual(s1.primitive, 'sphere')
-            self.assertEqual(s1.count, 1)
-            self.assertEqual(s1.rigid, False)
-            self.assertIsNone(s1.starting_model)
-            self.assertEqual(s1.asym_unit.seq_id_range, (1, 6))
-            self.assertEqual(s1.description, 'test segment')
+        # Order of categories should not matter
+        for cif in (range_cif + repr_cif, repr_cif + range_cif):
+            for fh in cif_file_handles(cif):
+                s, = ihm.reader.read(fh)
+                r1, r2, r3 = s.orphan_representations
+                self.assertEqual(len(r1), 2)
+                s1, s2 = r1
+                self.assertEqual(s1.__class__,
+                                 ihm.representation.FeatureSegment)
+                self.assertEqual(s1.primitive, 'sphere')
+                self.assertEqual(s1.count, 1)
+                self.assertEqual(s1.rigid, False)
+                self.assertIsNone(s1.starting_model)
+                self.assertEqual(s1.asym_unit.seq_id_range, (1, 6))
+                self.assertEqual(s1.description, 'test segment')
 
-            self.assertEqual(s2.__class__, ihm.representation.ResidueSegment)
-            self.assertEqual(s2.primitive, 'sphere')
-            self.assertIsNone(s2.count)
-            self.assertEqual(s2.rigid, True)
-            self.assertEqual(s2.starting_model._id, '1')
-            self.assertEqual(s2.asym_unit.seq_id_range, (7, 20))
-            self.assertIsNone(s2.description)
+                self.assertEqual(s2.__class__,
+                                 ihm.representation.ResidueSegment)
+                self.assertEqual(s2.primitive, 'sphere')
+                self.assertIsNone(s2.count)
+                self.assertEqual(s2.rigid, True)
+                self.assertEqual(s2.starting_model._id, '1')
+                self.assertEqual(s2.asym_unit.seq_id_range, (7, 20))
+                self.assertIsNone(s2.description)
 
-            self.assertEqual(len(r2), 1)
-            s1, = r2
-            self.assertEqual(s1.__class__, ihm.representation.AtomicSegment)
+                self.assertEqual(len(r2), 1)
+                s1, = r2
+                self.assertEqual(s1.__class__,
+                                 ihm.representation.AtomicSegment)
 
-            self.assertEqual(len(r3), 1)
-            s1, = r3
-            self.assertEqual(s1.__class__,
-                             ihm.representation.MultiResidueSegment)
+                self.assertEqual(len(r3), 1)
+                s1, = r3
+                self.assertEqual(s1.__class__,
+                                 ihm.representation.MultiResidueSegment)
 
     def test_starting_model_details_handler(self):
         """Test StartingModelDetailsHandler"""
