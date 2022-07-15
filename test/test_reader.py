@@ -1549,14 +1549,15 @@ _ihm_ensemble_sub_sample.file_id
 
     def test_density_handler(self):
         """Test DensityHandler"""
-        cif = """
+        segment_cif = """
 loop_
 _ihm_entity_poly_segment.id
 _ihm_entity_poly_segment.entity_id
 _ihm_entity_poly_segment.seq_id_begin
 _ihm_entity_poly_segment.seq_id_end
 1 1 1 726
-#
+"""
+        density_cif = """
 loop_
 _ihm_localization_density_files.id
 _ihm_localization_density_files.file_id
@@ -1567,17 +1568,19 @@ _ihm_localization_density_files.entity_poly_segment_id
 1 22 9 1 A 1
 2 23 9 2 B .
 """
-        for fh in cif_file_handles(cif):
-            s, = ihm.reader.read(fh)
-            e, = s.ensembles
-            self.assertEqual(e._id, '9')
-            d1, d2 = e.densities
-            self.assertEqual(d1._id, '1')
-            self.assertEqual(d1.file._id, '22')
-            self.assertEqual(d1.asym_unit.__class__, ihm.AsymUnitRange)
-            self.assertEqual(d1.asym_unit.seq_id_range, (1, 726))
-            self.assertEqual(d2._id, '2')
-            self.assertEqual(d2.asym_unit.__class__, ihm.AsymUnit)
+        # Order should not matter
+        for cif in (segment_cif + density_cif, density_cif + segment_cif):
+            for fh in cif_file_handles(cif):
+                s, = ihm.reader.read(fh)
+                e, = s.ensembles
+                self.assertEqual(e._id, '9')
+                d1, d2 = e.densities
+                self.assertEqual(d1._id, '1')
+                self.assertEqual(d1.file._id, '22')
+                self.assertEqual(d1.asym_unit.__class__, ihm.AsymUnitRange)
+                self.assertEqual(d1.asym_unit.seq_id_range, (1, 726))
+                self.assertEqual(d2._id, '2')
+                self.assertEqual(d2.asym_unit.__class__, ihm.AsymUnit)
 
     def test_em3d_restraint_handler(self):
         """Test EM3DRestraintHandler"""

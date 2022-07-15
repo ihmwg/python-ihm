@@ -1791,17 +1791,30 @@ class _SubsampleHandler(Handler):
 class _DensityHandler(Handler):
     category = '_ihm_localization_density_files'
 
+    def __init__(self, *args):
+        super(_DensityHandler, self).__init__(*args)
+        self._read_args = []
+
     def __call__(self, id, ensemble_id, file_id, asym_id,
                  entity_poly_segment_id):
-        density = self.sysr.densities.get_by_id(id)
-        ensemble = self.sysr.ensembles.get_by_id(ensemble_id)
-        f = self.sysr.external_files.get_by_id(file_id)
+        # Postpone handling until finalize time, since we might not have
+        # ranges to resolve entity_poly_segment_id yet
+        self._read_args.append((id, ensemble_id, file_id, asym_id,
+                                entity_poly_segment_id))
 
-        asym = self.sysr.ranges.get(self.sysr.asym_units.get_by_id(asym_id),
-                                    entity_poly_segment_id)
-        density.asym_unit = asym
-        density.file = f
-        ensemble.densities.append(density)
+    def finalize(self):
+        for (id, ensemble_id, file_id, asym_id,
+                entity_poly_segment_id) in self._read_args:
+            density = self.sysr.densities.get_by_id(id)
+            ensemble = self.sysr.ensembles.get_by_id(ensemble_id)
+            f = self.sysr.external_files.get_by_id(file_id)
+
+            asym = self.sysr.ranges.get(
+                self.sysr.asym_units.get_by_id(asym_id),
+                entity_poly_segment_id)
+            density.asym_unit = asym
+            density.file = f
+            ensemble.densities.append(density)
 
 
 class _EM3DRestraintHandler(Handler):
