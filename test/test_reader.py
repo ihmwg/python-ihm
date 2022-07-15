@@ -774,7 +774,7 @@ _ihm_struct_assembly.description
 
     def test_assembly_details_handler(self):
         """Test AssemblyDetailsHandler"""
-        cif = """
+        entity_cif = """
 loop_
 _entity_poly_seq.entity_id
 _entity_poly_seq.num
@@ -794,7 +794,8 @@ _ihm_entity_poly_segment.seq_id_end
 3 1 1 2
 4 2 1 50
 5 2 1 2
-#
+"""
+        assembly_cif = """
 loop_
 _struct_asym.id
 _struct_asym.entity_id
@@ -818,35 +819,37 @@ _ihm_struct_assembly_details.entity_poly_segment_id
 6 3 1 Nup84 1 A .
 7 3 1 Nup85 2 . .
 """
-        for fh in cif_file_handles(cif):
-            s, = ihm.reader.read(fh)
-            a1, a2, a3 = s.orphan_assemblies
-            self.assertEqual(a1._id, '1')
-            self.assertIsNone(a1.parent)
-            self.assertEqual(len(a1), 3)
-            # AsymUnitRange
-            self.assertIsInstance(a1[0], ihm.AsymUnitRange)
-            self.assertEqual(a1[0]._id, 'A')
-            self.assertEqual(a1[0].seq_id_range, (1, 726))
-            self.assertEqual(a1[1]._id, 'B')
-            self.assertEqual(a1[1].seq_id_range, (1, 744))
+        # Order of categories should not matter
+        for cif in (entity_cif + assembly_cif, assembly_cif + entity_cif):
+            for fh in cif_file_handles(cif):
+                s, = ihm.reader.read(fh)
+                a1, a2, a3 = s.orphan_assemblies
+                self.assertEqual(a1._id, '1')
+                self.assertIsNone(a1.parent)
+                self.assertEqual(len(a1), 3)
+                # AsymUnitRange
+                self.assertIsInstance(a1[0], ihm.AsymUnitRange)
+                self.assertEqual(a1[0]._id, 'A')
+                self.assertEqual(a1[0].seq_id_range, (1, 726))
+                self.assertEqual(a1[1]._id, 'B')
+                self.assertEqual(a1[1].seq_id_range, (1, 744))
 
-            self.assertEqual(a2._id, '2')
-            self.assertEqual(a2.parent, a1)
-            # AsymUnit
-            self.assertIsInstance(a1[2], ihm.AsymUnit)
-            # EntityRange
-            self.assertEqual(len(a2), 2)
-            self.assertIsInstance(a2[0], ihm.EntityRange)
-            self.assertEqual(a2[0]._id, '2')
-            self.assertEqual(a2[0].seq_id_range, (1, 50))
-            # Entity
-            self.assertIsInstance(a2[1], ihm.Entity)
+                self.assertEqual(a2._id, '2')
+                self.assertEqual(a2.parent, a1)
+                # AsymUnit
+                self.assertIsInstance(a1[2], ihm.AsymUnit)
+                # EntityRange
+                self.assertEqual(len(a2), 2)
+                self.assertIsInstance(a2[0], ihm.EntityRange)
+                self.assertEqual(a2[0]._id, '2')
+                self.assertEqual(a2[0].seq_id_range, (1, 50))
+                # Entity
+                self.assertIsInstance(a2[1], ihm.Entity)
 
-            # Assembly with no ranges given
-            self.assertEqual(len(a3), 2)
-            self.assertIsInstance(a3[0], ihm.AsymUnit)
-            self.assertIsInstance(a3[1], ihm.Entity)
+                # Assembly with no ranges given
+                self.assertEqual(len(a3), 2)
+                self.assertIsInstance(a3[0], ihm.AsymUnit)
+                self.assertIsInstance(a3[1], ihm.Entity)
 
     def test_external_file_handler(self):
         """Test ExtRef and ExtFileHandler"""

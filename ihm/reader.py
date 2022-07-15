@@ -1239,6 +1239,10 @@ class _AssemblyDetailsHandler(Handler):
     category = '_ihm_struct_assembly_details'
     ignored_keywords = ['ordinal_id', 'entity_description']
 
+    def __init__(self, *args):
+        super(_AssemblyDetailsHandler, self).__init__(*args)
+        self._read_args = []
+
     def __call__(self, assembly_id, parent_assembly_id, entity_poly_segment_id,
                  asym_id, entity_id):
         a_id = assembly_id
@@ -1250,9 +1254,14 @@ class _AssemblyDetailsHandler(Handler):
             obj = self.sysr.asym_units.get_by_id(asym_id)
         else:
             obj = self.sysr.entities.get_by_id(entity_id)
-        a.append(self.sysr.ranges.get(obj, entity_poly_segment_id))
+        # Postpone filling in range until finalize time, as we may not have
+        # read segments yet
+        self._read_args.append((a, obj, entity_poly_segment_id))
 
     def finalize(self):
+        for (a, obj, entity_poly_segment_id) in self._read_args:
+            a.append(self.sysr.ranges.get(obj, entity_poly_segment_id))
+
         # Any EntityRange or AsymUnitRange which covers an entire entity,
         # replace with Entity or AsymUnit object
         for a in self.system.orphan_assemblies:
