@@ -104,3 +104,12 @@ alphafold2 = ihm.Citation(
              'Silver D', 'Vinyals O', 'Senior AW', 'Kavukcuoglu K', 'Kohli P',
              'Hassabis D'],
     doi='10.1038/s41586-021-03819-2')
+
+
+colabfold = ihm.Citation(
+    pmid='35637307',
+    title='ColabFold: making protein folding accessible to all.',
+    journal='Nature Methods', volume=19, page_range=(679, 682), year=2022,
+    authors=['Mirdita M', 'Schuetze K', 'Moriwaki Y', 'Heo L', 'Ovchinnikov S',
+             'Steinegger M'],
+    doi='10.1038/s41592-022-01488-1')
