@@ -197,9 +197,9 @@ x
         self.assertEqual(w._repr('_foo'), "'_foo'")
         # Empty string must be quoted
         self.assertEqual(w._repr(""), "''")
-        # Reserved words must be quoted (but just a prefix is OK)
+        # Reserved words cannot start a nonquoted string
         for word in ('save', 'loop', 'stop', 'global'):
-            self.assertEqual(w._repr('%s_foo' % word), '%s_foo' % word)
+            self.assertEqual(w._repr('%s_foo' % word), "'%s_foo'" % word)
             self.assertEqual(w._repr('%s_' % word), "'%s_'" % word)
         # Literal ? must be quoted to distinguish from the unknown value
         self.assertEqual(w._repr('?foo'), "?foo")
