@@ -123,6 +123,14 @@ class Tests(unittest.TestCase):
             loc.write(bar='?')
         self.assertEqual(fh.getvalue(), "foo.bar '?'\n")
 
+    def test_category_multiline(self):
+        """Test CategoryWriter class with multiline value"""
+        fh = StringIO()
+        writer = ihm.format.CifWriter(fh)
+        with writer.category('foo') as loc:
+            loc.write(bar='line1\nline2')
+        self.assertEqual(fh.getvalue(), "foo.bar\n;line1\nline2\n;\n")
+
     def test_empty_loop(self):
         """Test LoopWriter class with no values"""
         fh = StringIO()
