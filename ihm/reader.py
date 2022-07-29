@@ -2434,6 +2434,7 @@ class _CrossLinkListHandler(Handler):
     def __init__(self, *args):
         super(_CrossLinkListHandler, self).__init__(*args)
         self._seen_group_ids = set()
+        self._linker_type = {}
 
     def _get_linker_by_name(self, name):
         """Look up old-style linker, by name rather than descriptor"""
@@ -2455,6 +2456,8 @@ class _CrossLinkListHandler(Handler):
         else:
             linker = self.sysr.chem_descriptors.get_by_id(
                 linker_chem_comp_descriptor_id)
+            if linker_type:
+                self._linker_type[linker] = linker_type
         # Group all crosslinks with same dataset and linker in one
         # CrossLinkRestraint object
         r = self.sysr.xl_restraints.get_by_attrs(dataset, linker)
@@ -2473,6 +2476,12 @@ class _CrossLinkListHandler(Handler):
     def _get_entity_residue(self, entity_id, seq_id):
         entity = self.sysr.entities.get_by_id(entity_id)
         return entity.residue(int(seq_id))
+
+    def finalize(self):
+        # If any ChemDescriptor has an empty name, fill it in using linker_type
+        for d in self.system.orphan_chem_descriptors:
+            if d.auth_name is None:
+                d.auth_name = self._linker_type.get(d)
 
 
 class _CrossLinkRestraintHandler(Handler):

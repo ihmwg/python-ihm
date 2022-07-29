@@ -2686,6 +2686,44 @@ _ihm_cross_link_list.dataset_list_id
         self.assertEqual(r3.linker.auth_name, 'DSS')
         self.assertEqual(r3.linker.chemical_name, 'disuccinimidyl suberate')
 
+    def test_cross_link_list_handler_empty_descriptor(self):
+        """Test CrossLinkListHandler with empty descriptor name"""
+        fh = StringIO("""
+loop_
+_ihm_chemical_component_descriptor.id
+_ihm_chemical_component_descriptor.auth_name
+1 DSS
+2 .
+3 .
+#
+loop_
+_ihm_cross_link_list.id
+_ihm_cross_link_list.group_id
+_ihm_cross_link_list.entity_description_1
+_ihm_cross_link_list.entity_id_1
+_ihm_cross_link_list.seq_id_1
+_ihm_cross_link_list.comp_id_1
+_ihm_cross_link_list.entity_description_2
+_ihm_cross_link_list.entity_id_2
+_ihm_cross_link_list.seq_id_2
+_ihm_cross_link_list.comp_id_2
+_ihm_cross_link_list.linker_chem_comp_descriptor_id
+_ihm_cross_link_list.linker_type
+_ihm_cross_link_list.dataset_list_id
+1 1 foo 1 2 THR foo 1 3 CYS 1 NOTDSS 97
+2 2 foo 1 2 THR bar 2 3 PHE 2 EDC 97
+3 2 foo 1 2 THR bar 2 3 PHE 3 . 97
+""")
+        s, = ihm.reader.read(fh)
+        d1, d2, d3 = s.orphan_chem_descriptors
+        # Descriptor name (DSS) should take precedence over
+        # linker_type (NOTDSS)
+        self.assertEqual(d1.auth_name, 'DSS')
+        # If descriptor name is empty, fill it in using linker_type
+        self.assertEqual(d2.auth_name, 'EDC')
+        # If both names are empty, name is None
+        self.assertIsNone(d3.auth_name)
+
     def test_cross_link_restraint_handler(self):
         """Test CrossLinkRestraintHandler"""
         xl_list = """
