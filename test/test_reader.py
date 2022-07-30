@@ -804,6 +804,15 @@ A 1 Nup84
 B 2 Nup85
 #
 loop_
+_ihm_struct_assembly.id
+_ihm_struct_assembly.name
+_ihm_struct_assembly.description
+1 . .
+2 . .
+3 . .
+4 'user-provided name' 'user-provided desc'
+#
+loop_
 _ihm_struct_assembly_details.id
 _ihm_struct_assembly_details.assembly_id
 _ihm_struct_assembly_details.parent_assembly_id
@@ -818,12 +827,14 @@ _ihm_struct_assembly_details.entity_poly_segment_id
 5 2 1 Nup85 2 . 5
 6 3 1 Nup84 1 A .
 7 3 1 Nup85 2 . .
+7 4 1 Nup84 1 A .
+8 4 1 Nup85 2 B .
 """
         # Order of categories should not matter
         for cif in (entity_cif + assembly_cif, assembly_cif + entity_cif):
             for fh in cif_file_handles(cif):
                 s, = ihm.reader.read(fh)
-                a1, a2, a3 = s.orphan_assemblies
+                a1, a2, a3, a4 = s.orphan_assemblies
                 self.assertEqual(a1._id, '1')
                 self.assertIsNone(a1.parent)
                 self.assertEqual(len(a1), 3)
@@ -850,6 +861,17 @@ _ihm_struct_assembly_details.entity_poly_segment_id
                 self.assertEqual(len(a3), 2)
                 self.assertIsInstance(a3[0], ihm.AsymUnit)
                 self.assertIsInstance(a3[1], ihm.Entity)
+
+                # "Complete" assembly that covers all AsymUnits
+                self.assertEqual(len(a4), 2)
+                self.assertIsInstance(a4[0], ihm.AsymUnit)
+                self.assertIsInstance(a4[1], ihm.AsymUnit)
+                self.assertEqual(a4.name, 'user-provided name')
+                self.assertEqual(a4.description, 'user-provided desc')
+                # Should set name, description of system.complete_assembly
+                self.assertEqual(s.complete_assembly.name, a4.name)
+                self.assertEqual(s.complete_assembly.description,
+                                 a4.description)
 
     def test_external_file_handler(self):
         """Test ExtRef and ExtFileHandler"""

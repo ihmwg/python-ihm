@@ -1235,7 +1235,6 @@ class _AssemblyHandler(Handler):
 
 
 class _AssemblyDetailsHandler(Handler):
-    # todo: figure out how to populate System.complete_assembly
     category = '_ihm_struct_assembly_details'
     ignored_keywords = ['ordinal_id', 'entity_description']
 
@@ -1262,10 +1261,18 @@ class _AssemblyDetailsHandler(Handler):
         for (a, obj, entity_poly_segment_id) in self._read_args:
             a.append(self.sysr.ranges.get(obj, entity_poly_segment_id))
 
-        # Any EntityRange or AsymUnitRange which covers an entire entity,
-        # replace with Entity or AsymUnit object
+        self.system._make_complete_assembly()
+        tup_complete = tuple(self.system.complete_assembly)
+
         for a in self.system.orphan_assemblies:
+            # Any EntityRange or AsymUnitRange which covers an entire entity,
+            # replace with Entity or AsymUnit object
             a[:] = [self._handle_component(x) for x in a]
+            # If the input file defines the complete assembly, transfer
+            # user-provided info to system.complete_assembly
+            if tuple(a) == tup_complete:
+                self.system.complete_assembly.name = a.name
+                self.system.complete_assembly.description = a.description
 
     def _handle_component(self, comp):
         if isinstance(comp, ihm.EntityRange) \

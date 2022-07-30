@@ -1194,7 +1194,7 @@ class Entity(object):
 
     # Entities are considered identical if they have the same sequence
     def __eq__(self, other):
-        return self.sequence == other.sequence
+        return isinstance(other, Entity) and self.sequence == other.sequence
 
     def __hash__(self):
         return hash(self.sequence)
