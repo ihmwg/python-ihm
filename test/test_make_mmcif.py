@@ -12,6 +12,7 @@ MAKE_MMCIF = os.path.join(TOPDIR, 'util', 'make-mmcif.py')
 
 
 class Tests(unittest.TestCase):
+    @unittest.skipIf(sys.version_info[0] < 3, "make-mmcif.py needs Python 3")
     def test_simple(self):
         """Simple test of make-mmcif utility script"""
         incif = utils.get_input_file_name(TOPDIR, 'struct_only.cif')
