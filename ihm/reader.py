@@ -1788,11 +1788,18 @@ class _EnsembleHandler(Handler):
         ensemble.post_process = pp
         ensemble.file = f
         ensemble.details = details
+        # Default to "other" if invalid method/feature read
+        try:
+            ensemble.clustering_method = ensemble_clustering_method
+        except ValueError:
+            ensemble.clustering_method = "Other"
+        try:
+            ensemble.clustering_feature = ensemble_clustering_feature
+        except ValueError:
+            ensemble.clustering_feature = "other"
         self.copy_if_present(
             ensemble, locals(),
-            mapkeys={'ensemble_name': 'name',
-                     'ensemble_clustering_method': 'clustering_method',
-                     'ensemble_clustering_feature': 'clustering_feature'})
+            mapkeys={'ensemble_name': 'name'})
 
     def finalize(self):
         for e in self.sysr.system.ensembles:
