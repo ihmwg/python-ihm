@@ -1,5 +1,5 @@
-HEAD
-====
+0.34 - 2022-08-03
+=================
   - Strings that start with STAR reserved words such as ``stop_`` are now
     quoted to help some readers such as the GEMMI library
     (ihmwg/python-modelcif#25).
