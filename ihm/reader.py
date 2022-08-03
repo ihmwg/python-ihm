@@ -832,13 +832,13 @@ class Handler(object):
     def get_bool(self, val):
         """Convert val to bool and return, or leave as is if None
            or ihm.unknown"""
-        return(self._boolmap.get(val.upper(), None)
-               if val is not None and val is not ihm.unknown else val)
+        return (self._boolmap.get(val.upper(), None)
+                if val is not None and val is not ihm.unknown else val)
 
     def get_lower(self, val):
         """Return lowercase string val or leave as is if None or ihm.unknown"""
-        return(val.lower()
-               if val is not None and val is not ihm.unknown else val)
+        return (val.lower()
+                if val is not None and val is not ihm.unknown else val)
 
     def finalize(self):
         """Called at the end of each data block."""

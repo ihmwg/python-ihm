@@ -1366,11 +1366,11 @@ class Assembly(list):
 
 
 class ChemDescriptor(object):
-    """Description of a non-polymeric chemical component used in the experiment.
-       For example, this might be a fluorescent probe or cross-linking agent.
-       This class describes the chemical structure of the component, for
-       example with a SMILES or INCHI descriptor, so that it is uniquely
-       defined. A descriptor is typically assigned to a
+    """Description of a non-polymeric chemical component used in the
+       experiment. For example, this might be a fluorescent probe or
+       cross-linking agent. This class describes the chemical structure of
+       the component, for example with a SMILES or INCHI descriptor, so that
+       it is uniquely defined. A descriptor is typically assigned to a
        :class:`ihm.restraint.CrossLinkRestraint`.
 
        See :mod:`ihm.cross_linkers` for chemical descriptors of some
