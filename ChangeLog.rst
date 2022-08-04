@@ -1,3 +1,8 @@
+HEAD
+====
+  - Author names now use PDB style ("Lastname, A.B.") by default rather
+    than PubMed style ("Lastname AB") (#95).
+
 0.34 - 2022-08-03
 =================
   - Strings that start with STAR reserved words such as ``stop_`` are now

@@ -91,7 +91,7 @@ class System(object):
         self.software = []
 
         #: List of all authors of this system, as a list of strings (last name
-        #: followed by initials, e.g. "Smith AJ"). When writing out a file,
+        #: followed by initials, e.g. "Smith, A.J."). When writing out a file,
         #: if this list is empty, the set of all citation authors (see
         #: :attr:`Citation.authors`) is used instead.
         self.authors = []
@@ -641,7 +641,7 @@ class Citation(object):
               int tuple). Using str also works for labelled page numbers.
        :param int year: Year of publication.
        :param authors: All authors in order, as a list of strings (last name
-              followed by initials, e.g. "Smith AJ").
+              followed by initials, e.g. "Smith, A.J.").
        :param str doi: Digital Object Identifier of the publication.
        :param bool is_primary: Denotes the most pertinent publication for the
               modeling itself (as opposed to a method or piece of software used
@@ -698,6 +698,15 @@ class Citation(object):
         ref = j['result'][str(pubmed_id)]
         authors = [enc(x['name']) for x in ref['authors']
                    if x['authtype'] == 'Author']
+
+        # PubMed authors are usually of the form "Lastname AB" but PDB uses
+        # "Lastname, A.B." so map one to the other if possible
+        r = re.compile(r'(^\w+.*?)\s+(\w+)$')
+
+        def auth_sub(m):
+            return m.group(1) + ", " + "".join(initial + "."
+                                               for initial in m.group(2))
+        authors = [r.sub(auth_sub, auth) for auth in authors]
 
         return cls(pmid=pubmed_id, title=enc(ref['title']),
                    journal=enc(ref['source']),
