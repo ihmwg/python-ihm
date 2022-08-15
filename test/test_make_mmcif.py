@@ -62,6 +62,28 @@ class Tests(unittest.TestCase):
         self.assertEqual(s.title, 'Auto-generated system')
         os.unlink('output.cif')
 
+    @unittest.skipIf(sys.version_info[0] < 3, "make-mmcif.py needs Python 3")
+    def test_pass_through(self):
+        """Check that make-mmcif passes through already-compliant files"""
+        incif = utils.get_input_file_name(TOPDIR, 'docking.cif')
+        subprocess.check_call([sys.executable, MAKE_MMCIF, incif])
+        with open('output.cif') as fh:
+            s, = ihm.reader.read(fh)
+        self.assertEqual(len(s.state_groups), 1)
+        self.assertEqual(len(s.state_groups[0]), 1)
+        self.assertEqual(len(s.state_groups[0][0]), 1)
+        self.assertEqual(len(s.state_groups[0][0][0]), 1)
+        m = s.state_groups[0][0][0][0]
+        self.assertEqual(m.protocol.name, 'Modeling')
+        self.assertEqual(m.assembly.name, 'Our complete assembly')
+        chainA, chainB, = m.representation
+        self.assertIsInstance(chainA, ihm.representation.AtomicSegment)
+        self.assertTrue(chainA.rigid)
+        self.assertIsInstance(chainB, ihm.representation.FeatureSegment)
+        self.assertFalse(chainB.rigid)
+        self.assertEqual(s.title, 'Output from simple-docking example')
+        os.unlink('output.cif')
+
 
 if __name__ == '__main__':
     unittest.main()
