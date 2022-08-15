@@ -21,8 +21,8 @@ class Tests(unittest.TestCase):
         with open('output.cif') as fh:
             s, = ihm.reader.read(fh)
         self.assertEqual(s.title,
-            'Architecture of Pol II(G) and molecular mechanism of '
-            'transcription regulation by Gdown1')
+                         'Architecture of Pol II(G) and molecular mechanism '
+                         'of transcription regulation by Gdown1')
         os.unlink('output.cif')
 
     @unittest.skipIf(sys.version_info[0] < 3, "make-mmcif.py needs Python 3")
