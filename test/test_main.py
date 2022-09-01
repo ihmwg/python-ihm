@@ -48,7 +48,7 @@ class Tests(unittest.TestCase):
         cc = ihm.ChemComp('X', 'X', 'X', formula='C90H')
         self.assertRaises(ValueError, lambda x: x.formula_weight, cc)
         # Formula with unknown element
-        cc = ihm.ChemComp('X', 'X', 'X', formula='C5 Y')
+        cc = ihm.ChemComp('X', 'X', 'X', formula='C5 Es')
         self.assertIsNone(cc.formula_weight)
         # Formula with known elements and no charge
         cc = ihm.ChemComp('X', 'X', 'X', formula='C6 H12 P')
