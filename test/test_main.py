@@ -344,6 +344,23 @@ class Tests(unittest.TestCase):
         self.assertIsNone(r.asym)
         self.assertEqual(r.seq_id, 3)
 
+    def test_water_asym(self):
+        """Test WaterAsymUnit class"""
+        e = ihm.Entity('AHCDAH')
+        water = ihm.Entity([ihm.WaterChemComp()])
+        a = ihm.AsymUnit(e)
+        self.assertEqual(a.seq_id_range, (1, 6))
+        self.assertEqual(len(a.sequence), 6)
+        self.assertEqual(a.number_of_molecules, 1)
+
+        a = ihm.WaterAsymUnit(water, number=3)
+        self.assertEqual(a.seq_id_range, (1, 3))
+        self.assertEqual(len(a.sequence), 3)
+        self.assertEqual(a.number_of_molecules, 3)
+
+        self.assertRaises(TypeError, ihm.AsymUnit, water)
+        self.assertRaises(TypeError, ihm.WaterAsymUnit, e)
+
     def test_asym_unit_residue(self):
         """Test Residue derived from an AsymUnit"""
         e = ihm.Entity('AHCDAH')

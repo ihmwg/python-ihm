@@ -1154,7 +1154,6 @@ class Entity(object):
        see :attr:`System.entities`.
     """  # noqa: E501
 
-    number_of_molecules = 1
     _force_polymer = None
 
     def __get_type(self):
@@ -1291,6 +1290,9 @@ class AsymUnit(object):
     """An asymmetric unit, i.e. a unique instance of an Entity that
        was modeled.
 
+       Note that this class should not be used to describe crystal waters;
+       for that, see :class:`WaterAsymUnit`.
+
        :param entity: The unique sequence of this asymmetric unit.
        :type entity: :class:`Entity`
        :param str details: Longer text description of this unit.
@@ -1320,8 +1322,13 @@ class AsymUnit(object):
        See :attr:`System.asym_units`.
     """
 
+    number_of_molecules = 1
+
     def __init__(self, entity, details=None, auth_seq_id_map=0, id=None,
                  strand_id=None):
+        if (entity is not None and entity.type == 'water'
+                and not isinstance(self, WaterAsymUnit)):
+            raise TypeError("Use WaterAsymUnit instead for creating waters")
         self.entity, self.details = entity, details
         self.auth_seq_id_map = auth_seq_id_map
         self.id = id
@@ -1360,8 +1367,33 @@ class AsymUnit(object):
     seq_id_range = property(lambda self: self.entity.seq_id_range,
                             doc="Sequence range")
 
+    sequence = property(lambda self: self.entity.sequence,
+                        doc="Primary sequence")
+
     strand_id = property(lambda self: self._strand_id or self._id,
                          doc="PDB or author-provided strand/chain ID")
+
+
+class WaterAsymUnit(AsymUnit):
+    def __init__(self, entity, number, details=None, auth_seq_id_map=0,
+                 id=None, strand_id=None):
+        if entity.type != 'water':
+            raise TypeError(
+                "WaterAsymUnit can only be used for water entities")
+        super(WaterAsymUnit, self).__init__(
+            entity, details=details, auth_seq_id_map=auth_seq_id_map,
+            id=id, strand_id=strand_id)
+        self.number = number
+        self._water_sequence = [entity.sequence[0]] * number
+
+    seq_id_range = property(lambda self: (1, self.number),
+                            doc="Sequence range")
+
+    sequence = property(lambda self: self._water_sequence,
+                        doc="Primary sequence")
+
+    number_of_molecules = property(lambda self: self.number,
+                                   doc="Number of molecules")
 
 
 class Assembly(list):
