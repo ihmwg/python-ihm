@@ -1375,6 +1375,15 @@ class AsymUnit(object):
 
 
 class WaterAsymUnit(AsymUnit):
+    """A collection of crystal waters, all with the same "chain" ID.
+
+       :param int number: The number of water molecules in this unit.
+
+       For more information on this class and the rest of the parameters,
+       see :class:`AsymUnit`.
+
+    """
+
     def __init__(self, entity, number, details=None, auth_seq_id_map=0,
                  id=None, strand_id=None):
         if entity.type != 'water':
