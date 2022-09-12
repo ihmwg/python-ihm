@@ -119,13 +119,13 @@ colabfold = ihm.Citation(
     doi='10.1038/s41592-022-01488-1')
 
 qmeandisco = ihm.Citation(
-            pmid='31697312',
-            title='QMEANDisCo-distance constraints applied on model quality '
-                  'estimation.',
-            journal='Bioinformatics',
-            volume=36,
-            page_range=(1765, 1771),
-            year=2019,
-            authors=['Studer, G.', 'Rempfer, C.', 'Waterhouse, A.M.',
-                     'Gumienny, R.', 'Haas, J.', 'Schwede, T.'],
-            doi='10.1093/bioinformatics/btz828')
+    pmid='31697312',
+    title='QMEANDisCo-distance constraints applied on model quality '
+          'estimation.',
+    journal='Bioinformatics',
+    volume=36,
+    page_range=(1765, 1771),
+    year=2019,
+    authors=['Studer, G.', 'Rempfer, C.', 'Waterhouse, A.M.', 'Gumienny, R.',
+             'Haas, J.', 'Schwede, T.'],
+    doi='10.1093/bioinformatics/btz828')
