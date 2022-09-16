@@ -1,5 +1,5 @@
-HEAD
-====
+0.35 - 2022-09-16
+=================
   - Author names now use PDB style ("Lastname, A.B.") by default rather
     than PubMed style ("Lastname AB") (#95).
   - Asyms containing multiple water molecules should now be correctly
