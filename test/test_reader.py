@@ -1385,7 +1385,7 @@ _ihm_modeling_post_process.details
             self.assertIsNone(a1.steps[1].script_file)
             self.assertIsNone(a1.steps[1].details)
             self.assertEqual(len(a2.steps), 3)
-            self.assertEqual([s.num_models_begin for s in a2.steps],
+            self.assertEqual([step.num_models_begin for step in a2.steps],
                              [16000, 7520, 5520])
 
             a1, = p2.analyses
