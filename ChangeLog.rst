@@ -5,7 +5,7 @@
   - Asyms containing multiple water molecules should now be correctly
     handled (previously every water molecule in the output ``atom_site``
     table  was given the same ``auth_seq_id``). Use the new
-    class:`ihm.WaterAsymUnit` to create an asym containing waters (#98).
+    :class:`ihm.WaterAsymUnit` to create an asym containing waters (#98).
   - Masses for all elements are now included, so that
     ``_entity.formula_weight`` can be correctly populated for ligands (#99).
   - Bugfix: :class:`ihm.analysis.Analysis` objects are now read correctly
