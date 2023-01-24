@@ -111,6 +111,7 @@ save_bar
   _item.mandatory_code
         '_test_category1.bar'     test_category1     no
         '_test_category3.bar'     test_category3     yes
+        '_test_category4.foo'     test_category4     yes
 
   _item_type.code            code
 save_
@@ -146,11 +147,23 @@ save_baz
     "enum 1"
     "enum 2"
 save_
+
+save_foo
+  _category.id               test_category4
+  _category.description      'my desc4'
+  _category.mandatory_code   yes
+save_
+
+save_bar
+  _item.name                 '_test_category4.bar'
+  _item.mandatory_code       no
+  _item_type.code            ucode
+save_
 """
         d = ihm.dictionary.read(StringIO(cif))
         self.assertEqual(sorted(d.categories.keys()),
                          ['test_category1', 'test_category2',
-                          'test_category3'])
+                          'test_category3', 'test_category4'])
         c1 = d.categories['test_category1']
         self.assertTrue(c1.mandatory)
         self.assertEqual(
@@ -179,6 +192,12 @@ save_
         self.assertEqual(sorted(c3.keywords.keys()), ["bar"])
         self.assertTrue(c3.keywords['bar'].mandatory)
 
+        # Test category that is defined after some keywords
+        c4 = d.categories['test_category4']
+        self.assertEqual(c4.description, 'my desc4')
+        self.assertTrue(c4.mandatory)
+        self.assertEqual(sorted(c4.keywords.keys()), ["bar", "foo"])
+
         self.assertEqual(d.linked_items,
                          {'_test_category2.baz': '_test_category1.bar'})
 
@@ -187,7 +206,7 @@ save_
             d = ihm.dictionary.read(BytesIO(cif.encode('latin-1')))
             self.assertEqual(sorted(d.categories.keys()),
                              ['test_category1', 'test_category2',
-                              'test_category3'])
+                              'test_category3', 'test_category4'])
 
     def test_add(self):
         """Test adding two Dictionaries"""
