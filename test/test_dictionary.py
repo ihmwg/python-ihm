@@ -212,7 +212,7 @@ save_
         self.assertEqual(sorted(d.categories.keys()),
                          ['test_mandatory_category', 'test_optional_category'])
         ks = sorted(d.categories['test_mandatory_category'].keywords.keys())
-        # Category should now contain keywords from from dictionaries
+        # Category should now contain keywords from both dictionaries
         self.assertEqual(ks, ['bar', 'baz', 'foo'])
 
     def test_category_update(self):
