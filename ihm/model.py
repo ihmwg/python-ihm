@@ -260,7 +260,8 @@ class Ensemble(object):
 
     clustering_method = _text_choice_property(
         "clustering_method",
-        ["Hierarchical", "Other", "Partitioning (k-means)"],
+        ["Hierarchical", "Other", "Partitioning (k-means)",
+         "Density based threshold-clustering"],
         doc="The clustering method used to obtain the ensemble, if applicable")
 
     clustering_feature = _text_choice_property(
