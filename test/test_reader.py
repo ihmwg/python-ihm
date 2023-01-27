@@ -1555,11 +1555,12 @@ _ihm_ensemble_info.num_ensemble_models_deposited
 _ihm_ensemble_info.ensemble_precision_value
 _ihm_ensemble_info.ensemble_file_id
 _ihm_ensemble_info.details
+_ihm_ensemble_info.model_group_superimposed_flag
 _ihm_ensemble_info.sub_sample_flag
 _ihm_ensemble_info.sub_sampling_type
-1 'Cluster 1' 2 3 . dRMSD 1257 10 15.400 9 . . .
-2 'Cluster 2' 2 . . dRMSD 1257 10 15.400 9 'cluster details' YES independent
-3 'Cluster 3' . . invalid_cluster invalid_feature 1 1 15.400 9 . . .
+1 'Cluster 1' 2 3 . dRMSD 1257 10 15.400 9 . . . .
+2 'Cluster 2' 2 . . dRMSD 1257 10 15.400 9 'cluster details' NO YES independent
+3 'Cluster 3' . . invalid_cluster invalid_feature 1 1 15.400 9 . YES . .
 #
 #
 loop_
@@ -1588,6 +1589,7 @@ _ihm_ensemble_sub_sample.file_id
             self.assertIsNone(e.details)
             self.assertAlmostEqual(e.precision, 15.4, delta=0.1)
             self.assertEqual(e.file._id, '9')
+            self.assertIsNone(e.superimposed)
             self.assertIsNone(e2.model_group)
             self.assertEqual(e2.num_models_deposited, 10)
             self.assertEqual(e2.details, 'cluster details')
@@ -1602,9 +1604,11 @@ _ihm_ensemble_sub_sample.file_id
             self.assertEqual(s2.model_group._id, '42')
             self.assertEqual(s2.file._id, '3')
             self.assertIsInstance(s2, ihm.model.IndependentSubsample)
+            self.assertFalse(e2.superimposed)
             # invalid cluster/feature should be mapped to default
             self.assertEqual(e3.clustering_method, 'Other')
             self.assertEqual(e3.clustering_feature, 'other')
+            self.assertTrue(e3.superimposed)
 
     def test_density_handler(self):
         """Test DensityHandler"""

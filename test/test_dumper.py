@@ -2399,7 +2399,7 @@ N
                                 post_process=pp, name='cluster1',
                                 clustering_method='Hierarchical',
                                 clustering_feature='RMSD',
-                                precision=4.2)
+                                precision=4.2, superimposed=True)
         loc = ihm.location.OutputFileLocation(repo='foo', path='bar')
         loc._id = 3
         e2 = ihm.model.Ensemble(model_group=group, num_models=10,
@@ -2433,10 +2433,11 @@ _ihm_ensemble_info.num_ensemble_models_deposited
 _ihm_ensemble_info.ensemble_precision_value
 _ihm_ensemble_info.ensemble_file_id
 _ihm_ensemble_info.details
+_ihm_ensemble_info.model_group_superimposed_flag
 _ihm_ensemble_info.sub_sample_flag
 _ihm_ensemble_info.sub_sampling_type
-1 cluster1 99 42 Hierarchical RMSD 10 2 4.200 . . NO .
-2 . . 42 . . 10 2 . 3 'test details' YES independent
+1 cluster1 99 42 Hierarchical RMSD 10 2 4.200 . . YES NO .
+2 . . 42 . . 10 2 . 3 'test details' . YES independent
 #
 #
 loop_

@@ -1610,6 +1610,7 @@ class _EnsembleDumper(Dumper):
                           "num_ensemble_models_deposited",
                           "ensemble_precision_value",
                           "ensemble_file_id", "details",
+                          "model_group_superimposed_flag",
                           "sub_sample_flag", "sub_sampling_type"]) as lp:
             for e in system.ensembles:
                 if e.subsamples:
@@ -1627,6 +1628,7 @@ class _EnsembleDumper(Dumper):
                          ensemble_precision_value=e.precision,
                          ensemble_file_id=e.file._id if e.file else None,
                          details=e.details,
+                         model_group_superimposed_flag=e.superimposed,
                          sub_sample_flag=len(e.subsamples) > 0,
                          sub_sampling_type=sstype)
 
