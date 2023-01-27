@@ -932,6 +932,22 @@ C 3 ZN 1 6 6 ZN C .
 #
 """)
 
+    def test_collection_dumper(self):
+        """Test CollectionDumper"""
+        system = ihm.System()
+        c = ihm.Collection('foo', name='bar', details='more text')
+        system.collections.append(c)
+        dumper = ihm.dumper._CollectionDumper()
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_ihm_entry_collection.id
+_ihm_entry_collection.name
+_ihm_entry_collection.details
+foo bar 'more text'
+#
+""")
+
     def test_struct_asym_dumper(self):
         """Test StructAsymDumper"""
         system = ihm.System()

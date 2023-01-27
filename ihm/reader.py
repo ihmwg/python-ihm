@@ -883,6 +883,14 @@ class Handler(object):
                       doc="The :class:`ihm.System` object to read into")
 
 
+class _CollectionHandler(Handler):
+    category = '_ihm_entry_collection'
+
+    def __call__(self, id, name, details):
+        c = ihm.Collection(id=id, name=name, details=details)
+        self.system.collections.append(c)
+
+
 class _StructHandler(Handler):
     category = '_struct'
 
@@ -3287,7 +3295,7 @@ class IHMVariant(Variant):
     system_reader = SystemReader
 
     _handlers = [
-        _StructHandler, _SoftwareHandler, _CitationHandler,
+        _CollectionHandler, _StructHandler, _SoftwareHandler, _CitationHandler,
         _AuditAuthorHandler, _GrantHandler, _CitationAuthorHandler,
         _ChemCompHandler, _ChemDescriptorHandler, _EntityHandler,
         _EntitySrcNatHandler, _EntitySrcGenHandler, _EntitySrcSynHandler,

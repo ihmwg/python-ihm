@@ -209,6 +209,22 @@ _struct.entry_id id4
             # and the system ID should match entry_id
             self.assertEqual(s4.id, 'id4')
 
+    def test_collection_handler(self):
+        """Test CollectionHandler"""
+        cif = """
+loop_
+_ihm_entry_collection.id
+_ihm_entry_collection.name
+_ihm_entry_collection.details
+foo bar 'more text'
+"""
+        for fh in cif_file_handles(cif):
+            s, = ihm.reader.read(fh)
+            c, = s.collections
+            self.assertEqual(c.id, 'foo')
+            self.assertEqual(c.name, 'bar')
+            self.assertEqual(c.details, 'more text')
+
     def test_software_handler(self):
         """Test SoftwareHandler"""
         cif = """
