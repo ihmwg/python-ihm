@@ -237,6 +237,9 @@ class CrossLinkRestraint(Restraint):
 class ExperimentalCrossLink(object):
     """A cross-link identified in the experiment.
 
+       These objects, once created, should be added to
+       the :attr:`CrossLinkRestraint.experimental_cross_links` list.
+
        :param residue1: The first residue linked by the cross-link.
        :type residue1: :class:`ihm.Residue`
        :param residue2: The second residue linked by the cross-link.
@@ -373,6 +376,9 @@ class ResidueCrossLink(CrossLink):
     """A cross-link used in the modeling, applied to residue
        alpha carbon atoms.
 
+       These objects, once created, should be added to
+       the :attr:`CrossLinkRestraint.cross_links` list.
+
        :param experimental_cross_link: The corresponding cross-link identified
               by experiment. Multiple cross-links can map to a single
               experimental identification.
@@ -418,6 +424,9 @@ class FeatureCrossLink(CrossLink):
     """A cross-link used in the modeling, applied to the closest primitive
        object with the highest resolution.
 
+       These objects, once created, should be added to
+       the :attr:`CrossLinkRestraint.cross_links` list.
+
        :param experimental_cross_link: The corresponding cross-link identified
               by experiment. Multiple cross-links can map to a single
               experimental identification.
@@ -461,6 +470,9 @@ class FeatureCrossLink(CrossLink):
 
 class AtomCrossLink(CrossLink):
     """A cross-link used in the modeling, applied to the specified atoms.
+
+       These objects, once created, should be added to
+       the :attr:`CrossLinkRestraint.cross_links` list.
 
        :param experimental_cross_link: The corresponding cross-link identified
               by experiment. Multiple cross-links can map to a single
