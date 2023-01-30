@@ -414,7 +414,7 @@ class ResidueCrossLink(CrossLink):
         self.distance, self.restrain_all = distance, restrain_all
         self.pseudo1, self.pseudo2 = pseudo1, pseudo2
 
-        #: Information about the fit of each model to this cross-link
+        #: Information about the fit of each model to this cross-link.
         #: This is a Python dict where keys are :class:`~ihm.model.Model`
         #: objects and values are :class:`CrossLinkFit` objects.
         self.fits = {}
@@ -462,7 +462,7 @@ class FeatureCrossLink(CrossLink):
         self.distance, self.restrain_all = distance, restrain_all
         self.pseudo1, self.pseudo2 = pseudo1, pseudo2
 
-        #: Information about the fit of each model to this cross-link
+        #: Information about the fit of each model to this cross-link.
         #: This is a Python dict where keys are :class:`~ihm.model.Model`
         #: objects and values are :class:`CrossLinkFit` objects.
         self.fits = {}
@@ -511,7 +511,7 @@ class AtomCrossLink(CrossLink):
         self.distance, self.restrain_all = distance, restrain_all
         self.pseudo1, self.pseudo2 = pseudo1, pseudo2
 
-        #: Information about the fit of each model to this cross-link
+        #: Information about the fit of each model to this cross-link.
         #: This is a Python dict where keys are :class:`~ihm.model.Model`
         #: objects and values are :class:`CrossLinkFit` objects.
         self.fits = {}
