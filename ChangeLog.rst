@@ -4,7 +4,7 @@
     (:class:`ihm.dataset.EnsembleFRETDataset`) and datasets stored in
     the jPOSTrepo repository (:class:`ihm.location.JPOSTLocation`).
   - Related depositions can now be grouped using the :class:`ihm.Collection`
-    class.
+    class (#108).
   - The :class:`ihm.model.Ensemble` class has a new ``superimposed`` attribute
     to indicate whether the grouped models are structurally aligned.
 
