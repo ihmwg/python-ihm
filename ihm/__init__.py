@@ -108,7 +108,7 @@ class System(object):
         #: All asymmetric units used in the system. See :class:`AsymUnit`.
         self.asym_units = []
 
-        #: Any collections (if any) to which this entry belongs.
+        #: Collections (if any) to which this entry belongs.
         #: These are used to group depositions of related entries.
         #: See :class:`Collection`.
         self.collections = []
