@@ -1,3 +1,13 @@
+0.37 - 2023-02-03
+=================
+  - Convenience classes are added to describe ensemble FRET datasets
+    (:class:`ihm.dataset.EnsembleFRETDataset`) and datasets stored in
+    the jPOSTrepo repository (:class:`ihm.location.JPOSTLocation`).
+  - Related depositions can now be grouped using the :class:`ihm.Collection`
+    class.
+  - The :class:`ihm.model.Ensemble` class has a new ``superimposed`` attribute
+    to indicate whether the grouped models are structurally aligned.
+
 0.36 - 2023-01-25
 =================
   - When reading a file that references external files, preserve any
