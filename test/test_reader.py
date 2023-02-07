@@ -1046,10 +1046,11 @@ _ihm_dataset_related_db_reference.details
 2 3 PDB 3F3F 30-OCT-08 'CRYSTAL STRUCTURE'
 3 5 emdb EMD-123 . .
 4 6 . . . .
+5 7 testDB testcode testver testdetails
 """
         for fh in cif_file_handles(cif):
             s, = ihm.reader.read(fh)
-            d1, d2, d3, d4 = s.orphan_datasets
+            d1, d2, d3, d4, d5 = s.orphan_datasets
             self.assertEqual(d1.location.db_name, 'PDB')
             self.assertEqual(d1.location.__class__, ihm.location.PDBLocation)
             self.assertEqual(d1.location.access_code, '3JRO')
@@ -1067,6 +1068,12 @@ _ihm_dataset_related_db_reference.details
             self.assertEqual(d4.location.__class__,
                              ihm.location.DatabaseLocation)
             self.assertIsNone(d4.location.access_code)
+            self.assertEqual(d5.location.__class__,
+                             ihm.location.DatabaseLocation)
+            self.assertEqual(d5.location.db_name, "testDB")
+            self.assertEqual(d5.location.access_code, "testcode")
+            self.assertEqual(d5.location.version, "testver")
+            self.assertEqual(d5.location.details, "testdetails")
 
     def test_related_datasets_handler(self):
         """Test RelatedDatasetsHandler"""
