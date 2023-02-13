@@ -10,6 +10,7 @@ import ihm.format_bcif
 import ihm.model
 import ihm.representation
 import ihm.source
+import ihm.multi_state_scheme
 import ihm.flr
 import ihm.dataset
 from . import util
@@ -2426,6 +2427,163 @@ def _assign_all_ids(all_objs_func):
             objs_by_id.append(f)
     return objs_by_id
 
+class _MultiStateSchemeDumper(Dumper):
+    def finalize(self, system):
+        # Assign IDs
+        s_id = itertools.count(1)
+        for s in system.multi_state_schemes:
+            if not hasattr(s, '_id'):
+                s._id = next(s_id)
+
+    def dump(self, system, writer):
+        with writer.loop('_ihm_multi_state_scheme',
+                         ['id', 'name', 'details']) as lp:
+            for s in system.multi_state_schemes:
+                lp.write(id=s._id,
+                         name=s.name,
+                         details=s.details)
+
+class _MultiStateSchemeConnectivityDumper(Dumper):
+    def finalize(self, system):
+        # Assign IDs
+        c_id = itertools.count(1)
+        for c in system._all_multi_state_scheme_connectivities():
+            if not hasattr(c, '_id'):
+                 c._id = next(c_id)
+
+    def dump(self, system, writer):
+        with writer.loop('_ihm_multi_state_scheme_connectivity',
+                         ['id', 'scheme_id', 'begin_state_id', 'end_state_id',
+                          'dataset_group_id', 'details']) as lp:
+            for mss in system.multi_state_schemes:
+                for c in mss.connectivity_list:
+                    lp.write(id=c._id, scheme_id=mss._id,
+                             begin_state_id=c.begin_state._id,
+                             end_state_id=c.end_state._id if c.end_state else None,
+                             dataset_group_id=c.dataset_group._id if c.dataset_group else None,
+                             details=c.details)
+
+class _RelaxationTimeDumper(Dumper):
+    def finalize(self, system):
+        # Assign IDs
+        r_id = itertools.count(1)
+        for r in system._all_relaxation_times():
+            if not hasattr(r, '_id'):
+                r._id = next(r_id)
+
+    def dump(self, system, writer):
+        self.dump_ihm_relaxation_time(system, writer)
+        self.dump_ihm_relaxation_time_multi_state_scheme(system, writer)
+
+    def dump_ihm_relaxation_time(self, system, writer):
+        with writer.loop('_ihm_relaxation_time',
+                         ['id', 'value', 'unit', 'amplitude',
+                          'dataset_group_id', 'external_file_id',
+                          'details']) as lp:
+            # Relaxation times that are only assigned to multi-state schemes
+            seen_relaxation_times = []
+            for r in system._all_relaxation_times():
+                if r not in seen_relaxation_times:
+                    seen_relaxation_times.append(r)
+                lp.write(id=r._id,
+                         value=r.value,
+                         unit=r.unit,
+                         amplitude=r.amplitude,
+                         dataset_group_id=r.dataset_group._id if r.dataset_group else None,
+                         external_file_id=r.external_file._id if r.external_file else None,
+                         details=r.details)
+
+
+
+    def dump_ihm_relaxation_time_multi_state_scheme(self, system, writer):
+        with writer.loop('_ihm_relaxation_time_multi_state_scheme',
+                         ['id', 'relaxation_time_id', 'scheme_id',
+                          'scheme_connectivity_id', 'details']) as lp:
+            # For relaxation times that are only assigned to multi-state schemes
+            ordinal = itertools.count(1)
+            # Keep track of the seen relaxation times, in order to avoid writing duplicates when it comes to the flr_data
+            seen_relaxation_times = []
+            for mss in system.multi_state_schemes:
+                for r in mss.relaxation_time_list:
+                    if r not in seen_relaxation_times:
+                        seen_relaxation_times.append(r)
+                    lp.write(id=next(ordinal),
+                             relaxation_time_id=r._id,
+                             scheme_id=mss._id,
+                             scheme_connectivity_id=None,
+                             details=None)
+            # For relaxation times assigned to multi-state scheme connectivities
+            for mss in system.multi_state_schemes:
+                for mssc in mss.connectivity_list:
+                    if mssc.relaxation_time is not None:
+                        if mssc.relaxation_time not in seen_relaxation_times:
+                            seen_relaxation_times.append(mssc.relaxation_time)
+                        lp.write(id=next(ordinal),
+                                 relaxation_time_id=mssc.relaxation_time._id,
+                                 scheme_id=mss._id,
+                                 scheme_connectivity_id=mssc._id,
+                                 details=None)
+            # This case only occurs if the relaxation time was not assigned to a multi-state scheme,
+            # but occurs within the context of the flr_data
+            for f in system.flr_data:
+                for c in f.relaxation_time_fret_analysis_connections:
+                    r = c.relaxation_time
+                    if r not in seen_relaxation_times:
+                        seen_relaxation_times.append(r)
+                        lp.write(id=next(ordinal),
+                                 relaxation_time_id=r._id,
+                                 scheme_id=None,
+                                 scheme_connectivity_id=None,
+                                 details=None)
+
+
+class _KineticRateDumper(Dumper):
+    def finalize(self, system):
+        # Assign IDs
+        k_id = itertools.count(1)
+        for k in system._all_kinetic_rates():
+            if not hasattr(k, '_id'):
+                k._id = next(k_id)
+
+    def dump(self, system, writer):
+        with writer.loop('_ihm_kinetic_rate',
+                         ['id', 'transition_rate_constant',
+                          'equilibrium_constant', 'equilibrium_constant_determination_method',
+                          'equilibrium_constant_unit', 'details', 'scheme_connectivity_id',
+                          'dataset_group_id', 'external_file_id']) as lp:
+            ordinal = itertools.count(1)
+            seen_kinetic_rates = []
+            for mssc in system._all_multi_state_scheme_connectivities():
+                if mssc.kinetic_rate is not None:
+                    k = mssc.kinetic_rate
+                    if k not in seen_kinetic_rates:
+                        seen_kinetic_rates.append(k)
+                    lp.write(id=next(ordinal),
+                             transition_rate_constant=k.transition_rate_constant,
+                             equilibrium_constant=k.equilibrium_constant,
+                             equilibrium_constant_determination_method=k.equilibrium_constant_determination_method,
+                             equilibrium_constant_unit=k.equilibrium_constant_unit,
+                             details=k.details,
+                             scheme_connectivity_id=mssc._id,
+                             dataset_group_id=k.dataset_group._id if k.dataset_group else None,
+                             external_file_id=k.external_file._id if k.external_file else None)
+            for f in system.flr_data:
+                for c in f.kinetic_rate_fret_analysis_connections:
+                    k = c.kinetic_rate
+                    if k not in seen_kinetic_rates:
+                        seen_kinetic_rates.append(k)
+                        lp.write(id=next(ordinal),
+                             transition_rate_constant=k.transition_rate_constant,
+                             equilibrium_constant=k.equilibrium_constant,
+                             equilibrium_constant_determination_method=k.equilibrium_constant_determination_method,
+                             equilibrium_constant_unit=k.equilibrium_constant_unit,
+                             details=k.details,
+                             scheme_connectivity_id=None,
+                             dataset_group_id=k.dataset_group._id if k.dataset_group else None,
+                             external_file_id=k.external_file._id if k.external_file else None)
+
+
+
 
 class _FLRExperimentDumper(Dumper):
     def finalize(self, system):
@@ -3157,6 +3315,51 @@ class _FLRFPSMPPModelingDumper(Dumper):
                     FPS_modeling_id=x.fps_modeling._id, mpp_id=x.mpp._id,
                     mpp_atom_position_group_id=x.mpp_atom_position_group._id)
 
+class _FLRKineticRateFretAnalysisConnectionDumper(Dumper):
+    def finalize(self, system):
+        # Assign IDs
+        c_id = itertools.count(1)
+        if system.flr_data:
+            for f in system.flr_data:
+                for c in f.kinetic_rate_fret_analysis_connections:
+                    if not hasattr(c, '_id'):
+                        c._id = next(c_id)
+
+    def dump(self, system, writer):
+        with writer.loop('_flr_kinetic_rate_analysis',
+                         ['id', 'fret_analysis_id',
+                         'kinetic_rate_id', 'details']) as lp:
+            if system.flr_data:
+                for f in system.flr_data:
+                    for c in f.kinetic_rate_fret_analysis_connections:
+                        lp.write(id=c._id,
+                                 fret_analysis_id=c.fret_analysis._id,
+                                 kinetic_rate_id=c.kinetic_rate._id,
+                                 details=c.details)
+
+class _FLRRelaxationTimeFretAnalysisConnectionDumper(Dumper):
+    def finalize(self, system):
+        # Assign IDs
+        c_id = itertools.count(1)
+        if system.flr_data:
+            for f in system.flr_data:
+                for c in f.relaxation_time_fret_analysis_connections:
+                    if not hasattr(c, '_id'):
+                        c._id = next(c_id)
+
+    def dump(self, system, writer):
+        with writer.loop('_flr_relaxation_time_analysis',
+                         ['id', 'fret_analysis_id',
+                         'relaxation_time_id', 'details']) as lp:
+            if system.flr_data:
+                for f in system.flr_data:
+                    for c in f.relaxation_time_fret_analysis_connections:
+                        lp.write(id=c._id,
+                                 fret_analysis_id=c.fret_analysis._id,
+                                 relaxation_time_id=c.relaxation_time._id,
+                                 details=c.details)
+
+
 
 _flr_dumpers = [_FLRExperimentDumper, _FLRInstSettingDumper,
                 _FLR_ExpConditionDumper, _FLRInstrumentDumper,
@@ -3169,7 +3372,9 @@ _flr_dumpers = [_FLRExperimentDumper, _FLRInstSettingDumper,
                 _FLRPeakAssignmentDumper, _FLRDistanceRestraintDumper,
                 _FLRModelQualityDumper, _FLRModelDistanceDumper,
                 _FLRFPSModelingDumper, _FLRFPSAVModelingDumper,
-                _FLRFPSMPPModelingDumper]
+                _FLRFPSMPPModelingDumper,
+                _FLRKineticRateFretAnalysisConnectionDumper,
+                _FLRRelaxationTimeFretAnalysisConnectionDumper]
 
 
 class _NullLoopCategoryWriter(object):
@@ -3254,7 +3459,9 @@ class IHMVariant(Variant):
         _GeometricRestraintDumper, _DerivedDistanceRestraintDumper,
         _PredictedContactRestraintDumper, _EM3DDumper, _EM2DDumper, _SASDumper,
         _ModelDumper, _EnsembleDumper, _DensityDumper, _MultiStateDumper,
-        _OrderedDumper]
+        _OrderedDumper,
+        _MultiStateSchemeDumper, _MultiStateSchemeConnectivityDumper,
+        _RelaxationTimeDumper, _KineticRateDumper]
 
     def get_dumpers(self):
         return [d() for d in self._dumpers + _flr_dumpers]

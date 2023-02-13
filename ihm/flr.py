@@ -932,6 +932,43 @@ class FPSMPPAtomPosition(object):
         return self.__dict__ == other.__dict__
 
 
+class KineticRateFretAnalysisConnection(object):
+    """Connects a kinetic rate with a FRET analysis.
+
+    :param fret_analysis: The FRETAnalysis object assigned to a kinetic rate
+    :type analysis: :class:`FRETAnalysis`
+    :param kinetic_rate: The kinetic rate.
+    :type kinetic_rate: :class:`ihm.multi_state_scheme.KineticRate`
+    :param str details: Details about the connecting between the FRETAnalysis object and the KineticRate object
+    """
+    def __init__(self, fret_analysis, kinetic_rate, details=None):
+        self.fret_analysis = fret_analysis
+        self.kinetic_rate = kinetic_rate
+        self.details = details
+
+    def __eq__(self,other):
+        return self.__dict__ == other.__dict__
+
+
+class RelaxationTimeFretAnalysisConnection(object):
+    """Connects a relaxation time with a FRET analysis.
+
+    :param fret_analysis: The FRETAnalysis object assigned to a kinetic rate
+    :type analysis: :class:`FRETAnalysis`
+    :param relaxation_time: The relaxation time.
+    :type relaxation_time: :class:`ihm.multi_state_scheme.RelaxationTime`
+    :param str details: Details about the connecting between the FRETAnalysis object and the RelaxationTime object
+    """
+    def __init__(self, fret_analysis, relaxation_time, details=None):
+        self.fret_analysis = fret_analysis
+        self.relaxation_time = relaxation_time
+        self.details = details
+
+    def __eq__(self,other):
+        return self.__dict__ == other.__dict__
+
+
+
 class FLRData(object):
     """A collection of the fluorescence data to be added to the system.
 
@@ -958,6 +995,14 @@ class FLRData(object):
         #: All modeling objects.
         #: See :class:`FPSAVModeling` and :class:`FPSMPPModeling`.
         self.fps_modeling = []
+
+        #: All Connections between FRETAnalysis and KineticRate objects
+        #: See :class `KineticRateFRETAnalysisConnection`
+        self.kinetic_rate_fret_analysis_connections = []
+
+        #: All Connections between FRETAnalysis and RelaxationTime objects
+        #: See :class `RelaxationTimeFRETAnalysisConnection`
+        self.relaxation_time_fret_analysis_connections = []
 
         # The following dictionaries are so far only used when reading data
         self._collection_flr_experiment = {}
@@ -992,6 +1037,8 @@ class FLRData(object):
         self._collection_flr_fps_mean_probe_position = {}
         self._collection_flr_fps_mpp_atom_position = {}
         self._collection_flr_fps_mpp_modeling = {}
+        self._collection_flr_kinetic_rate_fret_analysis_connection = {}
+        self._collection_flr_relaxation_time_fret_analysis_connection = {}
 
     def _all_distance_restraints(self):
         """Yield all FRETDistanceRestraint objects"""
@@ -1003,6 +1050,11 @@ class FLRData(object):
         """Yield all FRETAnalysis objects"""
         for r in self._all_distance_restraints():
             yield r.analysis
+        # Get the analyses from the kinetic rate and relaxation time connections
+        for c in self.kinetic_rate_fret_analysis_connections:
+            yield c.fret_analysis
+        for c in self.relaxation_time_fret_analysis_connections:
+            yield c.fret_analysis
 
     def _all_peak_assignments(self):
         """Yield all PeakAssignment objects"""
