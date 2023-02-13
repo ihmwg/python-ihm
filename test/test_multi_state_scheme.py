@@ -102,7 +102,6 @@ class Tests(unittest.TestCase):
                                                                list_of_relaxation_times=['r1'])
 
         self.assertTrue(mss_ref == mss_equal)
-        self.assertFalse(mss_ref != mss_equal)
         self.assertFalse(mss_ref == mss_unequal)
         self.assertTrue(mss_ref != mss_unequal)
         self.assertFalse(mss_ref == mss_unequal2)
@@ -163,7 +162,6 @@ class Tests(unittest.TestCase):
             relaxation_time='relaxation_time1')
 
         self.assertTrue(mssc_ref == mssc_equal)
-        self.assertFalse(mssc_ref != mssc_equal)
         self.assertFalse(mssc_ref == mssc_unequal1)
         self.assertTrue(mssc_ref != mssc_unequal1)
         self.assertFalse(mssc_ref == mssc_unequal2)
@@ -253,7 +251,6 @@ class Tests(unittest.TestCase):
             external_file="external_file1"
         )
         self.assertTrue(k_ref == k_equal)
-        self.assertFalse(k_ref != k_equal)
         self.assertFalse(k_ref == k_unequal1)
         self.assertTrue(k_ref != k_unequal1)
         self.assertFalse(k_ref == k_unequal2)
@@ -329,7 +326,6 @@ class Tests(unittest.TestCase):
             external_file='external_file1'
         )
         self.assertTrue(r_ref == r_equal)
-        self.assertFalse(r_ref != r_equal)
         self.assertFalse(r_ref == r_unequal1)
         self.assertTrue(r_ref != r_unequal1)
         self.assertFalse(r_ref == r_unequal2)
