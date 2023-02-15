@@ -939,14 +939,15 @@ class KineticRateFretAnalysisConnection(object):
     :type analysis: :class:`FRETAnalysis`
     :param kinetic_rate: The kinetic rate.
     :type kinetic_rate: :class:`ihm.multi_state_scheme.KineticRate`
-    :param str details: Details about the connecting between the FRETAnalysis object and the KineticRate object
+    :param str details: Details about the connecting between the FRETAnalysis
+     object and the KineticRate object
     """
     def __init__(self, fret_analysis, kinetic_rate, details=None):
         self.fret_analysis = fret_analysis
         self.kinetic_rate = kinetic_rate
         self.details = details
 
-    def __eq__(self,other):
+    def __eq__(self, other):
         return self.__dict__ == other.__dict__
 
 
@@ -957,16 +958,16 @@ class RelaxationTimeFretAnalysisConnection(object):
     :type analysis: :class:`FRETAnalysis`
     :param relaxation_time: The relaxation time.
     :type relaxation_time: :class:`ihm.multi_state_scheme.RelaxationTime`
-    :param str details: Details about the connecting between the FRETAnalysis object and the RelaxationTime object
+    :param str details: Details about the connecting between the FRETAnalysis
+     object and the RelaxationTime object
     """
     def __init__(self, fret_analysis, relaxation_time, details=None):
         self.fret_analysis = fret_analysis
         self.relaxation_time = relaxation_time
         self.details = details
 
-    def __eq__(self,other):
+    def __eq__(self, other):
         return self.__dict__ == other.__dict__
-
 
 
 class FLRData(object):
@@ -1050,7 +1051,8 @@ class FLRData(object):
         """Yield all FRETAnalysis objects"""
         for r in self._all_distance_restraints():
             yield r.analysis
-        # Get the analyses from the kinetic rate and relaxation time connections
+        # Get the analyses from the kinetic rate and
+        # relaxation time connections
         for c in self.kinetic_rate_fret_analysis_connections:
             yield c.fret_analysis
         for c in self.relaxation_time_fret_analysis_connections:

@@ -1190,7 +1190,6 @@ class Tests(unittest.TestCase):
         self.assertFalse(f_ref == f_unequal)
         self.assertTrue(f_ref != f_unequal)
 
-
     def test_kinetic_rate_fret_analysis_connection_init(self):
         """Test initialization of KineticRateFretAnalysisConnection objects."""
         c = ihm.flr.KineticRateFretAnalysisConnection(fret_analysis='f',
@@ -1218,25 +1217,30 @@ class Tests(unittest.TestCase):
         k2._id = '12'
         k2.name = 'kinetic_rate2'
 
-        c_ref = ihm.flr.KineticRateFretAnalysisConnection(fret_analysis=f1,
-                                                          kinetic_rate=k1,
-                                                          details='details1')
-        c_equal = ihm.flr.KineticRateFretAnalysisConnection(fret_analysis=f1,
-                                                            kinetic_rate=k1,
-                                                            details='details1')
-        c_unequal = ihm.flr.KineticRateFretAnalysisConnection(fret_analysis=f2,
-                                                              kinetic_rate=k2,
-                                                              details='details2')
+        c_ref = ihm.flr.KineticRateFretAnalysisConnection(
+            fret_analysis=f1,
+            kinetic_rate=k1,
+            details='details1')
+        c_equal = ihm.flr.KineticRateFretAnalysisConnection(
+            fret_analysis=f1,
+            kinetic_rate=k1,
+            details='details1')
+        c_unequal = ihm.flr.KineticRateFretAnalysisConnection(
+            fret_analysis=f2,
+            kinetic_rate=k2,
+            details='details2')
 
         self.assertTrue(c_ref == c_equal)
         self.assertFalse(c_ref == c_unequal)
         self.assertTrue(c_ref != c_unequal)
 
     def test_relaxation_time_fret_analysis_connection_init(self):
-        """Test initialization of RelaxationTimeFretAnalysisConnection objects."""
-        c = ihm.flr.RelaxationTimeFretAnalysisConnection(fret_analysis='f',
-                                                         relaxation_time='r',
-                                                         details='d')
+        """Test initialization of
+           RelaxationTimeFretAnalysisConnection objects."""
+        c = ihm.flr.RelaxationTimeFretAnalysisConnection(
+            fret_analysis='f',
+            relaxation_time='r',
+            details='d')
         self.assertEqual(c.fret_analysis, 'f')
         self.assertEqual(c.relaxation_time, 'r')
         self.assertEqual(c.details, 'd')
@@ -1259,19 +1263,21 @@ class Tests(unittest.TestCase):
         r2._id = '12'
         r2.name = 'relaxation_time2'
 
-        c_ref = ihm.flr.RelaxationTimeFretAnalysisConnection(fret_analysis=f1,
-                                                             relaxation_time=r1,
-                                                             details='details1')
-        c_equal = ihm.flr.RelaxationTimeFretAnalysisConnection(fret_analysis=f1,
-                                                               relaxation_time=r1,
-                                                               details='details1')
-        c_unequal = ihm.flr.RelaxationTimeFretAnalysisConnection(fret_analysis=f2,
-                                                                 relaxation_time=r2,
-                                                                 details='details2')
+        c_ref = ihm.flr.RelaxationTimeFretAnalysisConnection(
+            fret_analysis=f1,
+            relaxation_time=r1,
+            details='details1')
+        c_equal = ihm.flr.RelaxationTimeFretAnalysisConnection(
+            fret_analysis=f1,
+            relaxation_time=r1,
+            details='details1')
+        c_unequal = ihm.flr.RelaxationTimeFretAnalysisConnection(
+            fret_analysis=f2,
+            relaxation_time=r2,
+            details='details2')
         self.assertTrue(c_ref == c_equal)
         self.assertFalse(c_ref == c_unequal)
         self.assertTrue(c_ref != c_unequal)
-
 
     def test_flr_data_init(self):
         """ Test initialization of FLRData. """
@@ -1282,7 +1288,6 @@ class Tests(unittest.TestCase):
         self.assertEqual(f.fret_model_distances, [])
         self.assertEqual(f.fps_modeling, [])
         self.assertEqual(f.kinetic_rate_fret_analysis_connections, [])
-
 
     def test_flr_data_add_distance_restraint_group(self):
         """Test addition of a distance restraint group."""
@@ -1318,18 +1323,22 @@ class Tests(unittest.TestCase):
         self.assertEqual(f.fps_modeling, ['foo', 'bar'])
 
     def test_flr_data_add_kinetic_rate_fret_analysis_connection(self):
-        """Test addition of object to kinetic_rate_fret_analysis_connections."""
+        """Test addition of object to
+           kinetic_rate_fret_analysis_connections."""
         f = ihm.flr.FLRData()
         f.kinetic_rate_fret_analysis_connections.append('foo')
         f.kinetic_rate_fret_analysis_connections.append('bar')
-        self.assertEqual(f.kinetic_rate_fret_analysis_connections, ['foo', 'bar'])
+        self.assertEqual(f.kinetic_rate_fret_analysis_connections,
+                         ['foo', 'bar'])
 
     def test_flr_data_add_relaxation_time_fret_analysis_connection(self):
-        """Test addition of object to relaxation_time_fret_analysis_connections."""
+        """Test addition of object to
+           relaxation_time_fret_analysis_connections."""
         f = ihm.flr.FLRData()
         f.relaxation_time_fret_analysis_connections.append('foo')
         f.relaxation_time_fret_analysis_connections.append('bar')
-        self.assertEqual(f.relaxation_time_fret_analysis_connections, ['foo', 'bar'])
+        self.assertEqual(f.relaxation_time_fret_analysis_connections,
+                         ['foo', 'bar'])
 
     def test_flr_data_all_chemical_descriptors(self):
         """Test for collection of all chemical descriptors."""

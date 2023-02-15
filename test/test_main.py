@@ -543,16 +543,17 @@ class Tests(unittest.TestCase):
         model_group6 = 'mg6'
         state3 = [model_group5]
         state4 = [model_group6]
-        mssc = ihm.multi_state_scheme.MultiStateSchemeConnectivity(begin_state=state3,
-                                                                   end_state=state4)
-        mss = ihm.multi_state_scheme.MultiStateScheme(name='mss',list_of_connectivities=[mssc])
+        mssc = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+            begin_state=state3,
+            end_state=state4)
+        mss = ihm.multi_state_scheme.MultiStateScheme(
+            name='mss',
+            list_of_connectivities=[mssc])
         s.multi_state_schemes.append(mss)
         mg = s._all_model_groups()
         self.assertEqual(list(mg), [model_group1, model_group2,
                                     model_group2, model_group2,
                                     model_group5, model_group6])
-
-
 
     def test_all_models(self):
         """Test _all_models() method"""
@@ -1075,7 +1076,7 @@ class Tests(unittest.TestCase):
         s.multi_state_schemes.append(mss2)
         # Duplicates are kept
         self.assertEqual(list(s._all_multi_state_scheme_connectivities()),
-                         [c1,c2,c1,c3])
+                         [c1, c2, c1, c3])
 
     def test_all_kinetic_rates(self):
         """Test _all_kinetic_rates() method"""
@@ -1096,9 +1097,15 @@ class Tests(unittest.TestCase):
         k3 = MockObject()
 
         # Connectivities
-        c1 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(begin_state=s1, kinetic_rate=k1)
-        c2 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(begin_state=s2, kinetic_rate=k2)
-        c3 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(begin_state=s3, kinetic_rate=k3)
+        c1 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+            begin_state=s1,
+            kinetic_rate=k1)
+        c2 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+            begin_state=s2,
+            kinetic_rate=k2)
+        c3 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+            begin_state=s3,
+            kinetic_rate=k3)
 
         mss1.add_connectivity(c1)
         mss1.add_connectivity(c2)
@@ -1142,9 +1149,15 @@ class Tests(unittest.TestCase):
         r5 = MockObject()
 
         # Connectivities
-        c1 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(begin_state=s1, relaxation_time=r1)
-        c2 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(begin_state=s2, relaxation_time=r2)
-        c3 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(begin_state=s3, relaxation_time=r3)
+        c1 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+            begin_state=s1,
+            relaxation_time=r1)
+        c2 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+            begin_state=s2,
+            relaxation_time=r2)
+        c3 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+            begin_state=s3,
+            relaxation_time=r3)
 
         mss1.add_relaxation_time(r4)
         mss2.add_relaxation_time(r5)
@@ -1157,7 +1170,7 @@ class Tests(unittest.TestCase):
         s.multi_state_schemes.append(mss2)
         # Does not contain duplicates
         self.assertEqual(list(s._all_relaxation_times()),
-                         [r4,r5,r1,r2,r3])
+                         [r4, r5, r1, r2, r3])
 
         # From relaxation_time_fret_analysis_connections in FLRData
         r6 = MockObject()
@@ -1168,7 +1181,7 @@ class Tests(unittest.TestCase):
         s.flr_data.append(f)
         # Does not contain duplicates
         self.assertEqual(list(s._all_relaxation_times()),
-                         [r4,r5,r1,r2,r3,r6])
+                         [r4, r5, r1, r2, r3, r6])
 
     def test_update_locations_in_repositories(self):
         """Test update_locations_in_repositories() method"""

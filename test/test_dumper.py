@@ -3471,18 +3471,20 @@ _ihm_predicted_contact_restraint.software_id
         class MockObject(object):
             pass
 
-        cur_connectivity_1 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
-            begin_state='s1'
-        )
+        cur_connectivity_1 = \
+            ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+                begin_state='s1')
         r1 = MockObject()
         r2 = MockObject()
 
         system = ihm.System()
-        mss1 = ihm.multi_state_scheme.MultiStateScheme(name="mss1",
-                                                        details="details1",
-                                                        list_of_connectivities=[cur_connectivity_1],
-                                                        list_of_relaxation_times=[r1,r2])
-        mss2 = ihm.multi_state_scheme.MultiStateScheme(name="mss2")
+        mss1 = ihm.multi_state_scheme.MultiStateScheme(
+            name="mss1",
+            details="details1",
+            list_of_connectivities=[cur_connectivity_1],
+            list_of_relaxation_times=[r1, r2])
+        mss2 = ihm.multi_state_scheme.MultiStateScheme(
+            name="mss2")
 
         system.multi_state_schemes.append(mss1)
         system.multi_state_schemes.append(mss2)
@@ -3491,7 +3493,7 @@ _ihm_predicted_contact_restraint.software_id
         dumper.finalize(system)
         out = _get_dumper_output(dumper, system)
 
-        self.assertEqual(out,"""#
+        self.assertEqual(out, """#
 loop_
 _ihm_multi_state_scheme.id
 _ihm_multi_state_scheme.name
@@ -3526,36 +3528,45 @@ _ihm_multi_state_scheme.details
         # Prepare the system
         system = ihm.System()
         # Create the connectivities
-        mssc1 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(begin_state=cur_state_1)
-        mssc2 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(begin_state=cur_state_1,
-                                                                    end_state=cur_state_2)
-        mssc3 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(begin_state=cur_state_1,
-                                                                    end_state=cur_state_2,
-                                                                    details="details3",
-                                                                    dataset_group=cur_datasetgroup_1,
-                                                                    kinetic_rate=cur_kinetic_rate_1)
-        mssc4 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(begin_state=cur_state_1,
-                                                                    end_state=cur_state_2,
-                                                                    details="details4",
-                                                                    kinetic_rate=cur_kinetic_rate_1,
-                                                                    relaxation_time=cur_relaxation_time_1)
-        mssc5 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(begin_state=cur_state_1,
-                                                                    end_state=cur_state_2,
-                                                                    details="details5",
-                                                                    dataset_group=cur_datasetgroup_1,
-                                                                    relaxation_time=cur_relaxation_time_2)
-        # Check whether a duplicate entry with the same information is written twice
-        mssc6 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(begin_state=cur_state_1,
-                                                                    end_state=cur_state_2,
-                                                                    details="details5",
-                                                                    dataset_group=cur_datasetgroup_1,
-                                                                    relaxation_time=cur_relaxation_time_2)
+        mssc1 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+            begin_state=cur_state_1)
+        mssc2 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+            begin_state=cur_state_1,
+            end_state=cur_state_2)
+        mssc3 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+            begin_state=cur_state_1,
+            end_state=cur_state_2,
+            details="details3",
+            dataset_group=cur_datasetgroup_1,
+            kinetic_rate=cur_kinetic_rate_1)
+        mssc4 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+            begin_state=cur_state_1,
+            end_state=cur_state_2,
+            details="details4",
+            kinetic_rate=cur_kinetic_rate_1,
+            relaxation_time=cur_relaxation_time_1)
+        mssc5 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+            begin_state=cur_state_1,
+            end_state=cur_state_2,
+            details="details5",
+            dataset_group=cur_datasetgroup_1,
+            relaxation_time=cur_relaxation_time_2)
+        # Check whether a duplicate entry with the same information is
+        # written twice
+        mssc6 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+            begin_state=cur_state_1,
+            end_state=cur_state_2,
+            details="details5",
+            dataset_group=cur_datasetgroup_1,
+            relaxation_time=cur_relaxation_time_2)
 
         # Create the multi-state schemes
-        mss1 = ihm.multi_state_scheme.MultiStateScheme(name="mss1")
+        mss1 = ihm.multi_state_scheme.MultiStateScheme(
+            name="mss1")
         mss1.add_connectivity(mssc1)
-        mss2 = ihm.multi_state_scheme.MultiStateScheme(name="mss2",
-                                                       list_of_connectivities=[mssc1, mssc2])
+        mss2 = ihm.multi_state_scheme.MultiStateScheme(
+            name="mss2",
+            list_of_connectivities=[mssc1, mssc2])
         mss2.add_connectivity(mssc3)
         mss2.add_connectivity(mssc4)
         mss2.add_connectivity(mssc5)
@@ -3569,7 +3580,7 @@ _ihm_multi_state_scheme.details
         dumper = ihm.dumper._MultiStateSchemeConnectivityDumper()
         dumper.finalize(system)
         out = _get_dumper_output(dumper, system)
-        self.assertEqual(out,"""#
+        self.assertEqual(out, """#
 loop_
 _ihm_multi_state_scheme_connectivity.id
 _ihm_multi_state_scheme_connectivity.scheme_id
@@ -3588,7 +3599,8 @@ _ihm_multi_state_scheme_connectivity.details
 """)
 
     def test_RelaxationTimeDumper(self):
-        """Test RelaxationTime dumpers. Tests both, _ihm_relaxation_time and _ihm_relaxation_time_multi_state_scheme"""
+        """Test RelaxationTime dumpers. Tests both, _ihm_relaxation_time
+        and _ihm_relaxation_time_multi_state_scheme"""
         class MockObject(object):
             pass
 
@@ -3603,20 +3615,23 @@ _ihm_multi_state_scheme_connectivity.details
 
         system = ihm.System()
 
-        r1 = ihm.multi_state_scheme.RelaxationTime(value=3.0,
-                                                   unit='seconds',
-                                                   amplitude="0.5",
-                                                   details="details1")
-        r2 = ihm.multi_state_scheme.RelaxationTime(value=4.0,
-                                                   unit='milliseconds',
-                                                   details="details2",
-                                                   dataset_group=cur_dataset_group_1,
-                                                   external_file=cur_external_file_1)
-        r3 = ihm.multi_state_scheme.RelaxationTime(value=6.0,
-                                                   unit='seconds',
-                                                   details="details3",
-                                                   dataset_group=cur_dataset_group_1,
-                                                   external_file=cur_external_file_1)
+        r1 = ihm.multi_state_scheme.RelaxationTime(
+            value=3.0,
+            unit='seconds',
+            amplitude="0.5",
+            details="details1")
+        r2 = ihm.multi_state_scheme.RelaxationTime(
+            value=4.0,
+            unit='milliseconds',
+            details="details2",
+            dataset_group=cur_dataset_group_1,
+            external_file=cur_external_file_1)
+        r3 = ihm.multi_state_scheme.RelaxationTime(
+            value=6.0,
+            unit='seconds',
+            details="details3",
+            dataset_group=cur_dataset_group_1,
+            external_file=cur_external_file_1)
 
         mss1 = ihm.multi_state_scheme.MultiStateScheme(
             name="mss1",
@@ -3654,7 +3669,8 @@ _ihm_multi_state_scheme_connectivity.details
             details='.')
         f.relaxation_time_fret_analysis_connections.append(c)
         system.flr_data.append(f)
-        ihm.dumper._FLRRelaxationTimeFretAnalysisConnectionDumper().finalize(system)
+        ihm.dumper._FLRRelaxationTimeFretAnalysisConnectionDumper().finalize(
+            system)
         dumper = ihm.dumper._RelaxationTimeDumper()
         dumper.finalize(system)
         out = _get_dumper_output(dumper, system)
@@ -3688,8 +3704,6 @@ _ihm_relaxation_time_multi_state_scheme.details
 #
 """)
 
-
-
     def test_KineticRateDumper(self):
         """"Test KineticRate dumper"""
 
@@ -3712,20 +3726,26 @@ _ihm_relaxation_time_multi_state_scheme.details
         )
         # k2 => id 2
         k2 = ihm.multi_state_scheme.KineticRate(
-            equilibrium_constant = 4.0,
-            equilibrium_constant_determination_method = 'equilibrium constant is determined from population',
-            equilibrium_constant_unit = 'unit_placeholder',
-            details = 'equilibrium constant 2',
-            dataset_group = cur_dataset_group_1,
-            external_file = cur_external_file_1
+            equilibrium_constant=4.0,
+            equilibrium_constant_determination_method=''
+                                                      'equilibrium constant '
+                                                      'is determined from '
+                                                      'population',
+            equilibrium_constant_unit='unit_placeholder',
+            details='equilibrium constant 2',
+            dataset_group=cur_dataset_group_1,
+            external_file=cur_external_file_1
         )
         # k3 => id 3
         k3 = ihm.multi_state_scheme.KineticRate(
             transition_rate_constant=6.0,
-            equilibrium_constant = 5.0,
-            equilibrium_constant_determination_method = 'equilibrium constant is determined from another method not listed',
-            details = 'equilibrium constant 3',
-            dataset_group = cur_dataset_group_1
+            equilibrium_constant=5.0,
+            equilibrium_constant_determination_method='equilibrium constant '
+                                                      'is determined from '
+                                                      'another method not '
+                                                      'listed',
+            details='equilibrium constant 3',
+            dataset_group=cur_dataset_group_1
         )
 
         # mssc1 => id 1
@@ -3787,12 +3807,13 @@ _ihm_kinetic_rate.external_file_id
             details="transition rate constant 4")
         cur_fret_analysis = MockObject()
         c = ihm.flr.KineticRateFretAnalysisConnection(
-            fret_analysis = cur_fret_analysis,
-            kinetic_rate = k4,
-            details = '.')
+            fret_analysis=cur_fret_analysis,
+            kinetic_rate=k4,
+            details='.')
         f.kinetic_rate_fret_analysis_connections.append(c)
         system.flr_data.append(f)
-        ihm.dumper._FLRKineticRateFretAnalysisConnectionDumper().finalize(system)
+        ihm.dumper._FLRKineticRateFretAnalysisConnectionDumper().finalize(
+            system)
         dumper = ihm.dumper._KineticRateDumper()
         dumper.finalize(system)
         out = _get_dumper_output(dumper, system)
@@ -4202,33 +4223,46 @@ _ihm_kinetic_rate.external_file_id
         cur_flr_data.fps_modeling.append(cur_FPS_MPP_modeling_4)
 
         # KineticRateFretAnalysisConnection
-        cur_kinetic_rate1 = ihm.multi_state_scheme.KineticRate(transition_rate_constant=1.0)
-        cur_kinetic_rate2 = ihm.multi_state_scheme.KineticRate(transition_rate_constant=2.0)
-        cur_kinetic_rate_fret_analysis_connection1 = ihm.flr.KineticRateFretAnalysisConnection(
-            fret_analysis = cur_fret_analysis_1,
-            kinetic_rate = cur_kinetic_rate1,
-            details = 'connection1'
-        )
-        cur_kinetic_rate_fret_analysis_connection2 = ihm.flr.KineticRateFretAnalysisConnection(
-            fret_analysis = cur_fret_analysis_2,
-            kinetic_rate = cur_kinetic_rate2,
-            details = 'connection2')
-        cur_flr_data.kinetic_rate_fret_analysis_connections.append(cur_kinetic_rate_fret_analysis_connection1)
-        cur_flr_data.kinetic_rate_fret_analysis_connections.append(cur_kinetic_rate_fret_analysis_connection2)
+        cur_kinetic_rate1 = ihm.multi_state_scheme.KineticRate(
+            transition_rate_constant=1.0)
+        cur_kinetic_rate2 = ihm.multi_state_scheme.KineticRate(
+            transition_rate_constant=2.0)
+        cur_kinetic_rate_fret_analysis_connection1 = \
+            ihm.flr.KineticRateFretAnalysisConnection(
+                fret_analysis=cur_fret_analysis_1,
+                kinetic_rate=cur_kinetic_rate1,
+                details='connection1')
+        cur_kinetic_rate_fret_analysis_connection2 = \
+            ihm.flr.KineticRateFretAnalysisConnection(
+                fret_analysis=cur_fret_analysis_2,
+                kinetic_rate=cur_kinetic_rate2,
+                details='connection2')
+        cur_flr_data.kinetic_rate_fret_analysis_connections.append(
+            cur_kinetic_rate_fret_analysis_connection1)
+        cur_flr_data.kinetic_rate_fret_analysis_connections.append(
+            cur_kinetic_rate_fret_analysis_connection2)
 
         # RelaxationTimeFretAnalysisConnection
-        cur_relaxation_time1 = ihm.multi_state_scheme.RelaxationTime(value=3.0,unit='seconds')
-        cur_relaxation_time2 = ihm.multi_state_scheme.RelaxationTime(value=4.0, unit='milliseconds')
-        cur_relaxation_time_fret_analysis_connection1 = ihm.flr.RelaxationTimeFretAnalysisConnection(
-            fret_analysis = cur_fret_analysis_1,
-            relaxation_time = cur_relaxation_time1,
-            details = 'connection3')
-        cur_relaxation_time_fret_analysis_connection2 = ihm.flr.RelaxationTimeFretAnalysisConnection(
-            fret_analysis = cur_fret_analysis_3,
-            relaxation_time = cur_relaxation_time2,
-            details = 'connection4')
-        cur_flr_data.relaxation_time_fret_analysis_connections.append(cur_relaxation_time_fret_analysis_connection1)
-        cur_flr_data.relaxation_time_fret_analysis_connections.append(cur_relaxation_time_fret_analysis_connection2)
+        cur_relaxation_time1 = \
+            ihm.multi_state_scheme.RelaxationTime(value=3.0,
+                                                  unit='seconds')
+        cur_relaxation_time2 = \
+            ihm.multi_state_scheme.RelaxationTime(value=4.0,
+                                                  unit='milliseconds')
+        cur_relaxation_time_fret_analysis_connection1 = \
+            ihm.flr.RelaxationTimeFretAnalysisConnection(
+                fret_analysis=cur_fret_analysis_1,
+                relaxation_time=cur_relaxation_time1,
+                details='connection3')
+        cur_relaxation_time_fret_analysis_connection2 = \
+            ihm.flr.RelaxationTimeFretAnalysisConnection(
+                fret_analysis=cur_fret_analysis_3,
+                relaxation_time=cur_relaxation_time2,
+                details='connection4')
+        cur_flr_data.relaxation_time_fret_analysis_connections.append(
+            cur_relaxation_time_fret_analysis_connection1)
+        cur_flr_data.relaxation_time_fret_analysis_connections.append(
+            cur_relaxation_time_fret_analysis_connection2)
 
         system.flr_data = [cur_flr_data]
 
@@ -4311,10 +4345,12 @@ _ihm_kinetic_rate.external_file_id
         # Assign IDs to the relaxation times
         ihm.dumper._RelaxationTimeDumper().finalize(system)
 
-        kinetic_rate_fret_analysis_connection_dumper = ihm.dumper._FLRKineticRateFretAnalysisConnectionDumper()
+        kinetic_rate_fret_analysis_connection_dumper = \
+            ihm.dumper._FLRKineticRateFretAnalysisConnectionDumper()
         kinetic_rate_fret_analysis_connection_dumper.finalize(system)
 
-        relaxation_time_fret_analysis_connection_dumper = ihm.dumper._FLRRelaxationTimeFretAnalysisConnectionDumper()
+        relaxation_time_fret_analysis_connection_dumper = \
+            ihm.dumper._FLRRelaxationTimeFretAnalysisConnectionDumper()
         relaxation_time_fret_analysis_connection_dumper.finalize(system)
 
         out = _get_dumper_output(experiment_dumper, system)
@@ -4767,7 +4803,9 @@ _flr_FPS_MPP_modeling.mpp_atom_position_group_id
 #
 """)
 
-        out = _get_dumper_output(kinetic_rate_fret_analysis_connection_dumper, system)
+        out = _get_dumper_output(
+            kinetic_rate_fret_analysis_connection_dumper,
+            system)
         self.assertEqual(out, """#
 loop_
 _flr_kinetic_rate_analysis.id
@@ -4779,7 +4817,9 @@ _flr_kinetic_rate_analysis.details
 #
 """)
 
-        out =  _get_dumper_output(relaxation_time_fret_analysis_connection_dumper, system)
+        out = _get_dumper_output(
+            relaxation_time_fret_analysis_connection_dumper,
+            system)
         self.assertEqual(out, """#
 loop_
 _flr_relaxation_time_analysis.id
@@ -4790,8 +4830,6 @@ _flr_relaxation_time_analysis.details
 2 3 2 connection4
 #
 """)
-
-
 
     def test_variant_base(self):
         """Test Variant base class"""

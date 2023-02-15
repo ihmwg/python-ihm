@@ -398,9 +398,9 @@ class System(object):
              if rt.dataset_group),
             (kr.dataset_group for kr in self._all_kinetic_rates()
              if kr.dataset_group),
-            (mssc.dataset_group for mssc in self._all_multi_state_scheme_connectivities()
+            (mssc.dataset_group for mssc in
+             self._all_multi_state_scheme_connectivities()
              if mssc.dataset_group))
-
 
     def _all_templates(self):
         """Iterate over all Templates in the system."""
@@ -603,8 +603,10 @@ class System(object):
 
     def _all_relaxation_times(self):
         """Iterate over all relaxation times.
-        This includes relaxation times from :class:`ihm.multi_state_scheme.MultiStateScheme`
-        and those assigned to connectivities in :class:`ihm.multi_state_scheme.MultiStateSchemeConnectivity`"""
+        This includes relaxation times from
+        :class:`ihm.multi_state_scheme.MultiStateScheme`
+        and those assigned to connectivities in
+        :class:`ihm.multi_state_scheme.MultiStateSchemeConnectivity`"""
         seen_relaxation_times = []
         for mss in self._all_multi_state_schemes():
             for rt in mss.relaxation_time_list:
@@ -619,7 +621,8 @@ class System(object):
                     continue
                 seen_relaxation_times.append(rt)
                 yield rt
-        # Get the relaxation times from the flr.RelaxationTimeFRETAnalysisConnection objects
+        # Get the relaxation times from the
+        # flr.RelaxationTimeFRETAnalysisConnection objects
         if self.flr_data:
             for f in self.flr_data:
                 if f.relaxation_time_fret_analysis_connections:
@@ -629,7 +632,6 @@ class System(object):
                             continue
                         seen_relaxation_times.append(rt)
                         yield rt
-
 
     def _before_write(self):
         """Do any setup necessary before writing out to a file"""
