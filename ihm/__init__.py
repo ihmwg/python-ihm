@@ -593,13 +593,12 @@ class System(object):
         # Get the rates from the flr.KineticRateFRETAnalysisConnection objects
         if self.flr_data:
             for f in self.flr_data:
-                if f.kinetic_rate_fret_analysis_connections:
-                    for c in f.kinetic_rate_fret_analysis_connections:
-                        k = c.kinetic_rate
-                        if k in seen_kinetic_rates:
-                            continue
-                        seen_kinetic_rates.append(k)
-                        yield k
+                for c in f.kinetic_rate_fret_analysis_connections:
+                    k = c.kinetic_rate
+                    if k in seen_kinetic_rates:
+                        continue
+                    seen_kinetic_rates.append(k)
+                    yield k
 
     def _all_relaxation_times(self):
         """Iterate over all relaxation times.
@@ -625,13 +624,12 @@ class System(object):
         # flr.RelaxationTimeFRETAnalysisConnection objects
         if self.flr_data:
             for f in self.flr_data:
-                if f.relaxation_time_fret_analysis_connections:
-                    for c in f.relaxation_time_fret_analysis_connections:
-                        rt = c.relaxation_time
-                        if rt in seen_relaxation_times:
-                            continue
-                        seen_relaxation_times.append(rt)
-                        yield rt
+                for c in f.relaxation_time_fret_analysis_connections:
+                    rt = c.relaxation_time
+                    if rt in seen_relaxation_times:
+                        continue
+                    seen_relaxation_times.append(rt)
+                    yield rt
 
     def _before_write(self):
         """Do any setup necessary before writing out to a file"""

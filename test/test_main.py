@@ -541,19 +541,24 @@ class Tests(unittest.TestCase):
 
         model_group5 = 'mg5'
         model_group6 = 'mg6'
+        model_group7 = 'mg7'
         state3 = [model_group5]
         state4 = [model_group6]
-        mssc = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+        state5 = [model_group7]
+        mssc1 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
             begin_state=state3,
             end_state=state4)
+        mssc2 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+            begin_state=state5)
         mss = ihm.multi_state_scheme.MultiStateScheme(
             name='mss',
-            list_of_connectivities=[mssc])
+            list_of_connectivities=[mssc1, mssc2])
         s.multi_state_schemes.append(mss)
         mg = s._all_model_groups()
         self.assertEqual(list(mg), [model_group1, model_group2,
                                     model_group2, model_group2,
-                                    model_group5, model_group6])
+                                    model_group5, model_group6,
+                                    model_group7])
 
     def test_all_models(self):
         """Test _all_models() method"""
@@ -1106,11 +1111,15 @@ class Tests(unittest.TestCase):
         c3 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
             begin_state=s3,
             kinetic_rate=k3)
+        c4 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+            begin_state=s3,
+            kinetic_rate=None)
 
         mss1.add_connectivity(c1)
         mss1.add_connectivity(c2)
         mss2.add_connectivity(c1)
         mss2.add_connectivity(c3)
+        mss2.add_connectivity(c4)
         s.multi_state_schemes.append(mss1)
         s.multi_state_schemes.append(mss2)
 

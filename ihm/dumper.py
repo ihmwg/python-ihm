@@ -2439,10 +2439,13 @@ class _MultiStateSchemeDumper(Dumper):
     def dump(self, system, writer):
         with writer.loop('_ihm_multi_state_scheme',
                          ['id', 'name', 'details']) as lp:
+            seen_multi_state_schemes = []
             for s in system.multi_state_schemes:
-                lp.write(id=s._id,
-                         name=s.name,
-                         details=s.details)
+                if s not in seen_multi_state_schemes:
+                    seen_multi_state_schemes.append(s)
+                    lp.write(id=s._id,
+                             name=s.name,
+                             details=s.details)
 
 
 class _MultiStateSchemeConnectivityDumper(Dumper):
@@ -2488,14 +2491,11 @@ class _RelaxationTimeDumper(Dumper):
                           'dataset_group_id', 'external_file_id',
                           'details']) as lp:
             # Relaxation times that are only assigned to multi-state schemes
-            seen_relaxation_times = []
             for r in system._all_relaxation_times():
-                if r not in seen_relaxation_times:
-                    seen_relaxation_times.append(r)
-                    dataset_group_id = r.dataset_group._id if \
-                        r.dataset_group else None
-                    external_file_id = r.external_file._id if \
-                        r.external_file else None
+                dataset_group_id = r.dataset_group._id if \
+                    r.dataset_group else None
+                external_file_id = r.external_file._id if \
+                    r.external_file else None
                 lp.write(
                     id=r._id,
                     value=r.value,
@@ -2570,16 +2570,15 @@ class _KineticRateDumper(Dumper):
             for mssc in system._all_multi_state_scheme_connectivities():
                 if mssc.kinetic_rate is not None:
                     k = mssc.kinetic_rate
-                    if k not in seen_kinetic_rates:
-                        seen_kinetic_rates.append(k)
-                        trconst = k.transition_rate_constant
-                        eqconst = k.equilibrium_constant
-                        eqmethod = k.equilibrium_constant_determination_method
-                        equnit = k.equilibrium_constant_unit
-                        dataset_group_id = k.dataset_group._id if \
-                            k.dataset_group else None
-                        external_file_id = k.external_file._id if\
-                            k.external_file else None
+                    seen_kinetic_rates.append(k)
+                    trconst = k.transition_rate_constant
+                    eqconst = k.equilibrium_constant
+                    eqmethod = k.equilibrium_constant_determination_method
+                    equnit = k.equilibrium_constant_unit
+                    dataset_group_id = k.dataset_group._id if \
+                        k.dataset_group else None
+                    external_file_id = k.external_file._id if\
+                        k.external_file else None
                     lp.write(
                         id=next(ordinal),
                         transition_rate_constant=trconst,

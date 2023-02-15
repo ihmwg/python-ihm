@@ -35,6 +35,15 @@ class Tests(unittest.TestCase):
         self.assertEqual(len(mss2.connectivity_list), 0)
         self.assertEqual(len(mss2.relaxation_time_list), 0)
 
+        mss3 = ihm.multi_state_scheme.MultiStateScheme(
+            name='n3',
+            details='d3',
+            list_of_connectivities=[mssc1, mssc1],
+            list_of_relaxation_times=['lr', 'lr']
+        )
+        self.assertEqual(mss3.connectivity_list, [mssc1])
+        self.assertEqual(mss3.relaxation_time_list, ['lr'])
+
     def test_multistatescheme_add_connectivity(self):
         """Test addition of a connectivity to a MultiStateScheme"""
         class MockObject(object):
