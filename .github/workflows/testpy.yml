@@ -47,6 +47,4 @@ jobs:
         else
           flake8 --ignore E402,W503,W504
         fi
-    - uses: codecov/codecov-action@v3
-      with:
-        gcov: true
+    - uses: codecov/codecov-action@v1
