@@ -10,7 +10,7 @@ The :mod:`ihm.multi_state_scheme` Python module
 .. autoclass:: MultiStateScheme
    :members:
 
-.. autoclass:: MultiStateSchemeConnectivity
+.. autoclass:: Connectivity
    :members:
 
 .. autoclass:: KineticRate

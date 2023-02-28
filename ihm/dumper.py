@@ -2461,7 +2461,7 @@ class _MultiStateSchemeConnectivityDumper(Dumper):
                          ['id', 'scheme_id', 'begin_state_id', 'end_state_id',
                           'dataset_group_id', 'details']) as lp:
             for mss in system.multi_state_schemes:
-                for c in mss.connectivity_list:
+                for c in mss.get_connectivities():
                     end_state_id = c.end_state._id if \
                         c.end_state else None
                     dataset_group_id = c.dataset_group._id if \
@@ -2515,7 +2515,7 @@ class _RelaxationTimeDumper(Dumper):
             # writing duplicates when it comes to the flr_data
             seen_relaxation_times = []
             for mss in system.multi_state_schemes:
-                for r in mss.relaxation_time_list:
+                for r in mss.get_relaxation_times():
                     if r not in seen_relaxation_times:
                         seen_relaxation_times.append(r)
                     lp.write(id=next(ordinal),
@@ -2525,7 +2525,7 @@ class _RelaxationTimeDumper(Dumper):
                              details=None)
             # Relaxation times assigned to multi-state scheme connectivities
             for mss in system.multi_state_schemes:
-                for mssc in mss.connectivity_list:
+                for mssc in mss.get_connectivities():
                     if mssc.relaxation_time is not None:
                         if mssc.relaxation_time not in seen_relaxation_times:
                             seen_relaxation_times.append(mssc.relaxation_time)
@@ -2577,7 +2577,7 @@ class _KineticRateDumper(Dumper):
                     equnit = k.equilibrium_constant_unit
                     dataset_group_id = k.dataset_group._id if \
                         k.dataset_group else None
-                    external_file_id = k.external_file._id if\
+                    external_file_id = k.external_file._id if \
                         k.external_file else None
                     lp.write(
                         id=next(ordinal),
@@ -2600,7 +2600,7 @@ class _KineticRateDumper(Dumper):
                         equnit = k.equilibrium_constant_unit
                         dataset_group_id = k.dataset_group._id if \
                             k.dataset_group else None
-                        external_file_id = k.external_file._id if\
+                        external_file_id = k.external_file._id if \
                             k.external_file else None
                         lp.write(
                             id=next(ordinal),

@@ -3472,7 +3472,7 @@ _ihm_predicted_contact_restraint.software_id
             pass
 
         cur_connectivity_1 = \
-            ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+            ihm.multi_state_scheme.Connectivity(
                 begin_state='s1')
         r1 = MockObject()
         r2 = MockObject()
@@ -3481,8 +3481,8 @@ _ihm_predicted_contact_restraint.software_id
         mss1 = ihm.multi_state_scheme.MultiStateScheme(
             name="mss1",
             details="details1",
-            list_of_connectivities=[cur_connectivity_1],
-            list_of_relaxation_times=[r1, r2])
+            connectivities=[cur_connectivity_1],
+            relaxation_times=[r1, r2])
         mss2 = ihm.multi_state_scheme.MultiStateScheme(
             name="mss2")
 
@@ -3530,24 +3530,24 @@ _ihm_multi_state_scheme.details
         # Prepare the system
         system = ihm.System()
         # Create the connectivities
-        mssc1 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+        mssc1 = ihm.multi_state_scheme.Connectivity(
             begin_state=cur_state_1)
-        mssc2 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+        mssc2 = ihm.multi_state_scheme.Connectivity(
             begin_state=cur_state_1,
             end_state=cur_state_2)
-        mssc3 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+        mssc3 = ihm.multi_state_scheme.Connectivity(
             begin_state=cur_state_1,
             end_state=cur_state_2,
             details="details3",
             dataset_group=cur_datasetgroup_1,
             kinetic_rate=cur_kinetic_rate_1)
-        mssc4 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+        mssc4 = ihm.multi_state_scheme.Connectivity(
             begin_state=cur_state_1,
             end_state=cur_state_2,
             details="details4",
             kinetic_rate=cur_kinetic_rate_1,
             relaxation_time=cur_relaxation_time_1)
-        mssc5 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+        mssc5 = ihm.multi_state_scheme.Connectivity(
             begin_state=cur_state_1,
             end_state=cur_state_2,
             details="details5",
@@ -3555,13 +3555,13 @@ _ihm_multi_state_scheme.details
             relaxation_time=cur_relaxation_time_2)
         # Check whether a duplicate entry with the same information is
         # written twice
-        mssc6 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+        mssc6 = ihm.multi_state_scheme.Connectivity(
             begin_state=cur_state_1,
             end_state=cur_state_2,
             details="details5",
             dataset_group=cur_datasetgroup_1,
             relaxation_time=cur_relaxation_time_2)
-        mssc7 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+        mssc7 = ihm.multi_state_scheme.Connectivity(
             begin_state=cur_state_1,
             end_state=cur_state_2,
             details="details7",
@@ -3574,7 +3574,7 @@ _ihm_multi_state_scheme.details
         mss1.add_connectivity(mssc1)
         mss2 = ihm.multi_state_scheme.MultiStateScheme(
             name="mss2",
-            list_of_connectivities=[mssc1, mssc2])
+            connectivities=[mssc1, mssc2])
         mss2.add_connectivity(mssc3)
         mss2.add_connectivity(mssc4)
         mss2.add_connectivity(mssc5)
@@ -3639,35 +3639,35 @@ _ihm_multi_state_scheme_connectivity.details
             unit='milliseconds',
             details="details2",
             dataset_group=cur_dataset_group_1,
-            external_file=cur_external_file_1)
+            file=cur_external_file_1)
         r3 = ihm.multi_state_scheme.RelaxationTime(
             value=6.0,
             unit='seconds',
             details="details3",
             dataset_group=cur_dataset_group_1,
-            external_file=cur_external_file_1)
+            file=cur_external_file_1)
 
         mss1 = ihm.multi_state_scheme.MultiStateScheme(
             name="mss1",
-            list_of_relaxation_times=[r1]
+            relaxation_times=[r1]
         )
         mss1.add_relaxation_time(r2)
         mss1.add_relaxation_time(r1)
 
-        mssc1 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+        mssc1 = ihm.multi_state_scheme.Connectivity(
             begin_state=cur_state_1,
             end_state=cur_state_2,
             relaxation_time=r3
         )
 
-        mssc2 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+        mssc2 = ihm.multi_state_scheme.Connectivity(
             begin_state=cur_state_1,
             end_state=cur_state_3,
             relaxation_time=r3
         )
 
         # a multi-state scheme connectivity without a relaxation time
-        mssc3 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+        mssc3 = ihm.multi_state_scheme.Connectivity(
             begin_state=cur_state_2,
             end_state=cur_state_3,
             kinetic_rate='rate'
@@ -3675,7 +3675,7 @@ _ihm_multi_state_scheme_connectivity.details
 
         mss2 = ihm.multi_state_scheme.MultiStateScheme(
             name="mss2",
-            list_of_connectivities=[mssc1, mssc2, mssc3]
+            connectivities=[mssc1, mssc2, mssc3]
         )
 
         system.multi_state_schemes.append(mss1)
@@ -3776,7 +3776,7 @@ _ihm_relaxation_time_multi_state_scheme.details
             equilibrium_constant_unit='unit_placeholder',
             details='equilibrium constant 2',
             dataset_group=cur_dataset_group_1,
-            external_file=cur_external_file_1
+            file=cur_external_file_1
         )
         # k3 => id 3
         k3 = ihm.multi_state_scheme.KineticRate(
@@ -3791,31 +3791,31 @@ _ihm_relaxation_time_multi_state_scheme.details
         )
 
         # mssc1 => id 1
-        mssc1 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+        mssc1 = ihm.multi_state_scheme.Connectivity(
             begin_state=cur_state_1,
             end_state=cur_state_2,
             kinetic_rate=k1
         )
         # mssc2 => id 2
-        mssc2 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+        mssc2 = ihm.multi_state_scheme.Connectivity(
             begin_state=cur_state_1,
             end_state=cur_state_2,
             kinetic_rate=k2
         )
         # mssc3 => id 3
-        mssc3 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+        mssc3 = ihm.multi_state_scheme.Connectivity(
             begin_state=cur_state_1,
             end_state=cur_state_2,
             kinetic_rate=k3
         )
         mss1 = ihm.multi_state_scheme.MultiStateScheme(
             name="mss1",
-            list_of_connectivities=[mssc1, mssc2]
+            connectivities=[mssc1, mssc2]
         )
         mss1.add_connectivity(mssc3)
 
         # A multi-state scheme connectivity without a kinetic rate
-        mssc4 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+        mssc4 = ihm.multi_state_scheme.Connectivity(
             begin_state=cur_state_2,
             end_state=cur_state_3,
             relaxation_time='rt'

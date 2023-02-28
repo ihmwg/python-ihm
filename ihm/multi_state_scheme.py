@@ -1,8 +1,10 @@
 # coding=utf-8
 
+import ihm
+from ihm.model import _text_choice_property
+
 """Classes for handling connected/ordered schemes formed by multiple state
     together with information on kinetic schemes"""
-import ihm.multi_state_scheme
 
 
 class MultiStateScheme(object):
@@ -13,49 +15,50 @@ class MultiStateScheme(object):
 
        :param str name: The name of the multi-state scheme.
        :param str details: Details on the scheme.
-       :param list_of_connectivities: A list of connectivities that belong to
+       :param connectivities: A list of connectivities that belong to
         the scheme.
-       :type list_of_connectivities: List of
-        :class:`ìhm.MultiStateSchemeConnectivity`
-       :param list_of_relaxation_times: A list of relaxation times not assigned
+       :type connectivities: List of
+        :class:`ìhm.multi_state_scheme.Connectivity`
+       :param relaxation_times: A list of relaxation times not assigned
         to specific connectivities, but to the scheme
-       :type list_of_relaxation_times: List of :class:`ihm.RelaxationTime`
+       :type relaxation_times: List of :class:`ihm.RelaxationTime`
     """
-    def __init__(self, name, details=None, list_of_connectivities=None,
-                 list_of_relaxation_times=None):
+    def __init__(self, name, details=None, connectivities=None,
+                 relaxation_times=None):
         self.name = name
         self.details = details
-        self.connectivity_list = []
-        self.relaxation_time_list = []
-        self.states = []  # filled automatically based on the connectivity_list
+        self._connectivity_list = []
+        self._relaxation_time_list = []
+        # states is filled automatically based on connectivity_list
+        self._states = []
 
-        if list_of_connectivities is not None:
-            for c in list_of_connectivities:
-                if c not in self.connectivity_list:
+        if connectivities is not None:
+            for c in connectivities:
+                if c not in self._connectivity_list:
                     self.add_connectivity(c)
-        if list_of_relaxation_times is not None:
-            for r in list_of_relaxation_times:
-                if r not in self.relaxation_time_list:
+        if relaxation_times is not None:
+            for r in relaxation_times:
+                if r not in self._relaxation_time_list:
                     self.add_relaxation_time(r)
 
     def add_connectivity(self, connectivity):
         """Add a connectivity to the scheme.
 
         :param connectivity: The connectivity to add to the scheme
-        :type connectivity: :class:`MultiStateSchemeConnectivity`
+        :type connectivity: :class:`Connectivity`
         """
-        if connectivity not in self.connectivity_list:
+        if connectivity not in self._connectivity_list:
             # Make sure that the connectivity has not been assigned to
             # another scheme
             if not connectivity._assigned_to_scheme:
                 connectivity.set_assigned_to_scheme()
-                self.connectivity_list.append(connectivity)
-            # If the connectivity has beedn assigned to another scheme,
+                self._connectivity_list.append(connectivity)
+            # If the connectivity has beed assigned to another scheme,
             # create a copy of the connectivity and use that
             else:
                 old_connectivity = connectivity
                 connectivity = \
-                    ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+                    ihm.multi_state_scheme.Connectivity(
                         begin_state=old_connectivity.begin_state,
                         end_state=old_connectivity.end_state,
                         details=old_connectivity.details,
@@ -64,14 +67,14 @@ class MultiStateScheme(object):
                         relaxation_time=old_connectivity.relaxation_time
                     )
                 connectivity.set_assigned_to_scheme()
-                self.connectivity_list.append(connectivity)
+                self._connectivity_list.append(connectivity)
 
         # Add the states that belong to the connectivity
-        if connectivity.begin_state not in self.states:
-            self.states.append(connectivity.begin_state)
+        if connectivity.begin_state not in self._states:
+            self._states.append(connectivity.begin_state)
         if (connectivity.end_state is not None) and \
-                (connectivity.end_state not in self.states):
-            self.states.append(connectivity.end_state)
+                (connectivity.end_state not in self._states):
+            self._states.append(connectivity.end_state)
 
     def add_relaxation_time(self, relaxation_time):
         """Add a relaxation time to the scheme. This relaxation time is not
@@ -80,15 +83,29 @@ class MultiStateScheme(object):
         :param relaxation_time: The relaxation time to add to the scheme.
         :type relaxation_time: :class:`RelaxationTime`
         """
-        self.relaxation_time_list.append(relaxation_time)
+        self._relaxation_time_list.append(relaxation_time)
+
+    def get_connectivities(self):
+        """Return the connectivities assigned to a scheme"""
+        return self._connectivity_list
+
+    def get_relaxation_times(self):
+        """Return the relaxation times assigned to a scheme"""
+        return self._relaxation_time_list
+
+    def get_states(self):
+        """Return the states involved in a scheme"""
+        return self._states
 
     def __eq__(self, other):
         return ((self.__dict__ == other.__dict__)
-                and (self.connectivity_list == other.connectivity_list)
-                and (self.relaxation_time_list == other.relaxation_time_list))
+                and (self._connectivity_list ==
+                     other._connectivity_list)
+                and (self._relaxation_time_list ==
+                     other._relaxation_time_list))
 
 
-class MultiStateSchemeConnectivity(object):
+class Connectivity(object):
     """A connectivity between states. Used to describe the directed
     edge of graph.
     If no end_state is given, the state is not connected to another state.
@@ -130,66 +147,59 @@ class MultiStateSchemeConnectivity(object):
 
 
 class KineticRate(object):
-    """A kinetic rate that can be assigned to a connectivity.
-    The kinetic rate could be either a transition_rate_constant or
-    an equilibrium_constant.
-    In case of an equilibrium_constant, the equilibrium_constant_unit and
-    equilibrium_constant_determination_method are required.
+    """A base class for a kinetic rate that can be assigned to a connectivity.
+    The kinetic rate could be a transition_rate_constant or
+    an equilibrium_constant. Alternatively, both could be provided.
 
     :param float transition_rate_constant: A transition rate constant
-      describing the exchange between two states. Unit: per second.
+    describing the exchange between two states. Unit: per second.
     :param float equilibrium_constant: An equilibrium constant describing the
-      exchange between two states
+    exchange between two states
     :param str equilibrium_constant_determination_method:
-      The method how the equilibrium_constant was determined.
-      Options are: ['equilibrium constant is determined from population',
-      'equilibrium constant is determined from kinetic rates, kAB/kBA',
-      'equilibrium constant is determined from another method not listed']
+    The method how the equilibrium_constant was determined.
+    Options are: ['equilibrium constant is determined from population',
+    'equilibrium constant is determined from kinetic rates, kAB/kBA',
+    'equilibrium constant is determined from another method not listed']
     :param str equilibrium_constant_unit: Unit of the equilibrium constant.
-      Depending on what the process described,a unit might be applicable or not
+    Depending on what the process described,a unit might be applicable or not
     :param str details: Details on the kinetic rate.
     :param dataset_group: The DatasetGroup used to determine the kinetic rate.
     :type dataset_group: :class:`ihm.dataset.DatasetGroup`
-    :param external_file: External file containing measurement data
+    :param file: External file containing measurement data
       for the kinetic rate.
+    :type file: :class:`ihm.location.OutputFileLocation`
 
     """
-
-    def __init__(self, transition_rate_constant=None,
+    def __init__(self,
+                 transition_rate_constant=None,
                  equilibrium_constant=None,
                  equilibrium_constant_determination_method=None,
                  equilibrium_constant_unit=None,
                  details=None,
                  dataset_group=None,
-                 external_file=None):
-        self.allowed_eq_const_det_methods = [
-            'equilibrium constant is determined from population',
-            'equilibrium constant is determined from kinetic rates, kAB/kBA',
-            'equilibrium constant is determined from another method not listed'
-        ]
+                 file=None):
         self.transition_rate_constant = transition_rate_constant
         self.equilibrium_constant = equilibrium_constant
         self.equilibrium_constant_unit = equilibrium_constant_unit
-        # check whether the equilibrium_constant_determination_method is
-        # within the list of options if an equilibrium constant is given
-        if self.equilibrium_constant is not None:
-            if equilibrium_constant_determination_method not in \
-                    self.allowed_eq_const_det_methods:
-                raise ValueError(
-                    "Error in KineticRate: Equilibrium determination method "
-                    "\"%s\" is not in the list of allowed values. "
-                    "Options are: %s" % (
-                        equilibrium_constant_determination_method, ";".join(
-                            ["\'%s\'" % (x) for x in
-                             self.allowed_eq_const_det_methods])))
         self.equilibrium_constant_determination_method = \
             equilibrium_constant_determination_method
         self.details = details
         self.dataset_group = dataset_group
-        self.external_file = external_file
+        self.external_file = file
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
+
+    # Check whether the given method is within the allowed options
+    allowed_equilibrium_constant_determination_methods = [
+        'equilibrium constant is determined from population',
+        'equilibrium constant is determined from kinetic rates, kAB/kBA',
+        'equilibrium constant is determined from another method not listed']
+    equilibrium_constant_determination_method = \
+        _text_choice_property(
+            "equilibrium_constant_determination_method",
+            allowed_equilibrium_constant_determination_methods,
+            doc="The unit of the equilibrium constant, if applicable")
 
 
 class RelaxationTime(object):
@@ -204,22 +214,29 @@ class RelaxationTime(object):
     :param str details: Details on the relaxation time.
     :param dataset_group: DatasetGroup used to determine the relaxation time.
     :type dataset_group: :class:`ihm.dataset.DatasetGroup`
-    :param external_file: An external file containing measurement data for
+    :param file: An external file containing measurement data for
      the relaxation time.
+    :type file: :class:`ihm.location.OutputFileLocation`
 
     """
     def __init__(self, value, unit, amplitude=None,
-                 details=None, dataset_group=None, external_file=None):
-        self.list_of_allowed_relaxation_time_units = ['seconds',
-                                                      'milliseconds',
-                                                      'microseconds']
+                 details=None, dataset_group=None, file=None):
 
         self.value = value
         self.unit = unit
         self.amplitude = amplitude
         self.details = details
         self.dataset_group = dataset_group
-        self.external_file = external_file
+        self.external_file = file
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
+
+    # Check whether the given unit is within the allowed options
+    allowed_relaxation_time_units = ['seconds',
+                                     'milliseconds',
+                                     'microseconds']
+    unit = _text_choice_property(
+        "unit",
+        allowed_relaxation_time_units,
+        doc="The unit of the relaxation time.")

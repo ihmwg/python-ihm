@@ -577,38 +577,28 @@ class System(object):
     def _all_multi_state_scheme_connectivities(self):
         """Iterate over all multi-state scheme connectivities"""
         for mss in self.multi_state_schemes:
-            for mssc in mss.connectivity_list:
+            for mssc in mss.get_connectivities():
                 yield mssc
 
     def _all_kinetic_rates(self):
         """Iterate over all kinetic rates within multi-state schemes"""
-        seen_kinetic_rates = []
-        for mssc in self._all_multi_state_scheme_connectivities():
-            if mssc.kinetic_rate is not None:
-                k = mssc.kinetic_rate
-                if k in seen_kinetic_rates:
-                    continue
-                seen_kinetic_rates.append(k)
-                yield k
-        # Get the rates from the flr.KineticRateFRETAnalysisConnection objects
-        if self.flr_data:
-            for f in self.flr_data:
-                for c in f.kinetic_rate_fret_analysis_connections:
-                    k = c.kinetic_rate
-                    if k in seen_kinetic_rates:
-                        continue
-                    seen_kinetic_rates.append(k)
-                    yield k
+        return _remove_identical(itertools.chain(
+            (mssc.kinetic_rate for mssc in
+             self._all_multi_state_scheme_connectivities()
+             if mssc.kinetic_rate),
+            (c.kinetic_rate for f in
+             self.flr_data for c in f.kinetic_rate_fret_analysis_connections
+             if self.flr_data)))
 
     def _all_relaxation_times(self):
         """Iterate over all relaxation times.
         This includes relaxation times from
         :class:`ihm.multi_state_scheme.MultiStateScheme`
         and those assigned to connectivities in
-        :class:`ihm.multi_state_scheme.MultiStateSchemeConnectivity`"""
+        :class:`ihm.multi_state_scheme.Connectivity`"""
         seen_relaxation_times = []
         for mss in self._all_multi_state_schemes():
-            for rt in mss.relaxation_time_list:
+            for rt in mss.get_relaxation_times():
                 if rt in seen_relaxation_times:
                     continue
                 seen_relaxation_times.append(rt)

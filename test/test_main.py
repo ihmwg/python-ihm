@@ -545,14 +545,14 @@ class Tests(unittest.TestCase):
         state3 = [model_group5]
         state4 = [model_group6]
         state5 = [model_group7]
-        mssc1 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+        mssc1 = ihm.multi_state_scheme.Connectivity(
             begin_state=state3,
             end_state=state4)
-        mssc2 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+        mssc2 = ihm.multi_state_scheme.Connectivity(
             begin_state=state5)
         mss = ihm.multi_state_scheme.MultiStateScheme(
             name='mss',
-            list_of_connectivities=[mssc1, mssc2])
+            connectivities=[mssc1, mssc2])
         s.multi_state_schemes.append(mss)
         mg = s._all_model_groups()
         self.assertEqual(list(mg), [model_group1, model_group2,
@@ -1070,9 +1070,9 @@ class Tests(unittest.TestCase):
         s2 = MockObject()
         s3 = MockObject()
         # Connectivities
-        c1 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(s1)
-        c2 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(s2)
-        c3 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(s3)
+        c1 = ihm.multi_state_scheme.Connectivity(s1)
+        c2 = ihm.multi_state_scheme.Connectivity(s2)
+        c3 = ihm.multi_state_scheme.Connectivity(s3)
         mss1.add_connectivity(c1)
         mss1.add_connectivity(c2)
         mss2.add_connectivity(c1)
@@ -1102,16 +1102,16 @@ class Tests(unittest.TestCase):
         k3 = MockObject()
 
         # Connectivities
-        c1 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+        c1 = ihm.multi_state_scheme.Connectivity(
             begin_state=s1,
             kinetic_rate=k1)
-        c2 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+        c2 = ihm.multi_state_scheme.Connectivity(
             begin_state=s2,
             kinetic_rate=k2)
-        c3 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+        c3 = ihm.multi_state_scheme.Connectivity(
             begin_state=s3,
             kinetic_rate=k3)
-        c4 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+        c4 = ihm.multi_state_scheme.Connectivity(
             begin_state=s3,
             kinetic_rate=None)
 
@@ -1158,13 +1158,13 @@ class Tests(unittest.TestCase):
         r5 = MockObject()
 
         # Connectivities
-        c1 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+        c1 = ihm.multi_state_scheme.Connectivity(
             begin_state=s1,
             relaxation_time=r1)
-        c2 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+        c2 = ihm.multi_state_scheme.Connectivity(
             begin_state=s2,
             relaxation_time=r2)
-        c3 = ihm.multi_state_scheme.MultiStateSchemeConnectivity(
+        c3 = ihm.multi_state_scheme.Connectivity(
             begin_state=s3,
             relaxation_time=r3)
 

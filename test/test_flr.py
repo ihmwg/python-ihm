@@ -413,7 +413,7 @@ class Tests(unittest.TestCase):
             chi_square_reduced='this_chi_square_reduced',
             donor_only_fraction='this_donly_fraction',
             dataset='this_dataset_list_id',
-            external_file='this_external_file',
+            file='this_external_file',
             software='this_software')
         self.assertEqual(f.experiment, 'this_experiment')
         self.assertEqual(f.sample_probe_1, 'this_sample_probe_1')
@@ -451,7 +451,7 @@ class Tests(unittest.TestCase):
             chi_square_reduced='this_chi_square_reduced',
             donor_only_fraction='this_donly_fraction',
             dataset='this_dataset_list_id',
-            external_file='this_external_file',
+            file='this_external_file',
             software='this_software')
         f_equal = ihm.flr.FRETAnalysis(
             experiment='this_experiment',
@@ -464,7 +464,7 @@ class Tests(unittest.TestCase):
             chi_square_reduced='this_chi_square_reduced',
             donor_only_fraction='this_donly_fraction',
             dataset='this_dataset_list_id',
-            external_file='this_external_file',
+            file='this_external_file',
             software='this_software')
         f_unequal = ihm.flr.FRETAnalysis(
             experiment='this_experiment',
@@ -477,7 +477,7 @@ class Tests(unittest.TestCase):
             chi_square_reduced='this_chi_square_reduced',
             donor_only_fraction='this_donly_fraction',
             dataset='this_dataset_list_id',
-            external_file='this_external_file',
+            file='this_external_file',
             software='this_software')
         f_unequal_type = ihm.flr.FRETAnalysis(
             experiment='this_experiment',
@@ -490,7 +490,7 @@ class Tests(unittest.TestCase):
             chi_square_reduced='this_chi_square_reduced',
             donor_only_fraction='this_donly',
             dataset='this_dataset_list_id',
-            external_file='this_external_file',
+            file='this_external_file',
             software='this_software')
         self.assertTrue(f_ref == f_equal)
         self.assertFalse(f_ref == f_unequal)
@@ -502,7 +502,7 @@ class Tests(unittest.TestCase):
         """ Test initialization of LifetimeFitModel."""
         f = ihm.flr.LifetimeFitModel(name='this_name',
                                      description='this_description',
-                                     external_file='this_ext_file',
+                                     file='this_ext_file',
                                      citation='this_citation')
         self.assertEqual(f.name, 'this_name')
         self.assertEqual(f.description, 'this_description')

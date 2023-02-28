@@ -389,8 +389,9 @@ class FRETAnalysis(object):
        :param float donor_only_fraction: The donor-only fraction.
        :param dataset: The dataset used.
        :type dataset: :class:`ihm.dataset.Dataset`
-       :param external_file: The external file that contains (results of)
+       :param file: The external file that contains (results of)
               the analysis.
+       :type file: :class:`ihm.location.OutputFileLocation`
        :param software: The software used for the analysis.
        :type software: :class:`ihm.Software`
     """
@@ -401,7 +402,7 @@ class FRETAnalysis(object):
                  ref_measurement_group=None,
                  method_name=None, details=None,
                  chi_square_reduced=None, donor_only_fraction=None,
-                 dataset=None, external_file=None, software=None):
+                 dataset=None, file=None, software=None):
         if type not in ['lifetime-based', 'intensity-based', None]:
             raise ValueError(
                 'FRETAnalysis.type can be \'lifetime-based\' or '
@@ -419,7 +420,7 @@ class FRETAnalysis(object):
         self.chi_square_reduced = chi_square_reduced
         self.donor_only_fraction = donor_only_fraction
         self.dataset = dataset
-        self.external_file = external_file
+        self.external_file = file
         self.software = software
 
     def __eq__(self, other):
@@ -431,15 +432,16 @@ class LifetimeFitModel(object):
 
         :param str name: The name of the fit model.
         :param str description: A description of the fit model.
-        :param external_file: An external file that contains additional
+        :param file: An external file that contains additional
                information on the fit model.
+        :type file: :class:`ihm.location.OutputFileLocation`
         :param citation: A citation for the fit model.
         :type citation: :class:`ihm.Citation`
     """
-    def __init__(self, name, description, external_file=None, citation=None):
+    def __init__(self, name, description, file=None, citation=None):
         self.name = name
         self.description = description
-        self.external_file = external_file
+        self.external_file = file
         self.citation = citation
 
     def __eq__(self, other):
@@ -939,7 +941,7 @@ class KineticRateFretAnalysisConnection(object):
     :type analysis: :class:`FRETAnalysis`
     :param kinetic_rate: The kinetic rate.
     :type kinetic_rate: :class:`ihm.multi_state_scheme.KineticRate`
-    :param str details: Details about the connecting between the FRETAnalysis
+    :param str details: Details about the connection between the FRETAnalysis
      object and the KineticRate object
     """
     def __init__(self, fret_analysis, kinetic_rate, details=None):
@@ -958,7 +960,7 @@ class RelaxationTimeFretAnalysisConnection(object):
     :type analysis: :class:`FRETAnalysis`
     :param relaxation_time: The relaxation time.
     :type relaxation_time: :class:`ihm.multi_state_scheme.RelaxationTime`
-    :param str details: Details about the connecting between the FRETAnalysis
+    :param str details: Details about the connection between the FRETAnalysis
      object and the RelaxationTime object
     """
     def __init__(self, fret_analysis, relaxation_time, details=None):
@@ -998,11 +1000,11 @@ class FLRData(object):
         self.fps_modeling = []
 
         #: All Connections between FRETAnalysis and KineticRate objects
-        #: See :class `KineticRateFRETAnalysisConnection`
+        #: See :class: `KineticRateFRETAnalysisConnection`
         self.kinetic_rate_fret_analysis_connections = []
 
         #: All Connections between FRETAnalysis and RelaxationTime objects
-        #: See :class `RelaxationTimeFRETAnalysisConnection`
+        #: See :class: `RelaxationTimeFRETAnalysisConnection`
         self.relaxation_time_fret_analysis_connections = []
 
         # The following dictionaries are so far only used when reading data

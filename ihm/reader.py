@@ -621,10 +621,10 @@ class SystemReader(object):
             None)
 
         #: Mapping from ID to
-        #: :class:`ihm.multi_state_scheme.MultiStateSchemeConnectivity` objects
+        #: :class:`ihm.multi_state_scheme.Connectivity` objects
         self.multi_state_scheme_connectivities = IDMapper(
             None,
-            ihm.multi_state_scheme.MultiStateSchemeConnectivity,
+            ihm.multi_state_scheme.Connectivity,
             None)
 
         #: Mapping from ID to :class:`ihm.multi_state_scheme.KineticRate`
@@ -2843,19 +2843,28 @@ class _RelaxationTimeHandler(Handler):
 class _RelaxationTimeMultiStateSchemeHandler(Handler):
     category = '_ihm_relaxation_time_multi_state_scheme'
 
+    def __init__(self, *args):
+        super(_RelaxationTimeMultiStateSchemeHandler, self).__init__(*args)
+        self._read_args = []
+
     def __call__(self, id, relaxation_time_id,
                  scheme_id, scheme_connectivity_id,
                  details):
         r = self.sysr.relaxation_times.get_by_id(relaxation_time_id)
         mss = self.sysr.multi_state_schemes.get_by_id(scheme_id)
-        tmp_connectivities = self.sysr.multi_state_scheme_connectivities
-        mssc = tmp_connectivities.get_by_id_or_none(scheme_connectivity_id)
-        # If the relaxation time is assigned to a connectivity, add it there
-        if mssc is not None:
-            mssc.relaxation_time = r
-        # Otherwise, add it to the multi-state scheme
-        else:
-            mss.add_relaxation_time(r)
+        self._read_args.append((r, mss, scheme_connectivity_id, details))
+
+    def finalize(self):
+        for (r, mss, scheme_connectivity_id, details) in self._read_args:
+            tmp_connectivities = self.sysr.multi_state_scheme_connectivities
+            mssc = tmp_connectivities.get_by_id_or_none(scheme_connectivity_id)
+            # If the relaxation time is assigned to a connectivity,
+            # add it there
+            if mssc is not None:
+                mssc.relaxation_time = r
+            # Otherwise, add it to the multi-state scheme
+            else:
+                mss.add_relaxation_time(r)
 
 
 # FLR part
@@ -3101,8 +3110,8 @@ class _FLRFretAnalysisHandler(Handler):
         f.forster_radius = self.sysr.flr_fret_forster_radius.get_by_id(
             forster_radius_id)
         f.dataset = self.sysr.datasets.get_by_id(dataset_list_id)
-        f.external_file = self.sysr.external_files.get_by_id_or_none(
-            external_file_id)
+        f.external_file = \
+            self.sysr.external_files.get_by_id_or_none(external_file_id)
         f.software = self.sysr.software.get_by_id_or_none(software_id)
 
 
@@ -3250,6 +3259,10 @@ class _FLRFretModelQualityHandler(Handler):
 class _FLRFretModelDistanceHandler(Handler):
     category = '_flr_fret_model_distance'
 
+    def __init__(self, *args):
+        super(_FLRFretModelDistanceHandler, self).__init__(*args)
+        self._read_args = []
+
     def __call__(self, id, restraint_id, model_id, distance,
                  distance_deviation):
         md = self.sysr.flr_fret_model_distances.get_by_id(id)
@@ -3258,9 +3271,11 @@ class _FLRFretModelDistanceHandler(Handler):
         md.model = self.sysr.models.get_by_id(model_id)
         md.distance = self.get_float(distance)
         md.distance_deviation = self.get_float(distance_deviation)
-        # todo: this will fail if we haven't read the restraint category
-        # yet (should be in finalize instead)
-        md.calculate_deviation()
+        self._read_args.append(md)
+
+    def finalize(self):
+        for md in self._read_args:
+            md.calculate_deviation()
 
 
 class _FLRFPSGlobalParameterHandler(Handler):
@@ -3398,14 +3413,24 @@ class _FLRKineticRateFretAnalysisConnectionHandler(Handler):
 class _FLRRelaxationTimeFretAnalysisConnectionHandler(Handler):
     category = '_flr_relaxation_time_analysis'
 
+    def __init__(self, *args):
+        super(_FLRRelaxationTimeFretAnalysisConnectionHandler,
+              self).__init__(*args)
+        self._read_args = []
+
     def __call__(self, id, fret_analysis_id, relaxation_time_id, details):
         f = self.sysr.flr_fret_analyses.get_by_id(fret_analysis_id)
         r = self.sysr.relaxation_times.get_by_id(relaxation_time_id)
-        tmp_connection = self.sysr.flr_relaxation_time_fret_analysis_connection
-        c = tmp_connection.get_by_id(id)
-        c.fret_analysis = f
-        c.relaxation_time = r
-        c.details = details
+        self._read_args.append((id, f, r, details))
+
+    def finalize(self):
+        for (id, f, r, details) in self._read_args:
+            tmp_connection = \
+                self.sysr.flr_relaxation_time_fret_analysis_connection
+            c = tmp_connection.get_by_id(id)
+            c.fret_analysis = f
+            c.relaxation_time = r
+            c.details = details
 
 
 _flr_handlers = [_FLRChemDescriptorHandler, _FLRInstSettingHandler,

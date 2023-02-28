@@ -3319,7 +3319,7 @@ _ihm_multi_state_scheme.details
 
     def test_multi_state_scheme_connectivity_handler(self):
         """Test MultiStateSchemeConnectivityHandler"""
-        fh = StringIO("""
+        mss_cif = """
 loop_
 _ihm_multi_state_scheme.id
 _ihm_multi_state_scheme.name
@@ -3327,6 +3327,8 @@ _ihm_multi_state_scheme.details
 1 'scheme1' 'details1'
 2 'scheme2' 'details2'
 #
+"""
+        mssc_cif = """
 #
 loop_
 _ihm_multi_state_scheme_connectivity.id
@@ -3339,68 +3341,75 @@ _ihm_multi_state_scheme_connectivity.details
 2 1 2 1 11 .
 3 1 3 . 12 'connectivity3'
 4 2 2 1 11 .
-""")
-        s, = ihm.reader.read(fh)
-        schemes = s.multi_state_schemes
-        mss1 = schemes[0]
-        # Connectivity 1
-        c1 = mss1.connectivity_list[0]
-        self.assertIsInstance(
-            c1,
-            ihm.multi_state_scheme.MultiStateSchemeConnectivity)
-        self.assertEqual(c1._id, '1')
-        self.assertIsInstance(c1.begin_state, ihm.model.State)
-        self.assertEqual(c1.begin_state._id, '1')
-        self.assertIsInstance(c1.end_state, ihm.model.State)
-        self.assertEqual(c1.end_state._id, '2')
-        self.assertIsInstance(c1.dataset_group, ihm.dataset.DatasetGroup)
-        self.assertEqual(c1.dataset_group._id, '10')
-        self.assertEqual(c1.details, 'connectivity1')
-        # Connectivity 2
-        c2 = mss1.connectivity_list[1]
-        self.assertIsInstance(
-            c2,
-            ihm.multi_state_scheme.MultiStateSchemeConnectivity)
-        self.assertEqual(c2._id, '2')
-        self.assertIsInstance(c2.begin_state, ihm.model.State)
-        self.assertEqual(c2.begin_state._id, '2')
-        self.assertIsInstance(c1.end_state, ihm.model.State)
-        self.assertEqual(c2.end_state._id, '1')
-        self.assertIsInstance(c2.dataset_group, ihm.dataset.DatasetGroup)
-        self.assertEqual(c2.dataset_group._id, '11')
-        self.assertIsNone(c2.details)
-        # Connectivity 1 is unequal to Connectivity 2
-        self.assertFalse(c1 == c2)
-        # Connectivity 3
-        c3 = mss1.connectivity_list[2]
-        self.assertIsInstance(
-            c3,
-            ihm.multi_state_scheme.MultiStateSchemeConnectivity)
-        self.assertEqual(c3._id, '3')
-        self.assertIsInstance(c3.begin_state, ihm.model.State)
-        self.assertEqual(c3.begin_state._id, '3')
-        self.assertIsNone(c3.end_state)
-        self.assertIsInstance(c3.dataset_group, ihm.dataset.DatasetGroup)
-        self.assertEqual(c3.dataset_group._id, '12')
-        self.assertEqual(c3.details, 'connectivity3')
-        # Connectivity 4 - belongs to scheme 2
-        mss2 = schemes[1]
-        c4 = mss2.connectivity_list[0]
-        self.assertIsInstance(
-            c4,
-            ihm.multi_state_scheme.MultiStateSchemeConnectivity)
-        self.assertEqual(c4._id, '4')
-        self.assertIsInstance(c4.begin_state, ihm.model.State)
-        self.assertEqual(c4.begin_state._id, '2')
-        self.assertIsInstance(c4.end_state, ihm.model.State)
-        self.assertEqual(c4.end_state._id, '1')
-        self.assertIsInstance(c4.dataset_group, ihm.dataset.DatasetGroup)
-        self.assertEqual(c4.dataset_group._id, '11')
-        self.assertIsNone(c4.details)
+"""
+        # Order of categories should not matter
+        for cif in (mss_cif + mssc_cif, mssc_cif + mss_cif):
+            for fh in cif_file_handles(cif):
+                s, = ihm.reader.read(fh)
+                schemes = s.multi_state_schemes
+                mss1 = schemes[0]
+                # Connectivity 1
+                c1 = mss1._connectivity_list[0]
+                self.assertIsInstance(
+                    c1,
+                    ihm.multi_state_scheme.Connectivity)
+                self.assertEqual(c1._id, '1')
+                self.assertIsInstance(c1.begin_state, ihm.model.State)
+                self.assertEqual(c1.begin_state._id, '1')
+                self.assertIsInstance(c1.end_state, ihm.model.State)
+                self.assertEqual(c1.end_state._id, '2')
+                self.assertIsInstance(c1.dataset_group,
+                                      ihm.dataset.DatasetGroup)
+                self.assertEqual(c1.dataset_group._id, '10')
+                self.assertEqual(c1.details, 'connectivity1')
+                # Connectivity 2
+                c2 = mss1._connectivity_list[1]
+                self.assertIsInstance(
+                    c2,
+                    ihm.multi_state_scheme.Connectivity)
+                self.assertEqual(c2._id, '2')
+                self.assertIsInstance(c2.begin_state, ihm.model.State)
+                self.assertEqual(c2.begin_state._id, '2')
+                self.assertIsInstance(c1.end_state, ihm.model.State)
+                self.assertEqual(c2.end_state._id, '1')
+                self.assertIsInstance(c2.dataset_group,
+                                      ihm.dataset.DatasetGroup)
+                self.assertEqual(c2.dataset_group._id, '11')
+                self.assertIsNone(c2.details)
+                # Connectivity 1 is unequal to Connectivity 2
+                self.assertFalse(c1 == c2)
+                # Connectivity 3
+                c3 = mss1._connectivity_list[2]
+                self.assertIsInstance(
+                    c3,
+                    ihm.multi_state_scheme.Connectivity)
+                self.assertEqual(c3._id, '3')
+                self.assertIsInstance(c3.begin_state, ihm.model.State)
+                self.assertEqual(c3.begin_state._id, '3')
+                self.assertIsNone(c3.end_state)
+                self.assertIsInstance(c3.dataset_group,
+                                      ihm.dataset.DatasetGroup)
+                self.assertEqual(c3.dataset_group._id, '12')
+                self.assertEqual(c3.details, 'connectivity3')
+                # Connectivity 4 - belongs to scheme 2
+                mss2 = schemes[1]
+                c4 = mss2._connectivity_list[0]
+                self.assertIsInstance(
+                    c4,
+                    ihm.multi_state_scheme.Connectivity)
+                self.assertEqual(c4._id, '4')
+                self.assertIsInstance(c4.begin_state, ihm.model.State)
+                self.assertEqual(c4.begin_state._id, '2')
+                self.assertIsInstance(c4.end_state, ihm.model.State)
+                self.assertEqual(c4.end_state._id, '1')
+                self.assertIsInstance(c4.dataset_group,
+                                      ihm.dataset.DatasetGroup)
+                self.assertEqual(c4.dataset_group._id, '11')
+                self.assertIsNone(c4.details)
 
     def test_kinetic_rate_handler(self):
         """Test KineticRateHandler"""
-        fh = StringIO("""
+        mss_cif = """
 loop_
 _ihm_multi_state_scheme.id
 _ihm_multi_state_scheme.name
@@ -3420,6 +3429,8 @@ _ihm_multi_state_scheme_connectivity.details
 2 1 2 1 11 'connectivity2'
 3 2 1 2 10 'connectivity1'
 #
+"""
+        rate_cif = """
 #
 loop_
 _ihm_kinetic_rate.id
@@ -3434,51 +3445,59 @@ _ihm_kinetic_rate.external_file_id
 1 3.0 . . . 'rate1' 1 4 5
 2 . 6.5 'equilibrium constant is determined from population' . 'rate2' 2  . .
 3 7.0 . . . 'rate3' 3 8 9
-""")
-        s, = ihm.reader.read(fh)
-        schemes = s.multi_state_schemes
-        mss1 = schemes[0]
-        k1 = mss1.connectivity_list[0].kinetic_rate
-        self.assertIsInstance(k1, ihm.multi_state_scheme.KineticRate)
-        self.assertEqual(k1._id, '1')
-        self.assertEqual(k1.transition_rate_constant, '3.0')
-        self.assertIsNone(k1.equilibrium_constant)
-        self.assertIsNone(k1.equilibrium_constant_determination_method)
-        self.assertIsNone(k1.equilibrium_constant_unit)
-        self.assertEqual(k1.details, 'rate1')
-        self.assertIsInstance(k1.dataset_group, ihm.dataset.DatasetGroup)
-        self.assertEqual(k1.dataset_group._id, '4')
-        self.assertIsInstance(k1.external_file, ihm.location.Location)
-        self.assertEqual(k1.external_file._id, '5')
-        k2 = mss1.connectivity_list[1].kinetic_rate
-        self.assertIsInstance(k2, ihm.multi_state_scheme.KineticRate)
-        self.assertEqual(k2._id, '2')
-        self.assertIsNone(k2.transition_rate_constant)
-        self.assertEqual(k2.equilibrium_constant, '6.5')
-        self.assertEqual(k2.equilibrium_constant_determination_method,
-                         'equilibrium constant is determined from population')
-        self.assertIsNone(k2.equilibrium_constant_unit)
-        self.assertEqual(k2.details, 'rate2')
-        self.assertIsNone(k2.dataset_group)
-        self.assertIsNone(k2.external_file)
-        mss2 = schemes[1]
-        k3 = mss2.connectivity_list[0].kinetic_rate
-        self.assertIsInstance(k3, ihm.multi_state_scheme.KineticRate)
-        self.assertEqual(k3._id, '3')
-        self.assertEqual(k3.transition_rate_constant, '7.0')
-        self.assertIsNone(k3.equilibrium_constant)
-        self.assertIsNone(k3.equilibrium_constant_determination_method)
-        self.assertIsNone(k3.equilibrium_constant_unit)
-        self.assertEqual(k3.details, 'rate3')
-        self.assertIsInstance(k3.dataset_group, ihm.dataset.DatasetGroup)
-        self.assertEqual(k3.dataset_group._id, '8')
-        self.assertIsInstance(k3.external_file, ihm.location.Location)
-        self.assertEqual(k3.external_file._id, '9')
+"""
+        # Order of categories should not matter
+        for cif in (mss_cif + rate_cif, rate_cif + mss_cif):
+            for fh in cif_file_handles(cif):
+                s, = ihm.reader.read(fh)
+                schemes = s.multi_state_schemes
+                mss1 = schemes[0]
+                k1 = mss1._connectivity_list[0].kinetic_rate
+                self.assertIsInstance(k1,
+                                      ihm.multi_state_scheme.KineticRate)
+                self.assertEqual(k1._id, '1')
+                self.assertEqual(k1.transition_rate_constant, '3.0')
+                self.assertIsNone(k1.equilibrium_constant)
+                self.assertIsNone(k1.equilibrium_constant_determination_method)
+                self.assertIsNone(k1.equilibrium_constant_unit)
+                self.assertEqual(k1.details, 'rate1')
+                self.assertIsInstance(k1.dataset_group,
+                                      ihm.dataset.DatasetGroup)
+                self.assertEqual(k1.dataset_group._id, '4')
+                self.assertIsInstance(k1.external_file,
+                                      ihm.location.Location)
+                self.assertEqual(k1.external_file._id, '5')
+                k2 = mss1._connectivity_list[1].kinetic_rate
+                self.assertIsInstance(k2, ihm.multi_state_scheme.KineticRate)
+                self.assertEqual(k2._id, '2')
+                self.assertIsNone(k2.transition_rate_constant)
+                self.assertEqual(k2.equilibrium_constant, '6.5')
+                self.assertEqual(
+                    k2.equilibrium_constant_determination_method,
+                    'equilibrium constant is determined from population')
+                self.assertIsNone(k2.equilibrium_constant_unit)
+                self.assertEqual(k2.details, 'rate2')
+                self.assertIsNone(k2.dataset_group)
+                self.assertIsNone(k2.external_file)
+                mss2 = schemes[1]
+                k3 = mss2._connectivity_list[0].kinetic_rate
+                self.assertIsInstance(k3, ihm.multi_state_scheme.KineticRate)
+                self.assertEqual(k3._id, '3')
+                self.assertEqual(k3.transition_rate_constant, '7.0')
+                self.assertIsNone(k3.equilibrium_constant)
+                self.assertIsNone(k3.equilibrium_constant_determination_method)
+                self.assertIsNone(k3.equilibrium_constant_unit)
+                self.assertEqual(k3.details, 'rate3')
+                self.assertIsInstance(k3.dataset_group,
+                                      ihm.dataset.DatasetGroup)
+                self.assertEqual(k3.dataset_group._id, '8')
+                self.assertIsInstance(k3.external_file, ihm.location.Location)
+                self.assertEqual(k3.external_file._id, '9')
 
     def test_relaxation_time_handler(self):
         """Test RelaxationTimeHandler and
         RelaxationTimeMultiStateSchemeHandler"""
-        fh = StringIO("""
+        mss_cif = """
 loop_
 _ihm_multi_state_scheme.id
 _ihm_multi_state_scheme.name
@@ -3496,6 +3515,8 @@ _ihm_multi_state_scheme_connectivity.details
 1 1 1 2 10 'connectivity1'
 2 1 2 1 11 'connectivity2'
 #
+"""
+        relaxation_time_cif = """
 #
 loop_
 _ihm_relaxation_time.id
@@ -3519,46 +3540,58 @@ _ihm_relaxation_time_multi_state_scheme.details
 1 1 1 1 .
 2 2 1 2 .
 3 3 1 . .
-""")
-        s, = ihm.reader.read(fh)
-        schemes = s.multi_state_schemes
-        mss1 = schemes[0]
-        self.assertEqual(len(mss1.connectivity_list), 2)
-        r1 = mss1.connectivity_list[0].relaxation_time
-        self.assertIsInstance(r1, ihm.multi_state_scheme.RelaxationTime)
-        self.assertEqual(r1._id, '1')
-        self.assertEqual(r1.value, '10.0')
-        self.assertEqual(r1.unit, 'seconds')
-        self.assertEqual(r1.amplitude, '0.5')
-        self.assertIsInstance(r1.dataset_group, ihm.dataset.DatasetGroup)
-        self.assertEqual(r1.dataset_group._id, '20')
-        self.assertIsInstance(r1.external_file, ihm.location.Location)
-        self.assertEqual(r1.external_file._id, '21')
-        self.assertEqual(r1.details, 'relaxation_time1')
-        r2 = mss1.connectivity_list[1].relaxation_time
-        self.assertIsInstance(r2, ihm.multi_state_scheme.RelaxationTime)
-        self.assertEqual(r2._id, '2')
-        self.assertEqual(r2.value, '11.5')
-        self.assertEqual(r2.unit, 'milliseconds')
-        self.assertIsNone(r2.amplitude)
-        self.assertIsInstance(r2.dataset_group, ihm.dataset.DatasetGroup)
-        self.assertEqual(r2.dataset_group._id, '22')
-        self.assertIsInstance(r2.external_file, ihm.location.Location)
-        self.assertEqual(r2.external_file._id, '23')
-        self.assertEqual(r2.details, 'relaxation_time2')
-        # Relaxation time 3 is only assigned to a scheme, not to a connectivity
-        self.assertEqual(len(mss1.relaxation_time_list), 1)
-        r3 = mss1.relaxation_time_list[0]
-        self.assertIsInstance(r3, ihm.multi_state_scheme.RelaxationTime)
-        self.assertEqual(r3._id, '3')
-        self.assertEqual(r3.value, '12.0')
-        self.assertEqual(r3.unit, 'seconds')
-        self.assertEqual(r3.amplitude, '0.4')
-        self.assertIsInstance(r3.dataset_group, ihm.dataset.DatasetGroup)
-        self.assertEqual(r3.dataset_group._id, '24')
-        self.assertIsInstance(r3.external_file, ihm.location.Location)
-        self.assertEqual(r3.external_file._id, '25')
-        self.assertEqual(r3.details, 'relaxation_time3')
+"""
+        # Order of categories should not matter
+        for cif in (relaxation_time_cif + mss_cif,
+                    mss_cif + relaxation_time_cif,
+                    ):
+            for fh in cif_file_handles(cif):
+                s, = ihm.reader.read(fh)
+                schemes = s.multi_state_schemes
+                mss1 = schemes[0]
+                self.assertEqual(len(mss1._connectivity_list), 2)
+                r1 = mss1._connectivity_list[0].relaxation_time
+                self.assertIsInstance(r1,
+                                      ihm.multi_state_scheme.RelaxationTime)
+                self.assertEqual(r1._id, '1')
+                self.assertEqual(r1.value, '10.0')
+                self.assertEqual(r1.unit, 'seconds')
+                self.assertEqual(r1.amplitude, '0.5')
+                self.assertIsInstance(r1.dataset_group,
+                                      ihm.dataset.DatasetGroup)
+                self.assertEqual(r1.dataset_group._id, '20')
+                self.assertIsInstance(r1.external_file, ihm.location.Location)
+                self.assertEqual(r1.external_file._id, '21')
+                self.assertEqual(r1.details, 'relaxation_time1')
+                r2 = mss1._connectivity_list[1].relaxation_time
+                self.assertIsInstance(r2,
+                                      ihm.multi_state_scheme.RelaxationTime)
+                self.assertEqual(r2._id, '2')
+                self.assertEqual(r2.value, '11.5')
+                self.assertEqual(r2.unit, 'milliseconds')
+                self.assertIsNone(r2.amplitude)
+                self.assertIsInstance(r2.dataset_group,
+                                      ihm.dataset.DatasetGroup)
+                self.assertEqual(r2.dataset_group._id, '22')
+                self.assertIsInstance(r2.external_file, ihm.location.Location)
+                self.assertEqual(r2.external_file._id, '23')
+                self.assertEqual(r2.details, 'relaxation_time2')
+                # Relaxation time 3 is only assigned to a scheme,
+                # not to a connectivity
+                self.assertEqual(len(mss1._relaxation_time_list), 1)
+                r3 = mss1._relaxation_time_list[0]
+                self.assertIsInstance(r3,
+                                      ihm.multi_state_scheme.RelaxationTime)
+                self.assertEqual(r3._id, '3')
+                self.assertEqual(r3.value, '12.0')
+                self.assertEqual(r3.unit, 'seconds')
+                self.assertEqual(r3.amplitude, '0.4')
+                self.assertIsInstance(r3.dataset_group,
+                                      ihm.dataset.DatasetGroup)
+                self.assertEqual(r3.dataset_group._id, '24')
+                self.assertIsInstance(r3.external_file, ihm.location.Location)
+                self.assertEqual(r3.external_file._id, '25')
+                self.assertEqual(r3.details, 'relaxation_time3')
 
     def test_flr_experiment_handler(self):
         """Test FLRExperimentHandler"""
@@ -4571,7 +4604,7 @@ _flr_FPS_MPP_modeling.mpp_atom_position_group_id
 
     def test_flr_kinetic_rate_fret_analysis_connection_handler(self):
         """Test FLRKineticRateFretAnalysisConnectionHandler"""
-        fh = StringIO("""
+        mss_cif = """
 loop_
 _ihm_multi_state_scheme.id
 _ihm_multi_state_scheme.name
@@ -4591,6 +4624,8 @@ _ihm_multi_state_scheme_connectivity.details
 2 1 2 1 11 'connectivity2'
 3 2 1 2 10 'connectivity1'
 #
+"""
+        rate_cif = """
 #
 loop_
 _ihm_kinetic_rate.id
@@ -4606,6 +4641,8 @@ _ihm_kinetic_rate.external_file_id
 52 . 6.5 'equilibrium constant is determined from population' . 'rate2' 2  . .
 53 7.0 . . . 'rate3' 3 8 9
 #
+"""
+        flr_cif = """
 #
 loop_
 _flr_fret_analysis.id
@@ -4630,32 +4667,41 @@ _flr_kinetic_rate_analysis.details
 2 1 52 details2
 3 5 51 details3
 4 8 54 details4
-""")
-        s, = ihm.reader.read(fh)
-        flr, = s.flr_data
-        con = flr.kinetic_rate_fret_analysis_connections
-        self.assertEqual(len(con), 4)
-        self.assertEqual(con[0].fret_analysis._id, '1')
-        self.assertEqual(con[0].kinetic_rate._id, '51')
-        self.assertEqual(con[0].details, 'details1')
-        self.assertEqual(con[1].fret_analysis._id, '1')
-        self.assertEqual(con[1].kinetic_rate._id, '52')
-        self.assertEqual(con[1].details, 'details2')
-        self.assertEqual(con[2].fret_analysis._id, '5')
-        self.assertEqual(con[2].kinetic_rate._id, '51')
-        self.assertEqual(con[2].details, 'details3')
-        # The last one is auto generated
-        self.assertEqual(con[3].fret_analysis._id, '8')
-        self.assertEqual(con[3].kinetic_rate._id, '54')
-        self.assertEqual(con[3].details, 'details4')
+"""
+        # Order of categories should not matter
+        for cif in (
+                mss_cif + rate_cif + flr_cif,
+                mss_cif + flr_cif + rate_cif,
+                rate_cif + mss_cif + flr_cif,
+                rate_cif + flr_cif + mss_cif,
+                flr_cif + mss_cif + rate_cif,
+                flr_cif + rate_cif + mss_cif):
+            for fh in cif_file_handles(cif):
+                s, = ihm.reader.read(fh)
+                flr, = s.flr_data
+                con = flr.kinetic_rate_fret_analysis_connections
+                self.assertEqual(len(con), 4)
+                self.assertEqual(con[0].fret_analysis._id, '1')
+                self.assertEqual(con[0].kinetic_rate._id, '51')
+                self.assertEqual(con[0].details, 'details1')
+                self.assertEqual(con[1].fret_analysis._id, '1')
+                self.assertEqual(con[1].kinetic_rate._id, '52')
+                self.assertEqual(con[1].details, 'details2')
+                self.assertEqual(con[2].fret_analysis._id, '5')
+                self.assertEqual(con[2].kinetic_rate._id, '51')
+                self.assertEqual(con[2].details, 'details3')
+                # The last one is auto generated
+                self.assertEqual(con[3].fret_analysis._id, '8')
+                self.assertEqual(con[3].kinetic_rate._id, '54')
+                self.assertEqual(con[3].details, 'details4')
 
-        # Test the _all_relaxation_times() function
-        self.assertEqual([x._id for x in list(s._all_kinetic_rates())],
-                         ['51', '52', '53', '54'])
+                # Test the _all_relaxation_times() function
+                self.assertEqual([x._id for x in list(s._all_kinetic_rates())],
+                                 ['51', '52', '53', '54'])
 
     def test_flr_relaxation_time_fret_analysis_connection_handler(self):
         """Test FLRRelaxationTimeFretAnalysisConnectionHandler"""
-        fh = StringIO("""
+        mss_cif = """
 loop_
 _ihm_multi_state_scheme.id
 _ihm_multi_state_scheme.name
@@ -4675,6 +4721,8 @@ _ihm_multi_state_scheme_connectivity.details
 2 1 2 1 11 'connectivity2'
 3 2 1 2 10 'connectivity1'
 #
+"""
+        relaxation_time_cif = """
 #
 loop_
 _ihm_relaxation_time.id
@@ -4701,6 +4749,8 @@ _ihm_relaxation_time_multi_state_scheme.details
 3 103 1 . .
 4 104 1 . .
 #
+"""
+        flr_cif = """
 #
 loop_
 _flr_fret_analysis.id
@@ -4725,28 +4775,39 @@ _flr_relaxation_time_analysis.details
 2 1 102 details2
 3 5 101 details3
 4 8 103 details4
-""")
-        s, = ihm.reader.read(fh)
-        flr, = s.flr_data
-        con = flr.relaxation_time_fret_analysis_connections
-        self.assertEqual(len(con), 4)
-        self.assertEqual(con[0].fret_analysis._id, '1')
-        self.assertEqual(con[0].relaxation_time._id, '101')
-        self.assertEqual(con[0].details, 'details1')
-        self.assertEqual(con[1].fret_analysis._id, '1')
-        self.assertEqual(con[1].relaxation_time._id, '102')
-        self.assertEqual(con[1].details, 'details2')
-        self.assertEqual(con[2].fret_analysis._id, '5')
-        self.assertEqual(con[2].relaxation_time._id, '101')
-        self.assertEqual(con[2].details, 'details3')
-        # The last one is auto generated
-        self.assertEqual(con[3].fret_analysis._id, '8')
-        self.assertEqual(con[3].relaxation_time._id, '103')
-        self.assertEqual(con[3].details, 'details4')
+"""
 
-        # Test the _all_relaxation_times() function
-        self.assertEqual([x._id for x in list(s._all_relaxation_times())],
-                         ['103', '104', '101', '102'])
+        # Order of categories should not matter
+        for cif in (
+                mss_cif + relaxation_time_cif + flr_cif,
+                mss_cif + flr_cif + relaxation_time_cif,
+                relaxation_time_cif + mss_cif + flr_cif,
+                relaxation_time_cif + flr_cif + mss_cif,
+                flr_cif + mss_cif + relaxation_time_cif,
+                flr_cif + relaxation_time_cif + mss_cif):
+            for fh in cif_file_handles(cif):
+                s, = ihm.reader.read(fh)
+                flr, = s.flr_data
+                con = flr.relaxation_time_fret_analysis_connections
+                self.assertEqual(len(con), 4)
+                self.assertEqual(con[0].fret_analysis._id, '1')
+                self.assertEqual(con[0].relaxation_time._id, '101')
+                self.assertEqual(con[0].details, 'details1')
+                self.assertEqual(con[1].fret_analysis._id, '1')
+                self.assertEqual(con[1].relaxation_time._id, '102')
+                self.assertEqual(con[1].details, 'details2')
+                self.assertEqual(con[2].fret_analysis._id, '5')
+                self.assertEqual(con[2].relaxation_time._id, '101')
+                self.assertEqual(con[2].details, 'details3')
+                # The last one is auto generated
+                self.assertEqual(con[3].fret_analysis._id, '8')
+                self.assertEqual(con[3].relaxation_time._id, '103')
+                self.assertEqual(con[3].details, 'details4')
+
+                # Test the _all_relaxation_times() function
+                self.assertEqual([x._id for x in
+                                  list(s._all_relaxation_times())],
+                                 ['103', '104', '101', '102'])
 
     def test_variant_base(self):
         """Test Variant base class"""
