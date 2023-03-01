@@ -3862,7 +3862,7 @@ _ihm_predicted_contact_restraint.software_id
         inst_setting_dumper = ihm.dumper._FLRInstSettingDumper()
         inst_setting_dumper.finalize(system)
 
-        exp_condition_dumper = ihm.dumper._FLR_ExpConditionDumper()
+        exp_condition_dumper = ihm.dumper._FLRExpConditionDumper()
         exp_condition_dumper.finalize(system)
 
         instrument_dumper = ihm.dumper._FLRInstrumentDumper()
