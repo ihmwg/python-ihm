@@ -2805,12 +2805,36 @@ class _KineticRateHandler(Handler):
                  external_file_id):
         # Get the object or create the object
         k = self.sysr.kinetic_rates.get_by_id(id)
+        # if information for an equilibrium is given, create an object
+        eq_const = None
+        if (equilibrium_constant is not None) \
+                and (equilibrium_constant_determination_method is not None):
+            if equilibrium_constant_determination_method == 'equilibrium ' \
+                                                            'constant is ' \
+                                                            'determined from '\
+                                                            'population':
+                eq_const = \
+                    ihm.multi_state_scheme.PopulationEquilibriumConstant(
+                        value=equilibrium_constant,
+                        unit=equilibrium_constant_unit)
+            elif equilibrium_constant_determination_method == 'equilibrium ' \
+                                                              'constant is ' \
+                                                              'determined ' \
+                                                              'from kinetic ' \
+                                                              'rates, ' \
+                                                              'kAB/kBA':
+                eq_const = \
+                    ihm.multi_state_scheme.KineticRateEquilibriumConstant(
+                        value=equilibrium_constant,
+                        unit=equilibrium_constant_unit)
+            else:
+                eq_const = \
+                    ihm.multi_state_scheme.EquilibriumConstant(
+                        value=equilibrium_constant,
+                        unit=equilibrium_constant_unit)
         # Add the content
         k.transition_rate_constant = transition_rate_constant
-        k.equilibrium_constant = equilibrium_constant
-        k.equilibrium_constant_determination_method = \
-            equilibrium_constant_determination_method
-        k.equilibrium_constant_unit = equilibrium_constant_unit
+        k.equilibrium_constant = eq_const
         k.details = details
         k.dataset_group = \
             self.sysr.dataset_groups.get_by_id_or_none(dataset_group_id)

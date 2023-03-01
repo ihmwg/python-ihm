@@ -119,7 +119,7 @@ class Connectivity(object):
     :type end_state: :class:`ìhm.model.State`
     :param details: Details to the connectivity.
     :param dataset_group: The DatasetGroup that was used to obtain information
-    on the connectivity.
+     on the connectivity.
     :type dataset_group: :class:`ìhm.dataset.DatasetGroup`
     :param kinetic_rate: A kinetic rate assigned to the connectivity.
     :type kinetic_rate: :class:`KineticRate`
@@ -152,37 +152,28 @@ class KineticRate(object):
     an equilibrium_constant. Alternatively, both could be provided.
 
     :param float transition_rate_constant: A transition rate constant
-    describing the exchange between two states. Unit: per second.
-    :param float equilibrium_constant: An equilibrium constant describing the
-    exchange between two states
-    :param str equilibrium_constant_determination_method:
-    The method how the equilibrium_constant was determined.
-    Options are: ['equilibrium constant is determined from population',
-    'equilibrium constant is determined from kinetic rates, kAB/kBA',
-    'equilibrium constant is determined from another method not listed']
-    :param str equilibrium_constant_unit: Unit of the equilibrium constant.
-    Depending on what the process described,a unit might be applicable or not
+     describing the exchange between two states. Unit: per second.
+    :param equilibrium_constant: An equilibrium constant describing the
+     exchange between two states
+    :type equilibrium_constant: :class:`EquilibriumConstant` or
+     :class:`PopulationEquilibriumConstant` or
+     :class:`KineticRateEquilibriumConstant`
     :param str details: Details on the kinetic rate.
     :param dataset_group: The DatasetGroup used to determine the kinetic rate.
     :type dataset_group: :class:`ihm.dataset.DatasetGroup`
-    :param file: External file containing measurement data
-      for the kinetic rate.
+    :param file: External file containing measurement data for the kinetic
+     rate.
     :type file: :class:`ihm.location.OutputFileLocation`
 
     """
     def __init__(self,
                  transition_rate_constant=None,
                  equilibrium_constant=None,
-                 equilibrium_constant_determination_method=None,
-                 equilibrium_constant_unit=None,
                  details=None,
                  dataset_group=None,
                  file=None):
         self.transition_rate_constant = transition_rate_constant
         self.equilibrium_constant = equilibrium_constant
-        self.equilibrium_constant_unit = equilibrium_constant_unit
-        self.equilibrium_constant_determination_method = \
-            equilibrium_constant_determination_method
         self.details = details
         self.dataset_group = dataset_group
         self.external_file = file
@@ -190,16 +181,39 @@ class KineticRate(object):
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
 
-    # Check whether the given method is within the allowed options
-    allowed_equilibrium_constant_determination_methods = [
-        'equilibrium constant is determined from population',
-        'equilibrium constant is determined from kinetic rates, kAB/kBA',
-        'equilibrium constant is determined from another method not listed']
-    equilibrium_constant_determination_method = \
-        _text_choice_property(
-            "equilibrium_constant_determination_method",
-            allowed_equilibrium_constant_determination_methods,
-            doc="The unit of the equilibrium constant, if applicable")
+
+class EquilibriumConstant(object):
+    """Base class for an equilibrium constant.
+    This class handles the case that none of the derived classes is applicable.
+
+    :param float value: The value of the equilibrium constant
+    :param str unit: Unit of the equilibrium constant. Depending on what
+     the process describes, a unit might be applicable or not"""
+    def __init__(self, value, unit=None):
+        self.method = 'equilibrium constant is determined from another ' \
+                      'method not listed'
+        self.value = value
+        self.unit = unit
+
+    def __eq__(self, other):
+        if other is None:
+            return False
+        return self.__dict__ == other.__dict__
+
+
+class PopulationEquilibriumConstant(EquilibriumConstant):
+    """An equilibrium constant determined from population"""
+    def __init__(self, value, unit=None):
+        super().__init__(value, unit)
+        self.method = 'equilibrium constant is determined from population'
+
+
+class KineticRateEquilibriumConstant(EquilibriumConstant):
+    """An equilibrium constant determined from kinetic rates as kAB/kBA"""
+    def __init__(self, value, unit=None):
+        super(KineticRateEquilibriumConstant, self).__init__(value, unit)
+        self.method = 'equilibrium constant is determined from kinetic ' \
+                      'rates, kAB/kBA'
 
 
 class RelaxationTime(object):

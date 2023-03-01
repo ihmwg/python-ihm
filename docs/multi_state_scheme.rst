@@ -3,7 +3,7 @@
 .. _multi_state_scheme_module:
 
 The :mod:`ihm.multi_state_scheme` Python module
-=====================================
+===============================================
 
 .. automodule:: ihm.multi_state_scheme
 
@@ -11,6 +11,15 @@ The :mod:`ihm.multi_state_scheme` Python module
    :members:
 
 .. autoclass:: Connectivity
+   :members:
+
+.. autoclass:: EquilibriumConstant
+   :members:
+
+.. autoclass:: PopulationEquilibriumConstant
+   :members:
+
+.. autoclass:: KineticRateEquilibriumConstant
    :members:
 
 .. autoclass:: KineticRate

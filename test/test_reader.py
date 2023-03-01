@@ -3428,6 +3428,8 @@ _ihm_multi_state_scheme_connectivity.details
 1 1 1 2 10 'connectivity1'
 2 1 2 1 11 'connectivity2'
 3 2 1 2 10 'connectivity1'
+4 1 1 2 10 'connectivity3'
+5 1 1 2 10 'connectivity4'
 #
 """
         rate_cif = """
@@ -3445,6 +3447,10 @@ _ihm_kinetic_rate.external_file_id
 1 3.0 . . . 'rate1' 1 4 5
 2 . 6.5 'equilibrium constant is determined from population' . 'rate2' 2  . .
 3 7.0 . . . 'rate3' 3 8 9
+4 . 8.5 'equilibrium constant is determined from kinetic rates, kAB/kBA' 'unit' 
+'rate4' 4  . .
+5 . 9.5 'equilibrium constant is determined from another method not listed' . 
+'rate5' 5  . .
 """
         # Order of categories should not matter
         for cif in (mss_cif + rate_cif, rate_cif + mss_cif):
@@ -3458,8 +3464,6 @@ _ihm_kinetic_rate.external_file_id
                 self.assertEqual(k1._id, '1')
                 self.assertEqual(k1.transition_rate_constant, '3.0')
                 self.assertIsNone(k1.equilibrium_constant)
-                self.assertIsNone(k1.equilibrium_constant_determination_method)
-                self.assertIsNone(k1.equilibrium_constant_unit)
                 self.assertEqual(k1.details, 'rate1')
                 self.assertIsInstance(k1.dataset_group,
                                       ihm.dataset.DatasetGroup)
@@ -3471,11 +3475,14 @@ _ihm_kinetic_rate.external_file_id
                 self.assertIsInstance(k2, ihm.multi_state_scheme.KineticRate)
                 self.assertEqual(k2._id, '2')
                 self.assertIsNone(k2.transition_rate_constant)
-                self.assertEqual(k2.equilibrium_constant, '6.5')
+                self.assertIsInstance(
+                    k2.equilibrium_constant,
+                    ihm.multi_state_scheme.PopulationEquilibriumConstant)
+                self.assertEqual(k2.equilibrium_constant.value, '6.5')
                 self.assertEqual(
-                    k2.equilibrium_constant_determination_method,
+                    k2.equilibrium_constant.method,
                     'equilibrium constant is determined from population')
-                self.assertIsNone(k2.equilibrium_constant_unit)
+                self.assertIsNone(k2.equilibrium_constant.unit)
                 self.assertEqual(k2.details, 'rate2')
                 self.assertIsNone(k2.dataset_group)
                 self.assertIsNone(k2.external_file)
@@ -3485,14 +3492,44 @@ _ihm_kinetic_rate.external_file_id
                 self.assertEqual(k3._id, '3')
                 self.assertEqual(k3.transition_rate_constant, '7.0')
                 self.assertIsNone(k3.equilibrium_constant)
-                self.assertIsNone(k3.equilibrium_constant_determination_method)
-                self.assertIsNone(k3.equilibrium_constant_unit)
                 self.assertEqual(k3.details, 'rate3')
                 self.assertIsInstance(k3.dataset_group,
                                       ihm.dataset.DatasetGroup)
                 self.assertEqual(k3.dataset_group._id, '8')
                 self.assertIsInstance(k3.external_file, ihm.location.Location)
                 self.assertEqual(k3.external_file._id, '9')
+                k4 = mss1._connectivity_list[2].kinetic_rate
+                self.assertIsInstance(k4, ihm.multi_state_scheme.KineticRate)
+                self.assertEqual(k4._id, '4')
+                self.assertIsNone(k4.transition_rate_constant)
+                self.assertIsInstance(
+                    k4.equilibrium_constant,
+                    ihm.multi_state_scheme.KineticRateEquilibriumConstant)
+                self.assertEqual(k4.equilibrium_constant.value, '8.5')
+                self.assertEqual(
+                    k4.equilibrium_constant.method,
+                    'equilibrium constant is determined from kinetic '
+                    'rates, kAB/kBA')
+                self.assertEqual(k4.equilibrium_constant.unit, 'unit')
+                self.assertEqual(k4.details, 'rate4')
+                self.assertIsNone(k4.dataset_group)
+                self.assertIsNone(k4.external_file)
+                k5 = mss1._connectivity_list[3].kinetic_rate
+                self.assertIsInstance(k5, ihm.multi_state_scheme.KineticRate)
+                self.assertEqual(k5._id, '5')
+                self.assertIsNone(k5.transition_rate_constant)
+                self.assertIsInstance(
+                    k5.equilibrium_constant,
+                    ihm.multi_state_scheme.EquilibriumConstant)
+                self.assertEqual(k5.equilibrium_constant.value, '9.5')
+                self.assertEqual(
+                    k5.equilibrium_constant.method,
+                    'equilibrium constant is determined from another '
+                    'method not listed')
+                self.assertIsNone(k5.equilibrium_constant.unit)
+                self.assertEqual(k5.details, 'rate5')
+                self.assertIsNone(k5.dataset_group)
+                self.assertIsNone(k5.external_file)
 
     def test_relaxation_time_handler(self):
         """Test RelaxationTimeHandler and

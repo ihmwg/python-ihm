@@ -248,96 +248,175 @@ class Tests(unittest.TestCase):
         self.assertFalse(mssc_ref == mssc_unequal2)
         self.assertTrue(mssc_ref != mssc_unequal2)
 
+    def test_equilibriumconstant_init(self):
+        """Test initialization of EquilibriumConstant and the
+        derived classes"""
+        e1 = ihm.multi_state_scheme.EquilibriumConstant(value=1.0,
+                                                        unit='a')
+        self.assertIsInstance(e1, ihm.multi_state_scheme.EquilibriumConstant)
+        self.assertEqual(e1.value, 1.0)
+        self.assertEqual(e1.unit, 'a')
+        self.assertEqual(
+            e1.method,
+            'equilibrium constant is determined from another method '
+            'not listed')
+
+        e2 = ihm.multi_state_scheme.EquilibriumConstant(value=2.0)
+        self.assertIsInstance(e2, ihm.multi_state_scheme.EquilibriumConstant)
+        self.assertEqual(e2.value, 2.0)
+        self.assertIsNone(e2.unit)
+        self.assertEqual(
+            e2.method,
+            'equilibrium constant is determined from another method '
+            'not listed')
+
+        e3 = ihm.multi_state_scheme.PopulationEquilibriumConstant(value=3.0,
+                                                                  unit='b')
+        self.assertIsInstance(
+            e3,
+            ihm.multi_state_scheme.PopulationEquilibriumConstant)
+        self.assertEqual(e3.value, 3.0)
+        self.assertEqual(e3.unit, 'b')
+        self.assertEqual(
+            e3.method,
+            'equilibrium constant is determined from population')
+
+        e4 = ihm.multi_state_scheme.KineticRateEquilibriumConstant(value=4.0,
+                                                                   unit='c')
+        self.assertIsInstance(
+            e4,
+            ihm.multi_state_scheme.KineticRateEquilibriumConstant)
+        self.assertEqual(e4.value, 4.0)
+        self.assertEqual(e4.unit, 'c')
+        self.assertEqual(
+            e4.method,
+            'equilibrium constant is determined from kinetic rates, kAB/kBA')
+
+    def test_equilibrium_constant_eq(self):
+        """Test equality of EquilibriumConstant objetcs"""
+        e_ref1 = ihm.multi_state_scheme.EquilibriumConstant(
+            value='1.0',
+            unit='a')
+        e_equal1 = ihm.multi_state_scheme.EquilibriumConstant(
+            value='1.0',
+            unit='a')
+        eq_unequal1 = ihm.multi_state_scheme.EquilibriumConstant(
+            value='1.0',
+            unit='b')
+        eq_unequal2 = ihm.multi_state_scheme.EquilibriumConstant(
+            value='1.0')
+        eq_unequal3 = ihm.multi_state_scheme.EquilibriumConstant(
+            value='2.0',
+            unit='b')
+        eq_unequal4 = ihm.multi_state_scheme.PopulationEquilibriumConstant(
+            value='1.0',
+            unit='a')
+        eq_unequal5 = ihm.multi_state_scheme.KineticRateEquilibriumConstant(
+            value='1.0',
+            unit='a')
+        self.assertTrue(e_ref1 == e_equal1)
+        self.assertFalse(e_ref1 == eq_unequal1)
+        self.assertFalse(e_ref1 == eq_unequal2)
+        self.assertFalse(e_ref1 == eq_unequal3)
+        self.assertFalse(e_ref1 == eq_unequal4)
+        self.assertFalse(e_ref1 == eq_unequal5)
+
+        e_ref2 = ihm.multi_state_scheme.PopulationEquilibriumConstant(
+            value='1.0',
+            unit='a')
+        e_equal2 = ihm.multi_state_scheme.PopulationEquilibriumConstant(
+            value='1.0',
+            unit='a')
+        e_unequal6 = ihm.multi_state_scheme.PopulationEquilibriumConstant(
+            value='2.0',
+            unit='a')
+        e_unequal7 = ihm.multi_state_scheme.EquilibriumConstant(
+            value='1.0',
+            unit='a')
+        e_unequal8 = ihm.multi_state_scheme.KineticRateEquilibriumConstant(
+            value='1.0',
+            unit='a')
+        self.assertTrue(e_ref2 == e_equal2)
+        self.assertFalse(e_ref2 == e_unequal6)
+        self.assertFalse(e_ref2 == e_unequal7)
+        self.assertFalse(e_ref2 == e_unequal8)
+
+        e_ref3 = ihm.multi_state_scheme.KineticRateEquilibriumConstant(
+            value='1.0',
+            unit='a')
+        e_equal3 = ihm.multi_state_scheme.KineticRateEquilibriumConstant(
+            value='1.0',
+            unit='a')
+        e_unequal9 = ihm.multi_state_scheme.KineticRateEquilibriumConstant(
+            value='2.0',
+            unit='a')
+        e_unequal10 = ihm.multi_state_scheme.EquilibriumConstant(
+            value='1.0',
+            unit='a')
+        self.assertTrue(e_ref3 == e_equal3)
+        self.assertFalse(e_ref3 == e_unequal9)
+        self.assertFalse(e_ref3 == e_unequal10)
+
     def test_kineticrate_init(self):
         """Test initialization of KineticRate"""
         # Initialization with only transition_rate_constant given
         k1 = ihm.multi_state_scheme.KineticRate(transition_rate_constant=1.0)
         self.assertEqual(k1.transition_rate_constant, 1.0)
+        e1 = ihm.multi_state_scheme.PopulationEquilibriumConstant(value=1.0,
+                                                                  unit='unit')
         # Initialization with equilibrium_constant
         k2 = ihm.multi_state_scheme.KineticRate(
-            equilibrium_constant=1.0,
-            equilibrium_constant_unit="unit",
-            equilibrium_constant_determination_method='equilibrium constant '
-                                                      'is determined from '
-                                                      'population')
-        self.assertEqual(k2.equilibrium_constant, 1.0)
-        self.assertEqual(k2.equilibrium_constant_unit, "unit")
-        self.assertEqual(
-            k2.equilibrium_constant_determination_method, 'equilibrium '
-                                                          'constant is '
-                                                          'determined from '
-                                                          'population')
+            equilibrium_constant=e1)
+        self.assertEqual(k2.equilibrium_constant.value, 1.0)
+        self.assertEqual(k2.equilibrium_constant.unit, "unit")
+        self.assertEqual(k2.equilibrium_constant.method,
+                         'equilibrium constant is determined from population')
         # Initialization with all values given
         k3 = ihm.multi_state_scheme.KineticRate(
             transition_rate_constant=0.5,
-            equilibrium_constant=1.0,
-            equilibrium_constant_unit="unit",
-            equilibrium_constant_determination_method='equilibrium constant '
-                                                      'is determined from '
-                                                      'population',
+            equilibrium_constant=e1,
             details="details1",
             dataset_group='dataset_group1',
             file='file1')
         self.assertEqual(k3.transition_rate_constant, 0.5)
-        self.assertEqual(k3.equilibrium_constant, 1.0)
-        self.assertEqual(k3.equilibrium_constant_unit, "unit")
-        self.assertEqual(k3.equilibrium_constant_determination_method,
+        self.assertEqual(k3.equilibrium_constant.value, 1.0)
+        self.assertEqual(k3.equilibrium_constant.unit, "unit")
+        self.assertEqual(k3.equilibrium_constant.method,
                          'equilibrium constant is determined from population')
         self.assertEqual(k3.details, "details1")
         self.assertEqual(k3.dataset_group, 'dataset_group1')
         self.assertEqual(k3.external_file, 'file1')
 
-        # Initialization with wrong equilibrium_constant_determination_method
-        # raises ValueError
-        self.assertRaises(
-            ValueError,
-            ihm.multi_state_scheme.KineticRate,
-            equilibrium_constant=2.0,
-            equilibrium_constant_determination_method='wrong_method'
-        )
-
     def test_kineticrate_eq(self):
         """Test equality of KineticRate objects"""
+        e1 = ihm.multi_state_scheme.PopulationEquilibriumConstant(
+            value=1.5, unit='unit1')
+        e2 = ihm.multi_state_scheme.KineticRateEquilibriumConstant(
+            value=1.5, unit='unit1')
         k_ref = ihm.multi_state_scheme.KineticRate(
             transition_rate_constant=1.0,
-            equilibrium_constant=1.5,
-            equilibrium_constant_determination_method='equilibrium constant '
-                                                      'is determined from '
-                                                      'population',
-            equilibrium_constant_unit="unit1",
+            equilibrium_constant=e1,
             details="details1",
             dataset_group="dataset_group1",
             file="file1"
         )
         k_equal = ihm.multi_state_scheme.KineticRate(
             transition_rate_constant=1.0,
-            equilibrium_constant=1.5,
-            equilibrium_constant_determination_method='equilibrium constant '
-                                                      'is determined from '
-                                                      'population',
-            equilibrium_constant_unit="unit1",
+            equilibrium_constant=e1,
             details="details1",
             dataset_group="dataset_group1",
             file="file1"
         )
         k_unequal1 = ihm.multi_state_scheme.KineticRate(
             transition_rate_constant=2.0,
-            equilibrium_constant=1.5,
-            equilibrium_constant_determination_method='equilibrium constant '
-                                                      'is determined from '
-                                                      'population',
-            equilibrium_constant_unit="unit1",
+            equilibrium_constant=e1,
             details="details1",
             dataset_group="dataset_group1",
             file="file1"
         )
         k_unequal2 = ihm.multi_state_scheme.KineticRate(
             transition_rate_constant=1.0,
-            equilibrium_constant=1.5,
-            equilibrium_constant_determination_method='equilibrium constant '
-                                                      'is determined from '
-                                                      'kinetic rates, kAB/kBA',
-            equilibrium_constant_unit="unit1",
+            equilibrium_constant=e2,
             details="details1",
             dataset_group="dataset_group1",
             file="file1"

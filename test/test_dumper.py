@@ -3466,7 +3466,7 @@ _ihm_predicted_contact_restraint.software_id
 #
 """)
 
-    def test_MultiStateSchemeDumper(self):
+    def test_multi_state_scheme_dumper(self):
         """ Test MultiStateScheme dumper"""
         class MockObject(object):
             pass
@@ -3505,7 +3505,7 @@ _ihm_multi_state_scheme.details
 #
 """)
 
-    def test_MultiStateSchemeConnectivityDumper(self):
+    def test_multi_state_scheme_connectivity_dumper(self):
         """ Test MultiStateSchemeConnectivity dumper"""
         class MockObject(object):
             pass
@@ -3610,7 +3610,7 @@ _ihm_multi_state_scheme_connectivity.details
 #
 """)
 
-    def test_RelaxationTimeDumper(self):
+    def test_relaxation_time_dumper(self):
         """Test RelaxationTime dumpers. Tests both, _ihm_relaxation_time
         and _ihm_relaxation_time_multi_state_scheme"""
         class MockObject(object):
@@ -3744,7 +3744,7 @@ _ihm_relaxation_time_multi_state_scheme.details
 #
 """)
 
-    def test_KineticRateDumper(self):
+    def test_kinetic_rate_dumper(self):
         """"Test KineticRate dumper"""
 
         class MockObject(object):
@@ -3761,6 +3761,16 @@ _ihm_relaxation_time_multi_state_scheme.details
         cur_state_3 = MockObject()
         cur_state_3._id = 103
 
+        e_k2 = ihm.multi_state_scheme.PopulationEquilibriumConstant(
+            value=4.0, unit='unit_placeholder')
+        e_k3 = ihm.multi_state_scheme.PopulationEquilibriumConstant(
+            value=5.0)
+        e_k4 = ihm.multi_state_scheme.KineticRateEquilibriumConstant(
+            value=6.0
+        )
+        e_k5 = ihm.multi_state_scheme.EquilibriumConstant(value=7.0,
+                                                          unit='unit7')
+
         # k1 => id 1
         k1 = ihm.multi_state_scheme.KineticRate(
             transition_rate_constant=3.0,
@@ -3768,12 +3778,7 @@ _ihm_relaxation_time_multi_state_scheme.details
         )
         # k2 => id 2
         k2 = ihm.multi_state_scheme.KineticRate(
-            equilibrium_constant=4.0,
-            equilibrium_constant_determination_method=''
-                                                      'equilibrium constant '
-                                                      'is determined from '
-                                                      'population',
-            equilibrium_constant_unit='unit_placeholder',
+            equilibrium_constant=e_k2,
             details='equilibrium constant 2',
             dataset_group=cur_dataset_group_1,
             file=cur_external_file_1
@@ -3781,15 +3786,20 @@ _ihm_relaxation_time_multi_state_scheme.details
         # k3 => id 3
         k3 = ihm.multi_state_scheme.KineticRate(
             transition_rate_constant=6.0,
-            equilibrium_constant=5.0,
-            equilibrium_constant_determination_method='equilibrium constant '
-                                                      'is determined from '
-                                                      'another method not '
-                                                      'listed',
+            equilibrium_constant=e_k3,
             details='equilibrium constant 3',
             dataset_group=cur_dataset_group_1
         )
-
+        # k4 => id 4
+        k4 = ihm.multi_state_scheme.KineticRate(
+            equilibrium_constant=e_k4,
+            details='equilibrium constant 4'
+        )
+        # k5 => id 5
+        k5 = ihm.multi_state_scheme.KineticRate(
+            equilibrium_constant=e_k5,
+            details='equilibrium constant 5'
+        )
         # mssc1 => id 1
         mssc1 = ihm.multi_state_scheme.Connectivity(
             begin_state=cur_state_1,
@@ -3808,19 +3818,31 @@ _ihm_relaxation_time_multi_state_scheme.details
             end_state=cur_state_2,
             kinetic_rate=k3
         )
+        # mssc4 => id 4
+        mssc4 = ihm.multi_state_scheme.Connectivity(
+            begin_state=cur_state_1,
+            end_state=cur_state_2,
+            kinetic_rate=k4
+        )
+        # mssc5 => id 5
+        mssc5 = ihm.multi_state_scheme.Connectivity(
+            begin_state=cur_state_2,
+            end_state=cur_state_1,
+            kinetic_rate=k5
+        )
         mss1 = ihm.multi_state_scheme.MultiStateScheme(
             name="mss1",
-            connectivities=[mssc1, mssc2]
+            connectivities=[mssc1, mssc2, mssc3, mssc4]
         )
-        mss1.add_connectivity(mssc3)
+        mss1.add_connectivity(mssc5)
 
         # A multi-state scheme connectivity without a kinetic rate
-        mssc4 = ihm.multi_state_scheme.Connectivity(
+        mssc6 = ihm.multi_state_scheme.Connectivity(
             begin_state=cur_state_2,
             end_state=cur_state_3,
             relaxation_time='rt'
         )
-        mss1.add_connectivity(mssc4)
+        mss1.add_connectivity(mssc6)
 
         system = ihm.System()
         system.multi_state_schemes.append(mss1)
@@ -3845,9 +3867,12 @@ _ihm_kinetic_rate.external_file_id
 1 3.000 . . . 'transition rate constant 1' 1 . .
 2 . 4.000 'equilibrium constant is determined from population' unit_placeholder
 'equilibrium constant 2' 2 1 2
-3 6.000 5.000
-'equilibrium constant is determined from another method not listed' .
+3 6.000 5.000 'equilibrium constant is determined from population' .
 'equilibrium constant 3' 3 1 .
+4 . 6.000 'equilibrium constant is determined from kinetic rates, kAB/kBA' .
+'equilibrium constant 4' 4 . .
+5 . 7.000 'equilibrium constant is determined from another method not listed'
+unit7 'equilibrium constant 5' 5 . .
 #
 """)
         f = ihm.flr.FLRData()
@@ -3882,10 +3907,13 @@ _ihm_kinetic_rate.external_file_id
 1 3.000 . . . 'transition rate constant 1' 1 . .
 2 . 4.000 'equilibrium constant is determined from population' unit_placeholder
 'equilibrium constant 2' 2 1 2
-3 6.000 5.000
-'equilibrium constant is determined from another method not listed' .
+3 6.000 5.000 'equilibrium constant is determined from population' .
 'equilibrium constant 3' 3 1 .
-4 4.000 . . . 'transition rate constant 4' . . .
+4 . 6.000 'equilibrium constant is determined from kinetic rates, kAB/kBA' .
+'equilibrium constant 4' 4 . .
+5 . 7.000 'equilibrium constant is determined from another method not listed'
+unit7 'equilibrium constant 5' 5 . .
+6 4.000 . . . 'transition rate constant 4' . . .
 #
 """)
 

@@ -2573,8 +2573,6 @@ class _KineticRateDumper(Dumper):
                     seen_kinetic_rates.append(k)
                     trconst = k.transition_rate_constant
                     eqconst = k.equilibrium_constant
-                    eqmethod = k.equilibrium_constant_determination_method
-                    equnit = k.equilibrium_constant_unit
                     dataset_group_id = k.dataset_group._id if \
                         k.dataset_group else None
                     external_file_id = k.external_file._id if \
@@ -2582,9 +2580,12 @@ class _KineticRateDumper(Dumper):
                     lp.write(
                         id=next(ordinal),
                         transition_rate_constant=trconst,
-                        equilibrium_constant=eqconst,
-                        equilibrium_constant_determination_method=eqmethod,
-                        equilibrium_constant_unit=equnit,
+                        equilibrium_constant=None if
+                        eqconst is None else eqconst.value,
+                        equilibrium_constant_determination_method=None
+                        if eqconst is None else eqconst.method,
+                        equilibrium_constant_unit=None if
+                        eqconst is None else eqconst.unit,
                         details=k.details,
                         scheme_connectivity_id=mssc._id,
                         dataset_group_id=dataset_group_id,
@@ -2596,8 +2597,6 @@ class _KineticRateDumper(Dumper):
                         seen_kinetic_rates.append(k)
                         trconst = k.transition_rate_constant
                         eqconst = k.equilibrium_constant
-                        eqmethod = k.equilibrium_constant_determination_method
-                        equnit = k.equilibrium_constant_unit
                         dataset_group_id = k.dataset_group._id if \
                             k.dataset_group else None
                         external_file_id = k.external_file._id if \
@@ -2605,9 +2604,12 @@ class _KineticRateDumper(Dumper):
                         lp.write(
                             id=next(ordinal),
                             transition_rate_constant=trconst,
-                            equilibrium_constant=eqconst,
-                            equilibrium_constant_determination_method=eqmethod,
-                            equilibrium_constant_unit=equnit,
+                            equilibrium_constant=None if eqconst is None
+                            else eqconst.value,
+                            equilibrium_constant_determination_method=None
+                            if eqconst is None else eqconst.method,
+                            equilibrium_constant_unit=None if eqconst is None
+                            else eqconst.unit,
                             details=k.details,
                             scheme_connectivity_id=None,
                             dataset_group_id=dataset_group_id,

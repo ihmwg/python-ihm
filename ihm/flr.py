@@ -474,11 +474,11 @@ class RefMeasurement(object):
     """A reference measurement for lifetime-based analysis.
 
         :param ref_sample_probe: The combination of sample and probe used
-               for the reference measurement.
+         for the reference measurement.
         :type ref_sample_probe: :class:`SampleProbeDetails`
         :param str details: Details on the measurement.
         :param list_of_lifetimes: A list of the results from the reference
-               measurement.
+         measurement.
         :type list_of_lifetimes: List of :class:`RefMeasurementLifetime`
     """
     def __init__(self, ref_sample_probe, details=None, list_of_lifetimes=None):
@@ -499,8 +499,9 @@ class RefMeasurement(object):
 
 class RefMeasurementLifetime(object):
     """Lifetime for a species in a reference measurement.
+
         :param float species_fraction: The species-fraction for the
-               respective lifetime.
+         respective lifetime.
         :param float lifetime: The lifetime (in ns).
         :param str species_name: A name for the species.
     """
