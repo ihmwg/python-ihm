@@ -2651,7 +2651,7 @@ class _FLRInstSettingDumper(Dumper):
                 lp.write(id=x._id, details=x.details)
 
 
-class _FLR_ExpConditionDumper(Dumper):
+class _FLRExpConditionDumper(Dumper):
     def finalize(self, system):
         def all_exp_conditions():
             return itertools.chain.from_iterable(f._all_exp_conditions()
@@ -3392,7 +3392,7 @@ class _FLRRelaxationTimeFretAnalysisConnectionDumper(Dumper):
 
 
 _flr_dumpers = [_FLRExperimentDumper, _FLRInstSettingDumper,
-                _FLR_ExpConditionDumper, _FLRInstrumentDumper,
+                _FLRExpConditionDumper, _FLRInstrumentDumper,
                 _FLREntityAssemblyDumper, _FLRSampleConditionDumper,
                 _FLRSampleDumper, _FLRProbeDumper,
                 _FLRSampleProbeDetailsDumper, _FLRPolyProbePositionDumper,
