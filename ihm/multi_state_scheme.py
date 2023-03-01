@@ -204,7 +204,7 @@ class EquilibriumConstant(object):
 class PopulationEquilibriumConstant(EquilibriumConstant):
     """An equilibrium constant determined from population"""
     def __init__(self, value, unit=None):
-        super().__init__(value, unit)
+        super(PopulationEquilibriumConstant, self).__init__(value, unit)
         self.method = 'equilibrium constant is determined from population'
 
 

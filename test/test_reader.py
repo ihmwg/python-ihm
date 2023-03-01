@@ -3447,10 +3447,10 @@ _ihm_kinetic_rate.external_file_id
 1 3.0 . . . 'rate1' 1 4 5
 2 . 6.5 'equilibrium constant is determined from population' . 'rate2' 2  . .
 3 7.0 . . . 'rate3' 3 8 9
-4 . 8.5 'equilibrium constant is determined from kinetic rates, kAB/kBA' 'unit' 
-'rate4' 4  . .
-5 . 9.5 'equilibrium constant is determined from another method not listed' . 
-'rate5' 5  . .
+4 . 8.5 'equilibrium constant is determined from kinetic rates, kAB/kBA'
+ 'unit' 'rate4' 4 . .
+5 . 9.5 'equilibrium constant is determined from another method not listed' .
+ 'rate5' 5 . .
 """
         # Order of categories should not matter
         for cif in (mss_cif + rate_cif, rate_cif + mss_cif):
