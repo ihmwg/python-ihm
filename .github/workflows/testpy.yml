@@ -43,8 +43,8 @@ jobs:
         # Test with C tokenizer
         py.test --cov=ihm --cov-branch --cov-report=xml --cov-append -v .
         if [ "${{ env.PY2 }}" == "on" ]; then
-          flake8 --ignore E402,W503,W504 --exclude util/make-mmcif.py
+          flake8 --ignore E402,W503,W504,N816 --exclude util/make-mmcif.py
         else
-          flake8 --ignore E402,W503,W504
+          flake8 --ignore E402,W503,W504,N816
         fi
     - uses: codecov/codecov-action@v1
