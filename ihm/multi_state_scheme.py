@@ -47,6 +47,8 @@ class MultiStateScheme(object):
         :param connectivity: The connectivity to add to the scheme
         :type connectivity: :class:`Connectivity`
         """
+        if connectivity is None:
+            return
         if connectivity not in self._connectivity_list:
             # Make sure that the connectivity has not been assigned to
             # another scheme
@@ -83,7 +85,8 @@ class MultiStateScheme(object):
         :param relaxation_time: The relaxation time to add to the scheme.
         :type relaxation_time: :class:`RelaxationTime`
         """
-        self._relaxation_time_list.append(relaxation_time)
+        if relaxation_time is not None:
+            self._relaxation_time_list.append(relaxation_time)
 
     def get_connectivities(self):
         """Return the connectivities assigned to a scheme"""

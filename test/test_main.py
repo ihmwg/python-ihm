@@ -1167,6 +1167,11 @@ class Tests(unittest.TestCase):
         c3 = ihm.multi_state_scheme.Connectivity(
             begin_state=s3,
             relaxation_time=r3)
+        c4 = ihm.multi_state_scheme.Connectivity(
+            begin_state=s3,
+            relaxation_time=None,
+            kinetic_rate='rate'
+        )
 
         mss1.add_relaxation_time(r4)
         mss2.add_relaxation_time(r5)
@@ -1175,6 +1180,7 @@ class Tests(unittest.TestCase):
         mss1.add_connectivity(c2)
         mss2.add_connectivity(c1)
         mss2.add_connectivity(c3)
+        mss2.add_connectivity(c4)
         s.multi_state_schemes.append(mss1)
         s.multi_state_schemes.append(mss2)
         # Does not contain duplicates

@@ -3673,9 +3673,17 @@ _ihm_multi_state_scheme_connectivity.details
             kinetic_rate='rate'
         )
 
+        # a multi-state scheme that has None as relaxation time
+        mssc4 = ihm.multi_state_scheme.Connectivity(
+            begin_state=cur_state_3,
+            end_state=cur_state_2,
+            relaxation_time=None,
+            kinetic_rate='rate'
+        )
+
         mss2 = ihm.multi_state_scheme.MultiStateScheme(
             name="mss2",
-            connectivities=[mssc1, mssc2, mssc3]
+            connectivities=[mssc1, mssc2, mssc3, mssc4]
         )
 
         system.multi_state_schemes.append(mss1)
@@ -3705,6 +3713,7 @@ _ihm_multi_state_scheme_connectivity.details
                                                    details="details5")
         r5._id = '105'
         mss1.add_relaxation_time(r5)
+        mss2.add_relaxation_time(None)
 
         ihm.dumper._FLRRelaxationTimeFretAnalysisConnectionDumper().finalize(
             system)

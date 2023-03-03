@@ -78,6 +78,10 @@ class Tests(unittest.TestCase):
         self.assertEqual(len(mss1._connectivity_list), 3)
         self.assertEqual(mss1._connectivity_list, [mssc1, mssc2, mssc3])
         self.assertEqual(mss1._states, ['s1', 's2', 's3', 's4'])
+        mss1.add_connectivity(None)
+        self.assertEqual(len(mss1._connectivity_list), 3)
+        self.assertEqual(mss1._connectivity_list, [mssc1, mssc2, mssc3])
+        self.assertEqual(mss1._states, ['s1', 's2', 's3', 's4'])
 
     def test_multistatescheme_add_relaxation_time(self):
         """Test addition of a relaxation time to a MultiStateScheme"""
