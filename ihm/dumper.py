@@ -3281,6 +3281,20 @@ class IgnoreVariant(IHMVariant):
         return _IgnoreWriter(writer, self._ignores)
 
 
+def set_line_wrap(line_wrap):
+    """Set whether output lines are wrapped at 80 characters.
+       By default the mmCIF writer tries to avoid writing lines longer than
+       80 characters, for compatibility with traditional PDB. When
+       disabled, each row in a "loop" construct will be written on a
+       single line.
+
+       This setting has no effect on binary formats (BinaryCIF).
+
+       :param bool line_wrap: whether to wrap lines at 80 characters.
+    """
+    ihm.format.CifWriter._set_line_wrap(line_wrap)
+
+
 def write(fh, systems, format='mmCIF', dumpers=[], variant=IHMVariant):
     """Write out all `systems` to the file handle `fh`.
        Files can be written in either the text-based mmCIF format or the
