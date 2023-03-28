@@ -2463,7 +2463,7 @@ class _MultiStateSchemeConnectivityDumper(Dumper):
             for mss in system.multi_state_schemes:
                 for c in mss.get_connectivities():
                     end_state_id = c.end_state._id if \
-                        c.end_state else None
+                        c.end_state is not None else None
                     dataset_group_id = c.dataset_group._id if \
                         c.dataset_group else None
                     lp.write(id=c._id, scheme_id=mss._id,

@@ -13,9 +13,13 @@ class Tests(unittest.TestCase):
         """Test the initialization of MultiStateScheme"""
         class MockObject(object):
             pass
+        s1 = MockObject()
+        s2 = MockObject()
+        s1.name = 's1'
+        s2.name = 's2'
         mssc1 = ihm.multi_state_scheme.Connectivity(
-            begin_state='s1',
-            end_state='s2')
+            begin_state=s1,
+            end_state=s2)
         mss1 = ihm.multi_state_scheme.MultiStateScheme(
             name='n',
             details='d',
@@ -25,7 +29,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(mss1.details, 'd')
         self.assertEqual(mss1._connectivity_list, [mssc1])
         self.assertEqual(mss1._relaxation_time_list, ['lr'])
-        self.assertEqual(mss1._states, ['s1', 's2'])
+        self.assertEqual(mss1._states, [s1, s2])
 
         mss2 = ihm.multi_state_scheme.MultiStateScheme(
             name='n2',
@@ -44,6 +48,42 @@ class Tests(unittest.TestCase):
         self.assertEqual(mss3._connectivity_list, [mssc1])
         self.assertEqual(mss3._relaxation_time_list, ['lr'])
 
+        # Handle empty states (i.e. without models assigned)
+        # Both states should still be added
+        s1 = ihm.model.State(
+            elements=[],
+            type='conformational change',
+            name='s1',
+            experiment_type='Single molecule',
+            population_fraction=0.4)
+        s2 = ihm.model.State(
+            elements=[],
+            type='conformational change',
+            name='s2',
+            experiment_type='Single molecule',
+            population_fraction=0.6)
+        mssc2 = ihm.multi_state_scheme.Connectivity(begin_state=s1,
+                                                    end_state=s2)
+        mss4 = ihm.multi_state_scheme.MultiStateScheme(
+            name='n4',
+            details='d4',
+            connectivities=[mssc2]
+        )
+        self.assertEqual(len(mss4._states), 2)
+        self.assertEqual(mss4._states, [s1, s2])
+        # Adding a connectivity with the same states again, should not
+        # add the states again
+        mssc3 = ihm.multi_state_scheme.Connectivity(begin_state=s2)
+        mss4.add_connectivity(mssc3)
+        self.assertEqual(len(mss4._states), 2)
+        self.assertEqual(mss4._states, [s1, s2])
+        # Compare a state with and without additional information
+        mssc4 = ihm.multi_state_scheme.Connectivity(begin_state=s2,
+                                                    end_state=[])
+        mss4.add_connectivity(mssc4)
+        self.assertEqual(len(mss4._states), 3)
+        self.assertEqual(mss4._states, [s1, s2, []])
+
     def test_multistatescheme_add_connectivity(self):
         """Test addition of a connectivity to a MultiStateScheme"""
         class MockObject(object):
@@ -54,34 +94,42 @@ class Tests(unittest.TestCase):
         self.assertEqual(len(mss1._connectivity_list), 0)
         # Add a connectivity should add it to the connectivity_list and the
         # states should be stored as well
+        s1 = MockObject()
+        s2 = MockObject()
+        s1.name = 's1'
+        s2.name = 's2'
         mssc1 = ihm.multi_state_scheme.Connectivity(
-            begin_state='s1',
-            end_state='s2')
+            begin_state=s1,
+            end_state=s2)
         mss1.add_connectivity(mssc1)
         self.assertEqual(len(mss1._connectivity_list), 1)
         self.assertEqual(mss1._connectivity_list, [mssc1])
-        self.assertEqual(mss1._states, ['s1', 's2'])
+        self.assertEqual(mss1._states, [s1, s2])
         # add a connectivity without end_state
+        s3 = MockObject()
+        s3.name = 's3'
         mssc2 = ihm.multi_state_scheme.Connectivity(
-            begin_state='s3')
+            begin_state=s3)
         mss1.add_connectivity(mssc2)
         self.assertEqual(len(mss1._connectivity_list), 2)
         self.assertEqual(mss1._connectivity_list, [mssc1,
                                                    mssc2])
-        self.assertEqual(mss1._states, ['s1', 's2', 's3'])
+        self.assertEqual(mss1._states, [s1, s2, s3])
         # add a connectivity with a previously known state should not add it
         # to the states
+        s4 = MockObject()
+        s4.name = 's4'
         mssc3 = ihm.multi_state_scheme.Connectivity(
-            begin_state='s2',
-            end_state='s4')
+            begin_state=s2,
+            end_state=s4)
         mss1.add_connectivity(mssc3)
         self.assertEqual(len(mss1._connectivity_list), 3)
         self.assertEqual(mss1._connectivity_list, [mssc1, mssc2, mssc3])
-        self.assertEqual(mss1._states, ['s1', 's2', 's3', 's4'])
+        self.assertEqual(mss1._states, [s1, s2, s3, s4])
         mss1.add_connectivity(None)
         self.assertEqual(len(mss1._connectivity_list), 3)
         self.assertEqual(mss1._connectivity_list, [mssc1, mssc2, mssc3])
-        self.assertEqual(mss1._states, ['s1', 's2', 's3', 's4'])
+        self.assertEqual(mss1._states, [s1, s2, s3, s4])
 
     def test_multistatescheme_add_relaxation_time(self):
         """Test addition of a relaxation time to a MultiStateScheme"""
@@ -94,15 +142,25 @@ class Tests(unittest.TestCase):
 
     def test_multistatesscheme_get_connectivities(self):
         """Test the return of connectivities from a MultiStateScheme"""
+        class MockObject(object):
+            pass
+        s1 = MockObject()
+        s2 = MockObject()
+        s3 = MockObject()
+        s4 = MockObject()
+        s1.name = 's1'
+        s2.name = 's2'
+        s3.name = 's3'
+        s4.name = 's4'
         mssc1 = ihm.multi_state_scheme.Connectivity(
-            begin_state='s1',
-            end_state='s2')
+            begin_state=s1,
+            end_state=s2)
         mssc2 = ihm.multi_state_scheme.Connectivity(
-            begin_state='s2',
-            end_state='s3')
+            begin_state=s2,
+            end_state=s3)
         mssc3 = ihm.multi_state_scheme.Connectivity(
-            begin_state='s2',
-            end_state='s4')
+            begin_state=s2,
+            end_state=s4)
         mss1 = ihm.multi_state_scheme.MultiStateScheme(
             name='n',
             connectivities=[mssc1, mssc2])
@@ -129,37 +187,53 @@ class Tests(unittest.TestCase):
 
     def test_multistatescheme_get_states(self):
         """Test the return of states from a MultiStateScheme"""
+        class MockObject(object):
+            pass
+        s1 = MockObject()
+        s2 = MockObject()
+        s3 = MockObject()
+        s1.name = 's1'
+        s2.name = 's2'
+        s3.name = 's3'
         mssc1 = ihm.multi_state_scheme.Connectivity(
-            begin_state='s1',
-            end_state='s2')
+            begin_state=s1,
+            end_state=s2)
         mssc2 = ihm.multi_state_scheme.Connectivity(
-            begin_state='s1')
+            begin_state=s1)
         mssc3 = ihm.multi_state_scheme.Connectivity(
-            begin_state='s2',
-            end_state='s3')
+            begin_state=s2,
+            end_state=s3)
 
         mss1 = ihm.multi_state_scheme.MultiStateScheme(
             name='n',
             connectivities=[mssc1])
-        self.assertEqual(mss1.get_states(), ['s1', 's2'])
+        self.assertEqual(mss1.get_states(), [s1, s2])
         mss1.add_connectivity(mssc2)
-        self.assertEqual(mss1.get_states(), ['s1', 's2'])
+        self.assertEqual(mss1.get_states(), [s1, s2])
         mss1.add_connectivity(mssc3)
-        self.assertEqual(mss1.get_states(), ['s1', 's2', 's3'])
+        self.assertEqual(mss1.get_states(), [s1, s2, s3])
 
     def test_multistatescheme_eq(self):
         """Test equality of MultiStateScheme objects"""
         class MockObject(object):
             pass
+        s1 = MockObject()
+        s2 = MockObject()
+        s3 = MockObject()
+        s4 = MockObject()
+        s1.name = 's1'
+        s2.name = 's2'
+        s3.name = 's3'
+        s4.name = 's4'
         mssc1 = ihm.multi_state_scheme.Connectivity(
-            begin_state='s1')
+            begin_state=s1)
         mssc2 = ihm.multi_state_scheme.Connectivity(
-            begin_state='s2')
+            begin_state=s2)
         mssc3 = ihm.multi_state_scheme.Connectivity(
-            begin_state='s3')
+            begin_state=s3)
         mssc4 = ihm.multi_state_scheme.Connectivity(
-            begin_state='s1',
-            end_state='s4')
+            begin_state=s1,
+            end_state=s4)
 
         mss_ref = ihm.multi_state_scheme.MultiStateScheme(
             name='name1',
@@ -199,15 +273,22 @@ class Tests(unittest.TestCase):
 
     def test_multistateschemeconnectivity_init(self):
         """Test initialization of Connectivity"""
+        class MockObject(object):
+            pass
+        s1 = MockObject()
+        s2 = MockObject()
+        s1.name = 's1'
+        s2.name = 's2'
+
         mssc1 = ihm.multi_state_scheme.Connectivity(
-            begin_state='s1',
-            end_state='s2',
+            begin_state=s1,
+            end_state=s2,
             details='details1',
             dataset_group='dataset_group1',
             kinetic_rate='kinetic_rate1',
             relaxation_time='relaxation_time1')
-        self.assertEqual(mssc1.begin_state, 's1')
-        self.assertEqual(mssc1.end_state, 's2')
+        self.assertEqual(mssc1.begin_state, s1)
+        self.assertEqual(mssc1.end_state, s2)
         self.assertEqual(mssc1.details, 'details1')
         self.assertEqual(mssc1.dataset_group, 'dataset_group1')
         self.assertEqual(mssc1.kinetic_rate, 'kinetic_rate1')
@@ -215,32 +296,40 @@ class Tests(unittest.TestCase):
 
     def test_multistateschemeconnectivity_eq(self):
         """Test equality of Connectivity objects"""
+        class MockObject(object):
+            pass
+        s1 = MockObject()
+        s2 = MockObject()
+        s3 = MockObject()
+        s1.name = 's1'
+        s2.name = 's2'
+        s3.name = 's3'
         mssc_ref = ihm.multi_state_scheme.Connectivity(
-            begin_state='s1',
-            end_state='s2',
+            begin_state=s1,
+            end_state=s2,
             details='details1',
             dataset_group='dataset_group1',
             kinetic_rate='kinetic_rate1',
             relaxation_time='relaxation_time1')
 
         mssc_equal = ihm.multi_state_scheme.Connectivity(
-            begin_state='s1',
-            end_state='s2',
+            begin_state=s1,
+            end_state=s2,
             details='details1',
             dataset_group='dataset_group1',
             kinetic_rate='kinetic_rate1',
             relaxation_time='relaxation_time1')
 
         mssc_unequal1 = ihm.multi_state_scheme.Connectivity(
-            begin_state='s1',
-            end_state='s3',
+            begin_state=s1,
+            end_state=s3,
             details='details1',
             dataset_group='dataset_group1',
             kinetic_rate='kinetic_rate1',
             relaxation_time='relaxation_time1')
 
         mssc_unequal2 = ihm.multi_state_scheme.Connectivity(
-            begin_state='s1',
+            begin_state=s1,
             details='details1',
             dataset_group='dataset_group1',
             kinetic_rate='kinetic_rate1',

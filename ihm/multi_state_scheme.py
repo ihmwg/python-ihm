@@ -55,7 +55,7 @@ class MultiStateScheme(object):
             if not connectivity._assigned_to_scheme:
                 connectivity.set_assigned_to_scheme()
                 self._connectivity_list.append(connectivity)
-            # If the connectivity has beed assigned to another scheme,
+            # If the connectivity has been assigned to another scheme,
             # create a copy of the connectivity and use that
             else:
                 old_connectivity = connectivity
@@ -72,11 +72,41 @@ class MultiStateScheme(object):
                 self._connectivity_list.append(connectivity)
 
         # Add the states that belong to the connectivity
-        if connectivity.begin_state not in self._states:
-            self._states.append(connectivity.begin_state)
-        if (connectivity.end_state is not None) and \
-                (connectivity.end_state not in self._states):
-            self._states.append(connectivity.end_state)
+        self._add_state(connectivity.begin_state)
+        self._add_state(connectivity.end_state)
+
+    def _add_state(self, state):
+        """Add a state to the self._states list if it is not present yet.
+        This function checks whether the state has optional properties,
+        such as a name. If this is the case, the name is compared to the names
+        already in the list. If the state does not have a name, it might only
+        be a list of elements. Then only the contents of the list are checked
+        This is important for empty states, i.e. those that do not have
+        models associated.
+
+        :param state: The state to add.
+        :type state: :class:`ihm.model.State`
+        """
+        if state is None:
+            return
+        for tmp_state in self._states:
+            # Check whether both states have the name attributes
+            if hasattr(state, 'name') and hasattr(tmp_state, 'name'):
+                # compare the properties of the two states and the elements of
+                # the lists
+                if state.__dict__ == tmp_state.__dict__ \
+                        and state == tmp_state:
+                    # state found
+                    return
+            # If neither of the two states has the name attribute, only compare
+            # the elements of the lists
+            if not hasattr(state, 'name') and not hasattr(tmp_state, 'name'):
+                # If the two states have the same elements
+                if state == tmp_state:
+                    # state found
+                    return
+        # If the state was not found in the list yet, add it
+        self._states.append(state)
 
     def add_relaxation_time(self, relaxation_time):
         """Add a relaxation time to the scheme. This relaxation time is not
