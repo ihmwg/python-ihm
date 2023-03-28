@@ -4967,6 +4967,34 @@ _flr_relaxation_time_analysis.details
                                               'AUDIT_CONFORM']))
         self.assertNotIn('_ihm_struct_assembly', fh.getvalue())
 
+    def test_dumper_unwrapped(self):
+        """Test dumper output with line wrapping disabled"""
+        system = ihm.System()
+        system.software.append(ihm.Software(
+            name='long-software-name', classification='test code',
+            description='Some test program',
+            version=1, location='http://some-long-url.org'))
+        dumper = ihm.dumper._SoftwareDumper()
+        dumper.finalize(system)
+        try:
+            ihm.dumper.set_line_wrap(False)
+            out = _get_dumper_output(dumper, system)
+        finally:
+            ihm.dumper.set_line_wrap(True)
+        self.assertEqual(out, """#
+loop_
+_software.pdbx_ordinal
+_software.name
+_software.classification
+_software.description
+_software.version
+_software.type
+_software.location
+_software.citation_id
+1 long-software-name 'test code' 'Some test program' 1 program http://some-long-url.org .
+#
+""")  # noqa: E501
+
 
 if __name__ == '__main__':
     unittest.main()
