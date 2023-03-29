@@ -189,7 +189,7 @@ class _AuditAuthorDumper(Dumper):
         # If system.authors is empty, get the set of all citation authors
         # instead
         seen_authors = set()
-        # Only look at explictly-added citations (since these are likely to
+        # Only look at explicitly-added citations (since these are likely to
         # describe the modeling) not that describe a method or a piece of
         # software we used (system._all_citations())
         for c in system.citations:
