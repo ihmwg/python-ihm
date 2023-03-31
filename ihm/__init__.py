@@ -301,16 +301,22 @@ class System(object):
            by a State object; otherwise, also include ModelGroups referenced
            by an OrderedProcess or Ensemble."""
         # todo: raise an error if a modelgroup is present in multiple states
+        seen_model_groups = []
         for state_group in self.state_groups:
             for state in state_group:
                 for model_group in state:
+                    seen_model_groups.append(model_group)
                     yield model_group
         for mssc in self._all_multi_state_scheme_connectivities():
             for model_group in mssc.begin_state:
-                yield model_group
+                if model_group not in seen_model_groups:
+                    seen_model_groups.append(model_group)
+                    yield model_group
             if mssc.end_state:
                 for model_group in mssc.end_state:
-                    yield model_group
+                    if model_group not in seen_model_groups:
+                        seen_model_groups.append(model_group)
+                        yield model_group
         if not only_in_states:
             for ensemble in self.ensembles:
                 if ensemble.model_group:

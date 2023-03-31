@@ -550,9 +550,12 @@ class Tests(unittest.TestCase):
             end_state=state4)
         mssc2 = ihm.multi_state_scheme.Connectivity(
             begin_state=state5)
+        mssc3 = ihm.multi_state_scheme.Connectivity(
+            begin_state=state3,
+            end_state=state4)
         mss = ihm.multi_state_scheme.MultiStateScheme(
             name='mss',
-            connectivities=[mssc1, mssc2])
+            connectivities=[mssc1, mssc2, mssc3])
         s.multi_state_schemes.append(mss)
         mg = s._all_model_groups()
         self.assertEqual(list(mg), [model_group1, model_group2,
