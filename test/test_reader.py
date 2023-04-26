@@ -1381,7 +1381,7 @@ _ihm_modeling_post_process.software_id
 _ihm_modeling_post_process.script_file_id
 _ihm_modeling_post_process.details
 1  1   1   1   'filter'  'energy/score'  15000   6520 . . 401 501 .
-2  1   1   2   'cluster' 'dRMSD'         6520    6520 . . . . .
+2  1   1   2   'cluster' 'invalid'       6520    6520 . . . . .
 3  1   2   1   'filter'  'energy/score'  16000   7520 . . . . .
 4  1   2   2   'filter'  'composition'   7520    5520 . . . . .
 5  1   2   3   'cluster' 'dRMSD'         5520    6520 . . . . .
@@ -1407,7 +1407,8 @@ _ihm_modeling_post_process.details
             self.assertEqual(a1.steps[0].software._id, '401')
             self.assertEqual(a1.steps[0].script_file._id, '501')
             self.assertEqual(a1.steps[1].__class__, ihm.analysis.ClusterStep)
-            self.assertEqual(a1.steps[1].feature, 'dRMSD')
+            # invalid feature should be mapped to default
+            self.assertEqual(a1.steps[1].feature, 'other')
             self.assertEqual(a1.steps[1].num_models_begin, 6520)
             self.assertIsNone(a1.steps[1].software)
             self.assertIsNone(a1.steps[1].script_file)

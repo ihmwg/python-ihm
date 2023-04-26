@@ -1699,7 +1699,11 @@ class _PostProcessHandler(Handler):
             step.software = self.sysr.software.get_by_id_or_none(software_id)
             step.script_file = self.sysr.external_files.get_by_id_or_none(
                 script_file_id)
-            self.copy_if_present(step, locals(), keys=['feature'])
+            # Default to "other" if invalid method/feature read
+            try:
+                self.copy_if_present(step, locals(), keys=['feature'])
+            except ValueError:
+                step.feature = "other"
 
 
 class _ModelListHandler(Handler):
