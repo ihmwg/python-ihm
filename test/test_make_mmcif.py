@@ -26,6 +26,19 @@ class Tests(unittest.TestCase):
         os.unlink('output.cif')
 
     @unittest.skipIf(sys.version_info[0] < 3, "make-mmcif.py needs Python 3")
+    def test_non_default_output(self):
+        """Simple test of make-mmcif with non-default output name"""
+        incif = utils.get_input_file_name(TOPDIR, 'struct_only.cif')
+        subprocess.check_call([sys.executable, MAKE_MMCIF, incif,
+                               'non-default-output.cif'])
+        with open('non-default-output.cif') as fh:
+            s, = ihm.reader.read(fh)
+        self.assertEqual(s.title,
+                         'Architecture of Pol II(G) and molecular mechanism '
+                         'of transcription regulation by Gdown1')
+        os.unlink('non-default-output.cif')
+
+    @unittest.skipIf(sys.version_info[0] < 3, "make-mmcif.py needs Python 3")
     def test_no_title(self):
         """Check that make-mmcif adds missing title"""
         incif = utils.get_input_file_name(TOPDIR, 'no_title.cif')
