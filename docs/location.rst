@@ -22,6 +22,9 @@ The :mod:`ihm.location` Python module
 .. autoclass:: PDBDevLocation
    :members:
 
+.. autoclass:: ModelArchiveLocation
+   :members:
+
 .. autoclass:: BMRBLocation
    :members:
 

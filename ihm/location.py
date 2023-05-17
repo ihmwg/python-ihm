@@ -110,6 +110,17 @@ class PDBDevLocation(DatabaseLocation):
                                              version, details)
 
 
+class ModelArchiveLocation(DatabaseLocation):
+    """Something stored in Model Archive.
+       See :class:`DatabaseLocation` for a description of the parameters
+       and :class:`Location` for discussion of the usage of these objects."""
+    _db_name = 'MODEL ARCHIVE'
+
+    def __init__(self, db_code, version=None, details=None):
+        super(ModelArchiveLocation, self).__init__(self._db_name, db_code,
+                                                   version, details)
+
+
 class BMRBLocation(DatabaseLocation):
     """Something stored in the BMRB database.
        See :class:`DatabaseLocation` for a description of the parameters

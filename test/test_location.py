@@ -47,6 +47,15 @@ class Tests(unittest.TestCase):
         self.assertEqual(loc.version, 'foo')
         self.assertEqual(loc.details, 'bar')
 
+    def test_model_archive_location(self):
+        """Test ModelArchiveLocation"""
+        loc = ihm.location.ModelArchiveLocation(
+            'ma-bak-cepc-0250', version='foo', details='bar')
+        self.assertEqual(loc.db_name, 'MODEL ARCHIVE')
+        self.assertEqual(loc.access_code, 'ma-bak-cepc-0250')
+        self.assertEqual(loc.version, 'foo')
+        self.assertEqual(loc.details, 'bar')
+
     def test_bmrb_location(self):
         """Test BMRBLocation"""
         loc = ihm.location.BMRBLocation('27600', version='foo', details='bar')
