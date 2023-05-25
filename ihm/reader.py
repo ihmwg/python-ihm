@@ -2586,7 +2586,7 @@ class _CrossLinkRestraintHandler(Handler):
     def __call__(self, model_granularity, id, group_id, asym_id_1, asym_id_2,
                  restraint_type, distance_threshold,
                  conditional_crosslink_flag, atom_id_1, atom_id_2, psi,
-                 sigma_1, sigma_2):
+                 sigma_1, sigma_2, comp_id_1, comp_id_2, seq_id_1, seq_id_2):
         typ = (model_granularity or 'other').lower()
         xl = self.sysr.cross_links.get_by_id(
             id, self._type_map.get(typ, ihm.restraint.ResidueCrossLink))
@@ -2605,6 +2605,12 @@ class _CrossLinkRestraintHandler(Handler):
         xl.psi = self.get_float(psi)
         xl.sigma1 = self.get_float(sigma_1)
         xl.sigma2 = self.get_float(sigma_2)
+        xl.id = self.get_int(id)
+        xl.group_id = self.get_int(group_id)
+        xl.seq1 = self.get_int(seq_id_1)
+        xl.seq2 = self.get_int(seq_id_2)
+        xl.comp1 = comp_id_1
+        xl.comp2 = comp_id_2
 
     def finalize(self):
         # Put each cross link in the restraint that owns its experimental xl
