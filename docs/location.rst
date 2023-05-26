@@ -49,6 +49,12 @@ The :mod:`ihm.location` Python module
 .. autoclass:: ProXLLocation
    :members:
 
+.. autoclass:: IProXLocation
+   :members:
+
+.. autoclass:: AlphaFoldDBLocation
+   :members:
+
 .. autoclass:: FileLocation
    :members:
 

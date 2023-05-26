@@ -209,6 +209,28 @@ class ProXLLocation(DatabaseLocation):
                                             details)
 
 
+class IProXLocation(DatabaseLocation):
+    """Something stored in the iProX database.
+       See :class:`DatabaseLocation` for a description of the parameters
+       and :class:`Location` for discussion of the usage of these objects."""
+    _db_name = 'iProX'
+
+    def __init__(self, db_code, version=None, details=None):
+        super(IProXLocation, self).__init__(self._db_name, db_code, version,
+                                            details)
+
+
+class AlphaFoldDBLocation(DatabaseLocation):
+    """Something stored in the AlphaFoldDB database.
+       See :class:`DatabaseLocation` for a description of the parameters
+       and :class:`Location` for discussion of the usage of these objects."""
+    _db_name = 'AlphaFoldDB'
+
+    def __init__(self, db_code, version=None, details=None):
+        super(AlphaFoldDBLocation, self).__init__(
+            self._db_name, db_code, version, details)
+
+
 class FileLocation(Location):
     """Base class for an individual file or directory stored externally.
 

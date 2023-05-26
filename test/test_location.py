@@ -97,6 +97,22 @@ class Tests(unittest.TestCase):
         self.assertEqual(d.version, 1)
         self.assertEqual(d.details, 'foo')
 
+    def test_iprox_location(self):
+        """Test IProXLocation class"""
+        d = ihm.location.IProXLocation('abc', version=1, details='foo')
+        self.assertEqual(d.db_name, 'iProX')
+        self.assertEqual(d.access_code, 'abc')
+        self.assertEqual(d.version, 1)
+        self.assertEqual(d.details, 'foo')
+
+    def test_alpha_fold_db_location(self):
+        """Test AlphaFoldDBLocation class"""
+        d = ihm.location.AlphaFoldDBLocation('abc', version=1, details='foo')
+        self.assertEqual(d.db_name, 'AlphaFoldDB')
+        self.assertEqual(d.access_code, 'abc')
+        self.assertEqual(d.version, 1)
+        self.assertEqual(d.details, 'foo')
+
     def test_empiar_location(self):
         """Test EMPIARLocation class"""
         d = ihm.location.EMPIARLocation('abc', version=1, details='foo')
