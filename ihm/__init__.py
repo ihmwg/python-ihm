@@ -1105,6 +1105,12 @@ class Residue(object):
                         doc="Insertion code; only makes sense "
                             "for asymmetric units")
 
+    def _get_comp(self):
+        entity = self.entity or self.asym.entity
+        return entity.sequence[self.seq_id - 1]
+    comp = property(_get_comp,
+                    doc="Chemical component (residue type)")
+
     # Allow passing residues where a range is requested
     # (e.g. to ResidueFeature)
     seq_id_range = property(lambda self: (self.seq_id, self.seq_id))
