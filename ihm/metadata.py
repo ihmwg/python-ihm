@@ -213,7 +213,7 @@ class PDBParser(Parser):
        some custom headers that can be used to indicate that a file has been
        locally modified in some way.
 
-       See also :class:`CifParser` for coordinate files in mmCIF format.
+       See also :class:`CIFParser` for coordinate files in mmCIF format.
     """
 
     def parse_file(self, filename):
@@ -638,7 +638,7 @@ class _AuditRevHistHandler(ihm.reader.Handler):
         self.m['version'] = revision_date
 
 
-class CifParser(Parser):
+class CIFParser(Parser):
     """Extract metadata from an mmCIF file. Currently, this does not handle
        information from comparative modeling packages such as MODELLER
        (see :class:`PDBParser`).

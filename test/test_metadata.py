@@ -417,11 +417,11 @@ class Tests(unittest.TestCase):
                           'AAAA', '----')
 
     def _parse_cif(self, fname):
-        p = ihm.metadata.CifParser()
+        p = ihm.metadata.CIFParser()
         return p.parse_file(fname)
 
     def test_cif_official_pdb(self):
-        """Test CifParser when given an mmCIF in the official PDB database"""
+        """Test CIFParser when given an mmCIF in the official PDB database"""
         p = self._parse_cif(utils.get_input_file_name(TOPDIR, 'official.cif'))
         dataset = p['dataset']
         self.assertEqual(dataset.data_type, 'Experimental model')
@@ -434,7 +434,7 @@ class Tests(unittest.TestCase):
                          'site and the HRDC domain')
 
     def test_cif_model_archive(self):
-        """Test CifParser when given an mmCIF in Model Archive"""
+        """Test CIFParser when given an mmCIF in Model Archive"""
         p = self._parse_cif(utils.get_input_file_name(TOPDIR,
                                                       'modarchive.cif'))
         dataset = p['dataset']
@@ -446,7 +446,7 @@ class Tests(unittest.TestCase):
                          'Predicted interaction between CWP1 and IKI1')
 
     def test_cif_unknown(self):
-        """Test CifParser when given an mmCIF not in a database"""
+        """Test CIFParser when given an mmCIF not in a database"""
         fname = utils.get_input_file_name(TOPDIR, 'unknown_model.cif')
         p = self._parse_cif(fname)
         dataset = p['dataset']

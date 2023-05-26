@@ -16,5 +16,5 @@ The :mod:`ihm.metadata` Python module
 .. autoclass:: PDBParser
    :members:
 
-.. autoclass:: CifParser
+.. autoclass:: CIFParser
    :members:
