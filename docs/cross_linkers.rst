@@ -49,3 +49,8 @@ The :mod:`ihm.cross_linkers` Python module
    SDA (NHS-Diazirine) (succinimidyl 4,4′-azipentanoate) cross-linker that
    links primary amines with nearly any other functional group via
    long-wave UV-light activation.
+
+.. data:: photo_leucine
+
+   L-photo-leucine. Non-canonical amino acid incorporated at leucine positions that links leucine to any other functional group via long-wave UV-light activation.
+   ` Suchanek et al, 2005 https://doi.org/10.1038/nmeth752`_.
