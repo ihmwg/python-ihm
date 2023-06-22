@@ -66,7 +66,7 @@ sda = ihm.ChemDescriptor(
     inchi_key=' SYYLQNPWAPHRFV-UHFFFAOYSA-N')
 
 photo_leucine = ihm.ChemDescriptor(
-    'photoL', chemical_name="L-Photo-Leucine",
+    'photo_leucine', chemical_name="L-Photo-Leucine",
     smiles="CC1(C[C@H](N)C(O)=O)N=N1",
     inchi="1S/C5H9N3O2/c1-5(7-8-5)2-3(6)4(9)10/h3H,2,6H2,1H3,(H,9,10)/t3-/m0/s1",
     inchi_key="MJRDGTVDJKACQZ-VKHMYHEASA-N")
