@@ -52,22 +52,28 @@ The :mod:`ihm.cross_linkers` Python module
 
 .. data:: photo_leucine
 
-   L-photo-leucine. Non-canonical amino acid incorporated at leucine positions that links leucine to any other functional group via long-wave UV-light activation.
+   L-photo-leucine. Non-canonical amino acid incorporated at leucine
+   positions that links leucine to any other functional group via long-wave
+   UV-light activation.
    ` Suchanek et al, 2005 https://doi.org/10.1038/nmeth752`_.
 
 .. data:: dsbu
 
-    dsbu (disuccinimidyl dibutyric urea) cross-linker that links a primary amine with another primary amine
-   (non-water-soluble). Cleavable in the gas phase using collision-induced dissociation.
+   dsbu (disuccinimidyl dibutyric urea) cross-linker that links a primary
+   amine with another primary amine (non-water-soluble).
+   Cleavable in the gas phase using collision-induced dissociation.
    ` Müller et al, 2011 https://doi.org/10.1021/ac101241t`_.
 
 
 .. data:: PhoX
 
-    PhoX cross-linker that links a primary amine with another primary amine. The spacer group contains a phophonate group, making the cross-linker IMAC-enrichable. Also known by the name DSPP.
+   PhoX cross-linker that links a primary amine with another primary amine.
+   The spacer group contains a phophonate group, making the cross-linker
+   IMAC-enrichable. Also known by the name DSPP.
    ` Steigenberger et al, 2019 https://doi.org/10.1021/acscentsci.9b00416`_.
 
 .. data:: tBu-PhoX
 
-    tert-butyl PhoX cross-linker. Similar to PhoX, but containing a tert-butyl group that renders the cross-linker cell pearmable.
+   Tert-butyl PhoX cross-linker. Similar to PhoX, but containing a tert-butyl
+   group that renders the cross-linker cell pearmable.
    ` Jiang et al, 2021 https://doi.org/10.1002/anie.202113937`_.

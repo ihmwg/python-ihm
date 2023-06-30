@@ -66,25 +66,24 @@ sda = ihm.ChemDescriptor(
     inchi_key=' SYYLQNPWAPHRFV-UHFFFAOYSA-N')
 
 photo_leucine = ihm.ChemDescriptor(
-    'photo_leucine', chemical_name='L-Photo-Leucine',
+    'L-Photo-Leucine', chemical_name='L-Photo-Leucine',
     smiles='CC1(C[C@H](N)C(O)=O)N=N1',
-    inchi='1S/C5H9N3O2/c1-5(7-8-5)2-3(6)4(9)10/h3H,2,6H2,1H3,(H,9,10)/t3-/m0/s1',
+    inchi='1S/C5H9N3O2/c1-5(7-8-5)'
+          '2-3(6)4(9)10/h3H,2,6H2,1H3,(H,9,10)/t3-/m0/s1',
     inchi_key='MJRDGTVDJKACQZ-VKHMYHEASA-N')
 
 dsbu = ihm.ChemDescriptor(
     'DSBU', chemical_name='disuccinimidyl dibutyric urea',
     smiles='O=C(NCCCC(=O)ON1C(=O)CCC1=O)NCCCC(=O)ON2C(=O)CCC2=O',
-    inchi='S/C17H22N4O9/c22-11-5-6-12(23)20(11)29-15(26)3-1-9-18-17(28)19-10-2-4-16(27)30-21-13(24)7-8-14(21)25/h1-10H2,(H2,18,19,28)',
+    inchi='S/C17H22N4O9/c22-11-5-6-12(23)20(11)29-15(26)'
+          '3-1-9-18-17(28)19-10-2-4-16(27)30-21-13(24)7-8-14(21)'
+          '25/h1-10H2,(H2,18,19,28)',
     inchi_key='XZSQCCZQFXUQCY-UHFFFAOYSA-N')
 
 phoX = ihm.ChemDescriptor(
-    'PhoX', chemical_name='(3,5-bis(((2,5-dioxopyrrolidin-1-yl)oxy) carbonyl)phenyl)phosphonic acid',
-    smiles='',
-    inchi='',
-    inchi_key='')
+    'PhoX', chemical_name='(3,5-bis(((2,5-dioxopyrrolidin-1-yl)oxy)'
+                          'carbonyl) phenyl)phosphonic acid')
 
 tbuphoX = ihm.ChemDescriptor(
-    'tBu-PhoX', chemical_name='tert-butyl disuccinimidyl phenyl phosphonate, tBu-PhoX',
-    smiles='',
-    inchi='',
-    inchi_key='')
+    'tBu-PhoX', chemical_name='tert-butyl disuccinimidyl'
+                              'phenyl phosphonate, tBu-PhoX')
