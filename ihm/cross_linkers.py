@@ -81,9 +81,9 @@ dsbu = ihm.ChemDescriptor(
     inchi_key='XZSQCCZQFXUQCY-UHFFFAOYSA-N')
 
 phoX = ihm.ChemDescriptor(
-    'PhoX', chemical_name='(3,5-bis(((2,5-dioxopyrrolidin-1-yl)oxy)'
+    'DSPP', chemical_name='(3,5-bis(((2,5-dioxopyrrolidin-1-yl)oxy)'
                           'carbonyl) phenyl)phosphonic acid')
 
 tbuphoX = ihm.ChemDescriptor(
-    'tBu-PhoX', chemical_name='tert-butyl disuccinimidyl'
-                              'phenyl phosphonate, tBu-PhoX')
+    'TBDSPP', chemical_name='tert-butyl disuccinimidyl'
+                            'phenyl phosphonate, tBu-PhoX')
