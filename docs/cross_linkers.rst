@@ -65,14 +65,14 @@ The :mod:`ihm.cross_linkers` Python module
    ` Müller et al, 2011 https://doi.org/10.1021/ac101241t`_.
 
 
-.. data:: PhoX
+.. data:: phoX
 
    PhoX cross-linker that links a primary amine with another primary amine.
    The spacer group contains a phophonate group, making the cross-linker
    IMAC-enrichable. Also known by the name DSPP.
    ` Steigenberger et al, 2019 https://doi.org/10.1021/acscentsci.9b00416`_.
 
-.. data:: tBu-PhoX
+.. data:: tbuphoX
 
    Tert-butyl PhoX cross-linker. Similar to PhoX, but containing a tert-butyl
    group that renders the cross-linker cell pearmable.
