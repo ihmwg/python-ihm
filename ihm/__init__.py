@@ -575,7 +575,7 @@ class Software(object):
     """Software used as part of the modeling protocol.
 
        :param str name: The name of the software.
-       :param str classification: The major function of the sofware, for
+       :param str classification: The major function of the software, for
               example 'model building', 'sample preparation',
               'data collection'.
        :param str description: A longer text description of the software.
