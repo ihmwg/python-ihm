@@ -9,6 +9,7 @@
 # - Make release on GitHub
 # - Upload the release tarball from
 #   https://github.com/ihmwg/python-ihm/releases to Zenodo as a new release
+# - Build SRPM and upload to COPR
 # - Make sure there are no extraneous .py files (setup.py will include them
 #   in the pypi package)
 
