@@ -1,5 +1,5 @@
-HEAD
-====
+0.39 - 2023-08-04
+=================
   - :class:`ihm.location.DatabaseLocation` no longer accepts a ``db_name``
     parameter. Derived classes (such as :class:`ihm.location.PDBLocation`)
     should be used instead; the base class should only be used for "other"
