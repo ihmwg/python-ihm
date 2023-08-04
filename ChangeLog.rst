@@ -4,6 +4,9 @@ HEAD
     parameter. Derived classes (such as :class:`ihm.location.PDBLocation`)
     should be used instead; the base class should only be used for "other"
     databases that are not described in the IHM dictionary (#116).
+  - Bugfix: AlphaFold models in PDB format are no longer categorized by
+    :class:`ihm.metadata.PDBParser` as being deposited in the PDB database
+    with an empty accession code.
 
 0.38 - 2023-05-26
 =================
