@@ -8,6 +8,12 @@ Packager:      Ben Webb <ben@salilab.org>
 URL:           https://pypi.python.org/pypi/ihm
 Source:        ihm-%{version}.tar.gz
 BuildRequires: python3-devel, python3-setuptools, gcc
+%if 0%{?rhel} != 7
+BuildRequires: python3-msgpack
+Requires: python3-msgpack
+%else
+BuildRequires: sed
+%endif
 
 %description
 This is a Python package to assist in handling mmCIF and BinaryCIF files
@@ -16,6 +22,9 @@ with Python 2.7 or Python 3.
 
 %prep
 %setup -n ihm-%{version}
+%if 0%{?rhel} == 7
+sed -i -e "s/install_requires=\['msgpack'\]/#/" setup.py
+%endif
 
 %build
 %{__python3} setup.py install --root=${RPM_BUILD_ROOT} --record=INSTALLED_FILES
