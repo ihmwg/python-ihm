@@ -20,6 +20,9 @@ with Python 2.7 or Python 3.
 %build
 %{__python3} setup.py install --root=${RPM_BUILD_ROOT} --record=INSTALLED_FILES
 
+%check
+%{__python3} setup.py test
+
 %files -f INSTALLED_FILES
 %defattr(-,root,root)
 
