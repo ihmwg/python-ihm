@@ -272,6 +272,19 @@ class System(object):
             if isinstance(loc, ihm.location.FileLocation):
                 ihm.location.Repository._update_in_repos(loc, repos)
 
+    def report(self, fh=sys.stdout):
+        """Print a summary report of this system. This can be used to
+           more easily spot errors or inconsistencies. It will also warn
+           about missing data that may not be technically required for a
+           compliant mmCIF file, but is usually expected to be present.
+
+           :param file fh: The file handle to print the report to, if not
+                  standard output.
+        """
+        import ihm.report
+        r = ihm.report.Reporter(self, fh)
+        r.report()
+
     def _all_restraints(self):
         """Iterate over all Restraints in the system.
            Duplicates may be present."""
@@ -600,6 +613,9 @@ class Software(object):
         self.type = type
         self.version = version
         self.citation = citation
+
+    def __str__(self):
+        return "<ihm.Software(%s)>" % repr(self.name)
 
     # Software compares equal if the names and versions are the same
     def _eq_vals(self):
