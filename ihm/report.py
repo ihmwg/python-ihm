@@ -1,5 +1,6 @@
 """Helper classes to provide a summary report of an :class:`ihm.System`"""
 
+from __future__ import print_function
 import ihm
 import sys
 import warnings
