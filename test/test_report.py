@@ -27,6 +27,9 @@ class Tests(unittest.TestCase):
         sio = StringIO()
         s = ihm.System(title='test system')
         e = ihm.Entity("ACG")
+        a = ihm.AsymUnit(e, "my asym")
+        a.id = 'A'
+        s.asym_units.append(a)
         s.entities.append(e)
         r = ihm.report.Reporter(s, sio)
         # Should warn about missing references
