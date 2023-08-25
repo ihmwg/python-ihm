@@ -12,6 +12,7 @@ utils.set_search_paths(TOPDIR)
 import ihm
 import ihm.report
 import ihm.reference
+import ihm.location
 
 
 class Tests(unittest.TestCase):
@@ -72,6 +73,41 @@ class Tests(unittest.TestCase):
                          authors=["foo", "bar"], doi="test")
         soft.citation = c
         r.report_software()
+
+    def test_databases(self):
+        """Test report_databases"""
+        sio = StringIO()
+        s = ihm.System(title='test system')
+        s.locations.append(
+            ihm.location.BMRBLocation('27600', version='foo', details='bar'))
+        s.locations.append(
+            ihm.location.FileLocation(repo='mydoi', path='a'))
+        r = ihm.report.Reporter(s, sio)
+        r.report_databases()
+
+    def test_files(self):
+        """Test report_files"""
+        sio = StringIO()
+        s = ihm.System(title='test system')
+        repo = ihm.location.Repository(doi='1.2.3.4')
+        s.locations.append(
+            ihm.location.BMRBLocation('27600', version='foo', details='bar'))
+        s.locations.append(
+            ihm.location.FileLocation(repo=repo, path='a'))
+        r = ihm.report.Reporter(s, sio)
+        r.report_files()
+
+    def test_files_local(self):
+        """Test report_files with local files"""
+        sio = StringIO()
+        s = ihm.System(title='test system')
+        s.locations.append(
+            ihm.location.BMRBLocation('27600', version='foo', details='bar'))
+        s.locations.append(
+            ihm.location.FileLocation(repo=None, path='.'))
+        r = ihm.report.Reporter(s, sio)
+        # Should warn about local files
+        self.assertWarns(ihm.report.LocalFilesWarning, r.report_files)
 
 
 if __name__ == '__main__':

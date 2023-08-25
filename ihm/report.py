@@ -11,6 +11,10 @@ class MissingDataWarning(UserWarning):
     pass
 
 
+class LocalFilesWarning(UserWarning):
+    pass
+
+
 class _SectionReporter(object):
     def __init__(self, title, fh):
         self.fh = fh
@@ -29,6 +33,8 @@ class Reporter(object):
         print("Title: %s" % self.system.title, file=self.fh)
         self.report_entities()
         self.report_asyms()
+        self.report_databases()
+        self.report_files()
         self.report_citations()
         self.report_software()
 
@@ -69,3 +75,26 @@ class Reporter(object):
             if not s.citation:
                 warnings.warn(
                     "No citation provided for %s" % s, MissingDataWarning)
+
+    def report_databases(self):
+        r = self._section("External databases referenced")
+        for loc in ihm._remove_identical(self.system._all_locations()):
+            if isinstance(loc, ihm.location.DatabaseLocation):
+                r.report(" - %s accession %s"
+                         % (loc.db_name, loc.access_code))
+
+    def report_files(self):
+        r = self._section("Additional files referenced")
+        locs_by_repo = collections.defaultdict(list)
+        for loc in ihm._remove_identical(self.system._all_locations()):
+            if not isinstance(loc, ihm.location.DatabaseLocation):
+                locs_by_repo[loc.repo].append(loc)
+        for repo, locs in locs_by_repo.items():
+            r.report("- %s" % ("DOI: " + repo.doi if repo else "Local files"))
+            for loc in locs:
+                r.report("  - %r, %s" % (loc.path, loc.details))
+        if None in locs_by_repo:
+            warnings.warn(
+                "The following local files are referenced (they will need to "
+                "be deposited in a database or with a DOI): %s"
+                % [loc.path for loc in locs_by_repo[None]], LocalFilesWarning)
