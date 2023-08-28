@@ -36,6 +36,20 @@ class Tests(unittest.TestCase):
         self.assertEqual(s.rigid, True)
         self.assertEqual(s._get_report(), "testdetail 1-4 as rigid residues")
 
+    def test_residue_segment_starting_model(self):
+        """Test ResidueSegment class with starting model"""
+        class MockObject(object):
+            pass
+        asym = ihm.AsymUnit(ihm.Entity('AA'), "testdetail")
+        sm = MockObject()
+        sm._id = '42'
+        s = ihm.representation.ResidueSegment(
+            asym_unit=asym, rigid=False, primitive='sphere',
+            starting_model=sm)
+        self.assertEqual(
+            s._get_report(),
+            "testdetail 1-2 as flexible residues (from starting model 42)")
+
     def test_multi_residue_segment(self):
         """Test MultiResidueSegment class"""
         asym = ihm.AsymUnit(ihm.Entity('AAAA'))

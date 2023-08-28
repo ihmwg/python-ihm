@@ -1,6 +1,12 @@
 """Classes for handling representation of the system during modeling.
 """
 
+def _starting_model_report(seg):
+    if seg.starting_model:
+        return " (from starting model %s)" % seg.starting_model._id
+    else:
+        return ""
+
 
 class Segment(object):
     """Base class for part of a :class:`Representation`.
@@ -64,7 +70,7 @@ class ResidueSegment(Segment):
         return ("%s %d-%d as %s residues%s"
                 % (asym.details, asym.seq_id_range[0], asym.seq_id_range[1],
                    "rigid" if self.rigid else "flexible",
-                   " (from starting model)" if self.starting_model else ""))
+                   _starting_model_report(self)))
 
     def __init__(self, asym_unit, rigid, primitive, starting_model=None,
                  description=None):
@@ -128,7 +134,7 @@ class FeatureSegment(Segment):
                 % (asym.details, asym.seq_id_range[0], asym.seq_id_range[1],
                    self.count, "rigid" if self.rigid else "flexible",
                    "" if self.count == 1 else "s", self.primitive,
-                   " (from starting model)" if self.starting_model else ""))
+                   _starting_model_report(self)))
 
     def __init__(self, asym_unit, rigid, primitive, count, starting_model=None,
                  description=None):
