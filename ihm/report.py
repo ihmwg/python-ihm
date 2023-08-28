@@ -38,6 +38,7 @@ class Reporter(object):
         self.report_files()
         self.report_citations()
         self.report_software()
+        self.report_protocols()
 
     def _section(self, title):
         return _SectionReporter(title, self.fh)
@@ -106,3 +107,14 @@ class Reporter(object):
             r.report("- Representation %s" % rep._id)
             for segment in rep:
                 r.report("  - " + segment._get_report())
+
+    def report_protocols(self):
+        r = self._section("Modeling protocols")
+        for prot in self.system._all_protocols():
+            r.report("- " + (prot.name if prot.name else "Unnamed protocol"))
+            for step in prot.steps:
+                r.report("  - " + step._get_report())
+            for analysis in prot.analyses:
+                r.report("  - Analysis")
+                for step in analysis.steps:
+                    r.report("    - " + step._get_report())

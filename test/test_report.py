@@ -14,6 +14,8 @@ import ihm.report
 import ihm.reference
 import ihm.location
 import ihm.representation
+import ihm.protocol
+import ihm.analysis
 
 
 class Tests(unittest.TestCase):
@@ -132,6 +134,22 @@ class Tests(unittest.TestCase):
         r = ihm.report.Reporter(s, sio)
         # Should warn about local files
         self.assertWarns(ihm.report.LocalFilesWarning, r.report_files)
+
+    def test_protocols(self):
+        """Test report_protocols"""
+        sio = StringIO()
+        s = ihm.System(title='test system')
+        prot = ihm.protocol.Protocol(name='foo')
+        prot.steps.append(ihm.protocol.Step(
+            assembly='foo', dataset_group='bar',
+            method='baz', num_models_begin=0, num_models_end=42))
+        analysis = ihm.analysis.Analysis()
+        analysis.steps.append(ihm.analysis.ClusterStep(
+            feature='RMSD', num_models_begin=42, num_models_end=5))
+        prot.analyses.append(analysis)
+        s.orphan_protocols.append(prot)
+        r = ihm.report.Reporter(s, sio)
+        r.report_protocols()
 
 
 if __name__ == '__main__':
