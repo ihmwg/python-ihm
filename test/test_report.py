@@ -13,6 +13,7 @@ import ihm
 import ihm.report
 import ihm.reference
 import ihm.location
+import ihm.representation
 
 
 class Tests(unittest.TestCase):
@@ -49,6 +50,26 @@ class Tests(unittest.TestCase):
         s.asym_units.append(a)
         r = ihm.report.Reporter(s, sio)
         r.report_asyms()
+
+    def test_representations(self):
+        """Test report_representations"""
+        sio = StringIO()
+        s = ihm.System(title='test system')
+        e = ihm.Entity("ACGT")
+        s.entities.append(e)
+        a = ihm.AsymUnit(e, "my asym")
+        s.asym_units.append(a)
+        s1 = ihm.representation.ResidueSegment(
+            a(1, 2), starting_model=None,
+            rigid=False, primitive='sphere')
+        s2 = ihm.representation.FeatureSegment(
+            a(3, 4), starting_model=None,
+            rigid=True, primitive='other', count=3)
+        r1 = ihm.representation.Representation((s1, s2), name='foo')
+        r1._id = '1'
+        s.orphan_representations.append(r1)
+        r = ihm.report.Reporter(s, sio)
+        r.report_representations()
 
     def test_citations(self):
         """Test report_citations"""

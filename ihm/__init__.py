@@ -1297,6 +1297,7 @@ class AsymUnitRange(object):
     _id = property(lambda self: self.asym._id)
     _ordinal = property(lambda self: self.asym._ordinal)
     entity = property(lambda self: self.asym.entity)
+    details = property(lambda self: self.asym.details)
 
 
 class AsymUnitSegment(object):

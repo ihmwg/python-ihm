@@ -33,6 +33,7 @@ class Reporter(object):
         print("Title: %s" % self.system.title, file=self.fh)
         self.report_entities()
         self.report_asyms()
+        self.report_representations()
         self.report_databases()
         self.report_files()
         self.report_citations()
@@ -98,3 +99,10 @@ class Reporter(object):
                 "The following local files are referenced (they will need to "
                 "be deposited in a database or with a DOI): %s"
                 % [loc.path for loc in locs_by_repo[None]], LocalFilesWarning)
+
+    def report_representations(self):
+        r = self._section("Model representation")
+        for rep in self.system._all_representations():
+            r.report("- Representation %s" % rep._id)
+            for segment in rep:
+                r.report("  - " + segment._get_report())
