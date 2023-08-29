@@ -87,7 +87,7 @@ class MRCParser(Parser):
                 label = fh.read(80).strip()
                 m = r.search(label)
                 if m:
-                    if sys.version_info[0] < 3:
+                    if sys.version_info[0] < 3:    # pragma: no cover
                         return m.group(1)
                     else:
                         return m.group(1).decode('ascii')
