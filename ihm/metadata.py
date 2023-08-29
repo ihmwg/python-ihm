@@ -30,7 +30,7 @@ import re
 try:
     import urllib.request
     import urllib.error
-except ImportError:
+except ImportError:    # pragma: no cover
     class MockUrlLib(object):
         pass
     urllib = MockUrlLib()
@@ -139,7 +139,7 @@ class _ParsedEMDBLocation(location.EMDBLocation):
         info = contents[keys[0]][0]['deposition']
         # JSON values are always Unicode, but on Python 2 we want non-Unicode
         # strings, so convert to ASCII
-        if sys.version_info[0] < 3:
+        if sys.version_info[0] < 3:    # pragma: no cover
             self.__emdb_info = [info['map_release_date'].encode('ascii'),
                                 info['title'].encode('ascii')]
         else:

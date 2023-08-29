@@ -15,7 +15,7 @@ import sys
 # Handle different naming of urllib in Python 2/3
 try:
     import urllib.request as urllib2
-except ImportError:
+except ImportError:    # pragma: no cover
     import urllib2
 import json
 from . import util
@@ -707,7 +707,7 @@ class Citation(object):
         if sys.version_info[0] < 3:
             def enc(s):
                 return s.encode('ascii')
-        else:
+        else:    # pragma: no cover
             def enc(s):
                 return s
 

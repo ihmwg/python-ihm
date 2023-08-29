@@ -3,7 +3,7 @@
 # Handle different naming of urllib in Python 2/3
 try:
     import urllib.request as urlreq
-except ImportError:
+except ImportError:    # pragma: no cover
     import urllib2
     import contextlib
 
