@@ -704,10 +704,10 @@ class Citation(object):
             return rng
         # JSON values are always Unicode, but on Python 2 we want non-Unicode
         # strings, so convert to ASCII
-        if sys.version_info[0] < 3:
+        if sys.version_info[0] < 3:    # pragma: no cover
             def enc(s):
                 return s.encode('ascii')
-        else:    # pragma: no cover
+        else:
             def enc(s):
                 return s
 
