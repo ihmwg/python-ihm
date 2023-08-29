@@ -39,6 +39,7 @@ class Reporter(object):
         self.report_citations()
         self.report_software()
         self.report_protocols()
+        self.report_restraints()
 
     def _section(self, title):
         return _SectionReporter(title, self.fh)
@@ -118,3 +119,8 @@ class Reporter(object):
                 r.report("  - Analysis")
                 for step in analysis.steps:
                     r.report("    - " + step._get_report())
+
+    def report_restraints(self):
+        r = self._section("Restraints")
+        for rsr in ihm._remove_identical(self.system._all_restraints()):
+            r.report("- " + rsr._get_report())

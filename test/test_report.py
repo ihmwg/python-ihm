@@ -16,6 +16,8 @@ import ihm.location
 import ihm.representation
 import ihm.protocol
 import ihm.analysis
+import ihm.restraint
+import ihm.geometry
 
 
 class Tests(unittest.TestCase):
@@ -150,6 +152,19 @@ class Tests(unittest.TestCase):
         s.orphan_protocols.append(prot)
         r = ihm.report.Reporter(s, sio)
         r.report_protocols()
+
+    def test_restraints(self):
+        """Test report_restraints"""
+        sio = StringIO()
+        s = ihm.System(title='test system')
+        dist = ihm.restraint.UpperBoundDistanceRestraint(42.0)
+        geom = ihm.geometry.XAxis(name='foo', description='bar')
+        rsr = ihm.restraint.GeometricRestraint(
+            dataset='foo', geometric_object=geom, feature='feat',
+            distance=dist)
+        s.restraints.append(rsr)
+        r = ihm.report.Reporter(s, sio)
+        r.report_restraints()
 
 
 if __name__ == '__main__':
