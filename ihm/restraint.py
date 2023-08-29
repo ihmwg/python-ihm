@@ -69,6 +69,12 @@ class EM3DRestraint(Restraint):
        :param str details: Additional details regarding the fitting.
     """
 
+    def _get_report(self):
+        ret = "Fit to 3D electron microscopy density map"
+        if self.fitting_method:
+            ret += " using " + self.fitting_method
+        return ret
+
     def __init__(self, dataset, assembly, segment=None, fitting_method=None,
                  fitting_method_citation=None, number_of_gaussians=None,
                  details=None):
