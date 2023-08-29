@@ -1,6 +1,7 @@
 """Classes for handling representation of the system during modeling.
 """
 
+
 def _starting_model_report(seg):
     if seg.starting_model:
         return " (from starting model %s)" % seg.starting_model._id
