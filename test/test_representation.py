@@ -11,7 +11,8 @@ class Tests(unittest.TestCase):
 
     def test_segment(self):
         """Test Segment base class"""
-        _ = ihm.representation.Segment()  # does nothing
+        seg = ihm.representation.Segment()  # does nothing
+        _ = seg._get_report()
 
     def test_atomic_segment(self):
         """Test AtomicSegment class"""

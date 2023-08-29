@@ -181,6 +181,8 @@ class Tests(unittest.TestCase):
         self.assertEqual(loc.path, 'foo/bar')
         self.assertEqual(loc.repo, r)
         self.assertIsNone(loc.file_size)
+        self.assertEqual(str(loc),
+                         "<ihm.location.InputFileLocation('foo/bar')>")
         # locations should only compare equal if path and repo both match
         loc2 = ihm.location.InputFileLocation('foo/bar', repo=r)
         self.assertEqual(loc, loc2)
