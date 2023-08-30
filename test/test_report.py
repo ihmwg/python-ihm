@@ -198,7 +198,7 @@ class Tests(unittest.TestCase):
         mg = ihm.model.ModelGroup(name='bar')
         e3 = ihm.model.Ensemble(model_group=mg, num_models=1, file='file')
         e3.densities.append(ihm.model.LocalizationDensity(
-            file='foo', asym_unit=a(1,2)))
+            file='foo', asym_unit=a(1, 2)))
         s.ensembles.extend((e1, e2, e3))
         r = ihm.report.Reporter(s, sio)
         r.report_ensembles()
