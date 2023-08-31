@@ -118,7 +118,10 @@ class Reporter(object):
     def report_representations(self):
         r = self._section("Model representation")
         for rep in self.system._all_representations():
-            r.report("- Representation %s" % rep._id)
+            if hasattr(rep, '_id'):
+                r.report("- Representation %s" % rep._id)
+            else:
+                r.report("- Representation")
             for segment in rep:
                 r.report("  - " + segment._get_report())
 

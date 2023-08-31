@@ -71,9 +71,12 @@ class Tests(unittest.TestCase):
             a(3, 4), starting_model=None,
             rigid=True, primitive='other', count=3)
         r1 = ihm.representation.Representation((s1, s2), name='foo')
-        r1._id = '1'
         s.orphan_representations.append(r1)
         r = ihm.report.Reporter(s, sio)
+        # Test report of representation without ID
+        r.report_representations()
+        # Test report of representation with ID
+        r1._id = 42
         r.report_representations()
 
     def test_citations(self):
