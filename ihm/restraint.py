@@ -122,6 +122,13 @@ class SASRestraint(Restraint):
        :param str details: Additional details regarding the fitting.
     """
 
+    def _get_report(self):
+        state_map = {True: "Multi-state ", False: "Single-state "}
+        ret = "%sSAS restraint" % state_map.get(self.multi_state, "")
+        if self.fitting_atom_type:
+            ret += " on " + self.fitting_atom_type
+        return ret
+
     def __init__(self, dataset, assembly, segment=None, fitting_method=None,
                  fitting_atom_type=None, multi_state=None,
                  radius_of_gyration=None, details=None):
