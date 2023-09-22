@@ -39,6 +39,27 @@ The :mod:`ihm` Python module
 .. autoclass:: DNAChemComp
    :members:
 
+.. autoclass:: SaccharideChemComp
+   :members:
+
+.. autoclass:: LSaccharideChemComp
+   :members:
+
+.. autoclass:: LSaccharideAlphaChemComp
+   :members:
+
+.. autoclass:: LSaccharideBetaChemComp
+   :members:
+
+.. autoclass:: DSaccharideChemComp
+   :members:
+
+.. autoclass:: DSaccharideAlphaChemComp
+   :members:
+
+.. autoclass:: DSaccharideBetaChemComp
+   :members:
+
 .. autoclass:: NonPolymerChemComp
    :members:
 
