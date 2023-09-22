@@ -4451,6 +4451,76 @@ _software.citation_id
 #
 """)  # noqa: E501
 
+    def test_entity_branch_list_dumper(self):
+        """Test EntityBranchListDumper"""
+        system = ihm.System()
+        system.entities.append(ihm.Entity(
+            [ihm.SaccharideChemComp('NAG')]))
+        # Non-branched entity
+        system.entities.append(ihm.Entity('ACGT'))
+        ed = ihm.dumper._EntityDumper()
+        ed.finalize(system)  # Assign IDs
+        dumper = ihm.dumper._EntityBranchListDumper()
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_pdbx_entity_branch_list.entity_id
+_pdbx_entity_branch_list.num
+_pdbx_entity_branch_list.comp_id
+_pdbx_entity_branch_list.hetero
+1 1 NAG .
+#
+""")
+
+    def test_entity_branch_dumper(self):
+        """Test EntityBranchDumper"""
+        system = ihm.System()
+        system.entities.append(ihm.Entity(
+            [ihm.SaccharideChemComp('NAG')]))
+        # Non-branched entity
+        system.entities.append(ihm.Entity('ACGT'))
+        ed = ihm.dumper._EntityDumper()
+        ed.finalize(system)  # Assign IDs
+        dumper = ihm.dumper._EntityBranchDumper()
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_pdbx_entity_branch.entity_id
+_pdbx_entity_branch.type
+1 oligosaccharide
+#
+""")
+
+    def test_branch_scheme_dumper(self):
+        """Test BranchSchemeDumper"""
+        system = ihm.System()
+        e1 = ihm.Entity([ihm.SaccharideChemComp('NAG')])
+        e2 = ihm.Entity([ihm.SaccharideChemComp('FUC')])
+        # Non-branched entity
+        e3 = ihm.Entity('ACT')
+        system.entities.extend((e1, e2, e3))
+        system.asym_units.append(ihm.AsymUnit(e1, 'foo'))
+        system.asym_units.append(ihm.AsymUnit(e2, 'bar', auth_seq_id_map=5))
+        system.asym_units.append(ihm.AsymUnit(e3, 'baz'))
+        ihm.dumper._EntityDumper().finalize(system)
+        ihm.dumper._StructAsymDumper().finalize(system)
+        dumper = ihm.dumper._BranchSchemeDumper()
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_pdbx_branch_scheme.asym_id
+_pdbx_branch_scheme.entity_id
+_pdbx_branch_scheme.mon_id
+_pdbx_branch_scheme.num
+_pdbx_branch_scheme.pdb_seq_num
+_pdbx_branch_scheme.auth_seq_num
+_pdbx_branch_scheme.auth_mon_id
+_pdbx_branch_scheme.pdb_asym_id
+A 1 NAG 1 1 1 NAG A
+B 2 FUC 1 6 6 FUC B
+#
+""")
+
 
 if __name__ == '__main__':
     unittest.main()

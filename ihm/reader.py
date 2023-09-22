@@ -2437,13 +2437,18 @@ class _PolySeqSchemeHandler(Handler):
     def _get_auth_seq_id_offset(self, asym):
         """Get the offset from seq_id to auth_seq_id. Return None if no
            consistent offset exists."""
-        # Do nothing if the entity is not polymeric
-        if asym.entity is None or not asym.entity.is_polymeric():
+        # Do nothing if the entity is not polymeric or branched
+        if asym.entity is None or (not asym.entity.is_polymeric()
+                                   and not asym.entity.is_branched()):
             return
         # Do nothing if no map exists
         if asym.auth_seq_id_map == 0:
             return
-        rng = asym.seq_id_range
+        if asym.entity.is_branched():
+            # Hack, as branched entities don't technically have seq_ids
+            rng = (1, len(asym.entity.sequence))
+        else:
+            rng = asym.seq_id_range
         offset = None
         for seq_id in range(rng[0], rng[1] + 1):
             # If a residue isn't in the map, it has an effective offset of 0,
@@ -2507,6 +2512,36 @@ class _NonPolySchemeHandler(Handler):
             else:
                 # For nonpolymers, assume a single ChemComp with seq_id=1
                 asym.auth_seq_id_map = {1: (auth_seq_num, pdb_ins_code)}
+
+
+class _BranchSchemeHandler(Handler):
+    category = '_pdbx_branch_scheme'
+
+    def __call__(self, asym_id, num, auth_seq_num, pdb_asym_id):
+        asym = self.sysr.asym_units.get_by_id(asym_id)
+        if pdb_asym_id not in (None, ihm.unknown, asym_id):
+            asym._strand_id = pdb_asym_id
+        auth_seq_num = self.get_int_or_string(auth_seq_num)
+        num = self.get_int(num)
+        # Note any residues that have different num and auth_seq_id
+        # These will be finalized by _PolySeqSchemeHandler
+        if num is not None and auth_seq_num is not None \
+                and num != auth_seq_num:
+            if asym.auth_seq_id_map == 0:
+                asym.auth_seq_id_map = {}
+            asym.auth_seq_id_map[num] = auth_seq_num, None
+
+
+class _EntityBranchListHandler(Handler):
+    category = '_pdbx_entity_branch_list'
+
+    def __call__(self, entity_id, comp_id, num):
+        s = self.sysr.entities.get_by_id(entity_id)
+        # Assume num is 1-based (appears to be)
+        seq_id = int(num)
+        if seq_id > len(s.sequence):
+            s.sequence.extend([None] * (seq_id - len(s.sequence)))
+        s.sequence[seq_id - 1] = self.sysr.chem_comps.get_by_id(comp_id)
 
 
 class _CrossLinkListHandler(Handler):
@@ -3327,7 +3362,8 @@ class IHMVariant(Variant):
         _CenterHandler, _TransformationHandler, _GeometricObjectHandler,
         _SphereHandler, _TorusHandler, _HalfTorusHandler, _AxisHandler,
         _PlaneHandler, _GeometricRestraintHandler, _PolySeqSchemeHandler,
-        _NonPolySchemeHandler, _CrossLinkListHandler,
+        _NonPolySchemeHandler, _BranchSchemeHandler, _EntityBranchListHandler,
+        _CrossLinkListHandler,
         _CrossLinkRestraintHandler, _CrossLinkPseudoSiteHandler,
         _CrossLinkResultHandler, _StartingModelSeqDifHandler,
         _OrderedEnsembleHandler]
