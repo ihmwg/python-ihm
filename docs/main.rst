@@ -110,3 +110,6 @@ The :mod:`ihm` Python module
 
 .. autoclass:: Collection
    :members:
+
+.. autoclass:: BranchDescriptor
+   :members:

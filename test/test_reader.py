@@ -4400,6 +4400,31 @@ _pdbx_entity_branch_list.hetero
         c1, c2, c3, c4 = e1.sequence
         self.assertEqual([c.id for c in e1.sequence], ['BGC'] * 4)
 
+    def test_entity_branch_descriptor_handler(self):
+        """Test EntityBranchDescriptorHandler"""
+        fh = StringIO("""
+loop_
+_pdbx_entity_branch_descriptor.ordinal
+_pdbx_entity_branch_descriptor.entity_id
+_pdbx_entity_branch_descriptor.descriptor
+_pdbx_entity_branch_descriptor.type
+_pdbx_entity_branch_descriptor.program
+_pdbx_entity_branch_descriptor.program_version
+1 1 foo typ1 prog 1.0
+2 1 bar typ2 . .
+""")
+        s, = ihm.reader.read(fh)
+        e1, = s.entities
+        bd1, bd2 = e1.branch_descriptors
+        self.assertEqual(bd1.text, 'foo')
+        self.assertEqual(bd1.type, 'typ1')
+        self.assertEqual(bd1.program, 'prog')
+        self.assertEqual(bd1.program_version, '1.0')
+        self.assertEqual(bd2.text, 'bar')
+        self.assertEqual(bd2.type, 'typ2')
+        self.assertIsNone(bd2.program)
+        self.assertIsNone(bd2.program_version)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -751,6 +751,19 @@ class _BranchSchemeDumper(Dumper):
                              auth_mon_id=comp.id)
 
 
+class _BranchDescriptorDumper(Dumper):
+    def dump(self, system, writer):
+        ordinal = itertools.count(1)
+        with writer.loop("_pdbx_entity_branch_descriptor",
+                         ["ordinal", "entity_id", "descriptor", "type",
+                          "program", "program_version"]) as lp:
+            for entity in system.entities:
+                for d in entity.branch_descriptors:
+                    lp.write(ordinal=next(ordinal), entity_id=entity._id,
+                             descriptor=d.text, type=d.type, program=d.program,
+                             program_version=d.program_version)
+
+
 class _AsymIDProvider(object):
     """Provide unique asym IDs"""
     def __init__(self, seen_ids):
@@ -3293,7 +3306,7 @@ class IHMVariant(Variant):
         _EntityPolyDumper, _EntityNonPolyDumper, _EntityPolySeqDumper,
         _EntityPolySegmentDumper, _EntityBranchListDumper, _EntityBranchDumper,
         _StructAsymDumper, _PolySeqSchemeDumper,
-        _NonPolySchemeDumper, _BranchSchemeDumper,
+        _NonPolySchemeDumper, _BranchSchemeDumper, _BranchDescriptorDumper,
         _AssemblyDumper, _ExternalReferenceDumper,
         _DatasetDumper, _ModelRepresentationDumper, _StartingModelDumper,
         _ProtocolDumper, _PostProcessDumper, _PseudoSiteDumper,

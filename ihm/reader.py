@@ -2544,6 +2544,16 @@ class _EntityBranchListHandler(Handler):
         s.sequence[seq_id - 1] = self.sysr.chem_comps.get_by_id(comp_id)
 
 
+class _BranchDescriptorHandler(Handler):
+    category = '_pdbx_entity_branch_descriptor'
+
+    def __call__(self, entity_id, descriptor, type, program, program_version):
+        e = self.sysr.entities.get_by_id(entity_id)
+        d = ihm.BranchDescriptor(text=descriptor, type=type, program=program,
+                                 program_version=program_version)
+        e.branch_descriptors.append(d)
+
+
 class _CrossLinkListHandler(Handler):
     category = '_ihm_cross_link_list'
     ignored_keywords = ['entity_description_1', 'entity_description_2',
@@ -3363,7 +3373,7 @@ class IHMVariant(Variant):
         _SphereHandler, _TorusHandler, _HalfTorusHandler, _AxisHandler,
         _PlaneHandler, _GeometricRestraintHandler, _PolySeqSchemeHandler,
         _NonPolySchemeHandler, _BranchSchemeHandler, _EntityBranchListHandler,
-        _CrossLinkListHandler,
+        _BranchDescriptorHandler, _CrossLinkListHandler,
         _CrossLinkRestraintHandler, _CrossLinkPseudoSiteHandler,
         _CrossLinkResultHandler, _StartingModelSeqDifHandler,
         _OrderedEnsembleHandler]

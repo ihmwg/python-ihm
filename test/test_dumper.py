@@ -4521,6 +4521,31 @@ B 2 FUC 1 6 6 FUC B
 #
 """)
 
+    def test_branch_descriptor_dumper(self):
+        """Test BranchDescriptorDumper"""
+        system = ihm.System()
+        e1 = ihm.Entity([ihm.SaccharideChemComp('NAG')])
+        bd1 = ihm.BranchDescriptor('foo', type='typ1', program='prog',
+                                   program_version='1.0')
+        bd2 = ihm.BranchDescriptor('bar', type='typ2')
+        e1.branch_descriptors.extend((bd1, bd2))
+        system.entities.append(e1)
+        ihm.dumper._EntityDumper().finalize(system)
+        dumper = ihm.dumper._BranchDescriptorDumper()
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_pdbx_entity_branch_descriptor.ordinal
+_pdbx_entity_branch_descriptor.entity_id
+_pdbx_entity_branch_descriptor.descriptor
+_pdbx_entity_branch_descriptor.type
+_pdbx_entity_branch_descriptor.program
+_pdbx_entity_branch_descriptor.program_version
+1 1 foo typ1 prog 1.0
+2 1 bar typ2 . .
+#
+""")
+
 
 if __name__ == '__main__':
     unittest.main()

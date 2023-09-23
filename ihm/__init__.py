@@ -1299,6 +1299,11 @@ class Entity(object):
         self.references = []
         self.references.extend(references)
 
+        #: String descriptors of branched chemical structure.
+        #: These generally only make sense for oligosaccharide entities,
+        #: and should be a list of :class:`BranchDescriptor` objects.
+        self.branch_descriptors = []
+
     def __str__(self):
         return "<ihm.Entity(%s)>" % self.description
 
@@ -1584,3 +1589,22 @@ class Collection(object):
     """
     def __init__(self, id, name=None, details=None):
         self.id, self.name, self.details = id, name, details
+
+
+class BranchDescriptor(object):
+    """String descriptor of branched chemical structure.
+       These generally only make sense for oligosaccharide entities.
+       See :attr:`Entity.branch_descriptors`.
+
+       :param str text: The value of this descriptor.
+       :param str type: The type of the descriptor; one of
+              "Glycam Condensed Core Sequence", "Glycam Condensed Sequence",
+              "LINUCS", or "WURCS".
+       :param str program: The name of the program or library used to compute
+              the descriptor.
+       :param str program_version: The version of the program or library
+              used to compute the descriptor.
+    """
+    def __init__(self, text, type, program=None, program_version=None):
+        self.text, self.type = text, type
+        self.program, self.program_version = program, program_version

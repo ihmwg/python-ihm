@@ -1083,6 +1083,15 @@ class Tests(unittest.TestCase):
         # Should act like False
         self.assertFalse(u)
 
+    def test_branch_descriptor(self):
+        """Test the BranchDescriptor class"""
+        bd = ihm.BranchDescriptor(text='foo', type='bar', program='baz',
+                                  program_version="1.0")
+        self.assertEqual(bd.text, 'foo')
+        self.assertEqual(bd.type, 'bar')
+        self.assertEqual(bd.program, 'baz')
+        self.assertEqual(bd.program_version, '1.0')
+
 
 if __name__ == '__main__':
     unittest.main()
