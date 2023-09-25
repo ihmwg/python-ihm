@@ -4546,6 +4546,41 @@ _pdbx_entity_branch_descriptor.program_version
 #
 """)
 
+    def test_branch_link_dumper(self):
+        """Test BranchLinkDumper"""
+        system = ihm.System()
+        e1 = ihm.Entity([ihm.SaccharideChemComp('NAG'),
+                         ihm.SaccharideChemComp('BMC'),
+                         ihm.SaccharideChemComp('FUC')])
+        lnk1 = ihm.BranchLink(num1=1, atom_id1='CA', leaving_atom_id1='H1',
+                              num2=2, atom_id2='N', leaving_atom_id2='H2',
+                              order='sing', details='foo')
+        lnk2 = ihm.BranchLink(num1=2, atom_id1='CA', leaving_atom_id1='H1',
+                              num2=3, atom_id2='N', leaving_atom_id2='H2')
+        e1.branch_links.extend((lnk1, lnk2))
+        system.entities.append(e1)
+        ihm.dumper._EntityDumper().finalize(system)
+        dumper = ihm.dumper._BranchLinkDumper()
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_pdbx_entity_branch_link.link_id
+_pdbx_entity_branch_link.entity_id
+_pdbx_entity_branch_link.entity_branch_list_num_1
+_pdbx_entity_branch_link.comp_id_1
+_pdbx_entity_branch_link.atom_id_1
+_pdbx_entity_branch_link.leaving_atom_id_1
+_pdbx_entity_branch_link.entity_branch_list_num_2
+_pdbx_entity_branch_link.comp_id_2
+_pdbx_entity_branch_link.atom_id_2
+_pdbx_entity_branch_link.leaving_atom_id_2
+_pdbx_entity_branch_link.value_order
+_pdbx_entity_branch_link.details
+1 1 1 NAG CA H1 2 BMC N H2 sing foo
+2 1 2 BMC CA H1 3 FUC N H2 . .
+#
+""")
+
 
 if __name__ == '__main__':
     unittest.main()

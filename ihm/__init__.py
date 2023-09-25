@@ -1304,6 +1304,10 @@ class Entity(object):
         #: and should be a list of :class:`BranchDescriptor` objects.
         self.branch_descriptors = []
 
+        #: Any links between components in a branched entity.
+        #: This is a list of :class:`BranchLink` objects.
+        self.branch_links = []
+
     def __str__(self):
         return "<ihm.Entity(%s)>" % self.description
 
@@ -1608,3 +1612,26 @@ class BranchDescriptor(object):
     def __init__(self, text, type, program=None, program_version=None):
         self.text, self.type = text, type
         self.program, self.program_version = program, program_version
+
+
+class BranchLink(object):
+    """A link between components in a branched entity.
+       These generally only make sense for oligosaccharide entities.
+       See :attr:`Entity.branch_links`.
+
+       :param int num1: 1-based index of the first component.
+       :param str atom_id1: Name of the first atom in the linkage.
+       :param str leaving_atom_id1: Name of the first leaving atom.
+       :param int num2: 1-based index of the second component.
+       :param str atom_id2: Name of the second atom in the linkage.
+       :param str leaving_atom_id2: Name of the second leaving atom.
+       :param str order: Bond order (e.g. sing, doub, trip).
+       :param str details: More information about this link.
+    """
+    def __init__(self, num1, atom_id1, leaving_atom_id1, num2, atom_id2,
+                 leaving_atom_id2, order=None, details=None):
+        self.num1, self.atom_id1 = num1, atom_id1
+        self.num2, self.atom_id2 = num2, atom_id2
+        self.leaving_atom_id1 = leaving_atom_id1
+        self.leaving_atom_id2 = leaving_atom_id2
+        self.order, self.details = order, details

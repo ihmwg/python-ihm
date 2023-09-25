@@ -764,6 +764,30 @@ class _BranchDescriptorDumper(Dumper):
                              program_version=d.program_version)
 
 
+class _BranchLinkDumper(Dumper):
+    def dump(self, system, writer):
+        ordinal = itertools.count(1)
+        with writer.loop("_pdbx_entity_branch_link",
+                         ["link_id", "entity_id", "entity_branch_list_num_1",
+                          "comp_id_1", "atom_id_1", "leaving_atom_id_1",
+                          "entity_branch_list_num_2", "comp_id_2", "atom_id_2",
+                          "leaving_atom_id_2", "value_order",
+                          "details"]) as lp:
+            for entity in system.entities:
+                for lnk in entity.branch_links:
+                    lp.write(
+                        link_id=next(ordinal), entity_id=entity._id,
+                        entity_branch_list_num_1=lnk.num1,
+                        comp_id_1=entity.sequence[lnk.num1 - 1].id,
+                        atom_id_1=lnk.atom_id1,
+                        leaving_atom_id_1=lnk.leaving_atom_id1,
+                        entity_branch_list_num_2=lnk.num2,
+                        comp_id_2=entity.sequence[lnk.num2 - 1].id,
+                        atom_id_2=lnk.atom_id2,
+                        leaving_atom_id_2=lnk.leaving_atom_id2,
+                        value_order=lnk.order, details=lnk.details)
+
+
 class _AsymIDProvider(object):
     """Provide unique asym IDs"""
     def __init__(self, seen_ids):
@@ -3307,7 +3331,7 @@ class IHMVariant(Variant):
         _EntityPolySegmentDumper, _EntityBranchListDumper, _EntityBranchDumper,
         _StructAsymDumper, _PolySeqSchemeDumper,
         _NonPolySchemeDumper, _BranchSchemeDumper, _BranchDescriptorDumper,
-        _AssemblyDumper, _ExternalReferenceDumper,
+        _BranchLinkDumper, _AssemblyDumper, _ExternalReferenceDumper,
         _DatasetDumper, _ModelRepresentationDumper, _StartingModelDumper,
         _ProtocolDumper, _PostProcessDumper, _PseudoSiteDumper,
         _GeometricObjectDumper, _FeatureDumper, _CrossLinkDumper,

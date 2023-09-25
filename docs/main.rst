@@ -113,3 +113,6 @@ The :mod:`ihm` Python module
 
 .. autoclass:: BranchDescriptor
    :members:
+
+.. autoclass:: BranchLink
+   :members:

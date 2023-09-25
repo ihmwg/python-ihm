@@ -2554,6 +2554,23 @@ class _BranchDescriptorHandler(Handler):
         e.branch_descriptors.append(d)
 
 
+class _BranchLinkHandler(Handler):
+    category = '_pdbx_entity_branch_link'
+
+    def __call__(self, entity_id, entity_branch_list_num_1, atom_id_1,
+                 leaving_atom_id_1, entity_branch_list_num_2, atom_id_2,
+                 leaving_atom_id_2, value_order, details):
+        e = self.sysr.entities.get_by_id(entity_id)
+        num1 = self.get_int(entity_branch_list_num_1)
+        num2 = self.get_int(entity_branch_list_num_2)
+        lnk = ihm.BranchLink(num1=num1, atom_id1=atom_id_1,
+                             leaving_atom_id1=leaving_atom_id_1,
+                             num2=num2, atom_id2=atom_id_2,
+                             leaving_atom_id2=leaving_atom_id_2,
+                             order=value_order, details=details)
+        e.branch_links.append(lnk)
+
+
 class _CrossLinkListHandler(Handler):
     category = '_ihm_cross_link_list'
     ignored_keywords = ['entity_description_1', 'entity_description_2',
@@ -3373,7 +3390,7 @@ class IHMVariant(Variant):
         _SphereHandler, _TorusHandler, _HalfTorusHandler, _AxisHandler,
         _PlaneHandler, _GeometricRestraintHandler, _PolySeqSchemeHandler,
         _NonPolySchemeHandler, _BranchSchemeHandler, _EntityBranchListHandler,
-        _BranchDescriptorHandler, _CrossLinkListHandler,
+        _BranchDescriptorHandler, _BranchLinkHandler, _CrossLinkListHandler,
         _CrossLinkRestraintHandler, _CrossLinkPseudoSiteHandler,
         _CrossLinkResultHandler, _StartingModelSeqDifHandler,
         _OrderedEnsembleHandler]

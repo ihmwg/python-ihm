@@ -4425,6 +4425,45 @@ _pdbx_entity_branch_descriptor.program_version
         self.assertIsNone(bd2.program)
         self.assertIsNone(bd2.program_version)
 
+    def test_entity_branch_link_handler(self):
+        """Test EntityBranchLinkHandler"""
+        fh = StringIO("""
+loop_
+_pdbx_entity_branch_link.link_id
+_pdbx_entity_branch_link.entity_id
+_pdbx_entity_branch_link.entity_branch_list_num_1
+_pdbx_entity_branch_link.comp_id_1
+_pdbx_entity_branch_link.atom_id_1
+_pdbx_entity_branch_link.leaving_atom_id_1
+_pdbx_entity_branch_link.entity_branch_list_num_2
+_pdbx_entity_branch_link.comp_id_2
+_pdbx_entity_branch_link.atom_id_2
+_pdbx_entity_branch_link.leaving_atom_id_2
+_pdbx_entity_branch_link.value_order
+_pdbx_entity_branch_link.details
+1 1 1 NAG CA H1 2 BMC N H2 sing foo
+2 1 2 BMC CA H1 3 FUC N H2 . .
+""")
+        s, = ihm.reader.read(fh)
+        e1, = s.entities
+        lnk1, lnk2 = e1.branch_links
+        self.assertEqual(lnk1.num1, 1)
+        self.assertEqual(lnk1.atom_id1, 'CA')
+        self.assertEqual(lnk1.leaving_atom_id1, 'H1')
+        self.assertEqual(lnk1.num2, 2)
+        self.assertEqual(lnk1.atom_id2, 'N')
+        self.assertEqual(lnk1.leaving_atom_id2, 'H2')
+        self.assertEqual(lnk1.order, 'sing')
+        self.assertEqual(lnk1.details, 'foo')
+        self.assertEqual(lnk2.num1, 2)
+        self.assertEqual(lnk2.atom_id1, 'CA')
+        self.assertEqual(lnk2.leaving_atom_id1, 'H1')
+        self.assertEqual(lnk2.num2, 3)
+        self.assertEqual(lnk2.atom_id2, 'N')
+        self.assertEqual(lnk2.leaving_atom_id2, 'H2')
+        self.assertIsNone(lnk2.order)
+        self.assertIsNone(lnk2.details)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -1092,6 +1092,20 @@ class Tests(unittest.TestCase):
         self.assertEqual(bd.program, 'baz')
         self.assertEqual(bd.program_version, '1.0')
 
+    def test_branch_link(self):
+        """Test the BranchLink class"""
+        lnk = ihm.BranchLink(num1=1, atom_id1='CA', leaving_atom_id1='H1',
+                             num2=2, atom_id2='N', leaving_atom_id2='H2',
+                             order='sing', details='foo')
+        self.assertEqual(lnk.num1, 1)
+        self.assertEqual(lnk.atom_id1, 'CA')
+        self.assertEqual(lnk.leaving_atom_id1, 'H1')
+        self.assertEqual(lnk.num2, 2)
+        self.assertEqual(lnk.atom_id2, 'N')
+        self.assertEqual(lnk.leaving_atom_id2, 'H2')
+        self.assertEqual(lnk.order, 'sing')
+        self.assertEqual(lnk.details, 'foo')
+
 
 if __name__ == '__main__':
     unittest.main()
