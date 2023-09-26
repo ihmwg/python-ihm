@@ -597,7 +597,7 @@ class _EntityNonPolyDumper(Dumper):
         with writer.loop("_pdbx_entity_nonpoly",
                          ["entity_id", "name", "comp_id"]) as lp:
             for entity in system.entities:
-                if entity.is_polymeric():
+                if entity.is_polymeric() or entity.is_branched():
                     continue
                 lp.write(entity_id=entity._id, name=entity.description,
                          comp_id=entity.sequence[0].id)

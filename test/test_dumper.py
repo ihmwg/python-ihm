@@ -805,7 +805,9 @@ _entity_poly.pdbx_seq_one_letter_code_can
         # Non-polymeric entity
         e2 = ihm.Entity([ihm.NonPolymerChemComp('HEM')], description='heme')
         e3 = ihm.Entity([ihm.WaterChemComp()])
-        system.entities.extend((e1, e2, e3))
+        # Branched entity
+        e4 = ihm.Entity([ihm.SaccharideChemComp('NAG')])
+        system.entities.extend((e1, e2, e3, e4))
 
         ed = ihm.dumper._EntityDumper()
         ed.finalize(system)  # Assign entity IDs
