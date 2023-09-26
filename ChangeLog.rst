@@ -4,7 +4,7 @@
     provided to describe saccharide chemical components
     (:class:`ihm.SaccharideChemComp` and subclasses). Unlike polymers and
     non-polymers, oligosaccharides can be branched, and a new
-    :class:`BranchLink` class allows the linkage between individual
+    :class:`ihm.BranchLink` class allows the linkage between individual
     components to be described.
   - A summary report of the system can now be produced by calling
     :meth:`ihm.System.report`. This can help to reveal errors or
