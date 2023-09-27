@@ -1591,7 +1591,7 @@ class _ModelDumperBase(Dumper):
               "label_alt_id", "label_comp_id", "label_seq_id", "auth_seq_id",
               "pdbx_PDB_ins_code", "label_asym_id", "Cartn_x", "Cartn_y",
               "Cartn_z", "occupancy", "label_entity_id", "auth_asym_id",
-              "B_iso_or_equiv", "pdbx_PDB_model_num"]
+              "auth_comp_id", "B_iso_or_equiv", "pdbx_PDB_model_num"]
         if add_ihm:
             it.append("ihm_model_id")
         with writer.loop("_atom_site", it) as lp:
@@ -1613,7 +1613,7 @@ class _ModelDumperBase(Dumper):
                              label_asym_id=atom.asym_unit._id,
                              label_entity_id=atom.asym_unit.entity._id,
                              label_seq_id=None if water else atom.seq_id,
-                             auth_seq_id=auth_seq_id,
+                             auth_seq_id=auth_seq_id, auth_comp_id=comp.id,
                              pdbx_PDB_ins_code=ins or ihm.unknown,
                              auth_asym_id=atom.asym_unit.strand_id,
                              Cartn_x=atom.x, Cartn_y=atom.y, Cartn_z=atom.z,

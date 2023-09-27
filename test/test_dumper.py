@@ -2330,12 +2330,13 @@ _atom_site.Cartn_z
 _atom_site.occupancy
 _atom_site.label_entity_id
 _atom_site.auth_asym_id
+_atom_site.auth_comp_id
 _atom_site.B_iso_or_equiv
 _atom_site.pdbx_PDB_model_num
 _atom_site.ihm_model_id
-ATOM 1 C C . ALA 1 1 ? X 1.000 2.000 3.000 . 9 X . 1 1
-HETATM 2 C CA . ALA 1 1 ? X 10.000 20.000 30.000 . 9 X . 1 1
-ATOM 3 N N . CYS 2 2 ? X 4.000 5.000 6.000 0.200 9 X 42.000 1 1
+ATOM 1 C C . ALA 1 1 ? X 1.000 2.000 3.000 . 9 X ALA . 1 1
+HETATM 2 C CA . ALA 1 1 ? X 10.000 20.000 30.000 . 9 X ALA . 1 1
+ATOM 3 N N . CYS 2 2 ? X 4.000 5.000 6.000 0.200 9 X CYS 42.000 1 1
 #
 #
 loop_
@@ -2354,19 +2355,19 @@ N
         asym.auth_seq_id_map = -1
         out = _get_dumper_output(dumper, system)
         self.assertEqual(
-            out.split('\n')[43:46:2],
-            ["ATOM 1 C C . ALA 1 0 ? X 1.000 2.000 3.000 . 9 X . 1 1",
+            out.split('\n')[44:47:2],
+            ["ATOM 1 C C . ALA 1 0 ? X 1.000 2.000 3.000 . 9 X ALA . 1 1",
              "ATOM 3 N N . CYS 2 1 ? X 4.000 5.000 6.000 "
-             "0.200 9 X 42.000 1 1"])
+             "0.200 9 X CYS 42.000 1 1"])
 
         # With auth_seq_id map
         asym.auth_seq_id_map = {1: 42, 2: 99}
         out = _get_dumper_output(dumper, system)
         self.assertEqual(
-            out.split('\n')[43:46:2],
-            ["ATOM 1 C C . ALA 1 42 ? X 1.000 2.000 3.000 . 9 X . 1 1",
+            out.split('\n')[44:47:2],
+            ["ATOM 1 C C . ALA 1 42 ? X 1.000 2.000 3.000 . 9 X ALA . 1 1",
              "ATOM 3 N N . CYS 2 99 ? X 4.000 5.000 6.000 "
-             "0.200 9 X 42.000 1 1"])
+             "0.200 9 X CYS 42.000 1 1"])
 
     def test_model_dumper_water_atoms(self):
         """Test ModelDumper with water atoms"""
@@ -2396,10 +2397,10 @@ N
 
         out = _get_dumper_output(dumper, system)
         self.assertEqual(
-            out.split('\n')[43:46],
-            ['HETATM 1 O O . HOH . 42 ? X 1.000 2.000 3.000 . 9 X . 1 1',
-             'HETATM 2 O O . HOH . 99 ? X 4.000 5.000 6.000 . 9 X . 1 1',
-             'HETATM 3 O O . HOH . 3 ? X 7.000 8.000 9.000 . 9 X . 1 1'])
+            out.split('\n')[44:47],
+            ['HETATM 1 O O . HOH . 42 ? X 1.000 2.000 3.000 . 9 X HOH . 1 1',
+             'HETATM 2 O O . HOH . 99 ? X 4.000 5.000 6.000 . 9 X HOH . 1 1',
+             'HETATM 3 O O . HOH . 3 ? X 7.000 8.000 9.000 . 9 X HOH . 1 1'])
 
     def test_ensemble_dumper(self):
         """Test EnsembleDumper"""
