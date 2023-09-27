@@ -734,7 +734,7 @@ class _BranchSchemeDumper(Dumper):
         with writer.loop("_pdbx_branch_scheme",
                          ["asym_id", "entity_id", "mon_id", "num",
                           "pdb_seq_num", "auth_seq_num",
-                          "auth_mon_id", "pdb_asym_id"]) as lp:
+                          "auth_mon_id", "pdb_mon_id", "pdb_asym_id"]) as lp:
             for asym in system.asym_units:
                 entity = asym.entity
                 if not entity.is_branched():
@@ -747,8 +747,8 @@ class _BranchSchemeDumper(Dumper):
                              num=num + 1,
                              pdb_seq_num=auth_seq_num,
                              auth_seq_num=auth_seq_num,
-                             mon_id=comp.id,
-                             auth_mon_id=comp.id)
+                             mon_id=comp.id, auth_mon_id=comp.id,
+                             pdb_mon_id=comp.id)
 
 
 class _BranchDescriptorDumper(Dumper):

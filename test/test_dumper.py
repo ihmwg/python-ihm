@@ -4517,9 +4517,10 @@ _pdbx_branch_scheme.num
 _pdbx_branch_scheme.pdb_seq_num
 _pdbx_branch_scheme.auth_seq_num
 _pdbx_branch_scheme.auth_mon_id
+_pdbx_branch_scheme.pdb_mon_id
 _pdbx_branch_scheme.pdb_asym_id
-A 1 NAG 1 1 1 NAG A
-B 2 FUC 1 6 6 FUC B
+A 1 NAG 1 1 1 NAG NAG A
+B 2 FUC 1 6 6 FUC FUC B
 #
 """)
 
