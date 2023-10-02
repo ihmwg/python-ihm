@@ -1460,6 +1460,9 @@ class _RangeChecker(object):
         else:
             type_check = self._type_check_atom
             seq_id_range = (obj.seq_id, obj.seq_id)
+            # Allow seq_id to be either 1 or None for ligands
+            if obj.seq_id == 1 and asym.entity.type == 'non-polymer':
+                seq_id_range = (None, None)
             self._check_duplicate_atom(obj)
         self._check_assembly(obj, asym, seq_id_range)
         self._check_representation(obj, asym, type_check, seq_id_range)
@@ -1599,9 +1602,12 @@ class _ModelDumperBase(Dumper):
                 rngcheck = _RangeChecker(model)
                 for atom in model.get_atoms():
                     rngcheck(atom)
+                    etype = atom.asym_unit.entity
                     seq_id = 1 if atom.seq_id is None else atom.seq_id
+                    label_seq_id = atom.seq_id
+                    if not atom.asym_unit.entity.is_polymeric():
+                        label_seq_id = None
                     comp = atom.asym_unit.sequence[seq_id - 1]
-                    water = isinstance(atom.asym_unit, ihm.WaterAsymUnit)
                     seen_types[atom.type_symbol] = None
                     auth_seq_id, ins = \
                         atom.asym_unit._get_auth_seq_id_ins_code(seq_id)
@@ -1612,7 +1618,7 @@ class _ModelDumperBase(Dumper):
                              label_comp_id=comp.id,
                              label_asym_id=atom.asym_unit._id,
                              label_entity_id=atom.asym_unit.entity._id,
-                             label_seq_id=None if water else atom.seq_id,
+                             label_seq_id=label_seq_id,
                              auth_seq_id=auth_seq_id, auth_comp_id=comp.id,
                              pdbx_PDB_ins_code=ins or ihm.unknown,
                              auth_asym_id=atom.asym_unit.strand_id,

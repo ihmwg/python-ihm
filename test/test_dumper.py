@@ -2103,8 +2103,11 @@ _ihm_model_group_link.model_id
                                   x=1.0, y=2.0, z=3.0, radius=4.0)
         self.assertRaises(ValueError, rngcheck, sphere)
 
-        # Atom in a nonpolymer must have no seq_id
+        # Atom in a nonpolymer must have no seq_id (or seq_id==1)
         atom = ihm.model.Atom(asym_unit=asym_nonpol, seq_id=None, atom_id='C',
+                              type_symbol='C', x=1.0, y=2.0, z=3.0)
+        rngcheck(atom)
+        atom = ihm.model.Atom(asym_unit=asym_nonpol, seq_id=1, atom_id='C',
                               type_symbol='C', x=1.0, y=2.0, z=3.0)
         rngcheck(atom)
         atom = ihm.model.Atom(asym_unit=asym2, seq_id=None, atom_id='C',

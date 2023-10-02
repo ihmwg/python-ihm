@@ -1341,7 +1341,7 @@ class Entity(object):
         return EntityRange(self, seq_id_begin, seq_id_end)
 
     def __get_seq_id_range(self):
-        if self.is_polymeric():
+        if self.is_polymeric() or self.is_branched():
             return (1, len(self.sequence))
         else:
             # Nonpolymers don't have the concept of seq_id
