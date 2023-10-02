@@ -1602,7 +1602,6 @@ class _ModelDumperBase(Dumper):
                 rngcheck = _RangeChecker(model)
                 for atom in model.get_atoms():
                     rngcheck(atom)
-                    etype = atom.asym_unit.entity
                     seq_id = 1 if atom.seq_id is None else atom.seq_id
                     label_seq_id = atom.seq_id
                     if not atom.asym_unit.entity.is_polymeric():
