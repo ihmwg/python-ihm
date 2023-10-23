@@ -468,7 +468,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(dataset.location.path, fname)
         self.assertEqual(dataset.location.details, 'Starting model structure')
 
-    def test_modeller_model_no_aln(self):
+    def test_cif_modeller_model(self):
         """Test CIFParser when given a Modeller model"""
         fname = utils.get_input_file_name(TOPDIR, 'modeller_model.cif')
         p = self._parse_cif(fname)
