@@ -468,6 +468,24 @@ class Tests(unittest.TestCase):
         self.assertEqual(dataset.location.path, fname)
         self.assertEqual(dataset.location.details, 'Starting model structure')
 
+    def test_modeller_model_no_aln(self):
+        """Test CIFParser when given a Modeller model"""
+        fname = utils.get_input_file_name(TOPDIR, 'modeller_model.cif')
+        p = self._parse_cif(fname)
+        dataset = p['dataset']
+        self.assertEqual(dataset.data_type, 'Comparative model')
+        self.assertEqual(dataset.location.path, fname)
+        self.assertIsNone(dataset.location.repo)
+        self.assertEqual(dataset.location.details,
+                         'Starting model structure')
+        s, = p['software']
+        self.assertEqual(s.name, 'MODELLER')
+        self.assertEqual(s.version, '10.4')
+        self.assertEqual(
+            s.description,
+            'Comparative modeling by satisfaction of spatial restraints, '
+            'build 2023/10/23 11:26:12')
+
 
 if __name__ == '__main__':
     unittest.main()

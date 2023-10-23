@@ -37,6 +37,16 @@ except ImportError:    # pragma: no cover
     urllib.request = urllib.error = __import__('urllib2')
 
 
+def _get_modeller(version, date):
+    return ihm.Software(
+        name='MODELLER', classification='comparative modeling',
+        description='Comparative modeling by satisfaction '
+                    'of spatial restraints, build ' + date,
+        location='https://salilab.org/modeller/',
+        version=version,
+        citation=ihm.citations.modeller)
+
+
 class Parser(object):
     """Base class for all metadata parsers."""
 
@@ -370,13 +380,7 @@ class PDBParser(Parser):
 
     def _parse_modeller_model(self, fh, first_line, local_file, filename, ret):
         version, date = first_line[38:].rstrip('\r\n').split(' ', 1)
-        s = ihm.Software(
-            name='MODELLER', classification='comparative modeling',
-            description='Comparative modeling by satisfaction '
-                        'of spatial restraints, build ' + date,
-            location='https://salilab.org/modeller/',
-            version=version,
-            citation=ihm.citations.modeller)
+        s = _get_modeller(version, date)
         ret['software'].append(s)
         self._handle_comparative_model(local_file, filename, ret)
 
@@ -642,6 +646,18 @@ class _AuditRevHistHandler(ihm.reader.Handler):
         self.m['version'] = revision_date
 
 
+class _ExptlHandler(ihm.reader.Handler):
+    def __init__(self, m):
+        self.m = m
+
+    def __call__(self, method):
+        # Modeller currently sets _exptl.method, not _software
+        if method.startswith('model, MODELLER Version '):
+            version, date = method[24:].split(' ', 1)
+            s = _get_modeller(version, date)
+            self.m['software'].append(s)
+
+
 class CIFParser(Parser):
     """Extract metadata from an mmCIF file. Currently, this does not handle
        information from comparative modeling packages such as MODELLER
@@ -660,21 +676,26 @@ class CIFParser(Parser):
            :return: a dict with key `dataset` pointing to the coordinate file,
                     as an entry in the PDB or Model Archive databases if the
                     file contains appropriate headers, otherwise to the
-                    file itself.
+                    file itself;
+                    and 'software' pointing to a list of software used to
+                    generate the file (as :class:`ihm.Software` objects);
         """
-        dset = self._get_dataset(filename)
-        return {'dataset': dset}
-
-    def _get_dataset(self, filename):
-        m = {'db': {}, 'title': 'Starting model structure'}
+        m = {'db': {}, 'title': 'Starting model structure',
+             'software': []}
         with open(filename) as fh:
             dbh = _Database2Handler(m)
             structh = _StructHandler(m)
             arevhisth = _AuditRevHistHandler(m)
+            exptlh = _ExptlHandler(m)
             r = ihm.format.CifReader(
                 fh, {'_database_2': dbh, '_struct': structh,
-                     '_pdbx_audit_revision_history': arevhisth})
+                     '_pdbx_audit_revision_history': arevhisth,
+                     '_exptl': exptlh})
             r.read_file()
+        dset = self._get_dataset(filename, m)
+        return {'dataset': dset, 'software': m['software']}
+
+    def _get_dataset(self, filename, m):
         # Check for known databases. Note that if a file is in multiple
         # databases, we currently return one "at random"
         for dbid, dbcode in m['db'].items():
