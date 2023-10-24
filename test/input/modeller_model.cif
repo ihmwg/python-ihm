@@ -7,7 +7,7 @@ _modeller.objective_function        266.4716
 _modeller.best_template_pct_seq_id  37.037
 _modeller.sequence 1fdx
 _modeller.alignment modeller_model.ali
-_modeller.script model-cif.py
+_modeller.script modeller_model.py
 #
 loop_
 _modeller_template.id

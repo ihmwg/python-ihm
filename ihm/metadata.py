@@ -25,6 +25,7 @@ import string
 import warnings
 import sys
 import re
+import collections
 
 # Handle different naming of urllib in Python 2/3
 try:
@@ -45,6 +46,46 @@ def _get_modeller(version, date):
         location='https://salilab.org/modeller/',
         version=version,
         citation=ihm.citations.modeller)
+
+
+ModellerTemplate = collections.namedtuple(
+    'ModellerTemplate', ['name', 'template_begin', 'template_chain',
+                         'template_end', 'target_begin', 'target_chain',
+                         'target_end', 'pct_seq_id'])
+
+
+def _handle_modeller_template(info, template_path_map, target_dataset,
+                              alnfile):
+    """Create a Template object from Modeller PDB header information."""
+    template_seq_id_range = (int(info.template_begin),
+                             int(info.template_end))
+    seq_id_range = (int(info.target_begin), int(info.target_end))
+    sequence_identity = startmodel.SequenceIdentity(
+        float(info.pct_seq_id), SequenceIdentityDenominator.SHORTER_LENGTH)
+
+    # Assume a code of 1abc, 1abc_N, 1abcX, or 1abcX_N refers
+    # to a real PDB structure
+    m = re.match(r'(\d[a-zA-Z0-9]{3})[a-zA-Z]?(_.*)?$', info.name)
+    if m:
+        template_db_code = m.group(1).upper()
+        loc = location.PDBLocation(template_db_code)
+    else:
+        # Otherwise, look up the PDB file in TEMPLATE PATH remarks
+        fname = template_path_map[info.name]
+        loc = location.InputFileLocation(
+            fname, details="Template for comparative modeling")
+    d = dataset.PDBDataset(loc, details=loc.details)
+
+    # Make the comparative model dataset derive from the template's
+    target_dataset.parents.append(d)
+
+    return (info.target_chain,
+            startmodel.Template(
+                dataset=d, asym_id=info.template_chain,
+                seq_id_range=seq_id_range,
+                template_seq_id_range=template_seq_id_range,
+                sequence_identity=sequence_identity,
+                alignment_file=alnfile))
 
 
 class Parser(object):
@@ -492,12 +533,17 @@ class PDBParser(Parser):
                         fname, details="Script for starting comparative model")
                 m = tmpre.match(line)
                 if m:
-                    template_info.append(m)
+                    t = ModellerTemplate(
+                        name=m.group(1), template_begin=m.group(2),
+                        template_chain=m.group(3), template_end=m.group(4),
+                        target_begin=m.group(5), target_chain=m.group(6),
+                        target_end=m.group(7), pct_seq_id=m.group(8))
+                    template_info.append(t)
 
         templates = {}
         for t in template_info:
-            chain, template = self._handle_template(t, template_path_map,
-                                                    target_dataset, alnfile)
+            chain, template = _handle_modeller_template(
+                t, template_path_map, target_dataset, alnfile)
             if chain not in templates:
                 templates[chain] = []
             templates[chain].append(template)
@@ -506,41 +552,6 @@ class PDBParser(Parser):
             templates[chain] = sorted(templates[chain],
                                       key=operator.attrgetter('seq_id_range'))
         return templates, script
-
-    def _handle_template(self, info, template_path_map, target_dataset,
-                         alnfile):
-        """Create a Template object from Modeller PDB header information."""
-        template_code = info.group(1)
-        template_seq_id_range = (int(info.group(2)), int(info.group(4)))
-        template_asym_id = info.group(3)
-        seq_id_range = (int(info.group(5)), int(info.group(7)))
-        target_asym_id = info.group(6)
-        sequence_identity = startmodel.SequenceIdentity(
-            float(info.group(8)), SequenceIdentityDenominator.SHORTER_LENGTH)
-
-        # Assume a code of 1abc, 1abc_N, 1abcX, or 1abcX_N refers
-        # to a real PDB structure
-        m = re.match(r'(\d[a-zA-Z0-9]{3})[a-zA-Z]?(_.*)?$', template_code)
-        if m:
-            template_db_code = m.group(1).upper()
-            loc = location.PDBLocation(template_db_code)
-        else:
-            # Otherwise, look up the PDB file in TEMPLATE PATH remarks
-            fname = template_path_map[template_code]
-            loc = location.InputFileLocation(
-                fname, details="Template for comparative modeling")
-        d = dataset.PDBDataset(loc, details=loc.details)
-
-        # Make the comparative model dataset derive from the template's
-        target_dataset.parents.append(d)
-
-        return (target_asym_id,
-                startmodel.Template(
-                    dataset=d, asym_id=template_asym_id,
-                    seq_id_range=seq_id_range,
-                    template_seq_id_range=template_seq_id_range,
-                    sequence_identity=sequence_identity,
-                    alignment_file=alnfile))
 
     def _parse_pdb_records(self, fh, first_line):
         """Extract information from an official PDB"""
@@ -658,6 +669,44 @@ class _ExptlHandler(ihm.reader.Handler):
             self.m['software'].append(s)
 
 
+class _ModellerHandler(ihm.reader.Handler):
+    """Handle the Modeller-specific _modeller category"""
+    def __init__(self, m, filename):
+        self.m = m
+        self.filename = filename
+        self.m['alnfile'] = self.m['script'] = None
+
+    def __call__(self, alignment, script):
+        if alignment:
+            # Paths are relative to that of the mmCIF file
+            fname = util._get_relative_path(self.filename, alignment)
+            self.m['alnfile'] = location.InputFileLocation(
+                fname, details="Alignment for starting comparative model")
+        if script:
+            fname = util._get_relative_path(self.filename, script)
+            self.m['script'] = location.WorkflowFileLocation(
+                fname, details="Script for starting comparative model")
+
+
+class _ModellerTemplateHandler(ihm.reader.Handler):
+    """Handle the Modeller-specific _modeller_template category"""
+    def __init__(self, m):
+        self.m = m
+        self.m['modeller_templates'] = []
+
+    def __call__(self, name, template_begin, template_end, target_begin,
+                 target_end, pct_seq_id):
+        tmp_begin, tmp_chain = template_begin.split(':', 1)
+        tmp_end, tmp_chain = template_end.split(':', 1)
+        tgt_begin, tgt_chain = target_begin.split(':', 1)
+        tgt_end, tgt_chain = target_end.split(':', 1)
+        t = ModellerTemplate(name=name, template_begin=tmp_begin,
+                             template_end=tmp_end, template_chain=tmp_chain,
+                             target_begin=tgt_begin, target_end=tgt_end,
+                             target_chain=tgt_chain, pct_seq_id=pct_seq_id)
+        self.m['modeller_templates'].append(t)
+
+
 class CIFParser(Parser):
     """Extract metadata from an mmCIF file. Currently, this does not handle
        information from comparative modeling packages such as MODELLER
@@ -677,8 +726,15 @@ class CIFParser(Parser):
                     as an entry in the PDB or Model Archive databases if the
                     file contains appropriate headers, otherwise to the
                     file itself;
-                    and 'software' pointing to a list of software used to
-                    generate the file (as :class:`ihm.Software` objects);
+                    'templates' pointing to a dict with keys the asym (chain)
+                    IDs in the PDB file and values the list of comparative
+                    model templates used to model that chain as
+                    :class:`ihm.startmodel.Template` objects;
+                    'software' pointing to a list of software used to generate
+                    the file (as :class:`ihm.Software` objects);
+                    'script' pointing to the script used to generate the
+                    file, if any (as :class:`ihm.location.WorkflowFileLocation`
+                    objects).
         """
         m = {'db': {}, 'title': 'Starting model structure',
              'software': []}
@@ -687,13 +743,18 @@ class CIFParser(Parser):
             structh = _StructHandler(m)
             arevhisth = _AuditRevHistHandler(m)
             exptlh = _ExptlHandler(m)
+            modellerh = _ModellerHandler(m, filename)
+            modtmplh = _ModellerTemplateHandler(m)
             r = ihm.format.CifReader(
                 fh, {'_database_2': dbh, '_struct': structh,
                      '_pdbx_audit_revision_history': arevhisth,
-                     '_exptl': exptlh})
+                     '_exptl': exptlh, '_modeller': modellerh,
+                     '_modeller_template': modtmplh})
             r.read_file()
         dset = self._get_dataset(filename, m)
-        return {'dataset': dset, 'software': m['software']}
+        return {'dataset': dset, 'software': m['software'],
+                'templates': self._get_templates(filename, m, dset),
+                'script': m['script']}
 
     def _get_dataset(self, filename, m):
         # Check for known databases. Note that if a file is in multiple
@@ -708,3 +769,19 @@ class CIFParser(Parser):
         loc = location.InputFileLocation(filename, details=m['title'])
         return dataset.ComparativeModelDataset(
             location=loc, details=loc.details)
+
+    def _get_templates(self, filename, m, dset):
+        alnfile = m['alnfile']
+        template_path_map = {}
+        templates = {}
+        for t in m['modeller_templates']:
+            chain, template = _handle_modeller_template(t, template_path_map,
+                                                        dset, alnfile)
+            if chain not in templates:
+                templates[chain] = []
+            templates[chain].append(template)
+        # Sort templates by starting residue, then ending residue
+        for chain in templates.keys():
+            templates[chain] = sorted(templates[chain],
+                                      key=operator.attrgetter('seq_id_range'))
+        return templates
