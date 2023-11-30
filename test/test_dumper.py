@@ -521,10 +521,14 @@ _entity_src_gen.pdbx_host_org_strain
         lpep = ihm.LPeptideAlphabet()
         sd = ihm.reference.SeqDif(seq_id=2, db_monomer=lpep['W'],
                                   monomer=lpep['S'], details='Test mutation')
+        # Test non-mandatory db_monomer
+        sd2 = ihm.reference.SeqDif(seq_id=3, db_monomer=None,
+                                   monomer=lpep['P'], details='Test mutation')
         r1 = ihm.reference.UniProtSequence(
             db_code='NUP84_YEAST', accession='P52891', sequence='MELWPTYQT',
             details='test sequence')
-        r1.alignments.append(ihm.reference.Alignment(db_begin=3, seq_dif=[sd]))
+        r1.alignments.append(ihm.reference.Alignment(db_begin=3,
+                                                     seq_dif=[sd, sd2]))
         r2 = ihm.reference.UniProtSequence(
             db_code='testcode', accession='testacc', sequence='MELSPTYQT',
             details='test2')
@@ -547,6 +551,7 @@ _entity_src_gen.pdbx_host_org_strain
         dumper = ihm.dumper._StructRefDumper()
         dumper.finalize(system)  # Assign IDs
         out = _get_dumper_output(dumper, system)
+        self.maxDiff=None
         self.assertEqual(out, """#
 loop_
 _struct_ref.id
@@ -585,6 +590,7 @@ _struct_ref_seq_dif.db_mon_id
 _struct_ref_seq_dif.mon_id
 _struct_ref_seq_dif.details
 1 1 2 TRP SER 'Test mutation'
+2 1 3 ? PRO 'Test mutation'
 #
 """)
 

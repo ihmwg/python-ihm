@@ -427,7 +427,8 @@ class _StructRefDumper(Dumper):
                                  "not match that in %s (%s at position %d)"
                                  % (sd.monomer.code_canonical, entity,
                                     entseq[sd.seq_id - 1], sd.seq_id))
-            entseq[sd.seq_id - 1] = sd.db_monomer.code_canonical
+            if sd.db_monomer:
+                entseq[sd.seq_id - 1] = sd.db_monomer.code_canonical
         return ''.join(entseq)
 
     def _get_ranges(self, entity, ref, align):
@@ -525,7 +526,8 @@ class _StructRefDumper(Dumper):
                         for sd in a.seq_dif:
                             lp.write(pdbx_ordinal=next(ordinal),
                                      align_id=a._id, seq_num=sd.seq_id,
-                                     db_mon_id=sd.db_monomer.id,
+                                     db_mon_id=sd.db_monomer.id
+                                     if sd.db_monomer else ihm.unknown,
                                      mon_id=sd.monomer.id, details=sd.details)
 
 
