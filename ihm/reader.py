@@ -2500,19 +2500,26 @@ class _NonPolySchemeHandler(Handler):
         if pdb_strand_id not in (None, ihm.unknown, asym_id):
             asym._strand_id = pdb_strand_id
         auth_seq_num = self.get_int_or_string(auth_seq_num)
-        if auth_seq_num != 1 or pdb_ins_code not in (None, ihm.unknown):
-            if entity.type == 'water':
-                # For waters, assume ndb_seq_num counts starting from 1,
-                # so use as our internal seq_id. Make sure the WaterAsymUnit
-                # is long enough to handle all ids
-                seq_id = self.get_int(ndb_seq_num)
+        if entity.type == 'water':
+            # For waters, assume ndb_seq_num counts starting from 1,
+            # so use as our internal seq_id. Make sure the WaterAsymUnit
+            # is long enough to handle all ids
+            seq_id = self.get_int(ndb_seq_num)
+            if seq_id is None:
+                # If no ndb_seq_num, we cannot map
+                return
+            # Don't bother adding a 1->1 mapping
+            if (auth_seq_num != seq_id
+                    or pdb_ins_code not in (None, ihm.unknown)):
                 asym.number = max(asym.number, seq_id)
                 asym._water_sequence = [entity.sequence[0]] * asym.number
                 if asym.auth_seq_id_map == 0:
                     asym.auth_seq_id_map = {}
                 asym.auth_seq_id_map[seq_id] = (auth_seq_num, pdb_ins_code)
-            else:
-                # For nonpolymers, assume a single ChemComp with seq_id=1
+        else:
+            # For nonpolymers, assume a single ChemComp with seq_id=1,
+            # but don't bother adding a 1->1 mapping
+            if auth_seq_num != 1 or pdb_ins_code not in (None, ihm.unknown):
                 asym.auth_seq_id_map = {1: (auth_seq_num, pdb_ins_code)}
 
 

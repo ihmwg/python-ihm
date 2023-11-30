@@ -2713,13 +2713,17 @@ loop_
 _pdbx_nonpoly_scheme.asym_id
 _pdbx_nonpoly_scheme.entity_id
 _pdbx_nonpoly_scheme.mon_id
+_pdbx_nonpoly_scheme.ndb_seq_num
 _pdbx_nonpoly_scheme.auth_seq_num
 _pdbx_nonpoly_scheme.pdb_strand_id
 _pdbx_nonpoly_scheme.pdb_ins_code
-A 1 FOO 1 . .
-A 1 BAR 101 . .
-B 2 BAR 1 Q X
-C 3 HOH 1 . .
+A 1 FOO 1 1 . .
+A 1 BAR 1 101 . .
+B 2 BAR 1 1 Q X
+C 3 HOH . 1 . .
+C 3 HOH 2 2 . .
+C 3 HOH 3 5 . .
+C 3 HOH 4 1 . .
 """)
         s, = ihm.reader.read(fh)
         e1, e2, e3 = s.entities
@@ -2744,6 +2748,11 @@ C 3 HOH 1 . .
         self.assertEqual(a2.residue(1).ins_code, 'X')
         self.assertEqual(a2.strand_id, 'Q')
         self.assertEqual(a2._strand_id, 'Q')
+
+        # For waters, the first row should be ignored since ndb_seq_num
+        # is missing; the second row should also be ignored because it
+        # is a one-to-one mapping; only the last two rows should be used
+        self.assertEqual(a3.auth_seq_id_map, {3: (5, None), 4: (1, None)})
 
     def test_cross_link_list_handler(self):
         """Test CrossLinkListHandler"""
