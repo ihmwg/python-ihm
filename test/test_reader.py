@@ -2542,7 +2542,7 @@ loop_
 _pdbx_poly_seq_scheme.asym_id
 _pdbx_poly_seq_scheme.entity_id
 _pdbx_poly_seq_scheme.seq_id
-_pdbx_poly_seq_scheme.auth_seq_num
+_pdbx_poly_seq_scheme.pdb_seq_num
 _pdbx_poly_seq_scheme.pdb_strand_id
 A 1 1 6 A
 A 1 2 7 A
@@ -2563,7 +2563,7 @@ loop_
 _pdbx_poly_seq_scheme.asym_id
 _pdbx_poly_seq_scheme.entity_id
 _pdbx_poly_seq_scheme.seq_id
-_pdbx_poly_seq_scheme.auth_seq_num
+_pdbx_poly_seq_scheme.pdb_seq_num
 _pdbx_poly_seq_scheme.pdb_strand_id
 _pdbx_poly_seq_scheme.pdb_ins_code
 A 1 1 6 A .
@@ -2598,7 +2598,7 @@ loop_
 _pdbx_poly_seq_scheme.asym_id
 _pdbx_poly_seq_scheme.entity_id
 _pdbx_poly_seq_scheme.seq_id
-_pdbx_poly_seq_scheme.auth_seq_num
+_pdbx_poly_seq_scheme.pdb_seq_num
 A 1 1 1
 A 1 2 2
 A 1 3 3
@@ -2616,7 +2616,7 @@ loop_
 _pdbx_poly_seq_scheme.asym_id
 _pdbx_poly_seq_scheme.entity_id
 _pdbx_poly_seq_scheme.seq_id
-_pdbx_poly_seq_scheme.auth_seq_num
+_pdbx_poly_seq_scheme.pdb_seq_num
 A 1 1 6
 A 1 2 7
 A 1 3 8
@@ -2637,7 +2637,7 @@ loop_
 _pdbx_poly_seq_scheme.asym_id
 _pdbx_poly_seq_scheme.entity_id
 _pdbx_poly_seq_scheme.seq_id
-_pdbx_poly_seq_scheme.auth_seq_num
+_pdbx_poly_seq_scheme.pdb_seq_num
 _pdbx_poly_seq_scheme.pdb_strand_id
 A 1 1 6 X
 A 1 2 7 X
@@ -2654,13 +2654,13 @@ A 1 4 10 X
         self.assertIsNone(asym.residue(1).ins_code)
 
     def test_poly_seq_scheme_handler_str_seq_id(self):
-        """Test PolySeqSchemeHandler with a non-integer auth_seq_num"""
+        """Test PolySeqSchemeHandler with a non-integer pdb_seq_num"""
         fh = StringIO(ASYM_ENTITY + """
 loop_
 _pdbx_poly_seq_scheme.asym_id
 _pdbx_poly_seq_scheme.entity_id
 _pdbx_poly_seq_scheme.seq_id
-_pdbx_poly_seq_scheme.auth_seq_num
+_pdbx_poly_seq_scheme.pdb_seq_num
 _pdbx_poly_seq_scheme.pdb_strand_id
 _pdbx_poly_seq_scheme.pdb_ins_code
 A 1 1 6 ? .
@@ -2714,7 +2714,7 @@ _pdbx_nonpoly_scheme.asym_id
 _pdbx_nonpoly_scheme.entity_id
 _pdbx_nonpoly_scheme.mon_id
 _pdbx_nonpoly_scheme.ndb_seq_num
-_pdbx_nonpoly_scheme.auth_seq_num
+_pdbx_nonpoly_scheme.pdb_seq_num
 _pdbx_nonpoly_scheme.pdb_strand_id
 _pdbx_nonpoly_scheme.pdb_ins_code
 A 1 FOO 1 1 . .

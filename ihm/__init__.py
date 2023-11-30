@@ -1408,7 +1408,7 @@ class AsymUnit(object):
        :type entity: :class:`Entity`
        :param str details: Longer text description of this unit.
        :param auth_seq_id_map: Mapping from internal 1-based consecutive
-              residue numbering (`seq_id`) to "author-provided" numbering
+              residue numbering (`seq_id`) to PDB "author-provided" numbering
               (`auth_seq_id` plus an optional `ins_code`). This can be either
               be an int offset, in which case
               ``auth_seq_id = seq_id + auth_seq_id_map`` with no insertion
