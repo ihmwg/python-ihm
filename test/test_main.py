@@ -518,6 +518,24 @@ class Tests(unittest.TestCase):
         self.assertEqual(a._get_auth_seq_id_ins_code(2), (4, None))
         self.assertEqual(a._get_auth_seq_id_ins_code(3), (3, None))
 
+    def test_orig_auth_seq_id_none(self):
+        """Test default orig_auth_seq_idm_map (None)"""
+        e = ihm.Entity('AHCDAH')
+        a = ihm.AsymUnit(e, auth_seq_id_map={1: 0, 2: (4, 'A')})
+        self.assertIsNone(a.orig_auth_seq_id_map)
+        self.assertEqual(a._get_pdb_auth_seq_id_ins_code(1), (0, 0, None))
+        self.assertEqual(a._get_pdb_auth_seq_id_ins_code(2), (4, 4, 'A'))
+        self.assertEqual(a._get_pdb_auth_seq_id_ins_code(3), (3, 3, None))
+
+    def test_orig_auth_seq_id_dict(self):
+        """Test orig_auth_seq_id_map as dict"""
+        e = ihm.Entity('AHCDAH')
+        a = ihm.AsymUnit(e, auth_seq_id_map={1: 0, 2: (4, 'A')},
+                         orig_auth_seq_id_map={1: 5})
+        self.assertEqual(a._get_pdb_auth_seq_id_ins_code(1), (0, 5, None))
+        self.assertEqual(a._get_pdb_auth_seq_id_ins_code(2), (4, 4, 'A'))
+        self.assertEqual(a._get_pdb_auth_seq_id_ins_code(3), (3, 3, None))
+
     def test_assembly(self):
         """Test Assembly class"""
         e1 = ihm.Entity('AHCD')

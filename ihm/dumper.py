@@ -680,8 +680,7 @@ class _EntityBranchDumper(Dumper):
 
 class _PolySeqSchemeDumper(Dumper):
     """Output the _pdbx_poly_seq_scheme table.
-       This is needed because it is a parent category of atom_site.
-       For now we assume we're using auth_seq_num==pdb_seq_num."""
+       This is needed because it is a parent category of atom_site."""
     def dump(self, system, writer):
         with writer.loop("_pdbx_poly_seq_scheme",
                          ["asym_id", "entity_id", "seq_id", "mon_id",
@@ -693,10 +692,11 @@ class _PolySeqSchemeDumper(Dumper):
                 if not entity.is_polymeric():
                     continue
                 for num, comp in enumerate(entity.sequence):
-                    auth_seq_num, ins = asym._get_auth_seq_id_ins_code(num + 1)
+                    pdb_seq_num, auth_seq_num, ins = \
+                        asym._get_pdb_auth_seq_id_ins_code(num + 1)
                     lp.write(asym_id=asym._id, pdb_strand_id=asym.strand_id,
                              entity_id=entity._id,
-                             seq_id=num + 1, pdb_seq_num=auth_seq_num,
+                             seq_id=num + 1, pdb_seq_num=pdb_seq_num,
                              auth_seq_num=auth_seq_num,
                              mon_id=comp.id, pdb_mon_id=comp.id,
                              auth_mon_id=comp.id,
@@ -717,7 +717,8 @@ class _NonPolySchemeDumper(Dumper):
                 if entity.is_polymeric() or entity.is_branched():
                     continue
                 for num, comp in enumerate(asym.sequence):
-                    auth_seq_num, ins = asym._get_auth_seq_id_ins_code(num + 1)
+                    pdb_seq_num, auth_seq_num, ins = \
+                        asym._get_pdb_auth_seq_id_ins_code(num + 1)
                     # ndb_seq_num is described as the "NDB/RCSB residue
                     # number". We don't have one of those but real PDBs
                     # usually seem to just count sequentially from 1, so
@@ -725,7 +726,7 @@ class _NonPolySchemeDumper(Dumper):
                     lp.write(asym_id=asym._id, pdb_strand_id=asym.strand_id,
                              entity_id=entity._id,
                              ndb_seq_num=num + 1,
-                             pdb_seq_num=auth_seq_num,
+                             pdb_seq_num=pdb_seq_num,
                              auth_seq_num=auth_seq_num,
                              mon_id=comp.id,
                              auth_mon_id=comp.id, pdb_ins_code=ins)
@@ -742,12 +743,13 @@ class _BranchSchemeDumper(Dumper):
                 if not entity.is_branched():
                     continue
                 for num, comp in enumerate(asym.sequence):
-                    auth_seq_num, ins = asym._get_auth_seq_id_ins_code(num + 1)
+                    pdb_seq_num, auth_seq_num, ins = \
+                        asym._get_pdb_auth_seq_id_ins_code(num + 1)
                     # Assume num counts sequentially from 1 (like seq_id)
                     lp.write(asym_id=asym._id, pdb_asym_id=asym.strand_id,
                              entity_id=entity._id,
                              num=num + 1,
-                             pdb_seq_num=auth_seq_num,
+                             pdb_seq_num=pdb_seq_num,
                              auth_seq_num=auth_seq_num,
                              mon_id=comp.id, auth_mon_id=comp.id,
                              pdb_mon_id=comp.id)

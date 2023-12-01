@@ -2412,13 +2412,14 @@ class _PolySeqSchemeHandler(Handler):
 
     # Note: do not change the ordering of the first 6 parameters to this
     # function; the C parser expects them in this order
-    def __call__(self, asym_id, seq_id, pdb_seq_num, pdb_ins_code,
-                 pdb_strand_id):
+    def __call__(self, asym_id, seq_id, pdb_seq_num, auth_seq_num,
+                 pdb_ins_code, pdb_strand_id):
         asym = self.sysr.asym_units.get_by_id(asym_id)
         seq_id = self.get_int(seq_id)
         if pdb_strand_id not in (None, ihm.unknown, asym_id):
             asym._strand_id = pdb_strand_id
         pdb_seq_num = self.get_int_or_string(pdb_seq_num)
+        auth_seq_num = self.get_int_or_string(auth_seq_num)
         # Note any residues that have different seq_id and pdb_seq_num
         if seq_id is not None and pdb_seq_num is not None \
            and (seq_id != pdb_seq_num
@@ -2426,6 +2427,12 @@ class _PolySeqSchemeHandler(Handler):
             if asym.auth_seq_id_map == 0:
                 asym.auth_seq_id_map = {}
             asym.auth_seq_id_map[seq_id] = pdb_seq_num, pdb_ins_code
+        # Note any residues that have different pdb_seq_num and auth_seq_num
+        if (seq_id is not None and auth_seq_num is not None
+                and pdb_seq_num is not None and auth_seq_num != pdb_seq_num):
+            if asym.orig_auth_seq_id_map is None:
+                asym.orig_auth_seq_id_map = {}
+            asym.orig_auth_seq_id_map[seq_id] = auth_seq_num
 
     def finalize(self):
         for asym in self.sysr.system.asym_units:
@@ -2478,7 +2485,7 @@ class _NonPolySchemeHandler(Handler):
     category = '_pdbx_nonpoly_scheme'
 
     def __call__(self, asym_id, entity_id, pdb_seq_num, mon_id, pdb_ins_code,
-                 pdb_strand_id, ndb_seq_num):
+                 pdb_strand_id, ndb_seq_num, auth_seq_num):
         entity = self.sysr.entities.get_by_id(entity_id)
         # nonpolymer entities generally have information on their chemical
         # component in pdbx_entity_nonpoly, but if that's missing, at least
@@ -2500,6 +2507,7 @@ class _NonPolySchemeHandler(Handler):
         if pdb_strand_id not in (None, ihm.unknown, asym_id):
             asym._strand_id = pdb_strand_id
         pdb_seq_num = self.get_int_or_string(pdb_seq_num)
+        auth_seq_num = self.get_int_or_string(auth_seq_num)
         if entity.type == 'water':
             # For waters, assume ndb_seq_num counts starting from 1,
             # so use as our internal seq_id. Make sure the WaterAsymUnit
@@ -2516,17 +2524,27 @@ class _NonPolySchemeHandler(Handler):
                 if asym.auth_seq_id_map == 0:
                     asym.auth_seq_id_map = {}
                 asym.auth_seq_id_map[seq_id] = (pdb_seq_num, pdb_ins_code)
+            # Note any residues that have different pdb_seq_num & auth_seq_num
+            if (auth_seq_num is not None and pdb_seq_num is not None
+                    and auth_seq_num != pdb_seq_num):
+                if asym.orig_auth_seq_id_map is None:
+                    asym.orig_auth_seq_id_map = {}
+                asym.orig_auth_seq_id_map[seq_id] = auth_seq_num
         else:
             # For nonpolymers, assume a single ChemComp with seq_id=1,
             # but don't bother adding a 1->1 mapping
             if pdb_seq_num != 1 or pdb_ins_code not in (None, ihm.unknown):
                 asym.auth_seq_id_map = {1: (pdb_seq_num, pdb_ins_code)}
+            # Note any residues that have different pdb_seq_num & auth_seq_num
+            if (auth_seq_num is not None and pdb_seq_num is not None
+                    and auth_seq_num != pdb_seq_num):
+                asym.orig_auth_seq_id_map = {1: auth_seq_num}
 
 
 class _BranchSchemeHandler(Handler):
     category = '_pdbx_branch_scheme'
 
-    def __call__(self, asym_id, num, pdb_seq_num, pdb_asym_id):
+    def __call__(self, asym_id, num, pdb_seq_num, auth_seq_num, pdb_asym_id):
         asym = self.sysr.asym_units.get_by_id(asym_id)
         if pdb_asym_id not in (None, ihm.unknown, asym_id):
             asym._strand_id = pdb_asym_id
@@ -2539,6 +2557,12 @@ class _BranchSchemeHandler(Handler):
             if asym.auth_seq_id_map == 0:
                 asym.auth_seq_id_map = {}
             asym.auth_seq_id_map[num] = pdb_seq_num, None
+        # Note any residues that have different pdb_seq_num and auth_seq_num
+        if (num is not None and auth_seq_num is not None
+                and pdb_seq_num is not None and auth_seq_num != pdb_seq_num):
+            if asym.orig_auth_seq_id_map is None:
+                asym.orig_auth_seq_id_map = {}
+            asym.orig_auth_seq_id_map[num] = auth_seq_num
 
 
 class _EntityBranchListHandler(Handler):

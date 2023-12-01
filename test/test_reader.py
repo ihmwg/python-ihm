@@ -2555,6 +2555,7 @@ A 1 4 9 A
         self.assertIsNone(asym._strand_id)
         self.assertEqual([asym.residue(i).auth_seq_id for i in range(1, 5)],
                          [6, 7, 8, 9])
+        self.assertIsNone(asym.orig_auth_seq_id_map)
 
     def test_poly_seq_scheme_handler_offset_ins_code(self):
         """Test PolySeqSchemeHandler with constant offset but inscodes"""
@@ -2581,6 +2582,7 @@ A 1 4 9 A A
                          [6, 7, 8, 9])
         self.assertIsNone(asym.residue(1).ins_code)
         self.assertEqual(asym.residue(4).ins_code, 'A')
+        self.assertIsNone(asym.orig_auth_seq_id_map)
 
     def test_poly_seq_scheme_handler_empty(self):
         """Test PolySeqSchemeHandler with no poly_seq_scheme"""
@@ -2590,6 +2592,7 @@ A 1 4 9 A A
         self.assertEqual(asym.auth_seq_id_map, 0)
         self.assertEqual([asym.residue(i).auth_seq_id for i in range(1, 5)],
                          [1, 2, 3, 4])
+        self.assertIsNone(asym.orig_auth_seq_id_map)
 
     def test_poly_seq_scheme_handler_nop(self):
         """Test PolySeqSchemeHandler with a do-nothing poly_seq_scheme"""
@@ -2608,6 +2611,7 @@ A 1 3 3
         self.assertEqual(asym.auth_seq_id_map, 0)
         self.assertEqual([asym.residue(i).auth_seq_id for i in range(1, 5)],
                          [1, 2, 3, 4])
+        self.assertIsNone(asym.orig_auth_seq_id_map)
 
     def test_poly_seq_scheme_handler_partial(self):
         """Test PolySeqSchemeHandler with partial information"""
@@ -2617,9 +2621,10 @@ _pdbx_poly_seq_scheme.asym_id
 _pdbx_poly_seq_scheme.entity_id
 _pdbx_poly_seq_scheme.seq_id
 _pdbx_poly_seq_scheme.pdb_seq_num
-A 1 1 6
-A 1 2 7
-A 1 3 8
+_pdbx_poly_seq_scheme.auth_seq_num
+A 1 1 6 .
+A 1 2 7 9
+A 1 3 8 .
 """)
         s, = ihm.reader.read(fh)
         asym, = s.asym_units
@@ -2629,6 +2634,7 @@ A 1 3 8
         self.assertEqual([asym.residue(i).auth_seq_id for i in range(1, 5)],
                          [6, 7, 8, 4])
         self.assertIsNone(asym.residue(1).ins_code)
+        self.assertEqual(asym.orig_auth_seq_id_map, {2: 9})
 
     def test_poly_seq_scheme_handler_incon_off(self):
         """Test PolySeqSchemeHandler with inconsistent offset"""
@@ -2652,6 +2658,7 @@ A 1 4 10 X
         self.assertEqual([asym.residue(i).auth_seq_id for i in range(1, 5)],
                          [6, 7, 8, 10])
         self.assertIsNone(asym.residue(1).ins_code)
+        self.assertIsNone(asym.orig_auth_seq_id_map)
 
     def test_poly_seq_scheme_handler_str_seq_id(self):
         """Test PolySeqSchemeHandler with a non-integer pdb_seq_num"""
@@ -2661,12 +2668,13 @@ _pdbx_poly_seq_scheme.asym_id
 _pdbx_poly_seq_scheme.entity_id
 _pdbx_poly_seq_scheme.seq_id
 _pdbx_poly_seq_scheme.pdb_seq_num
+_pdbx_poly_seq_scheme.auth_seq_num
 _pdbx_poly_seq_scheme.pdb_strand_id
 _pdbx_poly_seq_scheme.pdb_ins_code
-A 1 1 6 ? .
-A 1 2 7 ? .
-A 1 3 8 ? X
-A 1 4 9A ? .
+A 1 1 6 6 ? .
+A 1 2 7 12 ? .
+A 1 3 8 24 ? X
+A 1 4 9A 48A ? .
 """)
         s, = ihm.reader.read(fh)
         asym, = s.asym_units
@@ -2677,6 +2685,7 @@ A 1 4 9A ? .
                          [6, 7, 8, '9A'])
         self.assertIsNone(asym.residue(1).ins_code)
         self.assertEqual(asym.residue(3).ins_code, 'X')
+        self.assertEqual(asym.orig_auth_seq_id_map, {2: 12, 3: 24, 4: '48A'})
 
     def test_nonpoly_scheme_handler(self):
         """Test NonPolySchemeHandler"""
@@ -2715,15 +2724,16 @@ _pdbx_nonpoly_scheme.entity_id
 _pdbx_nonpoly_scheme.mon_id
 _pdbx_nonpoly_scheme.ndb_seq_num
 _pdbx_nonpoly_scheme.pdb_seq_num
+_pdbx_nonpoly_scheme.auth_seq_num
 _pdbx_nonpoly_scheme.pdb_strand_id
 _pdbx_nonpoly_scheme.pdb_ins_code
-A 1 FOO 1 1 . .
-A 1 BAR 1 101 . .
-B 2 BAR 1 1 Q X
-C 3 HOH . 1 . .
-C 3 HOH 2 2 . .
-C 3 HOH 3 5 . .
-C 3 HOH 4 1 . .
+A 1 FOO 1 1 1 . .
+A 1 BAR 1 101 202 . .
+B 2 BAR 1 1 1 Q X
+C 3 HOH . 1 1 . .
+C 3 HOH 2 2 2 . .
+C 3 HOH 3 5 10 . .
+C 3 HOH 4 1 20 . .
 """)
         s, = ihm.reader.read(fh)
         e1, e2, e3 = s.entities
@@ -2742,17 +2752,20 @@ C 3 HOH 4 1 . .
         self.assertIsNone(asym.residue(1).ins_code)
         self.assertEqual(asym.strand_id, asym._id)
         self.assertIsNone(asym._strand_id)
+        self.assertEqual(asym.orig_auth_seq_id_map, {1: 202})
 
         self.assertEqual(a2.auth_seq_id_map, {1: (1, 'X')})
         self.assertEqual(a2.residue(1).auth_seq_id, 1)
         self.assertEqual(a2.residue(1).ins_code, 'X')
         self.assertEqual(a2.strand_id, 'Q')
         self.assertEqual(a2._strand_id, 'Q')
+        self.assertIsNone(a2.orig_auth_seq_id_map)
 
         # For waters, the first row should be ignored since ndb_seq_num
         # is missing; the second row should also be ignored because it
         # is a one-to-one mapping; only the last two rows should be used
         self.assertEqual(a3.auth_seq_id_map, {3: (5, None), 4: (1, None)})
+        self.assertEqual(a3.orig_auth_seq_id_map, {3: 10, 4: 20})
 
     def test_cross_link_list_handler(self):
         """Test CrossLinkListHandler"""

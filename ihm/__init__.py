@@ -1429,19 +1429,30 @@ class AsymUnit(object):
               IDs are automatically assigned alphabetically.
        :param str strand_id: PDB or "author-provided" strand/chain ID.
               If not specified, it will be the same as the regular ID.
-
+       :param orig_auth_seq_id_map: Mapping from internal 1-based consecutive
+              residue numbering (`seq_id`) to original "author-provided"
+              numbering. This differs from `auth_seq_id_map` as the original
+              numbering need not follow any defined scheme, while
+              `auth_seq_id_map` must follow certain PDB-defined rules. This
+              can either be a mapping type (dict, list, tuple) in which case
+              ``orig_auth_seq_id = orig_auth_seq_id_map[seq_id]``. If the
+              mapping is None (the default), or a given `seq_id` cannot be
+              found in the mapping, ``orig_auth_seq_id = auth_seq_id``.
+              This mapping is only used in the various `scheme` tables, such
+              as ``pdbx_poly_seq_scheme``.
        See :attr:`System.asym_units`.
     """
 
     number_of_molecules = 1
 
     def __init__(self, entity, details=None, auth_seq_id_map=0, id=None,
-                 strand_id=None):
+                 strand_id=None, orig_auth_seq_id_map=None):
         if (entity is not None and entity.type == 'water'
                 and not isinstance(self, WaterAsymUnit)):
             raise TypeError("Use WaterAsymUnit instead for creating waters")
         self.entity, self.details = entity, details
         self.auth_seq_id_map = auth_seq_id_map
+        self.orig_auth_seq_id_map = orig_auth_seq_id_map
         self.id = id
         self._strand_id = strand_id
 
@@ -1457,6 +1468,14 @@ class AsymUnit(object):
                     return ret
             except (KeyError, IndexError):
                 return seq_id, None
+
+    def _get_pdb_auth_seq_id_ins_code(self, seq_id):
+        pdb_seq_num, ins_code = self._get_auth_seq_id_ins_code(seq_id)
+        if self.orig_auth_seq_id_map is None:
+            auth_seq_num = pdb_seq_num
+        else:
+            auth_seq_num = self.orig_auth_seq_id_map.get(seq_id, pdb_seq_num)
+        return pdb_seq_num, auth_seq_num, ins_code
 
     def __call__(self, seq_id_begin, seq_id_end):
         return AsymUnitRange(self, seq_id_begin, seq_id_end)
