@@ -551,7 +551,6 @@ _entity_src_gen.pdbx_host_org_strain
         dumper = ihm.dumper._StructRefDumper()
         dumper.finalize(system)  # Assign IDs
         out = _get_dumper_output(dumper, system)
-        self.maxDiff=None
         self.assertEqual(out, """#
 loop_
 _struct_ref.id
