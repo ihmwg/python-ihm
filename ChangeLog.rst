@@ -6,7 +6,8 @@
   - Basic support for original author-provided residue numbering is now
     provided in the :class:`ihm.AsymUnit` class with a new
     ``orig_auth_seq_id_map`` argument. This information is read from and
-    written to the various mmCIF tables such as ``pdbx_poly_seq_scheme``.
+    written to the various mmCIF tables such as ``pdbx_poly_seq_scheme``
+    (#124).
 
 0.41 - 2023-10-02
 =================
