@@ -2549,6 +2549,7 @@ class _BranchSchemeHandler(Handler):
         if pdb_asym_id not in (None, ihm.unknown, asym_id):
             asym._strand_id = pdb_asym_id
         pdb_seq_num = self.get_int_or_string(pdb_seq_num)
+        auth_seq_num = self.get_int_or_string(auth_seq_num)
         num = self.get_int(num)
         # Note any residues that have different num and auth_seq_id
         # These will be finalized by _PolySeqSchemeHandler

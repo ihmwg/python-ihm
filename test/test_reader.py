@@ -4381,28 +4381,34 @@ A 1 BGC 1 5 5 BGC 0
 A 1 BGC 2 6 6 BGC 0
 A 1 BGC 3 7 7 BGC 0
 A 1 BGC 4 8 8 BGC 0
-B 1 BGC 1 1 1 BGC .
-B 1 BGC 2 2 2 BGC .
-B 1 BGC 3 3 3 BGC .
-B 1 BGC 4 4 4 BGC .
-C 1 BGC 1 2 2 BGC .
-C 1 BGC 2 4 4 BGC .
-C 1 BGC 3 6 6 BGC .
-C 1 BGC 4 8 8 BGC .
+B 1 BGC 1 1 11 BGC .
+B 1 BGC 2 2 12 BGC .
+B 1 BGC 3 3 13 BGC .
+B 1 BGC 4 4 14 BGC .
+C 1 BGC 1 2 . BGC .
+C 1 BGC 2 4 . BGC .
+C 1 BGC 3 6 . BGC .
+C 1 BGC 4 8 . BGC .
 """)
         s, = ihm.reader.read(fh)
         asym_a, asym_b, asym_c = s.asym_units
         self.assertEqual(asym_a.auth_seq_id_map, 4)
         self.assertEqual(asym_a._strand_id, '0')
         self.assertEqual(asym_a.residue(1).auth_seq_id, 5)
+        self.assertIsNone(asym_a.orig_auth_seq_id_map)
+
         self.assertEqual(asym_b.auth_seq_id_map, 0)
         self.assertIsNone(asym_b._strand_id)
         self.assertEqual(asym_b.residue(1).auth_seq_id, 1)
+        self.assertEqual(asym_b.orig_auth_seq_id_map,
+                         {1: 11, 2: 12, 3: 13, 4: 14})
+
         self.assertEqual(asym_c.auth_seq_id_map,
                          {1: (2, None), 2: (4, None), 3: (6, None),
                           4: (8, None)})
         self.assertIsNone(asym_c._strand_id)
         self.assertEqual(asym_c.residue(1).auth_seq_id, 2)
+        self.assertIsNone(asym_c.orig_auth_seq_id_map)
 
     def test_entity_branch_list_handler(self):
         """Test EntityBranchListHandler"""
