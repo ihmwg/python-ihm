@@ -1,3 +1,13 @@
+0.42 - 2023-11-30
+=================
+  - The :class:`ihm.metadata.CIFParser` class now parses Modeller-specific
+    CIF categories to add information about software and templates for
+    Modeller-generated mmCIF starting models.
+  - Basic support for original author-provided residue numbering is now
+    provided in the :class:`ihm.AsymUnit` class with a new
+    ``orig_auth_seq_id_map`` argument. This information is read from and
+    written to the various mmCIF tables such as ``pdbx_poly_seq_scheme``.
+
 0.41 - 2023-10-02
 =================
   - More complete support for oligosaccharides, in particular correct
