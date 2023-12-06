@@ -214,7 +214,7 @@ class Tests(unittest.TestCase):
     def test_entity(self):
         """Test Entity class"""
         e1 = ihm.Entity('AHCD', description='foo')
-        # Should compare identical if sequences are the same
+        # Should compare identical if sequences are the same, if not branched
         e2 = ihm.Entity('AHCD', description='bar')
         e3 = ihm.Entity('AHCDE', description='foo')
         heme = ihm.Entity([ihm.NonPolymerChemComp('HEM')])
@@ -223,6 +223,10 @@ class Tests(unittest.TestCase):
         self.assertNotEqual(e1, e3)
         self.assertEqual(e1.seq_id_range, (1, 4))
         self.assertEqual(e3.seq_id_range, (1, 5))
+        sugar2 = ihm.Entity([ihm.SaccharideChemComp('NAG')])
+        # Branched entities never compare equal unless they are the same object
+        self.assertEqual(sugar, sugar)
+        self.assertNotEqual(sugar, sugar2)
         # seq_id does not exist for nonpolymers
         self.assertEqual(heme.seq_id_range, (None, None))
         # We do have an internal seq_id_range for branched entities

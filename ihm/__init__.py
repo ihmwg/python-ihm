@@ -1330,12 +1330,21 @@ class Entity(object):
         """Get a :class:`Residue` at the given sequence position"""
         return Residue(entity=self, seq_id=seq_id)
 
-    # Entities are considered identical if they have the same sequence
+    # Entities are considered identical if they have the same sequence,
+    # unless they are branched
     def __eq__(self, other):
-        return isinstance(other, Entity) and self.sequence == other.sequence
+        if not isinstance(other, Entity):
+            return False
+        if self.is_branched() or other.is_branched():
+            return self is other
+        else:
+            return self.sequence == other.sequence
 
     def __hash__(self):
-        return hash(self.sequence)
+        if self.is_branched():
+            return hash(id(self))
+        else:
+            return hash(self.sequence)
 
     def __call__(self, seq_id_begin, seq_id_end):
         return EntityRange(self, seq_id_begin, seq_id_end)

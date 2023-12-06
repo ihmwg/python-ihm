@@ -414,12 +414,36 @@ _entity.details
 """)
 
     def test_entity_duplicates(self):
-        """Test EntityDumper with duplicate entities"""
+        """Test EntityDumper with duplicate non-branched entities"""
         system = ihm.System()
         system.entities.append(ihm.Entity('AHC'))
         system.entities.append(ihm.Entity('AHC'))
         dumper = ihm.dumper._EntityDumper()
         self.assertRaises(ValueError, dumper.finalize, system)
+
+    def test_entity_duplicate_branched(self):
+        """Test EntityDumper with duplicate branched entities"""
+        system = ihm.System()
+        sacc = ihm.SaccharideChemComp('NAG')
+        system.entities.append(ihm.Entity([sacc]))
+        system.entities.append(ihm.Entity([sacc]))
+        dumper = ihm.dumper._EntityDumper()
+        dumper.finalize(system)  # Assign IDs
+        out = _get_dumper_output(dumper, system)
+        # Duplicate "sequences" are OK for branched entities
+        self.assertEqual(out, """#
+loop_
+_entity.id
+_entity.type
+_entity.src_method
+_entity.pdbx_description
+_entity.formula_weight
+_entity.pdbx_number_of_molecules
+_entity.details
+1 branched man . . 0 .
+2 branched man . . 0 .
+#
+""")
 
     def test_entity_src_nat_dumper(self):
         """Test EntitySrcNatDumper"""
