@@ -971,6 +971,9 @@ _ihm_dataset_list.details
             self.assertEqual(d1.__class__, ihm.dataset.PDBDataset)
             self.assertEqual(d2.__class__, ihm.dataset.ComparativeModelDataset)
             self.assertEqual(d3.__class__, ihm.dataset.EMMicrographsDataset)
+            self.assertTrue(d1._allow_duplicates)
+            self.assertTrue(d2._allow_duplicates)
+            self.assertTrue(d3._allow_duplicates)
             # No specified data type - use base class
             self.assertEqual(d4.__class__, ihm.dataset.Dataset)
             self.assertIsNone(d1.details)

@@ -1384,6 +1384,7 @@ class _DatasetListHandler(Handler):
         f = self.sysr.datasets.get_by_id(
             id, self.type_map.get(typ, ihm.dataset.Dataset))
         f.details = details
+        f._allow_duplicates = True
 
 
 class _DatasetGroupHandler(Handler):
