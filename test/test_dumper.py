@@ -1,6 +1,7 @@
 import utils
 import os
 import unittest
+import warnings
 import sys
 if sys.version_info[0] >= 3:
     from io import StringIO
@@ -444,6 +445,32 @@ _entity.details
 2 branched man . . 0 .
 #
 """)
+
+    def test_entity_empty(self):
+        """Test EntityDumper with empty entity"""
+        system = ihm.System()
+        system.entities.append(ihm.Entity(''))
+        dumper = ihm.dumper._EntityDumper()
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            dumper.finalize(system)  # Assign IDs
+            _ = _get_dumper_output(dumper, system)
+            self.assertEqual(len(w), 1)
+            self.assertIn('At least one empty Entity', str(w[0].message))
+
+    def test_entity_duplicate_empty(self):
+        """Test EntityDumper with duplicate empty entities"""
+        system = ihm.System()
+        system.entities.append(ihm.Entity(''))
+        system.entities.append(ihm.Entity(''))
+        dumper = ihm.dumper._EntityDumper()
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            dumper.finalize(system)  # Assign IDs
+            _ = _get_dumper_output(dumper, system)
+            self.assertIn('At least one empty Entity', str(w[0].message))
 
     def test_entity_src_nat_dumper(self):
         """Test EntitySrcNatDumper"""

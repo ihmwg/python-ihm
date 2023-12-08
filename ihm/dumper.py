@@ -5,6 +5,7 @@ import os
 import collections
 import operator
 import itertools
+import warnings
 import ihm.format
 import ihm.format_bcif
 import ihm.model
@@ -261,13 +262,20 @@ class _ChemDescriptorDumper(Dumper):
 
 class _EntityDumper(Dumper):
     def finalize(self, system):
-        # Assign IDs and check for duplicates
+        # Assign IDs and check for duplicates or empty entities
         seen = {}
+        empty = []
         for num, entity in enumerate(system.entities):
-            if entity in seen:
+            if entity in seen and len(entity.sequence) > 0:
                 raise ValueError("Duplicate entity %s found" % entity)
+            if len(entity.sequence) == 0:
+                empty.append(entity)
             entity._id = num + 1
             seen[entity] = None
+        if empty:
+            warnings.warn(
+                "At least one empty Entity (with no sequence) was found: %s"
+                % empty)
 
     def dump(self, system, writer):
         # Count all molecules (if any) for each entity
