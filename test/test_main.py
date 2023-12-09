@@ -263,16 +263,25 @@ class Tests(unittest.TestCase):
         single_aa = ihm.Entity('A')
         self.assertEqual(single_aa.type, 'non-polymer')
         self.assertFalse(single_aa.is_polymeric())
+        self.assertFalse(single_aa.is_branched())
 
         # ... unless forced polymer
         single_aa._force_polymer = True
         self.assertEqual(single_aa.type, 'polymer')
         self.assertTrue(single_aa.is_polymeric())
+        self.assertFalse(single_aa.is_branched())
 
         # An entity with no sequence is a polymer
         empty = ihm.Entity([])
         self.assertEqual(empty.type, 'polymer')
         self.assertTrue(empty.is_polymeric())
+        self.assertFalse(empty.is_branched())
+
+        # ... unless hint branched
+        empty._hint_branched = True
+        self.assertEqual(empty.type, 'branched')
+        self.assertFalse(empty.is_polymeric())
+        self.assertTrue(empty.is_branched())
 
     def test_entity_src_method_default(self):
         """Test default values of Entity.src_method"""

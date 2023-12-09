@@ -1248,6 +1248,7 @@ class Entity(object):
     """  # noqa: E501
 
     _force_polymer = None
+    _hint_branched = None
 
     def __get_type(self):
         if self.is_polymeric():
@@ -1315,7 +1316,7 @@ class Entity(object):
         """Return True iff this entity represents a polymer, such as an
            amino acid sequence or DNA/RNA chain (and not a ligand or water)"""
         return (self._force_polymer or
-                len(self.sequence) == 0 or
+                (len(self.sequence) == 0 and not self._hint_branched) or
                 len(self.sequence) > 1
                 and any(isinstance(x, (PeptideChemComp, DNAChemComp,
                                        RNAChemComp)) for x in self.sequence))
@@ -1323,8 +1324,9 @@ class Entity(object):
     def is_branched(self):
         """Return True iff this entity is branched (generally
            an oligosaccharide)"""
-        return (len(self.sequence) > 0
-                and isinstance(self.sequence[0], SaccharideChemComp))
+        return ((len(self.sequence) > 0
+                 and isinstance(self.sequence[0], SaccharideChemComp)) or
+                (len(self.sequence) == 0 and self._hint_branched))
 
     def residue(self, seq_id):
         """Get a :class:`Residue` at the given sequence position"""

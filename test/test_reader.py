@@ -511,10 +511,11 @@ _entity.details
 2 polymer syn Nup85 3 200.0 .
 3 polymer . Nup86 3 300.0 .
 4 polymer unknown Nup87 3 300.0 .
+5 branched unknown Nup88 3 300.0 .
 """
         for fh in cif_file_handles(cif):
             s, = ihm.reader.read(fh)
-            e1, e2, e3, e4 = s.entities
+            e1, e2, e3, e4, e5 = s.entities
             self.assertEqual(e1.description, 'Nup84')
             self.assertTrue(e1._force_polymer)
             self.assertEqual(
@@ -523,6 +524,8 @@ _entity.details
             self.assertEqual(e2.source.src_method, 'syn')
             self.assertIsNone(e3.source)
             self.assertIsNone(e4.source)
+            self.assertFalse(e5._force_polymer)
+            self.assertTrue(e5._hint_branched)
 
     def test_entity_handler_minimal(self):
         """Test EntityHandler with minimal entity category"""

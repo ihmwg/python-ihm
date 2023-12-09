@@ -1035,6 +1035,10 @@ class _EntityHandler(Handler):
         # one (e.g. just a single amino acid)
         if type and type.lower() == 'polymer':
             s._force_polymer = True
+        # Encourage branched if _entity.type says so (otherwise empty entities
+        # are assumed to be polymer)
+        if type and type.lower() == 'branched':
+            s._hint_branched = True
 
 
 class _EntitySrcNatHandler(Handler):
