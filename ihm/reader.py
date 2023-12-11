@@ -14,6 +14,7 @@ import ihm.restraint
 import ihm.geometry
 import ihm.source
 import ihm.cross_linkers
+import ihm.multi_state_scheme
 import ihm.flr
 import inspect
 import warnings
@@ -612,6 +613,33 @@ class SystemReader(object):
         #: Mapping from ID to :class:`ihm.model.ProcessStep` objects
         self.ordered_steps = IDMapper(None, ihm.model.ProcessStep)
 
+        #: Mapping from ID to :class:`ihm.multi_state_scheme.MultiStateScheme`
+        #: objects
+        self.multi_state_schemes = IDMapper(
+            self.system.multi_state_schemes,
+            ihm.multi_state_scheme.MultiStateScheme,
+            None)
+
+        #: Mapping from ID to
+        #: :class:`ihm.multi_state_scheme.Connectivity` objects
+        self.multi_state_scheme_connectivities = IDMapper(
+            None,
+            ihm.multi_state_scheme.Connectivity,
+            None)
+
+        #: Mapping from ID to :class:`ihm.multi_state_scheme.KineticRate`
+        #: objects
+        self.kinetic_rates = IDMapper(
+            None,
+            ihm.multi_state_scheme.KineticRate)
+
+        #: Mapping from ID to
+        #: :class:`ihm.multi_state_schene.RelaxationTime` objects
+        self.relaxation_times = IDMapper(
+            None,
+            ihm.multi_state_scheme.RelaxationTime,
+            *(None,) * 2)
+
         # FLR part
 
         #: Mapping from ID to :class:`ihm.flr.FLRData` objects
@@ -771,6 +799,24 @@ class SystemReader(object):
         self.flr_fps_mpp_modeling = _FLRIDMapper(
             '_collection_flr_fps_mpp_modeling', 'fps_modeling',
             self.flr_data, ihm.flr.FPSMPPModeling, *(None,) * 3)
+
+        #: Mapping from ID to
+        #: :class:`ihm.flr.KineticRateFRETAnalysisConnection` objects
+        self.flr_kinetic_rate_fret_analysis_connection = _FLRIDMapper(
+            '_collection_flr_kinetic_rate_fret_analysis_connection',
+            'kinetic_rate_fret_analysis_connections',
+            self.flr_data,
+            ihm.flr.KineticRateFretAnalysisConnection,
+            *(None,) * 3)
+
+        #: Mapping from ID to
+        #: :class:`ihm.flr.KineticRateFRETAnalysisConnection` objects
+        self.flr_relaxation_time_fret_analysis_connection = _FLRIDMapper(
+            '_collection_flr_relaxation_time_fret_analysis_connection',
+            'relaxation_time_fret_analysis_connections',
+            self.flr_data,
+            ihm.flr.RelaxationTimeFretAnalysisConnection,
+            *(None,) * 3)
 
     def finalize(self):
         # make sequence immutable (see also _make_new_entity)
@@ -2821,6 +2867,135 @@ class _UnknownKeywordHandler(object):
                       UnknownKeywordWarning, stacklevel=2)
 
 
+class _MultiStateSchemeHandler(Handler):
+    category = '_ihm_multi_state_scheme'
+
+    def __call__(self, id, name, details):
+        # Get the object or create the object
+        cur_mss = self.sysr.multi_state_schemes.get_by_id(id)
+        # Set the variables
+        self.copy_if_present(cur_mss, locals(), keys=('name', 'details'))
+
+
+class _MultiStateSchemeConnectivityHandler(Handler):
+    category = '_ihm_multi_state_scheme_connectivity'
+
+    def __call__(self, id, scheme_id, begin_state_id, end_state_id,
+                 dataset_group_id, details):
+        # Get the object or create the object
+        mssc = self.sysr.multi_state_scheme_connectivities.get_by_id(id)
+        # Add the content
+        mssc.begin_state = self.sysr.states.get_by_id(begin_state_id)
+        mssc.end_state = self.sysr.states.get_by_id_or_none(end_state_id)
+        mssc.dataset_group = \
+            self.sysr.dataset_groups.get_by_id_or_none(dataset_group_id)
+        mssc.details = details
+        # Get the MultiStateScheme
+        mss = self.sysr.multi_state_schemes.get_by_id(scheme_id)
+        # Add the connectivity to the scheme
+        mss.add_connectivity(mssc)
+
+
+class _KineticRateHandler(Handler):
+    category = '_ihm_kinetic_rate'
+
+    def __call__(self, id,
+                 transition_rate_constant,
+                 equilibrium_constant,
+                 equilibrium_constant_determination_method,
+                 equilibrium_constant_unit,
+                 details,
+                 scheme_connectivity_id,
+                 dataset_group_id,
+                 external_file_id):
+        # Get the object or create the object
+        k = self.sysr.kinetic_rates.get_by_id(id)
+        # if information for an equilibrium is given, create an object
+        eq_const = None
+        if (equilibrium_constant is not None) \
+                and (equilibrium_constant_determination_method is not None):
+            if equilibrium_constant_determination_method == 'equilibrium ' \
+                                                            'constant is ' \
+                                                            'determined from '\
+                                                            'population':
+                eq_const = \
+                    ihm.multi_state_scheme.PopulationEquilibriumConstant(
+                        value=equilibrium_constant,
+                        unit=equilibrium_constant_unit)
+            elif equilibrium_constant_determination_method == 'equilibrium ' \
+                                                              'constant is ' \
+                                                              'determined ' \
+                                                              'from kinetic ' \
+                                                              'rates, ' \
+                                                              'kAB/kBA':
+                eq_const = \
+                    ihm.multi_state_scheme.KineticRateEquilibriumConstant(
+                        value=equilibrium_constant,
+                        unit=equilibrium_constant_unit)
+            else:
+                eq_const = \
+                    ihm.multi_state_scheme.EquilibriumConstant(
+                        value=equilibrium_constant,
+                        unit=equilibrium_constant_unit)
+        # Add the content
+        k.transition_rate_constant = transition_rate_constant
+        k.equilibrium_constant = eq_const
+        k.details = details
+        k.dataset_group = \
+            self.sysr.dataset_groups.get_by_id_or_none(dataset_group_id)
+        k.external_file = \
+            self.sysr.external_files.get_by_id_or_none(external_file_id)
+        tmp_connectivities = self.sysr.multi_state_scheme_connectivities
+        mssc = tmp_connectivities.get_by_id(scheme_connectivity_id)
+        # Add the kinetic rate to the connectivity
+        mssc.kinetic_rate = k
+
+
+class _RelaxationTimeHandler(Handler):
+    category = '_ihm_relaxation_time'
+
+    def __call__(self, id, value, unit, amplitude,
+                 dataset_group_id, external_file_id, details):
+        # Get the object or create the object
+        r = self.sysr.relaxation_times.get_by_id(id)
+        # Add the content
+        r.value = value
+        r.unit = unit
+        r.amplitude = amplitude
+        r.dataset_group = \
+            self.sysr.dataset_groups.get_by_id_or_none(dataset_group_id)
+        r.external_file = \
+            self.sysr.external_files.get_by_id_or_none(external_file_id)
+        r.details = details
+
+
+class _RelaxationTimeMultiStateSchemeHandler(Handler):
+    category = '_ihm_relaxation_time_multi_state_scheme'
+
+    def __init__(self, *args):
+        super(_RelaxationTimeMultiStateSchemeHandler, self).__init__(*args)
+        self._read_args = []
+
+    def __call__(self, id, relaxation_time_id,
+                 scheme_id, scheme_connectivity_id,
+                 details):
+        r = self.sysr.relaxation_times.get_by_id(relaxation_time_id)
+        mss = self.sysr.multi_state_schemes.get_by_id(scheme_id)
+        self._read_args.append((r, mss, scheme_connectivity_id, details))
+
+    def finalize(self):
+        for (r, mss, scheme_connectivity_id, details) in self._read_args:
+            tmp_connectivities = self.sysr.multi_state_scheme_connectivities
+            mssc = tmp_connectivities.get_by_id_or_none(scheme_connectivity_id)
+            # If the relaxation time is assigned to a connectivity,
+            # add it there
+            if mssc is not None:
+                mssc.relaxation_time = r
+            # Otherwise, add it to the multi-state scheme
+            else:
+                mss.add_relaxation_time(r)
+
+
 # FLR part
 # Note: This Handler is only here, because the category is officially
 # still in the flr dictionary.
@@ -3064,8 +3239,8 @@ class _FLRFretAnalysisHandler(Handler):
         f.forster_radius = self.sysr.flr_fret_forster_radius.get_by_id(
             forster_radius_id)
         f.dataset = self.sysr.datasets.get_by_id(dataset_list_id)
-        f.external_file = self.sysr.external_files.get_by_id_or_none(
-            external_file_id)
+        f.external_file = \
+            self.sysr.external_files.get_by_id_or_none(external_file_id)
         f.software = self.sysr.software.get_by_id_or_none(software_id)
 
 
@@ -3213,6 +3388,10 @@ class _FLRFretModelQualityHandler(Handler):
 class _FLRFretModelDistanceHandler(Handler):
     category = '_flr_fret_model_distance'
 
+    def __init__(self, *args):
+        super(_FLRFretModelDistanceHandler, self).__init__(*args)
+        self._read_args = []
+
     def __call__(self, id, restraint_id, model_id, distance,
                  distance_deviation):
         md = self.sysr.flr_fret_model_distances.get_by_id(id)
@@ -3221,9 +3400,11 @@ class _FLRFretModelDistanceHandler(Handler):
         md.model = self.sysr.models.get_by_id(model_id)
         md.distance = self.get_float(distance)
         md.distance_deviation = self.get_float(distance_deviation)
-        # todo: this will fail if we haven't read the restraint category
-        # yet (should be in finalize instead)
-        md.calculate_deviation()
+        self._read_args.append(md)
+
+    def finalize(self):
+        for md in self._read_args:
+            md.calculate_deviation()
 
 
 class _FLRFPSGlobalParameterHandler(Handler):
@@ -3346,6 +3527,41 @@ class _FLRFPSMPPModelingHandler(Handler):
                 mpp_atom_position_group_id)
 
 
+class _FLRKineticRateFretAnalysisConnectionHandler(Handler):
+    category = '_flr_kinetic_rate_analysis'
+
+    def __call__(self, id, fret_analysis_id, kinetic_rate_id, details):
+        f = self.sysr.flr_fret_analyses.get_by_id(fret_analysis_id)
+        k = self.sysr.kinetic_rates.get_by_id(kinetic_rate_id)
+        c = self.sysr.flr_kinetic_rate_fret_analysis_connection.get_by_id(id)
+        c.fret_analysis = f
+        c.kinetic_rate = k
+        c.details = details
+
+
+class _FLRRelaxationTimeFretAnalysisConnectionHandler(Handler):
+    category = '_flr_relaxation_time_analysis'
+
+    def __init__(self, *args):
+        super(_FLRRelaxationTimeFretAnalysisConnectionHandler,
+              self).__init__(*args)
+        self._read_args = []
+
+    def __call__(self, id, fret_analysis_id, relaxation_time_id, details):
+        f = self.sysr.flr_fret_analyses.get_by_id(fret_analysis_id)
+        r = self.sysr.relaxation_times.get_by_id(relaxation_time_id)
+        self._read_args.append((id, f, r, details))
+
+    def finalize(self):
+        for (id, f, r, details) in self._read_args:
+            tmp_connection = \
+                self.sysr.flr_relaxation_time_fret_analysis_connection
+            c = tmp_connection.get_by_id(id)
+            c.fret_analysis = f
+            c.relaxation_time = r
+            c.details = details
+
+
 _flr_handlers = [_FLRChemDescriptorHandler, _FLRInstSettingHandler,
                  _FLRExpConditionHandler, _FLRInstrumentHandler,
                  _FLRSampleConditionHandler, _FLREntityAssemblyHandler,
@@ -3366,7 +3582,9 @@ _flr_handlers = [_FLRChemDescriptorHandler, _FLRInstSettingHandler,
                  _FLRFretModelDistanceHandler, _FLRFPSGlobalParameterHandler,
                  _FLRFPSModelingHandler, _FLRFPSAVParameterHandler,
                  _FLRFPSAVModelingHandler, _FLRFPSMPPHandler,
-                 _FLRFPSMPPAtomPositionHandler, _FLRFPSMPPModelingHandler]
+                 _FLRFPSMPPAtomPositionHandler, _FLRFPSMPPModelingHandler,
+                 _FLRKineticRateFretAnalysisConnectionHandler,
+                 _FLRRelaxationTimeFretAnalysisConnectionHandler]
 
 
 class Variant(object):
@@ -3432,7 +3650,11 @@ class IHMVariant(Variant):
         _BranchDescriptorHandler, _BranchLinkHandler, _CrossLinkListHandler,
         _CrossLinkRestraintHandler, _CrossLinkPseudoSiteHandler,
         _CrossLinkResultHandler, _StartingModelSeqDifHandler,
-        _OrderedEnsembleHandler]
+        _OrderedEnsembleHandler,
+        _MultiStateSchemeHandler, _MultiStateSchemeConnectivityHandler,
+        _KineticRateHandler,
+        _RelaxationTimeHandler, _RelaxationTimeMultiStateSchemeHandler
+    ]
 
     def get_handlers(self, sysr):
         return [h(sysr) for h in self._handlers + _flr_handlers]

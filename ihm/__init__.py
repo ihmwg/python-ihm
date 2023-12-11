@@ -222,6 +222,10 @@ class System(object):
         #: See :class:`~ihm.flr.FLRData`.
         self.flr_data = []
 
+        #: All multi-state schemes
+        #: See :class:`~ihm.multi_state_scheme.MultiStateScheme`.
+        self.multi_state_schemes = []
+
     def _make_complete_assembly(self):
         """Fill in the complete assembly with all asym units"""
         # Clear out any existing components
@@ -311,10 +315,22 @@ class System(object):
            by a State object; otherwise, also include ModelGroups referenced
            by an OrderedProcess or Ensemble."""
         # todo: raise an error if a modelgroup is present in multiple states
+        seen_model_groups = []
         for state_group in self.state_groups:
             for state in state_group:
                 for model_group in state:
+                    seen_model_groups.append(model_group)
                     yield model_group
+        for mssc in self._all_multi_state_scheme_connectivities():
+            for model_group in mssc.begin_state:
+                if model_group not in seen_model_groups:
+                    seen_model_groups.append(model_group)
+                    yield model_group
+            if mssc.end_state:
+                for model_group in mssc.end_state:
+                    if model_group not in seen_model_groups:
+                        seen_model_groups.append(model_group)
+                        yield model_group
         if not only_in_states:
             for ensemble in self.ensembles:
                 if ensemble.model_group:
@@ -397,7 +413,14 @@ class System(object):
             (step.dataset_group for step in self._all_protocol_steps()
              if step.dataset_group),
             (step.dataset_group for step in self._all_analysis_steps()
-             if step.dataset_group))
+             if step.dataset_group),
+            (rt.dataset_group for rt in self._all_relaxation_times()
+             if rt.dataset_group),
+            (kr.dataset_group for kr in self._all_kinetic_rates()
+             if kr.dataset_group),
+            (mssc.dataset_group for mssc in
+             self._all_multi_state_scheme_connectivities()
+             if mssc.dataset_group))
 
     def _all_templates(self):
         """Iterate over all Templates in the system."""
@@ -471,7 +494,11 @@ class System(object):
             (step.script_file for step in self._all_protocol_steps()
                 if step.script_file),
             (step.script_file for step in self._all_analysis_steps()
-                if step.script_file))
+                if step.script_file),
+            (rt.external_file for rt in self._all_relaxation_times()
+                if rt.external_file),
+            (kr.external_file for kr in self._all_kinetic_rates()
+                if kr.external_file))
 
     def _all_geometric_objects(self):
         """Iterate over all GeometricObjects in the system.
@@ -562,6 +589,57 @@ class System(object):
             (comp for f in self._all_features()
                 for comp in f._all_entities_or_asyms()),
             (d.asym_unit for d in self._all_densities())))
+
+    def _all_multi_state_schemes(self):
+        for mss in self.multi_state_schemes:
+            yield mss
+
+    def _all_multi_state_scheme_connectivities(self):
+        """Iterate over all multi-state scheme connectivities"""
+        for mss in self.multi_state_schemes:
+            for mssc in mss.get_connectivities():
+                yield mssc
+
+    def _all_kinetic_rates(self):
+        """Iterate over all kinetic rates within multi-state schemes"""
+        return _remove_identical(itertools.chain(
+            (mssc.kinetic_rate for mssc in
+             self._all_multi_state_scheme_connectivities()
+             if mssc.kinetic_rate),
+            (c.kinetic_rate for f in
+             self.flr_data for c in f.kinetic_rate_fret_analysis_connections
+             if self.flr_data)))
+
+    def _all_relaxation_times(self):
+        """Iterate over all relaxation times.
+        This includes relaxation times from
+        :class:`ihm.multi_state_scheme.MultiStateScheme`
+        and those assigned to connectivities in
+        :class:`ihm.multi_state_scheme.Connectivity`"""
+        seen_relaxation_times = []
+        for mss in self._all_multi_state_schemes():
+            for rt in mss.get_relaxation_times():
+                if rt in seen_relaxation_times:
+                    continue
+                seen_relaxation_times.append(rt)
+                yield rt
+        for mssc in self._all_multi_state_scheme_connectivities():
+            if mssc.relaxation_time:
+                rt = mssc.relaxation_time
+                if rt in seen_relaxation_times:
+                    continue
+                seen_relaxation_times.append(rt)
+                yield rt
+        # Get the relaxation times from the
+        # flr.RelaxationTimeFRETAnalysisConnection objects
+        if self.flr_data:
+            for f in self.flr_data:
+                for c in f.relaxation_time_fret_analysis_connections:
+                    rt = c.relaxation_time
+                    if rt in seen_relaxation_times:
+                        continue
+                    seen_relaxation_times.append(rt)
+                    yield rt
 
     def _before_write(self):
         """Do any setup necessary before writing out to a file"""
