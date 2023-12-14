@@ -3649,6 +3649,15 @@ def write(fh, systems, format='mmCIF', dumpers=[], variant=IHMVariant):
            with open('output.bcif', 'wb') as fh:
                ihm.dumper.write(fh, systems, format='BCIF')
 
+       If generating files for a tool that is sensitive to non-ASCII data,
+       a more restrictive encoding such as ASCII or ISO-8859-1 could also
+       be used (although note that this may lose some information such as
+       accented characters)::
+
+           with open('output.cif', 'w', encoding='ascii',
+                     errors='replace') as fh:
+               ihm.dumper.write(fh, systems)
+
        :param file fh: The file handle to write to.
        :param list systems: The list of :class:`ihm.System` objects to write.
        :param str format: The format of the file. This can be 'mmCIF' (the
