@@ -89,13 +89,13 @@ class _CollectionDumper(Dumper):
 
 class _AuditConformDumper(Dumper):
     URL = ("https://raw.githubusercontent.com/" +
-           "ihmwg/IHM-dictionary/%s/ihm-extension.dic")
+           "ihmwg/IHMCIF/%s/dist/mmcif_ihm.dic")
 
     def dump(self, system, writer):
         with writer.category("_audit_conform") as lp:
             # Update to match the version of the IHM dictionary we support:
-            lp.write(dict_name="ihm-extension.dic", dict_version="1.24",
-                     dict_location=self.URL % "9be59e1")
+            lp.write(dict_name="mmcif_ihm.dic", dict_version="1.25",
+                     dict_location=self.URL % "460a278")
 
 
 class _StructDumper(Dumper):
