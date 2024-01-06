@@ -114,7 +114,7 @@ class Tests(unittest.TestCase):
         lines = sorted(out.split('\n'))
         self.assertEqual(lines[1].split()[0], "_audit_conform.dict_location")
         self.assertEqual(lines[2].rstrip('\r\n'),
-                         "_audit_conform.dict_name ihm-extension.dic")
+                         "_audit_conform.dict_name mmcif_ihm.dic")
         self.assertEqual(lines[3].split()[0], "_audit_conform.dict_version")
 
     def test_struct_dumper(self):
