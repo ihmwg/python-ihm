@@ -1523,7 +1523,7 @@ class AsymUnit(object):
               numbering. This differs from `auth_seq_id_map` as the original
               numbering need not follow any defined scheme, while
               `auth_seq_id_map` must follow certain PDB-defined rules. This
-              can either be a mapping type (dict, list, tuple) in which case
+              can be any mapping type (dict, list, tuple) in which case
               ``orig_auth_seq_id = orig_auth_seq_id_map[seq_id]``. If the
               mapping is None (the default), or a given `seq_id` cannot be
               found in the mapping, ``orig_auth_seq_id = auth_seq_id``.
