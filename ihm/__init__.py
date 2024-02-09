@@ -1604,13 +1604,14 @@ class WaterAsymUnit(AsymUnit):
     """
 
     def __init__(self, entity, number, details=None, auth_seq_id_map=0,
-                 id=None, strand_id=None):
+                 id=None, strand_id=None, orig_auth_seq_id_map=None):
         if entity.type != 'water':
             raise TypeError(
                 "WaterAsymUnit can only be used for water entities")
         super(WaterAsymUnit, self).__init__(
             entity, details=details, auth_seq_id_map=auth_seq_id_map,
-            id=id, strand_id=strand_id)
+            id=id, strand_id=strand_id,
+            orig_auth_seq_id_map=orig_auth_seq_id_map)
         self.number = number
         self._water_sequence = [entity.sequence[0]] * number
 
