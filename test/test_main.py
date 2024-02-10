@@ -219,19 +219,21 @@ class Tests(unittest.TestCase):
         e2 = ihm.Entity('AHCD', description='bar')
         e3 = ihm.Entity('AHCDE', description='foo')
         heme = ihm.Entity([ihm.NonPolymerChemComp('HEM')])
-        sugar = ihm.Entity([ihm.SaccharideChemComp('NAG')])
+        sugar = ihm.Entity([ihm.SaccharideChemComp('NAG'),
+                            ihm.SaccharideChemComp('FUC')])
         self.assertEqual(e1, e2)
         self.assertNotEqual(e1, e3)
         self.assertEqual(e1.seq_id_range, (1, 4))
         self.assertEqual(e3.seq_id_range, (1, 5))
-        sugar2 = ihm.Entity([ihm.SaccharideChemComp('NAG')])
+        sugar2 = ihm.Entity([ihm.SaccharideChemComp('NAG'),
+                             ihm.SaccharideChemComp('FUC')])
         # Branched entities never compare equal unless they are the same object
         self.assertEqual(sugar, sugar)
         self.assertNotEqual(sugar, sugar2)
         # seq_id does not exist for nonpolymers
         self.assertEqual(heme.seq_id_range, (None, None))
         # We do have an internal seq_id_range for branched entities
-        self.assertEqual(sugar.seq_id_range, (1, 1))
+        self.assertEqual(sugar.seq_id_range, (1, 2))
 
     def test_entity_weight(self):
         """Test Entity.formula_weight"""
@@ -246,7 +248,8 @@ class Tests(unittest.TestCase):
         protein = ihm.Entity('AHCD')
         heme = ihm.Entity([ihm.NonPolymerChemComp('HEM')])
         water = ihm.Entity([ihm.WaterChemComp()])
-        sugar = ihm.Entity([ihm.SaccharideChemComp('NAG')])
+        sugar = ihm.Entity([ihm.SaccharideChemComp('NAG'),
+                            ihm.SaccharideChemComp('FUC')])
         self.assertEqual(protein.type, 'polymer')
         self.assertTrue(protein.is_polymeric())
         self.assertFalse(protein.is_branched())
@@ -259,6 +262,12 @@ class Tests(unittest.TestCase):
         self.assertEqual(sugar.type, 'branched')
         self.assertFalse(sugar.is_polymeric())
         self.assertTrue(sugar.is_branched())
+
+        # A single sugar should be classified non-polymer
+        single_sugar = ihm.Entity([ihm.SaccharideChemComp('NAG')])
+        self.assertEqual(single_sugar.type, 'non-polymer')
+        self.assertFalse(single_sugar.is_polymeric())
+        self.assertFalse(single_sugar.is_branched())
 
         # A single amino acid should be classified non-polymer
         single_aa = ihm.Entity('A')
@@ -475,7 +484,8 @@ class Tests(unittest.TestCase):
         """Test AsymUnitRange class"""
         e = ihm.Entity('AHCDAH')
         heme = ihm.Entity([ihm.NonPolymerChemComp('HEM')])
-        sugar = ihm.Entity([ihm.SaccharideChemComp('NAG')])
+        sugar = ihm.Entity([ihm.SaccharideChemComp('NAG'),
+                            ihm.SaccharideChemComp('FUC')])
         a = ihm.AsymUnit(e, "testdetail")
         aheme = ihm.AsymUnit(heme)
         asugar = ihm.AsymUnit(sugar)
@@ -484,7 +494,7 @@ class Tests(unittest.TestCase):
         # seq_id is not defined for nonpolymers
         self.assertEqual(aheme.seq_id_range, (None, None))
         # We use seq_id internally for branched entities
-        self.assertEqual(asugar.seq_id_range, (1, 1))
+        self.assertEqual(asugar.seq_id_range, (1, 2))
         r = a(3, 4)
         self.assertEqual(r.seq_id_range, (3, 4))
         self.assertEqual(r._id, 42)

@@ -426,9 +426,10 @@ _entity.details
     def test_entity_duplicate_branched(self):
         """Test EntityDumper with duplicate branched entities"""
         system = ihm.System()
-        sacc = ihm.SaccharideChemComp('NAG')
-        system.entities.append(ihm.Entity([sacc]))
-        system.entities.append(ihm.Entity([sacc]))
+        sacc1 = ihm.SaccharideChemComp('NAG')
+        sacc2 = ihm.SaccharideChemComp('FUC')
+        system.entities.append(ihm.Entity([sacc1, sacc2]))
+        system.entities.append(ihm.Entity([sacc1, sacc2]))
         dumper = ihm.dumper._EntityDumper()
         dumper.finalize(system)  # Assign IDs
         out = _get_dumper_output(dumper, system)
@@ -863,7 +864,8 @@ _entity_poly.pdbx_seq_one_letter_code_can
         e2 = ihm.Entity([ihm.NonPolymerChemComp('HEM')], description='heme')
         e3 = ihm.Entity([ihm.WaterChemComp()])
         # Branched entity
-        e4 = ihm.Entity([ihm.SaccharideChemComp('NAG')])
+        e4 = ihm.Entity([ihm.SaccharideChemComp('NAG'),
+                         ihm.SaccharideChemComp('FUC')])
         system.entities.extend((e1, e2, e3, e4))
 
         ed = ihm.dumper._EntityDumper()
@@ -5064,7 +5066,8 @@ _software.citation_id
         """Test EntityBranchListDumper"""
         system = ihm.System()
         system.entities.append(ihm.Entity(
-            [ihm.SaccharideChemComp('NAG')]))
+            [ihm.SaccharideChemComp('NAG'),
+             ihm.SaccharideChemComp('FUC')]))
         # Non-branched entity
         system.entities.append(ihm.Entity('ACGT'))
         ed = ihm.dumper._EntityDumper()
@@ -5078,6 +5081,7 @@ _pdbx_entity_branch_list.num
 _pdbx_entity_branch_list.comp_id
 _pdbx_entity_branch_list.hetero
 1 1 NAG .
+1 2 FUC .
 #
 """)
 
@@ -5085,7 +5089,8 @@ _pdbx_entity_branch_list.hetero
         """Test EntityBranchDumper"""
         system = ihm.System()
         system.entities.append(ihm.Entity(
-            [ihm.SaccharideChemComp('NAG')]))
+            [ihm.SaccharideChemComp('NAG'),
+             ihm.SaccharideChemComp('FUC')]))
         # Non-branched entity
         system.entities.append(ihm.Entity('ACGT'))
         ed = ihm.dumper._EntityDumper()
@@ -5103,8 +5108,10 @@ _pdbx_entity_branch.type
     def test_branch_scheme_dumper(self):
         """Test BranchSchemeDumper"""
         system = ihm.System()
-        e1 = ihm.Entity([ihm.SaccharideChemComp('NAG')])
-        e2 = ihm.Entity([ihm.SaccharideChemComp('FUC')])
+        e1 = ihm.Entity([ihm.SaccharideChemComp('NAG'),
+                         ihm.SaccharideChemComp('FUC')])
+        e2 = ihm.Entity([ihm.SaccharideChemComp('FUC'),
+                         ihm.SaccharideChemComp('BGC')])
         # Non-branched entity
         e3 = ihm.Entity('ACT')
         system.entities.extend((e1, e2, e3))
@@ -5127,7 +5134,9 @@ _pdbx_branch_scheme.auth_mon_id
 _pdbx_branch_scheme.pdb_mon_id
 _pdbx_branch_scheme.pdb_asym_id
 A 1 NAG 1 1 1 NAG NAG A
+A 1 FUC 2 2 2 FUC FUC A
 B 2 FUC 1 6 6 FUC FUC B
+B 2 BGC 2 7 7 BGC BGC B
 #
 """)
 

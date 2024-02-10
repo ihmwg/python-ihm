@@ -1402,7 +1402,7 @@ class Entity(object):
     def is_branched(self):
         """Return True iff this entity is branched (generally
            an oligosaccharide)"""
-        return ((len(self.sequence) > 0
+        return ((len(self.sequence) > 1
                  and isinstance(self.sequence[0], SaccharideChemComp)) or
                 (len(self.sequence) == 0 and self._hint_branched))
 
