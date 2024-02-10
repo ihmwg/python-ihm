@@ -2501,9 +2501,8 @@ class _PolySeqSchemeHandler(Handler):
     def _get_auth_seq_id_offset(self, asym):
         """Get the offset from seq_id to auth_seq_id. Return None if no
            consistent offset exists."""
-        # Do nothing if the entity is not polymeric or branched
-        if asym.entity is None or (not asym.entity.is_polymeric()
-                                   and not asym.entity.is_branched()):
+        # Do nothing if the entity is not polymeric
+        if asym.entity is None or not asym.entity.is_polymeric():
             return
         # Do nothing if no map exists
         if asym.auth_seq_id_map == 0:
@@ -2616,9 +2615,10 @@ class _BranchSchemeHandler(Handler):
 
     def __init__(self, *args):
         super(_BranchSchemeHandler, self).__init__(*args)
-        self._scheme_map = {}
+        self._scheme = {}
 
-    def __call__(self, asym_id, num, pdb_seq_num, auth_seq_num, pdb_asym_id):
+    def __call__(self, asym_id, num, pdb_seq_num, auth_seq_num, pdb_asym_id,
+                 pdb_ins_code):
         asym = self.sysr.asym_units.get_by_id(asym_id)
         if pdb_asym_id not in (None, ihm.unknown, asym_id):
             asym._strand_id = pdb_asym_id
@@ -2629,15 +2629,65 @@ class _BranchSchemeHandler(Handler):
         # auth_seq_num) to original and "num" numbering. We will use this at
         # finalize time to map internal ID ("seq_id") to auth, orig_auth,
         # and "num" numbering.
-        if asym_id not in self._scheme_map:
-            self._scheme_map[asym_id] = {}
-        self._scheme_map[asym_id][pdb_seq_num] = (auth_seq_num, num)
+        if asym_id not in self._scheme:
+            self._scheme[asym_id] = []
+        self._scheme[asym_id].append((pdb_seq_num, pdb_ins_code,
+                                      auth_seq_num, num))
 
     def finalize(self):
-        # todo: Consolidate with auth_seq_id_map, orig_auth_seq_id_map
-        # todo: add mapping from seq_id to num numbering; use this mapping
-        # everywhere for 'num'
-        pass
+        need_map_num = False
+        for asym in self.system.asym_units:
+            entity = asym.entity
+            if entity is None or not entity.is_branched():
+                continue
+            self._finalize_asym(asym)
+            if asym.num_map:
+                need_map_num = True
+        if need_map_num:
+            self._reassign_seq_ids()
+
+    def _reassign_seq_ids(self):
+        """Change provisional seq_ids so that they match
+           _pdbx_branch_scheme.num"""
+        for m in self.sysr.models.get_all():
+            for atom in m._atoms:
+                if atom.asym_unit.num_map:
+                    atom.seq_id = atom.asym_unit.num_map[atom.seq_id]
+
+    def _finalize_asym(self, asym):
+        # Populate auth_seq_id mapping from scheme tables, and correct
+        # any incorrect seq_ids assigned in atom_site to use num
+        scheme = self._scheme.get(asym._id, [])
+        # Make reverse mapping from atom_site author-provided info
+        # to internal ID
+        auth_map = {}
+        if asym.auth_seq_id_map:
+            for key, val in asym.auth_seq_id_map.items():
+                auth_map[val] = key
+        asym.auth_seq_id_map = {}
+        asym.orig_auth_seq_id_map = {}
+        asym.num_map = {}
+        for pdb_seq_num, pdb_ins_code, auth_seq_num, num in scheme:
+            asym.auth_seq_id_map[num] = (pdb_seq_num, pdb_ins_code)
+            if pdb_seq_num != auth_seq_num:
+                asym.orig_auth_seq_id_map[num] = auth_seq_num
+            as_seq_id = auth_map.get((pdb_seq_num, pdb_ins_code))
+            if as_seq_id is not None:
+                if as_seq_id != num:
+                    asym.num_map[as_seq_id] = num
+                del auth_map[(pdb_seq_num, pdb_ins_code)]
+        if not asym.orig_auth_seq_id_map:
+            asym.orig_auth_seq_id_map = None
+        if not asym.num_map:
+            asym.num_map = None
+        # If any residues from atom_site are left, we can't assign a num
+        # for them, so raise an error
+        if auth_map:
+            raise ValueError(
+                "For branched asym %s, the following author-provided "
+                "residue numbers (atom_site.auth_seq_id) are not present in "
+                "the pdbx_branch_scheme table: %s"
+                % (asym._id, ", ".join(repr(x[0]) for x in auth_map.keys())))
 
 
 class _EntityBranchListHandler(Handler):

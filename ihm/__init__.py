@@ -1545,6 +1545,11 @@ class AsymUnit(object):
         self.id = id
         self._strand_id = strand_id
 
+        #: For branched entities read from files, mapping from provisional
+        #: to final internal numbering (`seq_id`), or None if no mapping is
+        #: necessary. See :meth:`ihm.model.Model.add_atom`.
+        self.num_map = None
+
     def _get_auth_seq_id_ins_code(self, seq_id):
         if isinstance(self.auth_seq_id_map, int):
             return seq_id + self.auth_seq_id_map, None

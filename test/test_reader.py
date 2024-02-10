@@ -2183,6 +2183,73 @@ HETATM 4 O O . HOH . 70 . B 20.000 20.000 20.000 . 1 B . 1 1
         self.assertEqual(a3.seq_id, 3)
         self.assertEqual(b1.seq_id, 1)
 
+    def test_atom_site_handler_branched(self):
+        """Test AtomSiteHandler reading branched molecules"""
+        cif = """
+loop_
+_entity.id
+_entity.type
+1 branched
+loop_
+_struct_asym.id
+_struct_asym.entity_id
+_struct_asym.details
+A 1 .
+#
+loop_
+_pdbx_branch_scheme.asym_id
+_pdbx_branch_scheme.entity_id
+_pdbx_branch_scheme.mon_id
+_pdbx_branch_scheme.num
+_pdbx_branch_scheme.pdb_seq_num
+_pdbx_branch_scheme.auth_seq_num
+_pdbx_branch_scheme.auth_mon_id
+_pdbx_branch_scheme.pdb_asym_id
+A 1 BGC 1 51 501 BGC A
+A 1 BGC 2 52 502 BGC A
+A 1 BGC 3 53 503 BGC A
+#
+loop_
+_atom_site.group_PDB
+_atom_site.id
+_atom_site.type_symbol
+_atom_site.label_atom_id
+_atom_site.label_alt_id
+_atom_site.label_comp_id
+_atom_site.label_seq_id
+_atom_site.auth_seq_id
+_atom_site.pdbx_PDB_ins_code
+_atom_site.label_asym_id
+_atom_site.Cartn_x
+_atom_site.Cartn_y
+_atom_site.Cartn_z
+_atom_site.occupancy
+_atom_site.label_entity_id
+_atom_site.auth_asym_id
+_atom_site.B_iso_or_equiv
+_atom_site.pdbx_PDB_model_num
+_atom_site.ihm_model_id
+HETATM 1 C C . BGC . 52 ? A 10.000 10.000 10.000 . 1 A . 1 1
+HETATM 2 C C . BGC . 53 ? A 10.000 10.000 10.000 . 1 A . 1 1
+"""
+        # Should fail since residue #60 is not in the scheme table
+        badline = "HETATM 3 C C . BGC . 60 . A 20.00 20.00 20.00 . 1 A . 1 1"
+        fh = StringIO(cif + badline)
+        self.assertRaises(ValueError, ihm.reader.read, fh)
+
+        fh = StringIO(cif)
+        s, = ihm.reader.read(fh)
+        m = s.state_groups[0][0][0][0]
+        a1, a2 = m._atoms
+        # seq_id should match num, i.e. start at 2 since residue 51 is missing
+        self.assertEqual(a1.seq_id, 2)
+        self.assertEqual(a2.seq_id, 3)
+        self.assertEqual(a1.asym_unit.auth_seq_id_map,
+                         {1: (51, None), 2: (52, None), 3: (53, None)})
+        self.assertEqual(a1.asym_unit.orig_auth_seq_id_map,
+                         {1: 501, 2: 502, 3: 503})
+        self.assertEqual(a1.asym_unit.num_map, {1: 2, 2: 3})
+
     def test_derived_distance_restraint_handler(self):
         """Test DerivedDistanceRestraintHandler"""
         feats = """
@@ -4955,23 +5022,31 @@ C 1 BGC 4 8 . BGC .
 """)
         s, = ihm.reader.read(fh)
         asym_a, asym_b, asym_c = s.asym_units
-        self.assertEqual(asym_a.auth_seq_id_map, 4)
+        self.assertEqual(asym_a.auth_seq_id_map,
+                         {1: (5, None), 2: (6, None), 3: (7, None),
+                          4: (8, None)})
         self.assertEqual(asym_a._strand_id, '0')
         self.assertEqual(asym_a.residue(1).auth_seq_id, 5)
         self.assertIsNone(asym_a.orig_auth_seq_id_map)
+        self.assertIsNone(asym_a.num_map)
 
-        self.assertEqual(asym_b.auth_seq_id_map, 0)
+        self.assertEqual(asym_b.auth_seq_id_map,
+                         {1: (1, None), 2: (2, None), 3: (3, None),
+                          4: (4, None)})
         self.assertIsNone(asym_b._strand_id)
         self.assertEqual(asym_b.residue(1).auth_seq_id, 1)
         self.assertEqual(asym_b.orig_auth_seq_id_map,
                          {1: 11, 2: 12, 3: 13, 4: 14})
+        self.assertIsNone(asym_b.num_map)
 
         self.assertEqual(asym_c.auth_seq_id_map,
                          {1: (2, None), 2: (4, None), 3: (6, None),
                           4: (8, None)})
         self.assertIsNone(asym_c._strand_id)
         self.assertEqual(asym_c.residue(1).auth_seq_id, 2)
-        self.assertIsNone(asym_c.orig_auth_seq_id_map)
+        self.assertEqual(asym_c.orig_auth_seq_id_map,
+                         {1: None, 2: None, 3: None, 4: None})
+        self.assertIsNone(asym_c.num_map)
 
     def test_entity_branch_list_handler(self):
         """Test EntityBranchListHandler"""
