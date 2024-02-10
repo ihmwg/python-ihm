@@ -5112,12 +5112,17 @@ _pdbx_entity_branch.type
                          ihm.SaccharideChemComp('FUC')])
         e2 = ihm.Entity([ihm.SaccharideChemComp('FUC'),
                          ihm.SaccharideChemComp('BGC')])
+        e3 = ihm.Entity([ihm.SaccharideChemComp('NAG'),
+                         ihm.SaccharideChemComp('BGC')])
         # Non-branched entity
-        e3 = ihm.Entity('ACT')
-        system.entities.extend((e1, e2, e3))
+        e4 = ihm.Entity('ACT')
+        system.entities.extend((e1, e2, e3, e4))
         system.asym_units.append(ihm.AsymUnit(e1, 'foo'))
         system.asym_units.append(ihm.AsymUnit(e2, 'bar', auth_seq_id_map=5))
-        system.asym_units.append(ihm.AsymUnit(e3, 'baz'))
+        system.asym_units.append(ihm.AsymUnit(
+            e3, 'bar', auth_seq_id_map={1: 6, 2: (7, 'A')},
+            orig_auth_seq_id_map={1: 100}))
+        system.asym_units.append(ihm.AsymUnit(e4, 'baz'))
         ihm.dumper._EntityDumper().finalize(system)
         ihm.dumper._StructAsymDumper().finalize(system)
         dumper = ihm.dumper._BranchSchemeDumper()
@@ -5129,14 +5134,17 @@ _pdbx_branch_scheme.entity_id
 _pdbx_branch_scheme.mon_id
 _pdbx_branch_scheme.num
 _pdbx_branch_scheme.pdb_seq_num
+_pdbx_branch_scheme.pdb_ins_code
 _pdbx_branch_scheme.auth_seq_num
 _pdbx_branch_scheme.auth_mon_id
 _pdbx_branch_scheme.pdb_mon_id
 _pdbx_branch_scheme.pdb_asym_id
-A 1 NAG 1 1 1 NAG NAG A
-A 1 FUC 2 2 2 FUC FUC A
-B 2 FUC 1 6 6 FUC FUC B
-B 2 BGC 2 7 7 BGC BGC B
+A 1 NAG 1 1 . 1 NAG NAG A
+A 1 FUC 2 2 . 2 FUC FUC A
+B 2 FUC 1 6 . 6 FUC FUC B
+B 2 BGC 2 7 . 7 BGC BGC B
+C 3 NAG 1 6 . 100 NAG NAG C
+C 3 BGC 2 7 A 7 BGC BGC C
 #
 """)
 

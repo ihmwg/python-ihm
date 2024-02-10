@@ -745,7 +745,7 @@ class _BranchSchemeDumper(Dumper):
     def dump(self, system, writer):
         with writer.loop("_pdbx_branch_scheme",
                          ["asym_id", "entity_id", "mon_id", "num",
-                          "pdb_seq_num", "auth_seq_num",
+                          "pdb_seq_num", "pdb_ins_code", "auth_seq_num",
                           "auth_mon_id", "pdb_mon_id", "pdb_asym_id"]) as lp:
             for asym in system.asym_units:
                 entity = asym.entity
@@ -758,7 +758,7 @@ class _BranchSchemeDumper(Dumper):
                     lp.write(asym_id=asym._id, pdb_asym_id=asym.strand_id,
                              entity_id=entity._id,
                              num=num + 1,
-                             pdb_seq_num=pdb_seq_num,
+                             pdb_seq_num=pdb_seq_num, pdb_ins_code=ins,
                              auth_seq_num=auth_seq_num,
                              mon_id=comp.id, auth_mon_id=comp.id,
                              pdb_mon_id=comp.id)
