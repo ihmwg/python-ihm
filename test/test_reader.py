@@ -1993,7 +1993,7 @@ HETATM 2 C CA . SER . B 54.452 -48.492 -35.210 0.200 1 A 42.0 1 1
         self.assertIsNone(a1.occupancy)
 
         self.assertEqual(a2.asym_unit._id, 'B')
-        self.assertIsNone(a2.seq_id)
+        self.assertEqual(a2.seq_id, 1)
         self.assertEqual(a2.atom_id, 'CA')
         self.assertEqual(a2.type_symbol, 'C')
         self.assertEqual(a2.het, True)
@@ -2123,6 +2123,12 @@ loop_
 _entity.id
 _entity.type
 1 water
+loop_
+_struct_asym.id
+_struct_asym.entity_id
+_struct_asym.details
+A 1 Water
+B 1 Water
 #
 loop_
 _pdbx_nonpoly_scheme.asym_id
@@ -2134,7 +2140,7 @@ _pdbx_nonpoly_scheme.auth_seq_num
 _pdbx_nonpoly_scheme.auth_mon_id
 _pdbx_nonpoly_scheme.pdb_strand_id
 _pdbx_nonpoly_scheme.pdb_ins_code
-A 1 HOH 1 6 6 HOH A .
+A 1 HOH 1 50 500 HOH A .
 #
 loop_
 _atom_site.group_PDB
@@ -2156,17 +2162,26 @@ _atom_site.auth_asym_id
 _atom_site.B_iso_or_equiv
 _atom_site.pdbx_PDB_model_num
 _atom_site.ihm_model_id
-HETATM 1 O O . HOH . 6 ? A 10.000 10.000 10.000 . 1 A . 1 1
-HETATM 2 O O . HOH . 7 . A 20.000 20.000 20.000 . 1 A . 1 1
+HETATM 1 O O . HOH . 40 ? A 10.000 10.000 10.000 . 1 A . 1 1
+HETATM 2 O O . HOH . 50 ? A 10.000 10.000 10.000 . 1 A . 1 1
+HETATM 3 O O . HOH . 60 . A 20.000 20.000 20.000 . 1 A . 1 1
+HETATM 4 O O . HOH . 70 . B 20.000 20.000 20.000 . 1 B . 1 1
 """)
         s, = ihm.reader.read(fh)
         m = s.state_groups[0][0][0][0]
-        a1, a2 = m._atoms
-        # First atom is in pdbx_nonpoly_scheme with
-        # ndb_seq_num=1, pdb_seq_num=6
+        a1, a2, a3, b1 = m._atoms
+        # Should include info from both atom_site and scheme table
+        self.assertEqual(a1.asym_unit.auth_seq_id_map,
+                         {1: (40, None), 2: (50, None), 3: (60, None)})
+        self.assertEqual(a1.asym_unit.orig_auth_seq_id_map,
+                         {2: 500})
+        self.assertEqual(b1.asym_unit.auth_seq_id_map, {1: (70, None)})
+        self.assertIsNone(b1.asym_unit.orig_auth_seq_id_map)
+        # seq_id should be assigned based on atom_site
         self.assertEqual(a1.seq_id, 1)
-        # Second atom is not in pdbx_nonpoly_scheme, so we keep auth_seq_id
-        self.assertEqual(a2.seq_id, 7)
+        self.assertEqual(a2.seq_id, 2)
+        self.assertEqual(a3.seq_id, 3)
+        self.assertEqual(b1.seq_id, 1)
 
     def test_derived_distance_restraint_handler(self):
         """Test DerivedDistanceRestraintHandler"""
@@ -2733,13 +2748,13 @@ _pdbx_nonpoly_scheme.pdb_seq_num
 _pdbx_nonpoly_scheme.auth_seq_num
 _pdbx_nonpoly_scheme.pdb_strand_id
 _pdbx_nonpoly_scheme.pdb_ins_code
-A 1 FOO 1 1 1 . .
 A 1 BAR 1 101 202 . .
 B 2 BAR 1 1 1 Q X
 C 3 HOH . 1 1 . .
 C 3 HOH 2 2 2 . .
 C 3 HOH 3 5 10 . .
 C 3 HOH 4 1 20 . .
+C 3 HOH 5 7 7 . .
 """)
         s, = ihm.reader.read(fh)
         e1, e2, e3 = s.entities
@@ -2767,10 +2782,9 @@ C 3 HOH 4 1 20 . .
         self.assertEqual(a2._strand_id, 'Q')
         self.assertIsNone(a2.orig_auth_seq_id_map)
 
-        # For waters, the first row should be ignored since ndb_seq_num
-        # is missing; the second row should also be ignored because it
-        # is a one-to-one mapping; only the last two rows should be used
-        self.assertEqual(a3.auth_seq_id_map, {3: (5, None), 4: (1, None)})
+        self.assertEqual(a3.auth_seq_id_map, {1: (1, None), 2: (2, None),
+                                              3: (5, None), 4: (1, None),
+                                              5: (7, None)})
         self.assertEqual(a3.orig_auth_seq_id_map, {3: 10, 4: 20})
 
     def test_cross_link_list_handler(self):
