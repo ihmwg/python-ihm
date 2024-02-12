@@ -902,7 +902,7 @@ class ChemComp(object):
 
     def __get_weight(self):
         # Calculate weight from formula
-        if self.formula is None:
+        if self.formula in (None, unknown):
             return
         spl = self.formula.split()
         # Remove formal charge if present
