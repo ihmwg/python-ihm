@@ -104,6 +104,50 @@ class Tests(unittest.TestCase):
         self.assertEqual(s.title, 'Output from simple-docking example')
         os.unlink('output.cif')
 
+    @unittest.skipIf(sys.version_info[0] < 3, "make-mmcif.py needs Python 3")
+    def test_add_polymers(self):
+        """Check that make-mmcif combines polymer information"""
+        # mini.cif contains two chains A, B
+        incif = utils.get_input_file_name(TOPDIR, 'mini.cif')
+        # mini_add.cif also contains A, B; A is the same sequence as mini.cif
+        # but B is different (so should be renamed C when we add)
+        addcif = utils.get_input_file_name(TOPDIR, 'mini_add.cif')
+        subprocess.check_call([sys.executable, MAKE_MMCIF, incif,
+                               '--add', addcif])
+        with open('output.cif') as fh:
+            s, = ihm.reader.read(fh)
+        self.assertEqual(len(s.entities), 3)
+        self.assertEqual(len(s.asym_units), 3)
+        self.assertEqual(len(s.state_groups), 2)
+        # Model from mini.cif
+        self.assertEqual(len(s.state_groups[0]), 1)
+        self.assertEqual(len(s.state_groups[0][0]), 1)
+        self.assertEqual(len(s.state_groups[0][0][0]), 1)
+        m = s.state_groups[0][0][0][0]
+        self.assertEqual(m.protocol.name, 'modeling')
+        self.assertEqual(m.assembly.name, 'Modeled assembly')
+        chain_a, chain_b, = m.representation
+        self.assertIs(chain_a.asym_unit.asym, s.asym_units[0])
+        self.assertIs(chain_b.asym_unit.asym, s.asym_units[1])
+        for chain in chain_a, chain_b:
+            self.assertIsInstance(chain, ihm.representation.AtomicSegment)
+            self.assertFalse(chain.rigid)
+        # Model from mini_add.cif
+        self.assertEqual(len(s.state_groups[1]), 1)
+        self.assertEqual(len(s.state_groups[1][0]), 1)
+        self.assertEqual(len(s.state_groups[1][0][0]), 1)
+        m = s.state_groups[1][0][0][0]
+        self.assertEqual(m.protocol.name, 'modeling')
+        self.assertEqual(m.assembly.name, 'Modeled assembly')
+        chain_a, chain_c, = m.representation
+        self.assertIs(chain_a.asym_unit.asym, s.asym_units[0])
+        self.assertIs(chain_c.asym_unit.asym, s.asym_units[2])
+        for chain in chain_a, chain_c:
+            self.assertIsInstance(chain, ihm.representation.AtomicSegment)
+            self.assertFalse(chain.rigid)
+        self.assertEqual(s.title, 'Auto-generated system')
+        os.unlink('output.cif')
+
 
 if __name__ == '__main__':
     unittest.main()
