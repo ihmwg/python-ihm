@@ -163,7 +163,7 @@ class _ChemCompIDMapper(IDMapper):
 
 class RangeIDMapper(object):
     """Utility class to handle mapping from mmCIF IDs to
-       :class:`ihm.AsymUnitRange` or :class:`EntityRange` objects."""
+       :class:`ihm.AsymUnitRange` or :class:`ihm.EntityRange` objects."""
 
     def __init__(self):
         self._id_map = {}
@@ -451,7 +451,7 @@ class SystemReader(object):
         self.assemblies = IDMapper(self.system.orphan_assemblies, ihm.Assembly)
 
         #: Mapping from ID to :class:`ihm.AsymUnitRange`
-        #: or :class:`EntityRange` objects
+        #: or :class:`ihm.EntityRange` objects
         self.ranges = RangeIDMapper()
 
         #: Mapping from ID to :class:`ihm.location.Repository` objects
@@ -634,7 +634,7 @@ class SystemReader(object):
             ihm.multi_state_scheme.KineticRate)
 
         #: Mapping from ID to
-        #: :class:`ihm.multi_state_schene.RelaxationTime` objects
+        #: :class:`ihm.multi_state_scheme.RelaxationTime` objects
         self.relaxation_times = IDMapper(
             None,
             ihm.multi_state_scheme.RelaxationTime,
@@ -801,7 +801,7 @@ class SystemReader(object):
             self.flr_data, ihm.flr.FPSMPPModeling, *(None,) * 3)
 
         #: Mapping from ID to
-        #: :class:`ihm.flr.KineticRateFRETAnalysisConnection` objects
+        #: :class:`ihm.flr.KineticRateFretAnalysisConnection` objects
         self.flr_kinetic_rate_fret_analysis_connection = _FLRIDMapper(
             '_collection_flr_kinetic_rate_fret_analysis_connection',
             'kinetic_rate_fret_analysis_connections',
@@ -810,7 +810,7 @@ class SystemReader(object):
             *(None,) * 3)
 
         #: Mapping from ID to
-        #: :class:`ihm.flr.KineticRateFRETAnalysisConnection` objects
+        #: :class:`ihm.flr.RelaxationTimeFretAnalysisConnection` objects
         self.flr_relaxation_time_fret_analysis_connection = _FLRIDMapper(
             '_collection_flr_relaxation_time_fret_analysis_connection',
             'relaxation_time_fret_analysis_connections',

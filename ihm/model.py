@@ -138,7 +138,7 @@ class Model(object):
 
            Note that for branched entities, the `seq_id` of the new atom
            is provisional. It should be mapped to the correct ID once the
-           input file is completely read, using :attr:`AsymUnit.num_map`.
+           input file is completely read, using :attr:`ihm.AsymUnit.num_map`.
            This is done automatically by ihm.reader when using the default
            implementation.
         """

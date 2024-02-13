@@ -93,7 +93,7 @@ class System(object):
         #: List of all authors of this system, as a list of strings (last name
         #: followed by initials, e.g. "Smith, A.J."). When writing out a file,
         #: if this list is empty, the set of all citation authors (see
-        #: :attr:`Citation.authors`) is used instead.
+        #: :class:`Citation`) is used instead.
         self.authors = []
 
         #: List of all grants that supported this work. See :class:`Grant`.
@@ -681,7 +681,7 @@ class Software(object):
        passed to :class:`ihm.startmodel.StartingModel`,
        :class:`ihm.protocol.Step`,
        :class:`ihm.analysis.Step`, or
-       :class:`ihm.restraint.PredictedContactResstraint` objects.
+       :class:`ihm.restraint.PredictedContactRestraint` objects.
     """
     def __init__(self, name, classification, description, location,
                  type='program', version=None, citation=None):

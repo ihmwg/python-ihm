@@ -189,7 +189,7 @@ class CifWriter(_Writer):
     def write_comment(self, comment):
         """Write a simple comment to the CIF file.
            The comment will be wrapped if necessary for readability.
-           See :meth:`set_line_wrap`."""
+           See :meth:`_set_line_wrap`."""
         if self._line_wrap:
             for line in textwrap.wrap(comment, 78):
                 self.fh.write('# ' + line + '\n')

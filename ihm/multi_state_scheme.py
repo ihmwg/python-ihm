@@ -17,11 +17,10 @@ class MultiStateScheme(object):
        :param str details: Details on the scheme.
        :param connectivities: A list of connectivities that belong to
         the scheme.
-       :type connectivities: List of
-        :class:`ìhm.multi_state_scheme.Connectivity`
+       :type connectivities: List of :class:`Connectivity`
        :param relaxation_times: A list of relaxation times not assigned
         to specific connectivities, but to the scheme
-       :type relaxation_times: List of :class:`ihm.RelaxationTime`
+       :type relaxation_times: List of :class:`RelaxationTime`
     """
     def __init__(self, name, details=None, connectivities=None,
                  relaxation_times=None):

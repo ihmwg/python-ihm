@@ -19,8 +19,8 @@ class Location(object):
            experimental dataset may be found;
          - an :class:`~ihm.model.Ensemble` to point to coordinates for an
            entire ensemble, for example as a DCD file;
-         - a :class:`LocalizationDensity` to point to an external localization
-           density, for example in MRC format;
+         - a :class:`ihm.model.LocalizationDensity` to point to an external
+           localization density, for example in MRC format;
          - :data:`ihm.System.locations` to point to other files relating
            to the modeling in general, such as a modeling control script
            (:class:`WorkflowFileLocation`) or a command script for a
