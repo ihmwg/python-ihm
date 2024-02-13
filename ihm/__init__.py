@@ -1529,6 +1529,7 @@ class AsymUnit(object):
               found in the mapping, ``orig_auth_seq_id = auth_seq_id``.
               This mapping is only used in the various `scheme` tables, such
               as ``pdbx_poly_seq_scheme``.
+
        See :attr:`System.asym_units`.
     """
 
