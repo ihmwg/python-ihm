@@ -1,3 +1,19 @@
+HEAD
+====
+  - Support for multi-state schemes (such as kinetic rates and relaxation
+    times for conversions between states) was added;
+    see :mod:`ihm.multi_state_scheme`.
+  - Residue numbering in non-polymer, water, and branched entities should
+    now be better handled, no longer requiring the various scheme tables
+    to precede ``atom_site``. If you subclass :class:`ihm.model.Model`, atoms
+    may need to be renumbered; see :meth:`ihm.model.Model.add_atom` (#130).
+  - Original author-provided numbering can now be provided for waters,
+    using the ``orig_auth_seq_id_map`` argument to :class:`ihm.WaterAsymUnit`.
+  - The make-mmcif.py utility script now has basic functionality for
+    combining multiple input files into one, relabeling chain IDs if necessary.
+  - An :class:`ihm.Entity` containing just a single sugar is now classified
+    as a nonpolymer, not branched.
+
 0.43 - 2023-12-08
 =================
   - Branched and polymeric empty entities are now distinguished
