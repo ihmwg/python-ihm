@@ -2507,11 +2507,7 @@ class _PolySeqSchemeHandler(Handler):
         # Do nothing if no map exists
         if asym.auth_seq_id_map == 0:
             return
-        if asym.entity.is_branched():
-            # Hack, as branched entities don't technically have seq_ids
-            rng = (1, len(asym.entity.sequence))
-        else:
-            rng = asym.seq_id_range
+        rng = asym.seq_id_range
         offset = None
         for seq_id in range(rng[0], rng[1] + 1):
             # If a residue isn't in the map, it has an effective offset of 0,
