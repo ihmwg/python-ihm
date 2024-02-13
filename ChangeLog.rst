@@ -1,5 +1,5 @@
-HEAD
-====
+1.0 - 2024-02-13
+================
   - Support for multi-state schemes (such as kinetic rates and relaxation
     times for conversions between states) was added;
     see :mod:`ihm.multi_state_scheme`.
