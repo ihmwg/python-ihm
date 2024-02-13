@@ -52,7 +52,7 @@ class Tests(unittest.TestCase):
     def test_bad_usage(self):
         """Bad usage of make-mmcif utility script"""
         ret = subprocess.call([sys.executable, MAKE_MMCIF])
-        self.assertEqual(ret, 1)
+        self.assertEqual(ret, 2)
 
     @unittest.skipIf(sys.version_info[0] < 3, "make-mmcif.py needs Python 3")
     def test_same_file(self):

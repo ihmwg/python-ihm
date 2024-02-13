@@ -21,8 +21,8 @@ import ihm.reader
 import ihm.dumper
 import ihm.model
 import ihm.protocol
-import sys
 import os
+import argparse
 
 
 def add_ihm_info(s):
@@ -53,22 +53,24 @@ def add_ihm_info(s):
     return s
 
 
-if len(sys.argv) != 2 and len(sys.argv) != 3:
-    print("Usage: %s input.cif [output.cif]" % sys.argv[0], file=sys.stderr)
-    sys.exit(1)
+def get_args():
+    p = argparse.ArgumentParser(
+        description="Add minimal IHM-related tables to an mmCIF file.")
+    p.add_argument("input", metavar="input.cif", help="input mmCIF file name")
+    p.add_argument("output", metavar="output.cif",
+                   help="output mmCIF file name",
+                   default="output.cif", nargs="?")
+    return p.parse_args()
 
-fname = sys.argv[1]
-if len(sys.argv) > 2:
-    out_fname = sys.argv[2]
-else:
-    out_fname = 'output.cif'
 
-if (os.path.exists(fname) and os.path.exists(out_fname)
-        and os.path.samefile(fname, out_fname)):
+args = get_args()
+
+if (os.path.exists(args.input) and os.path.exists(args.output)
+        and os.path.samefile(args.input, args.output)):
     raise ValueError("Input and output are the same file")
 
-with open(fname) as fh:
-    with open(out_fname, 'w') as fhout:
+with open(args.input) as fh:
+    with open(args.output, 'w') as fhout:
         ihm.dumper.write(
             fhout, [add_ihm_info(s) for s in ihm.reader.read(fh)],
             variant=ihm.dumper.IgnoreVariant(['_audit_conform']))
