@@ -2761,18 +2761,18 @@ _pdbx_poly_seq_scheme.pdb_strand_id
 _pdbx_poly_seq_scheme.pdb_ins_code
 A 1 1 6 6 ? .
 A 1 2 7 12 ? .
-A 1 3 8 24 ? X
+A 1 3 8 24 ? .
 A 1 4 9A 48A ? .
 """)
         s, = ihm.reader.read(fh)
         asym, = s.asym_units
         self.assertIsNone(asym._strand_id)
         self.assertEqual(asym.auth_seq_id_map, {1: (6, None), 2: (7, None),
-                                                3: (8, 'X'), 4: ('9A', None)})
+                                                3: (8, None), 4: ('9A', None)})
         self.assertEqual([asym.residue(i).auth_seq_id for i in range(1, 5)],
                          [6, 7, 8, '9A'])
         self.assertIsNone(asym.residue(1).ins_code)
-        self.assertEqual(asym.residue(3).ins_code, 'X')
+        self.assertIsNone(asym.residue(3).ins_code)
         self.assertEqual(asym.orig_auth_seq_id_map, {2: 12, 3: 24, 4: '48A'})
 
     def test_nonpoly_scheme_handler(self):
