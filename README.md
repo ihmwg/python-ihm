@@ -42,6 +42,14 @@ On a Fedora or RedHat Enterprise Linux box, install with
 dnf copr enable salilab/salilab; dnf install python3-ihm
 ```
 
+On an Ubuntu LTS box, install from
+[our PPA](https://launchpad.net/~salilab/+archive/ubuntu/ppa) with
+
+```
+apt install software-properties-common; add-apt-repository ppa:salilab/ppa;
+apt install python3-ihm
+```
+
 Alternatively, install with pip:
 
 ```
