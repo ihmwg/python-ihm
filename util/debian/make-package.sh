@@ -25,7 +25,7 @@ if [ "${ihm_dir_name}" != "python-ihm" ]; then
 fi
 tar -czf python-ihm_${VERSION}.orig.tar.gz python-ihm
 cd python-ihm
-dpkg-buildpackage -us -uc
+dpkg-buildpackage -S
 rm -rf ${TOP_DIR}/debian
 
 if [ "${ihm_dir_name}" != "python-ihm" ]; then
