@@ -17,7 +17,7 @@ cd ${TOP_DIR}
 rm -rf debian
 cp -r util/debian/ .
 rm debian/make-package.sh
-sed -i -e "s/\@CODENAME\@/$CODENAME/" debian/changelog
+sed -i -e "s/\@CODENAME\@/$CODENAME/g" debian/changelog
 
 cd ..
 if [ "${ihm_dir_name}" != "python-ihm" ]; then
