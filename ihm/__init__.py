@@ -1250,7 +1250,7 @@ class Residue(object):
         self.seq_id = seq_id
 
     def atom(self, atom_id):
-        """Get a :class:`Atom` in this residue with the given name."""
+        """Get a :class:`~ihm.Atom` in this residue with the given name."""
         return Atom(residue=self, id=atom_id)
 
     def _get_auth_seq_id(self):
@@ -1380,11 +1380,11 @@ class Entity(object):
 
         #: String descriptors of branched chemical structure.
         #: These generally only make sense for oligosaccharide entities,
-        #: and should be a list of :class:`BranchDescriptor` objects.
+        #: and should be a list of :class:`~ihm.BranchDescriptor` objects.
         self.branch_descriptors = []
 
         #: Any links between components in a branched entity.
-        #: This is a list of :class:`BranchLink` objects.
+        #: This is a list of :class:`~ihm.BranchLink` objects.
         self.branch_links = []
 
     def __str__(self):
@@ -1491,7 +1491,7 @@ class AsymUnit(object):
        was modeled.
 
        Note that this class should not be used to describe crystal waters;
-       for that, see :class:`WaterAsymUnit`.
+       for that, see :class:`ihm.WaterAsymUnit`.
 
        :param entity: The unique sequence of this asymmetric unit.
        :type entity: :class:`Entity`
