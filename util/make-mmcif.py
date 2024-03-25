@@ -184,23 +184,29 @@ def get_args():
     return p.parse_args()
 
 
-args = get_args()
+def main():
+    args = get_args()
 
-if (os.path.exists(args.input) and os.path.exists(args.output)
-        and os.path.samefile(args.input, args.output)):
-    raise ValueError("Input and output are the same file")
+    if (os.path.exists(args.input) and os.path.exists(args.output)
+            and os.path.samefile(args.input, args.output)):
+        raise ValueError("Input and output are the same file")
 
-if args.add:
-    s = add_ihm_info_one_system(args.input)
-    for other in args.add:
-        other_s = add_ihm_info_one_system(other)
-        combine(s, other_s)
-    with open(args.output, 'w') as fhout:
-        ihm.dumper.write(
-            fhout, [s], variant=ihm.dumper.IgnoreVariant(['_audit_conform']))
-else:
-    with open(args.input) as fh:
+    if args.add:
+        s = add_ihm_info_one_system(args.input)
+        for other in args.add:
+            other_s = add_ihm_info_one_system(other)
+            combine(s, other_s)
         with open(args.output, 'w') as fhout:
             ihm.dumper.write(
-                fhout, [add_ihm_info(s) for s in ihm.reader.read(fh)],
+                fhout, [s],
                 variant=ihm.dumper.IgnoreVariant(['_audit_conform']))
+    else:
+        with open(args.input) as fh:
+            with open(args.output, 'w') as fhout:
+                ihm.dumper.write(
+                    fhout, [add_ihm_info(s) for s in ihm.reader.read(fh)],
+                    variant=ihm.dumper.IgnoreVariant(['_audit_conform']))
+
+
+if __name__ == '__main__':
+    main()
