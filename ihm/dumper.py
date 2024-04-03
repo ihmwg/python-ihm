@@ -219,6 +219,17 @@ class _GrantDumper(Dumper):
                          grant_number=grant.grant_number, ordinal=n + 1)
 
 
+class _DatabaseDumper(Dumper):
+    def dump(self, system, writer):
+        with writer.loop("_database_2",
+                         ["database_id", "database_code",
+                          "pdbx_database_accession", "pdbx_DOI"]) as lp:
+            for d in system.databases:
+                lp.write(database_id=d.id, database_code=d.code,
+                         pdbx_DOI=d.doi,
+                         pdbx_database_accession=d.accession)
+
+
 class _ChemCompDumper(Dumper):
     def dump(self, system, writer):
         comps = frozenset(comp for e in system.entities for comp in e.sequence)
@@ -3576,8 +3587,8 @@ class IHMVariant(Variant):
     """Used to select typical PDBx/IHM file output. See :func:`write`."""
     _dumpers = [
         _EntryDumper,  # must be first
-        _CollectionDumper,
-        _StructDumper, _CommentDumper, _AuditConformDumper, _CitationDumper,
+        _CollectionDumper, _StructDumper, _CommentDumper, _AuditConformDumper,
+        _DatabaseDumper, _CitationDumper,
         _SoftwareDumper, _AuditAuthorDumper, _GrantDumper, _ChemCompDumper,
         _ChemDescriptorDumper, _EntityDumper, _EntitySrcGenDumper,
         _EntitySrcNatDumper, _EntitySrcSynDumper, _StructRefDumper,

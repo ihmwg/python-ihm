@@ -5131,5 +5131,28 @@ _pdbx_entity_branch_link.details
         self.assertIsNone(lnk2.details)
 
 
+    def test_database_handler(self):
+        """Test DatabaseHandler"""
+        fh = StringIO("""
+loop_
+_database_2.database_id
+_database_2.database_code
+_database_2.pdbx_database_accession
+_database_2.pdbx_DOI
+foo bar . ?
+baz 1abc 1abcxyz 1.2.3.4
+""")
+        s, = ihm.reader.read(fh)
+        d1, d2 = s.databases
+        self.assertEqual(d1.id, 'foo')
+        self.assertEqual(d1.code, 'bar')
+        self.assertIsNone(d1.accession)
+        self.assertIs(d1.doi, ihm.unknown)
+        self.assertEqual(d2.id, 'baz')
+        self.assertEqual(d2.code, '1abc')
+        self.assertEqual(d2.accession, '1abcxyz')
+        self.assertEqual(d2.doi, '1.2.3.4')
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -1025,6 +1025,16 @@ class _CitationAuthorHandler(Handler):
             s.authors.append(name)
 
 
+class _DatabaseHandler(Handler):
+    category = '_database_2'
+
+    def __call__(self, database_code, database_id, pdbx_doi,
+                 pdbx_database_accession):
+        d = ihm.Database(id=database_id, code=database_code,
+                         doi=pdbx_doi, accession=pdbx_database_accession)
+        self.system.databases.append(d)
+
+
 class _ChemCompHandler(Handler):
     category = '_chem_comp'
 
@@ -3691,6 +3701,7 @@ class IHMVariant(Variant):
 
     _handlers = [
         _CollectionHandler, _StructHandler, _SoftwareHandler, _CitationHandler,
+        _DatabaseHandler,
         _AuditAuthorHandler, _GrantHandler, _CitationAuthorHandler,
         _ChemCompHandler, _ChemDescriptorHandler, _EntityHandler,
         _EntitySrcNatHandler, _EntitySrcGenHandler, _EntitySrcSynHandler,

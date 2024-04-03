@@ -5208,6 +5208,30 @@ _pdbx_entity_branch_link.details
 #
 """)
 
+    def test_database_dumper(self):
+        """Test DatabaseDumper"""
+        system = ihm.System()
+        dumper = ihm.dumper._DatabaseDumper()
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, '')
+
+        system = ihm.System(
+            databases=[ihm.Database(id='foo', code='bar'),
+                       ihm.Database(id='baz', code='1abc', accession='1abcxyz',
+                                    doi='1.2.3.4')])
+        dumper = ihm.dumper._DatabaseDumper()
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_database_2.database_id
+_database_2.database_code
+_database_2.pdbx_database_accession
+_database_2.pdbx_DOI
+foo bar . .
+baz 1abc 1abcxyz 1.2.3.4
+#
+""")
+
 
 if __name__ == '__main__':
     unittest.main()

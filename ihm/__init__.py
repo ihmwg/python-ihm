@@ -74,14 +74,21 @@ class System(object):
        :param str id: Unique identifier for this system in the mmCIF file.
        :param str model_details: Detailed description of the system, like an
                                  abstract.
+       :param databases: If this system is part of one or more official
+              databases (e.g. PDB, PDB-Dev, SwissModel), details of
+              the database identifiers.
+       :type databases: sequence of :class:`Database`
     """
 
     structure_determination_methodology = "integrative"
 
-    def __init__(self, title=None, id='model', model_details=None):
+    def __init__(self, title=None, id='model', model_details=None,
+                 databases=[]):
         self.id = id
         self.title = title
         self.model_details = model_details
+        self.databases = []
+        self.databases.extend(databases)
 
         #: List of plain text comments. These will be added to the top of
         #: the mmCIF file.
@@ -661,6 +668,24 @@ class System(object):
                     "the same type, and only certain types (currently only "
                     "DerivedDistanceRestraint or PredictedContactRestraint) "
                     "can be grouped." % g)
+
+
+class Database(object):
+    """Information about a System that is part of an official database.
+
+       If a :class:`System` is part of one or more official databases
+       (e.g. PDB, PDB-Dev, SwissModel), this class contains details of the
+       database identifiers. It should be passed to the :class:`System`
+       constructor.
+
+       :param str id: Abbreviated name of the database (e.g. PDB).
+       :param str code: Identifier from the database (e.g. 1abc).
+       :param str doi: Digital Object Identifier of the database entry.
+       :param str accession: Extended accession code of the database entry.
+       """
+    def __init__(self, id, code, doi=None, accession=None):
+        self.id, self.code = id, code
+        self.doi, self.accession = doi, accession
 
 
 class Software(object):

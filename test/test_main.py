@@ -23,6 +23,7 @@ class Tests(unittest.TestCase):
         s = ihm.System(title='test system')
         self.assertEqual(s.title, 'test system')
         self.assertEqual(s.id, 'model')
+        self.assertEqual(s.databases, [])
 
     def test_chem_comp(self):
         """Test ChemComp class"""
