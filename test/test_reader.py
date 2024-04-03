@@ -5130,7 +5130,6 @@ _pdbx_entity_branch_link.details
         self.assertIsNone(lnk2.order)
         self.assertIsNone(lnk2.details)
 
-
     def test_database_handler(self):
         """Test DatabaseHandler"""
         fh = StringIO("""
