@@ -310,8 +310,12 @@ class _Reader(object):
                 return field
         for h in self.category_handler.values():
             if not hasattr(h, '_keys'):
+                # Populate keys using __call__'s argument names
                 h._keys = [python_to_cif(x)
                            for x in getargspec(h.__call__)[0][1:]]
+            if not hasattr(h, '_haskeydict'):
+                # Check to see whether __call__ takes **keys
+                h._haskeydict = getargspec(h.__call__)[2] is not None
 
 
 class CifReader(_Reader):
@@ -498,11 +502,10 @@ class CifReader(_Reader):
         """Read a line that sets a single value, e.g. "_entry.id   1YTI"""
         # Only read the value if we're interested in this category and key
         if vartoken.category in self.category_handler:
-            if vartoken.keyword \
-               in self.category_handler[vartoken.category]._keys:
+            ch = self.category_handler[vartoken.category]
+            if vartoken.keyword in ch._keys or ch._haskeydict:
                 valtoken = self._get_token()
                 if isinstance(valtoken, _ValueToken):
-                    ch = self.category_handler[vartoken.category]
                     if vartoken.category not in self._category_data:
                         self._category_data[vartoken.category] = {}
                     if isinstance(valtoken, _OmittedValueToken):
@@ -615,7 +618,12 @@ class CifReader(_Reader):
         def call_all_categories():
             for cat, data in self._category_data.items():
                 ch = self.category_handler[cat]
-                ch(*[data.get(k, ch.not_in_file) for k in ch._keys])
+                if ch._haskeydict:
+                    ch(*[data.get(k, ch.not_in_file) for k in ch._keys],
+                       **dict((k, v) for (k, v) in data.items()
+                              if k not in ch._keys))
+                else:
+                    ch(*[data.get(k, ch.not_in_file) for k in ch._keys])
             # Clear category data for next call to read_file()
             self._category_data = {}
         ndata = 0

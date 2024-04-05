@@ -230,6 +230,13 @@ class _DatabaseDumper(Dumper):
                          pdbx_database_accession=d.accession)
 
 
+class _DatabaseStatusDumper(Dumper):
+    def dump(self, system, writer):
+        with writer.category("_pdbx_database_status") as lp:
+            # Pass through all data items from a Python dict
+            lp.write(**system._database_status)
+
+
 class _ChemCompDumper(Dumper):
     def dump(self, system, writer):
         comps = frozenset(comp for e in system.entities for comp in e.sequence)
@@ -3588,7 +3595,7 @@ class IHMVariant(Variant):
     _dumpers = [
         _EntryDumper,  # must be first
         _CollectionDumper, _StructDumper, _CommentDumper, _AuditConformDumper,
-        _DatabaseDumper, _CitationDumper,
+        _DatabaseDumper, _DatabaseStatusDumper, _CitationDumper,
         _SoftwareDumper, _AuditAuthorDumper, _GrantDumper, _ChemCompDumper,
         _ChemDescriptorDumper, _EntityDumper, _EntitySrcGenDumper,
         _EntitySrcNatDumper, _EntitySrcSynDumper, _StructRefDumper,

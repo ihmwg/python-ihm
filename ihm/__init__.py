@@ -89,6 +89,7 @@ class System(object):
         self.model_details = model_details
         self.databases = []
         self.databases.extend(databases)
+        self._database_status = {}
 
         #: List of plain text comments. These will be added to the top of
         #: the mmCIF file.

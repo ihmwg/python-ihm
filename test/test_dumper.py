@@ -5232,6 +5232,26 @@ baz 1abc 1abcxyz 1.2.3.4
 #
 """)
 
+    def test_database_status_dumper(self):
+        """Test DatabaseStatusDumper"""
+        system = ihm.System()
+        system._database_status = {
+            'status_code': 'REL', 'entry_id': '5FD1',
+            'recvd_initial_deposition_date': '1993-06-29',
+            'deposit_site': ihm.unknown, 'process_site': 'BNL',
+            'sg_entry': None}
+        dumper = ihm.dumper._DatabaseStatusDumper()
+        out = _get_dumper_output(dumper, system)
+        # sort to remove dict order
+        self.assertEqual("\n".join(sorted(out.split('\n'))),
+                         """
+_pdbx_database_status.deposit_site ?
+_pdbx_database_status.entry_id 5FD1
+_pdbx_database_status.process_site BNL
+_pdbx_database_status.recvd_initial_deposition_date 1993-06-29
+_pdbx_database_status.sg_entry .
+_pdbx_database_status.status_code REL""")
+
 
 if __name__ == '__main__':
     unittest.main()

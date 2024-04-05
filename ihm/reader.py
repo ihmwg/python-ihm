@@ -1035,6 +1035,14 @@ class _DatabaseHandler(Handler):
         self.system.databases.append(d)
 
 
+class _DatabaseStatusHandler(Handler):
+    category = '_pdbx_database_status'
+
+    def __call__(self, **keys):
+        # Just pass through all data items, as a dict
+        self.system._database_status = keys
+
+
 class _ChemCompHandler(Handler):
     category = '_chem_comp'
 
@@ -3701,7 +3709,7 @@ class IHMVariant(Variant):
 
     _handlers = [
         _CollectionHandler, _StructHandler, _SoftwareHandler, _CitationHandler,
-        _DatabaseHandler,
+        _DatabaseHandler, _DatabaseStatusHandler,
         _AuditAuthorHandler, _GrantHandler, _CitationAuthorHandler,
         _ChemCompHandler, _ChemDescriptorHandler, _EntityHandler,
         _EntitySrcNatHandler, _EntitySrcGenHandler, _EntitySrcSynHandler,

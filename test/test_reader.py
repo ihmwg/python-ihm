@@ -5152,6 +5152,26 @@ baz 1abc 1abcxyz 1.2.3.4
         self.assertEqual(d2.accession, '1abcxyz')
         self.assertEqual(d2.doi, '1.2.3.4')
 
+    def test_database_status_handler(self):
+        """Test DatabaseStatusHandler"""
+        fh = StringIO("""
+_pdbx_database_status.status_code                     REL
+_pdbx_database_status.entry_id                        5FD1
+_pdbx_database_status.recvd_initial_deposition_date   1993-06-29
+_pdbx_database_status.deposit_site                    ?
+_pdbx_database_status.process_site                    BNL
+_pdbx_database_status.SG_entry                        .
+""")
+        s, = ihm.reader.read(fh)
+        # Should pass through to a dict
+        self.assertEqual(s._database_status,
+                         {'status_code': 'REL',
+                          'entry_id': '5FD1',
+                          'recvd_initial_deposition_date': '1993-06-29',
+                          'deposit_site': ihm.unknown,
+                          'process_site': 'BNL',
+                          'sg_entry': None})
+
 
 if __name__ == '__main__':
     unittest.main()
