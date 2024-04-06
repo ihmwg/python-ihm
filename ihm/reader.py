@@ -1038,9 +1038,38 @@ class _DatabaseHandler(Handler):
 class _DatabaseStatusHandler(Handler):
     category = '_pdbx_database_status'
 
-    def __call__(self, **keys):
-        # Just pass through all data items, as a dict
-        self.system._database_status = keys
+    # placeholder; the reader will otherwise only return strings or None
+    not_in_file = 0
+    _keys = ['entry_id', 'sg_entry', 'author_approval_type',
+             'author_release_status_code', 'date_author_approval',
+             'date_author_release_request', 'date_begin_deposition',
+             'date_begin_processing', 'date_begin_release_preparation',
+             'date_chemical_shifts', 'date_coordinates',
+             'date_deposition_form', 'date_end_processing',
+             'date_hold_chemical_shifts', 'date_hold_coordinates',
+             'date_hold_nmr_constraints', 'date_hold_struct_fact',
+             'date_manuscript', 'date_nmr_constraints', 'date_of_pdb_release',
+             'date_of_cs_release', 'date_of_mr_release', 'date_of_sf_release',
+             'date_struct_fact', 'date_submitted',
+             'dep_release_code_chemical_shifts',
+             'dep_release_code_coordinates',
+             'dep_release_code_nmr_constraints', 'dep_release_code_sequence',
+             'dep_release_code_struct_fact', 'deposit_site',
+             'hold_for_publication', 'methods_development_category',
+             'name_depositor', 'pdb_date_of_author_approval',
+             'pdb_format_compatible', 'process_site', 'rcsb_annotator',
+             'recvd_author_approval', 'recvd_chemical_shifts',
+             'recvd_coordinates', 'recvd_deposit_form',
+             'recvd_initial_deposition_date', 'recvd_internal_approval',
+             'recvd_manuscript', 'recvd_nmr_constraints', 'recvd_struct_fact',
+             'status_code', 'status_code_cs', 'status_code_mr',
+             'status_code_sf']
+
+    def __call__(self, *args):
+        # Just pass through all data items present in the file, as a dict
+        self.system._database_status = dict(
+            (k, v) for (k, v) in zip(self._keys, args)
+            if v != self.not_in_file)
 
 
 class _ChemCompHandler(Handler):

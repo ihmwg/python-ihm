@@ -356,18 +356,6 @@ x
             self._read_cif(cif, real_file, {'_exptl': h})
             self.assertEqual(h.data, [{'method': ihm.unknown}])
 
-    def test_category_handler_key_dict(self):
-        """Test Handler method taking kwdict"""
-        class KwdictHandler(object):
-            def __call__(self, **keys):
-                self.data = keys
-
-        cif = "_exptl.foo x\n_exptl.bar y\n"
-        for real_file in (True, False):
-            h = KwdictHandler()
-            self._read_cif(cif, real_file, {'_exptl': h})
-            self.assertEqual(h.data, {'foo': 'x', 'bar': 'y'})
-
     def test_save_frames(self):
         """Category handlers should be called for each save frame"""
         cif = """
