@@ -52,7 +52,7 @@ setup(name='ihm',
       author_email='ben@salilab.org',
       url='https://github.com/ihmwg/python-ihm',
       ext_modules=mod,
-      packages=['ihm'],
+      packages=['ihm', 'ihm.util'],
       install_requires=['msgpack'],
       classifiers=[
           "Programming Language :: Python :: 2.7",
