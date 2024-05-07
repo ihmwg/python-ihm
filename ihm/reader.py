@@ -1456,7 +1456,12 @@ class _ExtFileHandler(Handler):
         f = self.sysr.external_files.get_by_id(
             id, self.type_map.get(typ, ihm.location.FileLocation))
         f.repo = self.sysr.repos.get_by_id(reference_id)
-        f.file_size = self.get_int(file_size_bytes)
+        # IHMCIF dictionary defines file size as a float, although only int
+        # values make sense, so allow for either ints or floats here
+        try:
+            f.file_size = self.get_int(file_size_bytes)
+        except ValueError:
+            f.file_size = self.get_float(file_size_bytes)
         self.copy_if_present(
             f, locals(), keys=['details'], mapkeys={'file_path': 'path'})
         # Handle DOI that is itself a file

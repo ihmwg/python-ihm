@@ -917,7 +917,7 @@ _ihm_external_files.content_type
 _ihm_external_files.file_size_bytes
 _ihm_external_files.details
 1 1 scripts/test.py 'Modeling workflow or script' 180 'Test script'
-2 2 foo/bar.txt 'Input data or restraints' . 'Test text'
+2 2 foo/bar.txt 'Input data or restraints' 42.0 'Test text'
 3 3 . 'Modeling or post-processing output' . 'Ensemble structures'
 4 3 . . . .
 """
@@ -931,6 +931,7 @@ _ihm_external_files.details
                 self.assertEqual(l1.path, 'scripts/test.py')
                 self.assertEqual(l1.details, 'Test script')
                 self.assertEqual(l1.repo.doi, '10.5281/zenodo.1218053')
+                self.assertIsInstance(l1.file_size, int)
                 self.assertEqual(l1.file_size, 180)
                 self.assertEqual(l1.repo.details, 'test repo')
                 self.assertEqual(l1.__class__,
@@ -939,7 +940,8 @@ _ihm_external_files.details
                 self.assertEqual(l2.path, 'foo/bar.txt')
                 self.assertEqual(l2.details, 'Test text')
                 self.assertIsNone(l2.repo)
-                self.assertIsNone(l2.file_size)
+                self.assertIsInstance(l2.file_size, float)
+                self.assertAlmostEqual(l2.file_size, 42.0, delta=0.01)
                 self.assertEqual(l2.__class__, ihm.location.InputFileLocation)
 
                 self.assertEqual(l3.path, '.')
