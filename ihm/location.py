@@ -195,7 +195,7 @@ class FileLocation(Location):
 
     _eq_keys = Location._eq_keys + ['repo', 'path', 'content_type']
 
-    content_type = None
+    content_type = 'Other'
 
     def __init__(self, path, repo=None, details=None):
         super(FileLocation, self).__init__(details)
