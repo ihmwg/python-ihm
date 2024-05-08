@@ -1199,7 +1199,8 @@ _ihm_struct_assembly_details.entity_poly_segment_id
                                                                    'bar'))
         repo3 = ihm.location.Repository(doi="10.5281/zenodo.58025",
                                         url='foo.spd')
-        loc = ihm.location.InputFileLocation(repo=repo1, path='bar')
+        loc = ihm.location.InputFileLocation(repo=repo1, path='bar',
+                                             file_format='TXT')
         system.locations.append(loc)
         # Duplicates should be ignored
         loc = ihm.location.InputFileLocation(repo=repo1, path='bar')
@@ -1261,14 +1262,15 @@ _ihm_external_files.id
 _ihm_external_files.reference_id
 _ihm_external_files.file_path
 _ihm_external_files.content_type
+_ihm_external_files.file_format
 _ihm_external_files.file_size_bytes
 _ihm_external_files.details
-1 1 bar 'Input data or restraints' . .
-2 1 baz 'Input data or restraints' . .
-3 2 foo/bar/baz 'Modeling or post-processing output' . .
-4 3 foo.spd 'Input data or restraints' . 'EM micrographs'
-5 3 . 'Input data or restraints' . 'EM micrographs'
-6 4 %s 'Modeling workflow or script' 4 .
+1 1 bar 'Input data or restraints' TXT . .
+2 1 baz 'Input data or restraints' . . .
+3 2 foo/bar/baz 'Modeling or post-processing output' . . .
+4 3 foo.spd 'Input data or restraints' . . 'EM micrographs'
+5 3 . 'Input data or restraints' . . 'EM micrographs'
+6 4 %s 'Modeling workflow or script' . 4 .
 #
 """ % bar.replace(os.sep, '/'))
 

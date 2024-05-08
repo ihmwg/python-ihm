@@ -1451,7 +1451,7 @@ class _ExtFileHandler(Handler):
             and x[1] is not ihm.location.FileLocation)
 
     def __call__(self, content_type, id, reference_id, details, file_path,
-                 file_size_bytes):
+                 file_format, file_size_bytes):
         typ = None if content_type is None else content_type.lower()
         f = self.sysr.external_files.get_by_id(
             id, self.type_map.get(typ, ihm.location.FileLocation))
@@ -1463,7 +1463,8 @@ class _ExtFileHandler(Handler):
         except ValueError:
             f.file_size = self.get_float(file_size_bytes)
         self.copy_if_present(
-            f, locals(), keys=['details'], mapkeys={'file_path': 'path'})
+            f, locals(), keys=['details', 'file_format'],
+            mapkeys={'file_path': 'path'})
         # Handle DOI that is itself a file
         if file_path is None:
             f.path = '.'

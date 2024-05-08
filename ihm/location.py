@@ -191,15 +191,16 @@ class FileLocation(Location):
               containing the file, or `None` if it is stored on the local disk
        :type repo: :class:`Repository`
        :param str details: optional description of the file
+       :param str file_format: optional file type (e.g. TXT, PNG, FASTA)
     """
 
     _eq_keys = Location._eq_keys + ['repo', 'path', 'content_type']
 
     content_type = 'Other'
 
-    def __init__(self, path, repo=None, details=None):
+    def __init__(self, path, repo=None, details=None, file_format=None):
         super(FileLocation, self).__init__(details)
-        self.repo = repo
+        self.repo, self.file_format = repo, file_format
         if repo:
             self.path = path
             # Cannot determine file size if non-local

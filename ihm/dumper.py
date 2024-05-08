@@ -997,7 +997,7 @@ class _ExternalReferenceDumper(Dumper):
     def dump_refs(self, writer):
         with writer.loop("_ihm_external_files",
                          ["id", "reference_id", "file_path", "content_type",
-                          "file_size_bytes", "details"]) as lp:
+                          "file_format", "file_size_bytes", "details"]) as lp:
             for r in self._ref_by_id:
                 repo = r.repo or self._local_files
                 if r.path is None:
@@ -1006,6 +1006,7 @@ class _ExternalReferenceDumper(Dumper):
                     file_path = self._posix_path(repo._get_full_path(r.path))
                 lp.write(id=r._id, reference_id=repo._id,
                          file_path=file_path, content_type=r.content_type,
+                         file_format=r.file_format,
                          file_size_bytes=r.file_size, details=r.details)
 
     # On Windows systems, convert native paths to POSIX-like (/-separated)

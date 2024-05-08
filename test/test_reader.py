@@ -914,13 +914,14 @@ _ihm_external_files.id
 _ihm_external_files.reference_id
 _ihm_external_files.file_path
 _ihm_external_files.content_type
+_ihm_external_files.file_format
 _ihm_external_files.file_size_bytes
 _ihm_external_files.details
-1 1 scripts/test.py 'Modeling workflow or script' 180 'Test script'
-2 2 foo/bar.txt 'Input data or restraints' 42.0 'Test text'
-3 3 . 'Modeling or post-processing output' . 'Ensemble structures'
-4 3 . . . .
-5 3 foo.txt Other . 'Other file'
+1 1 scripts/test.py 'Modeling workflow or script' TXT 180 'Test script'
+2 2 foo/bar.txt 'Input data or restraints' TXT 42.0 'Test text'
+3 3 . 'Modeling or post-processing output' . . 'Ensemble structures'
+4 3 . . . . .
+5 3 foo.txt Other . . 'Other file'
 """
         # Order of the categories shouldn't matter
         cif1 = ext_ref_cat + ext_file_cat
@@ -934,6 +935,7 @@ _ihm_external_files.details
                 self.assertEqual(l1.repo.doi, '10.5281/zenodo.1218053')
                 self.assertIsInstance(l1.file_size, int)
                 self.assertEqual(l1.file_size, 180)
+                self.assertEqual(l1.file_format, 'TXT')
                 self.assertEqual(l1.repo.details, 'test repo')
                 self.assertEqual(l1.__class__,
                                  ihm.location.WorkflowFileLocation)
@@ -943,16 +945,19 @@ _ihm_external_files.details
                 self.assertIsNone(l2.repo)
                 self.assertIsInstance(l2.file_size, float)
                 self.assertAlmostEqual(l2.file_size, 42.0, delta=0.01)
+                self.assertEqual(l2.file_format, 'TXT')
                 self.assertEqual(l2.__class__, ihm.location.InputFileLocation)
 
                 self.assertEqual(l3.path, '.')
                 self.assertEqual(l3.details, 'Ensemble structures')
                 self.assertIsNone(l3.file_size)
+                self.assertIsNone(l3.file_format)
                 self.assertEqual(l3.repo.doi, '10.5281/zenodo.1218058')
                 self.assertEqual(l3.__class__, ihm.location.OutputFileLocation)
 
                 self.assertEqual(l4.path, '.')
                 self.assertIsNone(l4.file_size)
+                self.assertIsNone(l4.file_format)
                 self.assertIsNone(l4.details)
                 self.assertEqual(l4.repo.doi, '10.5281/zenodo.1218058')
                 # Type is unspecified
