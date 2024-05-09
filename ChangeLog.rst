@@ -6,7 +6,7 @@
   - :class:`ihm.location.FileLocation` now allows for an optional file format
     to be specified (#139).
   - The ``util/make-mmcif.py`` script is now included in the installed package,
-    so can be return if desired with ``python3 -m ihm.util.make_mmcif`` (#134).
+    so can be run if desired with ``python3 -m ihm.util.make_mmcif`` (#134).
   - Bugfix: allow for file sizes in input mmCIF files to be floating point
     values (#138).
   - Bugfix: the 'Other' content type is now handled correctly when reading
