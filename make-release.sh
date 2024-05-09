@@ -24,4 +24,4 @@ python3 setup.py sdist
 rm -f "src/ihm_format_wrap_${VERSION}.c"
 
 echo "Now use 'twine upload dist/ihm-${VERSION}.tar.gz' to publish the release on PyPi."
-echo "Then, update the conda-forge, COPR, and Homebrew packages to match."
+echo "Then, update the conda-forge, COPR, PPA, and Homebrew packages to match."
