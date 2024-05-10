@@ -2920,7 +2920,7 @@ class _CrossLinkResultHandler(Handler):
             sigma2=self.get_float(sigma_2))
 
 
-class _OrderedEnsembleHandler(Handler):
+class _OrderedModelHandler(Handler):
     category = '_ihm_ordered_model'
 
     def __call__(self, process_id, step_id, model_group_id_begin,
@@ -2944,6 +2944,12 @@ class _OrderedEnsembleHandler(Handler):
             mapkeys={'process_description': 'description'})
         self.copy_if_present(
             step, locals(), mapkeys={'step_description': 'description'})
+
+
+# Handle the old name for the ihm_ordered_model category. This is a separate
+# object so relies on _OrderedModelHandler not storing any state.
+class _OrderedEnsembleHandler(_OrderedModelHandler):
+    category = '_ihm_ordered_ensemble'
 
 
 class UnknownCategoryWarning(Warning):
@@ -3773,7 +3779,7 @@ class IHMVariant(Variant):
         _BranchDescriptorHandler, _BranchLinkHandler, _CrossLinkListHandler,
         _CrossLinkRestraintHandler, _CrossLinkPseudoSiteHandler,
         _CrossLinkResultHandler, _StartingModelSeqDifHandler,
-        _OrderedEnsembleHandler,
+        _OrderedModelHandler, _OrderedEnsembleHandler,
         _MultiStateSchemeHandler, _MultiStateSchemeConnectivityHandler,
         _KineticRateHandler,
         _RelaxationTimeHandler, _RelaxationTimeMultiStateSchemeHandler
