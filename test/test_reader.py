@@ -978,10 +978,12 @@ _ihm_dataset_list.details
 2 'COMPARATIVE MODEL' YES .
 3 'EM raw micrographs' YES 'test details'
 4 . YES .
+5 'Crosslinking-MS data' YES .
+6 'CX-MS data' YES .
 """
         for fh in cif_file_handles(cif):
             s, = ihm.reader.read(fh)
-            d1, d2, d3, d4 = s.orphan_datasets
+            d1, d2, d3, d4, d5, d6 = s.orphan_datasets
             self.assertEqual(d1.__class__, ihm.dataset.PDBDataset)
             self.assertEqual(d2.__class__, ihm.dataset.ComparativeModelDataset)
             self.assertEqual(d3.__class__, ihm.dataset.EMMicrographsDataset)
@@ -992,6 +994,10 @@ _ihm_dataset_list.details
             self.assertEqual(d4.__class__, ihm.dataset.Dataset)
             self.assertIsNone(d1.details)
             self.assertEqual(d3.details, 'test details')
+            # Both new and old data_types should map to the same
+            # crosslink class
+            self.assertEqual(d5.__class__, ihm.dataset.CXMSDataset)
+            self.assertEqual(d6.__class__, ihm.dataset.CXMSDataset)
 
     def test_dataset_group_handler(self):
         """Test DatasetGroupHandler"""

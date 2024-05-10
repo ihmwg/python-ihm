@@ -1481,6 +1481,8 @@ class _DatasetListHandler(Handler):
             (x[1].data_type.lower(), x[1])
             for x in inspect.getmembers(ihm.dataset, inspect.isclass)
             if issubclass(x[1], ihm.dataset.Dataset))
+        # Map old 'CX-MS' data to new class
+        self.type_map['cx-ms data'] = ihm.dataset.CXMSDataset
 
     def __call__(self, data_type, id, details):
         typ = None if data_type is None else data_type.lower()
