@@ -1430,8 +1430,8 @@ _ihm_dataset_list.id
 _ihm_dataset_list.data_type
 _ihm_dataset_list.database_hosted
 _ihm_dataset_list.details
-1 'CX-MS data' NO .
-2 'CX-MS data' NO .
+1 'Crosslinking-MS data' NO .
+2 'Crosslinking-MS data' NO .
 3 Other YES bar
 4 Other YES baz
 5 'Experimental model' YES 'test dataset details'
