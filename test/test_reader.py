@@ -3144,15 +3144,15 @@ _ihm_cross_link_result_parameters.sigma_2
         """Test OrderedEnsembleHandler"""
         fh = StringIO("""
 loop_
-_ihm_ordered_ensemble.process_id
-_ihm_ordered_ensemble.process_description
-_ihm_ordered_ensemble.ordered_by
-_ihm_ordered_ensemble.step_id
-_ihm_ordered_ensemble.step_description
-_ihm_ordered_ensemble.edge_id
-_ihm_ordered_ensemble.edge_description
-_ihm_ordered_ensemble.model_group_id_begin
-_ihm_ordered_ensemble.model_group_id_end
+_ihm_ordered_model.process_id
+_ihm_ordered_model.process_description
+_ihm_ordered_model.ordered_by
+_ihm_ordered_model.step_id
+_ihm_ordered_model.step_description
+_ihm_ordered_model.edge_id
+_ihm_ordered_model.edge_description
+_ihm_ordered_model.model_group_id_begin
+_ihm_ordered_model.model_group_id_end
 1 pdesc 'steps in a reaction pathway' 1 'step 1 desc' 1 .  1 2
 1 pdesc 'steps in a reaction pathway' 2 'step 2 desc' 2 'edge 2 desc'  1 3
 1 pdesc 'steps in a reaction pathway' 2 'step 2 desc' 3 .  1 4

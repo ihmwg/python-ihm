@@ -2921,7 +2921,7 @@ class _CrossLinkResultHandler(Handler):
 
 
 class _OrderedEnsembleHandler(Handler):
-    category = '_ihm_ordered_ensemble'
+    category = '_ihm_ordered_model'
 
     def __call__(self, process_id, step_id, model_group_id_begin,
                  model_group_id_end, edge_description, ordered_by,

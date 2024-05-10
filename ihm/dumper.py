@@ -1854,7 +1854,7 @@ class _OrderedDumper(Dumper):
                     edge._id = next(edge_id)
 
     def dump(self, system, writer):
-        with writer.loop("_ihm_ordered_ensemble",
+        with writer.loop("_ihm_ordered_model",
                          ["process_id", "process_description", "ordered_by",
                           "step_id", "step_description",
                           "edge_id", "edge_description",
