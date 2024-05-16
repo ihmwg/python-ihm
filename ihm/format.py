@@ -297,6 +297,11 @@ class _WhitespaceToken(_Token):
         self.txt = txt
 
 
+class _EndOfLineToken(_Token):
+    """End of a line in an mmCIF file"""
+    pass
+
+
 class _DataToken(_Token):
     """A data_* keyword in mmCIF, denoting a new data block"""
     pass
@@ -478,6 +483,10 @@ class _CifTokenizer(object):
 
 class _PreservingCifTokenizer(_CifTokenizer):
     """A tokenizer subclass which preserves comments"""
+
+    def _tokenize(self, line):
+        _CifTokenizer._tokenize(self, line)
+        self._tokens.append(_EndOfLineToken())
 
     def _handle_comment(self, line, start_pos):
         self._tokens.append(_CommentToken(line[start_pos + 1:]))

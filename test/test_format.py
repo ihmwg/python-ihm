@@ -806,22 +806,25 @@ x y
 _cat1.foo baz    # End of line comment
 """
         t = ihm.format._PreservingCifTokenizer(StringIO(cif))
-        tokens = [t._get_token() for _ in range(8)]
-        self.assertIsInstance(tokens[0], ihm.format._CommentToken)
-        self.assertEqual(tokens[0].txt, ' Full line comment')
-        self.assertIsInstance(tokens[1], ihm.format._VariableToken)
-        self.assertEqual(tokens[1].category, '_cat1')
-        self.assertEqual(tokens[1].keyword, 'foo')
-        self.assertIsInstance(tokens[2], ihm.format._WhitespaceToken)
-        self.assertEqual(tokens[2].txt, ' ')
-        self.assertIsInstance(tokens[3], ihm.format._TextValueToken)
-        self.assertEqual(tokens[3].txt, 'baz')
+        tokens = [t._get_token() for _ in range(11)]
+        self.assertIsInstance(tokens[0], ihm.format._EndOfLineToken)
+        self.assertIsInstance(tokens[1], ihm.format._CommentToken)
+        self.assertEqual(tokens[1].txt, ' Full line comment')
+        self.assertIsInstance(tokens[2], ihm.format._EndOfLineToken)
+        self.assertIsInstance(tokens[3], ihm.format._VariableToken)
+        self.assertEqual(tokens[3].category, '_cat1')
+        self.assertEqual(tokens[3].keyword, 'foo')
         self.assertIsInstance(tokens[4], ihm.format._WhitespaceToken)
-        self.assertEqual(tokens[4].txt, '    ')
-        self.assertIsInstance(tokens[5], ihm.format._CommentToken)
-        self.assertEqual(tokens[5].txt, ' End of line comment')
-        self.assertIsNone(tokens[6])
-        self.assertIsNone(tokens[7])
+        self.assertEqual(tokens[4].txt, ' ')
+        self.assertIsInstance(tokens[5], ihm.format._TextValueToken)
+        self.assertEqual(tokens[5].txt, 'baz')
+        self.assertIsInstance(tokens[6], ihm.format._WhitespaceToken)
+        self.assertEqual(tokens[6].txt, '    ')
+        self.assertIsInstance(tokens[7], ihm.format._CommentToken)
+        self.assertEqual(tokens[7].txt, ' End of line comment')
+        self.assertIsInstance(tokens[8], ihm.format._EndOfLineToken)
+        self.assertIsNone(tokens[9])
+        self.assertIsNone(tokens[10])
 
 
 if __name__ == '__main__':
