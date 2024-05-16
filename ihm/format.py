@@ -289,6 +289,14 @@ class _CommentToken(_Token):
         self.txt = txt
 
 
+class _WhitespaceToken(_Token):
+    """Space between other mmCIF tokens"""
+    __slots__ = ['txt']
+
+    def __init__(self, txt):
+        self.txt = txt
+
+
 class _DataToken(_Token):
     """A data_* keyword in mmCIF, denoting a new data block"""
     pass
@@ -381,12 +389,15 @@ class _CifTokenizer(object):
                 self._tokens.append(_TextValueToken(line[start_pos + 1:end]))
                 return end + 1  # Step past the closing quote
 
+    def _skip_initial_whitespace(self, line, strlen, start_pos):
+        while start_pos < strlen and line[start_pos] in _WHITESPACE:
+            start_pos += 1
+        return start_pos
+
     def _extract_line_token(self, line, strlen, start_pos):
         """Extract the next token from the given line starting at start_pos,
            populating self._tokens. The new start_pos is returned."""
-        # Skip initial whitespace
-        while start_pos < strlen and line[start_pos] in _WHITESPACE:
-            start_pos += 1
+        start_pos = self._skip_initial_whitespace(line, strlen, start_pos)
         if start_pos >= strlen:
             return strlen
         if line[start_pos] == '"':
@@ -470,6 +481,14 @@ class _PreservingCifTokenizer(_CifTokenizer):
 
     def _handle_comment(self, line, start_pos):
         self._tokens.append(_CommentToken(line[start_pos + 1:]))
+
+    def _skip_initial_whitespace(self, line, strlen, start_pos):
+        end_pos = start_pos
+        while end_pos < strlen and line[end_pos] in _WHITESPACE:
+            end_pos += 1
+        if end_pos > start_pos:
+            self._tokens.append(_WhitespaceToken(line[start_pos:end_pos]))
+        return end_pos
 
 
 class CifReader(_Reader, _CifTokenizer):
