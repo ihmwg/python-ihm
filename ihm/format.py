@@ -314,48 +314,8 @@ class _Reader(object):
                            for x in getargspec(h.__call__)[0][1:]]
 
 
-class CifReader(_Reader):
-    """Class to read an mmCIF file and extract some or all of its data.
-
-       Use :meth:`read_file` to actually read the file.
-
-       :param file fh: Open handle to the mmCIF file
-       :param dict category_handler: A dict to handle data
-              extracted from the file. Keys are category names
-              (e.g. "_entry") and values are objects that have a `__call__`
-              method and `not_in_file`, `omitted`, and `unknown` attributes.
-              The names of the arguments to this `__call__` method
-              are mmCIF keywords that are extracted from the file (for the
-              keywords tr_vector[N] and rot_matrix[N][M] simply omit the [
-              and ] characters, since these are not valid for Python
-              identifiers). The object will be called with the data from
-              the file as a set of strings, or `not_in_file`, `omitted` or
-              `unkonwn` for any keyword that is not present in the file,
-              the mmCIF omitted value (.), or mmCIF unknown value (?)
-              respectively. (mmCIF keywords are case insensitive, so this
-              class always treats them as lowercase regardless of the
-              file contents.)
-       :param unknown_category_handler: A callable (or `None`) that is called
-              for each category in the file that isn't handled; it is given
-              two arguments: the name of the category, and the line in the
-              file at which the category was encountered (if known, otherwise
-              None).
-       :param unknown_keyword_handler: A callable (or `None`) that is called
-              for each keyword in the file that isn't handled (within a
-              category that is handled); it is given three arguments:
-              the names of the category and keyword, and the line in the
-              file at which the keyword was encountered (if known,
-              otherwise None).
-    """
-    def __init__(self, fh, category_handler, unknown_category_handler=None,
-                 unknown_keyword_handler=None):
-        if _format is not None:
-            c_file = _format.ihm_file_new_from_python(fh)
-            self._c_format = _format.ihm_reader_new(c_file)
-        self.category_handler = category_handler
-        self.unknown_category_handler = unknown_category_handler
-        self.unknown_keyword_handler = unknown_keyword_handler
-        self._category_data = {}
+class _CifTokenizer(object):
+    def __init__(self, fh):
         self.fh = fh
         self._tokens = []
         self._token_index = 0
@@ -373,10 +333,6 @@ class CifReader(_Reader):
                 return line.decode('latin-1')
             else:
                 return line
-
-    def __del__(self):
-        if hasattr(self, '_c_format'):
-            _format.ihm_reader_free(self._c_format)
 
     def _read_multiline_token(self, first_line, ignore_multiline):
         """Read a semicolon-delimited (multiline) token"""
@@ -493,6 +449,55 @@ class CifReader(_Reader):
             self._token_index = 0
         self._token_index += 1
         return self._tokens[self._token_index - 1]
+
+
+class CifReader(_Reader, _CifTokenizer):
+    """Class to read an mmCIF file and extract some or all of its data.
+
+       Use :meth:`read_file` to actually read the file.
+
+       :param file fh: Open handle to the mmCIF file
+       :param dict category_handler: A dict to handle data
+              extracted from the file. Keys are category names
+              (e.g. "_entry") and values are objects that have a `__call__`
+              method and `not_in_file`, `omitted`, and `unknown` attributes.
+              The names of the arguments to this `__call__` method
+              are mmCIF keywords that are extracted from the file (for the
+              keywords tr_vector[N] and rot_matrix[N][M] simply omit the [
+              and ] characters, since these are not valid for Python
+              identifiers). The object will be called with the data from
+              the file as a set of strings, or `not_in_file`, `omitted` or
+              `unkonwn` for any keyword that is not present in the file,
+              the mmCIF omitted value (.), or mmCIF unknown value (?)
+              respectively. (mmCIF keywords are case insensitive, so this
+              class always treats them as lowercase regardless of the
+              file contents.)
+       :param unknown_category_handler: A callable (or `None`) that is called
+              for each category in the file that isn't handled; it is given
+              two arguments: the name of the category, and the line in the
+              file at which the category was encountered (if known, otherwise
+              None).
+       :param unknown_keyword_handler: A callable (or `None`) that is called
+              for each keyword in the file that isn't handled (within a
+              category that is handled); it is given three arguments:
+              the names of the category and keyword, and the line in the
+              file at which the keyword was encountered (if known,
+              otherwise None).
+    """
+    def __init__(self, fh, category_handler, unknown_category_handler=None,
+                 unknown_keyword_handler=None):
+        if _format is not None:
+            c_file = _format.ihm_file_new_from_python(fh)
+            self._c_format = _format.ihm_reader_new(c_file)
+        self.category_handler = category_handler
+        self.unknown_category_handler = unknown_category_handler
+        self.unknown_keyword_handler = unknown_keyword_handler
+        self._category_data = {}
+        _CifTokenizer.__init__(self, fh)
+
+    def __del__(self):
+        if hasattr(self, '_c_format'):
+            _format.ihm_reader_free(self._c_format)
 
     def _read_value(self, vartoken):
         """Read a line that sets a single value, e.g. "_entry.id   1YTI"""
