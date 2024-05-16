@@ -800,6 +800,25 @@ x y
         _format.ihm_reader_free(reader)
         fh.close()
 
+    def test_preserving_tokenizer(self):
+        cif = """
+# Full line comment
+_cat1.foo baz  # End of line comment
+"""
+        t = ihm.format._PreservingCifTokenizer(StringIO(cif))
+        tokens = [t._get_token() for _ in range(6)]
+        self.assertIsInstance(tokens[0], ihm.format._CommentToken)
+        self.assertEqual(tokens[0].txt, ' Full line comment')
+        self.assertIsInstance(tokens[1], ihm.format._VariableToken)
+        self.assertEqual(tokens[1].category, '_cat1')
+        self.assertEqual(tokens[1].keyword, 'foo')
+        self.assertIsInstance(tokens[2], ihm.format._TextValueToken)
+        self.assertEqual(tokens[2].txt, 'baz')
+        self.assertIsInstance(tokens[3], ihm.format._CommentToken)
+        self.assertEqual(tokens[3].txt, ' End of line comment')
+        self.assertIsNone(tokens[4])
+        self.assertIsNone(tokens[5])
+
 
 if __name__ == '__main__':
     unittest.main()

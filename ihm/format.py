@@ -281,6 +281,14 @@ class _VariableToken(_Token):
                                  "(%s) on line %d" % (val, linenum))
 
 
+class _CommentToken(_Token):
+    """A comment in mmCIF without the leading '#'"""
+    __slots__ = ['txt']
+
+    def __init__(self, txt):
+        self.txt = txt
+
+
 class _DataToken(_Token):
     """A data_* keyword in mmCIF, denoting a new data block"""
     pass
@@ -387,6 +395,7 @@ class _CifTokenizer(object):
             return self._handle_quoted_token(line, strlen, start_pos, "Single")
         elif line[start_pos] == "#":
             # Comment - discard the rest of the line
+            self._handle_comment(line, start_pos)
             return strlen
         else:
             # Find end of token (whitespace or end of line)
@@ -414,10 +423,15 @@ class _CifTokenizer(object):
             self._tokens.append(tok)
             return end_pos
 
+    def _handle_comment(self, line, start_pos):
+        """Potentially handle a comment that spans line[start_pos:]."""
+        pass
+
     def _tokenize(self, line):
         """Break up a line into tokens, populating self._tokens"""
         self._tokens = []
         if line.startswith('#'):
+            self._handle_comment(line, 0)
             return  # Skip comment lines
         start_pos = 0
         strlen = len(line)
@@ -449,6 +463,13 @@ class _CifTokenizer(object):
             self._token_index = 0
         self._token_index += 1
         return self._tokens[self._token_index - 1]
+
+
+class _PreservingCifTokenizer(_CifTokenizer):
+    """A tokenizer subclass which preserves comments"""
+
+    def _handle_comment(self, line, start_pos):
+        self._tokens.append(_CommentToken(line[start_pos + 1:]))
 
 
 class CifReader(_Reader, _CifTokenizer):
