@@ -266,6 +266,9 @@ class _TextValueToken(_ValueToken):
     def __init__(self, txt):
         self.txt = txt
 
+    def as_mmcif(self):
+        return self.txt
+
 
 class _VariableToken(_Token):
     """A variable name, e.g. _entry.id, in mmCIF"""
@@ -280,6 +283,9 @@ class _VariableToken(_Token):
             raise CifParserError("Malformed mmCIF variable name "
                                  "(%s) on line %d" % (val, linenum))
 
+    def as_mmcif(self):
+        return self.category + '.' + self.keyword
+
 
 class _CommentToken(_Token):
     """A comment in mmCIF without the leading '#'"""
@@ -287,6 +293,9 @@ class _CommentToken(_Token):
 
     def __init__(self, txt):
         self.txt = txt
+
+    def as_mmcif(self):
+        return "#" + self.txt
 
 
 class _WhitespaceToken(_Token):
@@ -296,10 +305,14 @@ class _WhitespaceToken(_Token):
     def __init__(self, txt):
         self.txt = txt
 
+    def as_mmcif(self):
+        return self.txt
+
 
 class _EndOfLineToken(_Token):
     """End of a line in an mmCIF file"""
-    pass
+    def as_mmcif(self):
+        return "\n"
 
 
 class _DataToken(_Token):

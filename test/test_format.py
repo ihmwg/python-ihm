@@ -801,6 +801,7 @@ x y
         fh.close()
 
     def test_preserving_tokenizer(self):
+        """Test the _PreservingCifTokenizer class"""
         cif = """
 # Full line comment
 _cat1.foo baz    # End of line comment
@@ -825,6 +826,10 @@ _cat1.foo baz    # End of line comment
         self.assertIsInstance(tokens[8], ihm.format._EndOfLineToken)
         self.assertIsNone(tokens[9])
         self.assertIsNone(tokens[10])
+
+        # Make sure we can reconstruct the original mmCIF from the tokens
+        new_cif = "".join(x.as_mmcif() for x in tokens[:-2])
+        self.assertEqual(new_cif, cif)
 
 
 if __name__ == '__main__':
