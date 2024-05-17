@@ -800,8 +800,8 @@ x y
         _format.ihm_reader_free(reader)
         fh.close()
 
-    def test_preserving_tokenizer(self):
-        """Test the _PreservingCifTokenizer class"""
+    def test_preserving_tokenizer_get_token(self):
+        """Test _PreservingCifTokenizer._get_token()"""
         cif = """
 # Full line comment
 _cat1.foo baz    # End of line comment
@@ -829,6 +829,31 @@ _cat1.foo baz    # End of line comment
 
         # Make sure we can reconstruct the original mmCIF from the tokens
         new_cif = "".join(x.as_mmcif() for x in tokens[:-2])
+        self.assertEqual(new_cif, cif)
+
+    def test_preserving_tokenizer_reconstruct(self):
+        """Make sure _PreservingCifTokenizer can reconstruct original mmCIF"""
+        cif = """
+data_foo_bar
+#
+_cat1.foo ?
+#
+_cat2.bar .
+#
+loop_
+foo.bar
+foo.baz
+x .
+"""
+        t = ihm.format._PreservingCifTokenizer(StringIO(cif))
+        tokens = []
+        while True:
+            tok = t._get_token()
+            if tok is None:
+                break
+            else:
+                tokens.append(tok)
+        new_cif = "".join(x.as_mmcif() for x in tokens)
         self.assertEqual(new_cif, cif)
 
 

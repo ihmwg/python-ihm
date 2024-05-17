@@ -251,12 +251,14 @@ class _ValueToken(_Token):
 
 class _OmittedValueToken(_ValueToken):
     """A value that is deliberately omitted (the '.' string in mmCIF)"""
-    pass
+    def as_mmcif(self):
+        return "."
 
 
 class _UnknownValueToken(_ValueToken):
     """A value that is unknown (the '?' string in mmCIF)"""
-    pass
+    def as_mmcif(self):
+        return "?"
 
 
 class _TextValueToken(_ValueToken):
@@ -317,12 +319,19 @@ class _EndOfLineToken(_Token):
 
 class _DataToken(_Token):
     """A data_* keyword in mmCIF, denoting a new data block"""
-    pass
+    __slots__ = ['txt']
+
+    def __init__(self, txt):
+        self.txt = txt
+
+    def as_mmcif(self):
+        return 'data_' + self.txt
 
 
 class _LoopToken(_Token):
     """A loop_ keyword in mmCIF, denoting the start of a loop construct"""
-    pass
+    def as_mmcif(self):
+        return "loop_"
 
 
 class _SaveToken(_Token):
@@ -435,7 +444,7 @@ class _CifTokenizer(object):
             if val == 'loop_':
                 tok = _LoopToken()
             elif val.startswith('data_'):
-                tok = _DataToken()
+                tok = _DataToken(val[5:])
             elif val.startswith('save_'):
                 tok = _SaveToken()
             elif val.startswith('_'):
