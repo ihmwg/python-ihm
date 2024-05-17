@@ -263,13 +263,22 @@ class _UnknownValueToken(_ValueToken):
 
 class _TextValueToken(_ValueToken):
     """The value of a variable in mmCIF as a piece of text"""
-    __slots__ = ['txt']
+    __slots__ = ['txt', 'quote']
 
-    def __init__(self, txt):
+    def __init__(self, txt, quote):
         self.txt = txt
+        self.quote = quote
 
     def as_mmcif(self):
-        return self.txt
+        if '\n' in self.txt or self.quote == ';':
+            suffix = ";\n" if self.txt.endswith('\n') else "\n;\n"
+            return ";" + self.txt + suffix
+        elif self.quote == "'":
+            return "'" + self.txt + "'"
+        elif self.quote == '"' or ' ' in self.txt:
+            return '"' + self.txt + '"'
+        else:
+            return self.txt
 
 
 class _VariableToken(_Token):
@@ -391,7 +400,7 @@ class _CifTokenizer(object):
             elif nextline.startswith(';'):
                 # Strip last newline
                 lines[-1] = lines[-1].rstrip('\r\n')
-                self._tokens = [_TextValueToken("".join(lines))]
+                self._tokens = [_TextValueToken("".join(lines), ';')]
                 return
             elif not ignore_multiline:
                 lines.append(nextline)
@@ -413,7 +422,8 @@ class _CifTokenizer(object):
             elif end == strlen - 1 or line[end + 1] in _WHITESPACE:
                 # A quoted string is always a literal string, even if it is
                 # "?" or ".", not an unknown/omitted value
-                self._tokens.append(_TextValueToken(line[start_pos + 1:end]))
+                self._tokens.append(_TextValueToken(line[start_pos + 1:end],
+                                                    quote))
                 return end + 1  # Step past the closing quote
 
     def _skip_initial_whitespace(self, line, strlen, start_pos):
@@ -457,7 +467,7 @@ class _CifTokenizer(object):
                 # Note that we do no special processing for other reserved
                 # words (global_, save_, stop_). But the probability of
                 # them occurring where we expect a value is pretty small.
-                tok = _TextValueToken(val)  # don't alter case of values
+                tok = _TextValueToken(val, None)  # don't alter case of values
             self._tokens.append(tok)
             return end_pos
 

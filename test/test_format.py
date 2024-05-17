@@ -843,7 +843,12 @@ _cat2.bar .
 loop_
 foo.bar
 foo.baz
-x .
+foo.single
+foo.double
+foo.multi
+x . 'single' "double"
+;multi
+;
 """
         t = ihm.format._PreservingCifTokenizer(StringIO(cif))
         tokens = []
