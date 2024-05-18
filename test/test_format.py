@@ -804,7 +804,7 @@ x y
         """Test _PreservingCifTokenizer._get_token()"""
         cif = """
 # Full line comment
-_cat1.foo baz    # End of line comment
+_cat1.Foo baz    # End of line comment
 """
         t = ihm.format._PreservingCifTokenizer(StringIO(cif))
         tokens = [t._get_token() for _ in range(11)]
@@ -812,9 +812,10 @@ _cat1.foo baz    # End of line comment
         self.assertIsInstance(tokens[1], ihm.format._CommentToken)
         self.assertEqual(tokens[1].txt, ' Full line comment')
         self.assertIsInstance(tokens[2], ihm.format._EndOfLineToken)
-        self.assertIsInstance(tokens[3], ihm.format._VariableToken)
+        self.assertIsInstance(tokens[3], ihm.format._PreservingVariableToken)
         self.assertEqual(tokens[3].category, '_cat1')
         self.assertEqual(tokens[3].keyword, 'foo')
+        self.assertEqual(tokens[3].orig_keyword, 'Foo')
         self.assertIsInstance(tokens[4], ihm.format._WhitespaceToken)
         self.assertEqual(tokens[4].txt, ' ')
         self.assertIsInstance(tokens[5], ihm.format._TextValueToken)
@@ -838,7 +839,7 @@ data_foo_bar
 #
 _cat1.foo ?
 #
-_cat2.bar .
+_cat2.BaR .
 #
 loop_
 foo.bar

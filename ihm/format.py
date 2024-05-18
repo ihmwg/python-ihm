@@ -298,6 +298,22 @@ class _VariableToken(_Token):
         return self.category + '.' + self.keyword
 
 
+class _PreservingVariableToken(_VariableToken):
+    """A variable name that preserves the original case of the keyword"""
+
+    __slots__ = ['category', 'keyword', 'orig_keyword']
+
+    def __init__(self, val, linenum):
+        super(_PreservingVariableToken, self).__init__(val, linenum)
+        _, _, self.orig_keyword = val.partition('.')
+
+    def as_mmcif(self):
+        if self.orig_keyword and self.orig_keyword.lower() == self.keyword:
+            return self.category + '.' + self.orig_keyword
+        else:
+            return self.category + '.' + self.keyword
+
+
 class _CommentToken(_Token):
     """A comment in mmCIF without the leading '#'"""
     __slots__ = ['txt']
@@ -458,7 +474,7 @@ class _CifTokenizer(object):
             elif val.startswith('save_'):
                 tok = _SaveToken()
             elif val.startswith('_'):
-                tok = _VariableToken(val, self._linenum)
+                tok = self._handle_variable_token(val, self._linenum)
             elif val == '.':
                 tok = _OmittedValueToken()
             elif val == '?':
@@ -470,6 +486,9 @@ class _CifTokenizer(object):
                 tok = _TextValueToken(val, None)  # don't alter case of values
             self._tokens.append(tok)
             return end_pos
+
+    def _handle_variable_token(self, val, linenum):
+        return _VariableToken(val, linenum)
 
     def _handle_comment(self, line, start_pos):
         """Potentially handle a comment that spans line[start_pos:]."""
@@ -522,6 +541,9 @@ class _PreservingCifTokenizer(_CifTokenizer):
 
     def _handle_comment(self, line, start_pos):
         self._tokens.append(_CommentToken(line[start_pos + 1:]))
+
+    def _handle_variable_token(self, val, linenum):
+        return _PreservingVariableToken(val, linenum)
 
     def _skip_initial_whitespace(self, line, strlen, start_pos):
         end_pos = start_pos
