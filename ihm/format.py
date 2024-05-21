@@ -294,9 +294,6 @@ class _VariableToken(_Token):
             raise CifParserError("Malformed mmCIF variable name "
                                  "(%s) on line %d" % (val, linenum))
 
-    def as_mmcif(self):
-        return self.category + '.' + self.keyword
-
 
 class _PreservingVariableToken(_VariableToken):
     """A variable name that preserves the original case of the keyword"""

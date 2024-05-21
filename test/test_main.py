@@ -428,7 +428,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(a.number_of_molecules, 3)
 
         self.assertRaises(TypeError, ihm.AsymUnit, water)
-        self.assertRaises(TypeError, ihm.WaterAsymUnit, e)
+        self.assertRaises(TypeError, ihm.WaterAsymUnit, e, number=3)
 
     def test_asym_unit_residue(self):
         """Test Residue derived from an AsymUnit"""

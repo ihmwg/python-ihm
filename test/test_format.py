@@ -862,6 +862,15 @@ x . 'single' "double"
         new_cif = "".join(x.as_mmcif() for x in tokens)
         self.assertEqual(new_cif, cif)
 
+    def test_preserving_variable_token(self):
+        """Test _PreservingVariableToken class"""
+        t = ihm.format._PreservingVariableToken("foo.BAR", 1)
+        self.assertEqual(t.keyword, 'bar')
+        self.assertEqual(t.orig_keyword, 'BAR')
+        self.assertEqual(t.as_mmcif(), 'foo.BAR')
+        t.keyword = 'baz'
+        self.assertEqual(t.as_mmcif(), 'foo.baz')
+
 
 if __name__ == '__main__':
     unittest.main()

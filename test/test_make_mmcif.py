@@ -194,6 +194,22 @@ class Tests(unittest.TestCase):
         self.assertEqual(s.title, 'Auto-generated system')
         os.unlink('output.cif')
 
+    @unittest.skipIf(sys.version_info[0] < 3, "make_mmcif.py needs Python 3")
+    def test_add_multi_data(self):
+        """make_mmcif should fail to add system with multiple data blocks"""
+        incif = utils.get_input_file_name(TOPDIR, 'mini.cif')
+        addcif = utils.get_input_file_name(TOPDIR, 'mini_add.cif')
+        with open(addcif) as fh:
+            addcif_contents = fh.read()
+        addcif_multi = 'addcif_multi.cif'
+        with open(addcif_multi, 'w') as fh:
+            fh.write(addcif_contents)
+            fh.write(addcif_contents.replace('data_model', 'data_model2'))
+        ret = subprocess.call([sys.executable, MAKE_MMCIF, incif,
+                               '--add', addcif_multi])
+        self.assertEqual(ret, 1)
+        os.unlink(addcif_multi)
+
 
 if __name__ == '__main__':
     unittest.main()
