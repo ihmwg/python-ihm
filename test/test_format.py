@@ -894,6 +894,27 @@ x y
         new_cif = "".join(x.as_mmcif() for x in tokens)
         self.assertEqual(new_cif, cif)
 
+    def test_category_token_group(self):
+        """Test CategoryTokenGroup class"""
+        var = ihm.format._PreservingVariableToken("_foo.bar", 1)
+        space = ihm.format._WhitespaceToken("   ")
+        val = ihm.format._TextValueToken("baz", quote=None)
+        tg = ihm.format._CategoryTokenGroup(
+            var, ihm.format._SpacedToken([space], val))
+        self.assertEqual(str(tg), "<_CategoryTokenGroup(_foo.bar, baz)>")
+        self.assertEqual(tg.as_mmcif(), '_foo.bar   baz\n')
+        self.assertEqual(tg.category, "_foo")
+        self.assertEqual(tg.keyword, "bar")
+        self.assertEqual(tg.value, "baz")
+        tg.value = None
+        self.assertIsNone(tg.value)
+        self.assertEqual(tg.as_mmcif(), '_foo.bar   .\n')
+        tg.value = ihm.unknown
+        self.assertIs(tg.value, ihm.unknown)
+        self.assertEqual(tg.as_mmcif(), '_foo.bar   ?\n')
+        tg.value = "test value"
+        self.assertEqual(tg.as_mmcif(), '_foo.bar   "test value"\n')
+
 
 if __name__ == '__main__':
     unittest.main()

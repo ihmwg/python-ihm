@@ -12,6 +12,7 @@ from __future__ import print_function
 import sys
 import textwrap
 import operator
+import ihm
 # getargspec is deprecated in Python 3, but getfullargspec has a very
 # similar interface
 try:
@@ -562,6 +563,28 @@ class _CategoryTokenGroup(object):
 
     def as_mmcif(self):
         return self.vartoken.as_mmcif() + self.valtoken.as_mmcif() + "\n"
+
+    def __get_value(self):
+        if isinstance(self.valtoken.token, _OmittedValueToken):
+            return None
+        elif isinstance(self.valtoken.token, _UnknownValueToken):
+            return ihm.unknown
+        else:
+            return self.valtoken.token.txt
+
+    def __set_value(self, val):
+        if val is None:
+            self.valtoken.token = _OmittedValueToken()
+        elif val is ihm.unknown:
+            self.valtoken.token = _UnknownValueToken()
+        elif isinstance(self.valtoken.token, _TextValueToken):
+            self.valtoken.token.txt = val
+        else:
+            self.valtoken.token = _TextValueToken(val, quote=None)
+
+    category = property(lambda self: self.vartoken.category)
+    keyword = property(lambda self: self.vartoken.keyword)
+    value = property(__get_value, __set_value)
 
 
 class _LoopHeaderTokenGroup(object):
