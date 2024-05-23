@@ -871,6 +871,29 @@ x . 'single' "double"
         t.keyword = 'baz'
         self.assertEqual(t.as_mmcif(), 'foo.baz')
 
+    def test_preserving_cif_reader(self):
+        """Test _PreservingCifReader class"""
+        cif = """
+data_foo_bar
+#
+_cat1.foo ?
+#
+loop_
+_foo.bar
+_foo.baz
+a b c d
+x y
+"""
+        r = ihm.format._PreservingCifReader(StringIO(cif))
+        tokens = list(r.read_file())
+        self.assertIsInstance(tokens[5], ihm.format._CategoryTokenGroup)
+        self.assertIsInstance(tokens[8], ihm.format._LoopHeaderTokenGroup)
+        self.assertIsInstance(tokens[9], ihm.format._LoopRowTokenGroup)
+        self.assertIsInstance(tokens[10], ihm.format._LoopRowTokenGroup)
+        self.assertIsInstance(tokens[11], ihm.format._LoopRowTokenGroup)
+        new_cif = "".join(x.as_mmcif() for x in tokens)
+        self.assertEqual(new_cif, cif)
+
 
 if __name__ == '__main__':
     unittest.main()

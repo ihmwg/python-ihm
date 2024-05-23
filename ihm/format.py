@@ -530,7 +530,7 @@ class _CifTokenizer(object):
 
 
 class _PreservingCifTokenizer(_CifTokenizer):
-    """A tokenizer subclass which preserves comments"""
+    """A tokenizer subclass which preserves comments, case and whitespace"""
 
     def _tokenize(self, line):
         _CifTokenizer._tokenize(self, line)
@@ -549,6 +549,155 @@ class _PreservingCifTokenizer(_CifTokenizer):
         if end_pos > start_pos:
             self._tokens.append(_WhitespaceToken(line[start_pos:end_pos]))
         return end_pos
+
+
+class _CategoryTokenGroup(object):
+    """A group of tokens which set a single data item"""
+    def __init__(self, vartoken, valtoken):
+        self.vartoken, self.valtoken = vartoken, valtoken
+
+    def __str__(self):
+        return ("<_CategoryTokenGroup(%s, %s)>"
+                % (self.vartoken.as_mmcif(), self.valtoken.token.as_mmcif()))
+
+    def as_mmcif(self):
+        return self.vartoken.as_mmcif() + self.valtoken.as_mmcif() + "\n"
+
+
+class _LoopHeaderTokenGroup(object):
+    """A group of tokens that form the start of a loop_ construct"""
+    def __init__(self, looptoken, category, keywords, end_spacers):
+        self._loop, self.category = looptoken, category
+        self.keywords = keywords
+        self.end_spacers = end_spacers
+
+    def __str__(self):
+        return ("<_LoopHeaderTokenGroup(%s, %s)>"
+                % (self.category,
+                   str([k.token.keyword for k in self.keywords])))
+    
+    def as_mmcif(self):
+        all_tokens = [self._loop] + self.keywords + self.end_spacers
+        return "".join(x.as_mmcif() for x in all_tokens)
+
+
+class _LoopRowTokenGroup(object):
+    """A group of tokens that represent one row in a loop_ construct"""
+    def __init__(self, items):
+        self.items = items
+
+    def as_mmcif(self):
+        return "".join(x.as_mmcif() for x in self.items)
+
+
+class _SpacedToken(object):
+    """A token with zero or more leading whitespace or newline tokens"""
+    def __init__(self, spacers, token):
+        self.spacers, self.token = spacers, token
+
+    def as_mmcif(self):
+        return ("".join(x.as_mmcif() for x in self.spacers)
+                + self.token.as_mmcif())
+
+
+class _PreservingCifReader(_PreservingCifTokenizer):
+    """Read an mmCIF file and break it into tokens"""
+    def __init__(self, fh):
+        super(_PreservingCifReader, self).__init__(fh)
+
+    def read_file(self):
+        """Read the file and yield tokens and/or token groups"""
+        while True:
+            token = self._get_token()
+            if token is None:
+                break
+            if isinstance(token, _VariableToken):
+                yield self._read_value(token)
+            elif isinstance(token, _LoopToken):
+                for tok in self._read_loop(token):
+                    yield tok
+                # Did we hit the end of the file?
+                if self._token_index < 0:
+                    break
+            else:
+                yield token
+
+    def _get_spaced_token(self):
+        """Get the next token plus any number of leading space/EOL tokens"""
+        spacers = []
+        while True:
+            token = self._get_token()
+            if isinstance(token, (_EndOfLineToken, _WhitespaceToken)):
+                spacers.append(token)
+            else:
+                return _SpacedToken(spacers, token)
+
+    def _read_value(self, vartoken):
+        """Read a line that sets a single value, e.g. "_entry.id   1YTI"""
+        spval = self._get_spaced_token()
+        if not isinstance(spval.token, _ValueToken):
+            raise CifParserError(
+                "No valid value found for %s.%s on line %d"
+                % (vartoken.category, vartoken.keyword, self._linenum))
+        eoltok = self._get_token()
+        if not isinstance(eoltok, _EndOfLineToken):
+            raise CifParserError(
+                "No end of line after %s.%s on line %d"
+                % (vartoken.category, vartoken.keyword, self._linenum))
+        return _CategoryTokenGroup(vartoken, spval)
+
+    def _read_loop(self, looptoken):
+        """Handle a loop_ construct"""
+        header = self._read_loop_header(looptoken)
+        yield header
+        for line in self._read_loop_data(header.keywords):
+            yield line
+
+    def _read_loop_header(self, looptoken):
+        """Read the set of keywords for a loop_ construct"""
+        category = None
+        keywords = []
+        while True:
+            spt = self._get_spaced_token()
+            if isinstance(spt.token, _VariableToken):
+                if category is None:
+                    category = spt.token.category
+                elif category != spt.token.category:
+                    raise CifParserError(
+                        "mmCIF files cannot contain multiple "
+                        "categories within a single loop at line %d"
+                        % self._linenum)
+                keywords.append(spt)
+            elif isinstance(spt.token, _ValueToken):
+                # OK, end of keywords; proceed on to values
+                self._unget_token()
+                return _LoopHeaderTokenGroup(looptoken, category, keywords,
+                                             spt.spacers)
+            else:
+                raise CifParserError("Was expecting a keyword or value for "
+                                     "loop at line %d" % self._linenum)
+
+    def _read_loop_data(self, keywords):
+        """Read the data for a loop_ construct"""
+        while True:
+            items = []
+            for i, keyword in enumerate(keywords):
+                spt = self._get_spaced_token()
+                if isinstance(spt.token, _ValueToken):
+                    items.append(spt)
+                elif i == 0:
+                    # OK, end of the loop
+                    for s in spt.spacers:
+                        yield s
+                    if spt.token is not None:
+                        self._unget_token()
+                    return
+                else:
+                    raise CifParserError(
+                        "Wrong number of data values in loop "
+                        "(should be an exact multiple of the number "
+                        "of keys) at line %d" % self._linenum)
+            yield _LoopRowTokenGroup(items)
 
 
 class CifReader(_Reader, _CifTokenizer):
