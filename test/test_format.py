@@ -894,6 +894,37 @@ x y
         new_cif = "".join(x.as_mmcif() for x in tokens)
         self.assertEqual(new_cif, cif)
 
+    def test_preserving_cif_reader_filter(self):
+        """Test _PreservingCifReader class with filters"""
+        cif = """
+data_foo_bar
+#
+_cat1.bar old
+#
+loop_
+_foo.bar
+_foo.baz
+a b c d
+x y
+"""
+        r = ihm.format._PreservingCifReader(StringIO(cif))
+        filters = [ihm.format._ChangeValueFilter(".bar", old='old', new='new'),
+                   ihm.format._ChangeValueFilter(".bar", old='a', new='newa'),
+                   ihm.format._ChangeValueFilter(".foo", old='old', new='new')]
+        tokens = list(r.read_file(filters))
+        new_cif = "".join(x.as_mmcif() for x in tokens)
+        self.assertEqual(new_cif, """
+data_foo_bar
+#
+_cat1.bar new
+#
+loop_
+_foo.bar
+_foo.baz
+newa b c d
+x y
+""")
+
     def test_category_token_group(self):
         """Test CategoryTokenGroup class"""
         var = ihm.format._PreservingVariableToken("_foo.bar", 1)
@@ -941,6 +972,85 @@ x y
         self.assertEqual(token.keyword_index("bar"), 0)
         self.assertEqual(token.keyword_index("baz"), 1)
         self.assertRaises(ValueError, token.keyword_index, "foo")
+
+    def test_change_value_filter_init(self):
+        """Test ChangeValueFilter constructor"""
+        f = ihm.format._ChangeValueFilter("_citation.id", old='1', new='2')
+        self.assertEqual(f.category, '_citation')
+        self.assertEqual(f.keyword, 'id')
+        f = ihm.format._ChangeValueFilter(".bar", old='1', new='2')
+        self.assertIsNone(f.category)
+        self.assertEqual(f.keyword, 'bar')
+        f = ihm.format._ChangeValueFilter("bar", old='1', new='2')
+        self.assertIsNone(f.category)
+        self.assertEqual(f.keyword, 'bar')
+
+    def test_change_value_filter_category(self):
+        """Test ChangeValueFilter.filter_category"""
+        var = ihm.format._PreservingVariableToken("_foo.bar", 1)
+        space = ihm.format._WhitespaceToken("   ")
+        val = ihm.format._TextValueToken("baz", quote=None)
+        tg = ihm.format._CategoryTokenGroup(
+            var, ihm.format._SpacedToken([space], val))
+        # Value does not match
+        f = ihm.format._ChangeValueFilter("_foo.bar", old='old', new='new')
+        new_tg = f.filter_category(tg)
+        self.assertEqual(new_tg.value, 'baz')
+
+        # Keyword does not match
+        f = ihm.format._ChangeValueFilter("_foo.foo", old='baz', new='new')
+        new_tg = f.filter_category(tg)
+        self.assertEqual(new_tg.value, 'baz')
+
+        # Category does not match
+        f = ihm.format._ChangeValueFilter("_bar.bar", old='baz', new='new')
+        new_tg = f.filter_category(tg)
+        self.assertEqual(new_tg.value, 'baz')
+
+        # Category matches exactly
+        f = ihm.format._ChangeValueFilter("_foo.bar", old='baz', new='new')
+        new_tg = f.filter_category(tg)
+        self.assertEqual(new_tg.value, 'new')
+
+        # All-category match
+        f = ihm.format._ChangeValueFilter(".bar", old='new', new='new2')
+        new_tg = f.filter_category(tg)
+        self.assertEqual(new_tg.value, 'new2')
+
+    def test_change_value_filter_loop(self):
+        """Test ChangeValueFilter.get_loop_filter"""
+        cif = """
+loop_
+_foo.bar
+_foo.baz
+x y
+"""
+        r = ihm.format._PreservingCifReader(StringIO(cif))
+        tokens = list(r.read_file())
+        header = tokens[1]
+        row = tokens[2]
+        # Keyword does not match
+        f = ihm.format._ChangeValueFilter("_foo.foo", old='x', new='new')
+        self.assertIsNone(f.get_loop_filter(header))
+
+        # Category does not match
+        f = ihm.format._ChangeValueFilter("_bar.bar", old='x', new='new')
+        self.assertIsNone(f.get_loop_filter(header))
+
+        # Value does not match
+        f = ihm.format._ChangeValueFilter("_foo.bar", old='notx', new='new')
+        lf = f.get_loop_filter(header)
+        self.assertEqual(lf(row).as_mmcif(), "x y")
+
+        # Category matches exactly
+        f = ihm.format._ChangeValueFilter("_foo.bar", old='x', new='new')
+        lf = f.get_loop_filter(header)
+        self.assertEqual(lf(row).as_mmcif(), "new y")
+
+        # All-category match
+        f = ihm.format._ChangeValueFilter(".bar", old='new', new='new2')
+        lf = f.get_loop_filter(header)
+        self.assertEqual(lf(row).as_mmcif(), "new2 y")
 
 
 if __name__ == '__main__':

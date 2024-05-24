@@ -632,13 +632,76 @@ class _SpacedToken(object):
     value = property(__get_value, __set_value)
 
 
+class _ChangeValueFilter(object):
+    def __init__(self, target, old, new):
+        ts = target.split('.')
+        if len(ts) == 1 or not ts[0]:
+            self.category = None
+        else:
+            self.category = ts[0]
+        self.keyword = ts[-1]
+        self.old, self.new = old, new
+
+    def filter_category(self, tok):
+        if ((self.category is None or tok.category == self.category)
+                and tok.keyword == self.keyword and tok.value == self.old):
+            tok.value = self.new
+        return tok
+
+    def get_loop_filter(self, tok):
+        if self.category is None or tok.category == self.category:
+            try:
+                keyword_index = tok.keyword_index(self.keyword)
+            except ValueError:
+                return
+            def loop_filter(t):
+                if t.items[keyword_index].value == self.old:
+                    t.items[keyword_index].value = self.new
+                return t
+            return loop_filter
+
+
 class _PreservingCifReader(_PreservingCifTokenizer):
     """Read an mmCIF file and break it into tokens"""
     def __init__(self, fh):
         super(_PreservingCifReader, self).__init__(fh)
 
-    def read_file(self):
+    def read_file(self, filters=None):
         """Read the file and yield tokens and/or token groups"""
+        if filters is None:
+            return self._read_file_internal()
+        else:
+            return self._read_file_with_filters(filters)
+
+    def _read_file_with_filters(self, filters):
+        loop_filters = None
+        for tok in self._read_file_internal():
+            if isinstance(tok, _CategoryTokenGroup):
+                tok = self._filter_category(tok, filters)
+            elif isinstance(tok, ihm.format._LoopHeaderTokenGroup):
+                loop_filters = [f.get_loop_filter(tok) for f in filters]
+                loop_filters = [f for f in loop_filters if f is not None]
+            elif (isinstance(tok, ihm.format._LoopRowTokenGroup)
+                       and loop_filters):
+                tok = self._filter_loop(tok, loop_filters)
+            if tok is not None:
+                yield tok
+
+    def _filter_category(self, tok, filters):
+        for f in filters:
+            tok = f.filter_category(tok)
+            if tok is None:
+                return
+        return tok
+
+    def _filter_loop(self, tok, filters):
+        for f in filters:
+            tok = f(tok)
+            if tok is None:
+                return
+        return tok
+
+    def _read_file_internal(self):
         while True:
             token = self._get_token()
             if token is None:
