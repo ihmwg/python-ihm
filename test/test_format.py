@@ -908,12 +908,39 @@ x y
         self.assertEqual(tg.value, "baz")
         tg.value = None
         self.assertIsNone(tg.value)
-        self.assertEqual(tg.as_mmcif(), '_foo.bar   .\n')
-        tg.value = ihm.unknown
-        self.assertIs(tg.value, ihm.unknown)
-        self.assertEqual(tg.as_mmcif(), '_foo.bar   ?\n')
-        tg.value = "test value"
-        self.assertEqual(tg.as_mmcif(), '_foo.bar   "test value"\n')
+
+    def test_spaced_token(self):
+        """Test SpacedToken class"""
+        space = ihm.format._WhitespaceToken("   ")
+        val = ihm.format._TextValueToken("baz", quote=None)
+        sp = ihm.format._SpacedToken([space], val)
+        self.assertEqual(sp.as_mmcif(), "   baz")
+        self.assertEqual(sp.value, 'baz')
+        sp.value = None
+        self.assertIsNone(sp.value)
+        self.assertEqual(sp.as_mmcif(), '   .')
+        sp.value = ihm.unknown
+        self.assertIs(sp.value, ihm.unknown)
+        self.assertEqual(sp.as_mmcif(), '   ?')
+        sp.value = "test value"
+        self.assertEqual(sp.as_mmcif(), '   "test value"')
+
+    def test_loop_header_token_group(self):
+        """Test LoopHeaderTokenGroup class"""
+        cif = """
+loop_
+_foo.bar
+_foo.baz
+x y
+"""
+        r = ihm.format._PreservingCifReader(StringIO(cif))
+        token = list(r.read_file())[1]
+        self.assertIsInstance(token, ihm.format._LoopHeaderTokenGroup)
+        self.assertEqual(str(token),
+                         "<_LoopHeaderTokenGroup(_foo, ['bar', 'baz'])>")
+        self.assertEqual(token.keyword_index("bar"), 0)
+        self.assertEqual(token.keyword_index("baz"), 1)
+        self.assertRaises(ValueError, token.keyword_index, "foo")
 
 
 if __name__ == '__main__':

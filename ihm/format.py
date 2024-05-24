@@ -564,27 +564,12 @@ class _CategoryTokenGroup(object):
     def as_mmcif(self):
         return self.vartoken.as_mmcif() + self.valtoken.as_mmcif() + "\n"
 
-    def __get_value(self):
-        if isinstance(self.valtoken.token, _OmittedValueToken):
-            return None
-        elif isinstance(self.valtoken.token, _UnknownValueToken):
-            return ihm.unknown
-        else:
-            return self.valtoken.token.txt
-
     def __set_value(self, val):
-        if val is None:
-            self.valtoken.token = _OmittedValueToken()
-        elif val is ihm.unknown:
-            self.valtoken.token = _UnknownValueToken()
-        elif isinstance(self.valtoken.token, _TextValueToken):
-            self.valtoken.token.txt = val
-        else:
-            self.valtoken.token = _TextValueToken(val, quote=None)
+        self.valtoken.value = val
 
     category = property(lambda self: self.vartoken.category)
     keyword = property(lambda self: self.vartoken.keyword)
-    value = property(__get_value, __set_value)
+    value = property(lambda self: self.valtoken.value, __set_value)
 
 
 class _LoopHeaderTokenGroup(object):
@@ -593,6 +578,10 @@ class _LoopHeaderTokenGroup(object):
         self._loop, self.category = looptoken, category
         self.keywords = keywords
         self.end_spacers = end_spacers
+
+    def keyword_index(self, keyword):
+        """Get the zero-based index of the given keyword, or ValueError"""
+        return [k.token.keyword for k in self.keywords].index(keyword)
 
     def __str__(self):
         return ("<_LoopHeaderTokenGroup(%s, %s)>"
@@ -621,6 +610,26 @@ class _SpacedToken(object):
     def as_mmcif(self):
         return ("".join(x.as_mmcif() for x in self.spacers)
                 + self.token.as_mmcif())
+
+    def __get_value(self):
+        if isinstance(self.token, _OmittedValueToken):
+            return None
+        elif isinstance(self.token, _UnknownValueToken):
+            return ihm.unknown
+        else:
+            return self.token.txt
+
+    def __set_value(self, val):
+        if val is None:
+            self.token = _OmittedValueToken()
+        elif val is ihm.unknown:
+            self.token = _UnknownValueToken()
+        elif isinstance(self.token, _TextValueToken):
+            self.token.txt = val
+        else:
+            self.token = _TextValueToken(val, quote=None)
+
+    value = property(__get_value, __set_value)
 
 
 class _PreservingCifReader(_PreservingCifTokenizer):
