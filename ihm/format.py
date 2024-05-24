@@ -654,6 +654,7 @@ class _ChangeValueFilter(object):
                 keyword_index = tok.keyword_index(self.keyword)
             except ValueError:
                 return
+
             def loop_filter(t):
                 if t.items[keyword_index].value == self.old:
                     t.items[keyword_index].value = self.new
@@ -682,7 +683,7 @@ class _PreservingCifReader(_PreservingCifTokenizer):
                 loop_filters = [f.get_loop_filter(tok) for f in filters]
                 loop_filters = [f for f in loop_filters if f is not None]
             elif (isinstance(tok, ihm.format._LoopRowTokenGroup)
-                       and loop_filters):
+                  and loop_filters):
                 tok = self._filter_loop(tok, loop_filters)
             if tok is not None:
                 yield tok
