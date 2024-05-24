@@ -587,7 +587,7 @@ class _LoopHeaderTokenGroup(object):
         return ("<_LoopHeaderTokenGroup(%s, %s)>"
                 % (self.category,
                    str([k.token.keyword for k in self.keywords])))
-    
+
     def as_mmcif(self):
         all_tokens = [self._loop] + self.keywords + self.end_spacers
         return "".join(x.as_mmcif() for x in all_tokens)
