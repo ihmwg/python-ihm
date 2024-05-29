@@ -5,7 +5,8 @@
    the set of tables or the mapping to ihm objects. For that,
    see :mod:`ihm.dumper` for writing and :mod:`ihm.reader` for reading.
 
-   See also the `stream parser example <https://github.com/ihmwg/python-ihm/blob/main/examples/stream_parser.py>`_.
+   See also the `stream parser example <https://github.com/ihmwg/python-ihm/blob/main/examples/stream_parser.py>`_
+   and the `token reader example <https://github.com/ihmwg/python-ihm/blob/main/examples/token_reader.py>`_.
 """  # noqa: E501
 
 from __future__ import print_function
@@ -632,24 +633,77 @@ class _SpacedToken(object):
     value = property(__get_value, __set_value)
 
 
-class _ChangeValueFilter(object):
-    def __init__(self, target, old, new):
+class Filter(object):
+    """Base class for filters used by :meth:`CifTokenReader.read_file`.
+
+       Typically, a subclass such as :class:`ChangeValueFilter` is used when
+       reading an mmCIF file.
+
+       :param str target: the mmCIF data item this filter should act on.
+              It can be the full name of the data item (including category)
+              such as ``_entity.type``; or just the attribute or keyword name
+              such as ``.type_symbol`` which would match any category
+              (e.g. ``_atom_site.type_symbol``).
+    """
+    def __init__(self, target):
         ts = target.split('.')
         if len(ts) == 1 or not ts[0]:
             self.category = None
         else:
             self.category = ts[0]
         self.keyword = ts[-1]
+
+    def match_token_category(self, tok):
+        """Return true iff the given token matches the target's category"""
+        return self.category is None or tok.category == self.category
+
+    def match_token_keyword(self, tok):
+        """Return true iff the given token matches the target's category
+           and keyword"""
+        return self.match_token_category(tok) and tok.keyword == self.keyword
+
+    def filter_category(self, tok):
+        """Filter the given category token.
+
+           :return: the original token (which may have been modified),
+                    a replacement token, or None if the token should be
+                    deleted.
+        """
+        raise NotImplementedError
+
+    def get_loop_filter(self, tok):
+        """Given a loop header token, potentially return a handler for each
+           loop row token.
+
+           :return: a callable which will be called for each loop row token
+                    (and acts like :meth:`filter_category`), or None if no
+                    filtering is needed for this loop.
+        """
+        raise NotImplementedError
+
+
+class ChangeValueFilter(Filter):
+    """Change any token that sets a data item to ``old`` to be ``new``.
+
+       For example, this could be used to rename certain chains, or change
+       all residues of a certain type.
+
+       :param str old: The existing value of the data item.
+       :param str new: The new value of the data item.
+
+       See :class:`Filter` for a description of the ``target`` parameter.
+    """
+    def __init__(self, target, old, new):
+        super(ChangeValueFilter, self).__init__(target)
         self.old, self.new = old, new
 
     def filter_category(self, tok):
-        if ((self.category is None or tok.category == self.category)
-                and tok.keyword == self.keyword and tok.value == self.old):
+        if self.match_token_keyword(tok) and tok.value == self.old:
             tok.value = self.new
         return tok
 
     def get_loop_filter(self, tok):
-        if self.category is None or tok.category == self.category:
+        if self.match_token_category(tok):
             try:
                 keyword_index = tok.keyword_index(self.keyword)
             except ValueError:
@@ -682,6 +736,11 @@ class CifTokenReader(_PreservingCifTokenizer):
         """Read the file and yield tokens and/or token groups.
 
            :exc:`CifParserError` will be raised if the file cannot be parsed.
+
+           :param filters: if a list of :class:`Filter` objects is provided,
+                  the read tokens will be modified or removed by each of these
+                  filters before being returned.
+           :type filters: sequence of :class:`Filter`
 
            :return: tokens and/or token groups.
         """
