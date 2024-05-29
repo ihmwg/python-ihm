@@ -871,8 +871,8 @@ x . 'single' "double"
         t.keyword = 'baz'
         self.assertEqual(t.as_mmcif(), 'foo.baz')
 
-    def test_preserving_cif_reader(self):
-        """Test _PreservingCifReader class"""
+    def test_cif_token_reader(self):
+        """Test CifTokenReader class"""
         cif = """
 data_foo_bar
 #
@@ -884,7 +884,7 @@ _foo.baz
 a b c d
 x y
 """
-        r = ihm.format._PreservingCifReader(StringIO(cif))
+        r = ihm.format.CifTokenReader(StringIO(cif))
         tokens = list(r.read_file())
         self.assertIsInstance(tokens[5], ihm.format._CategoryTokenGroup)
         self.assertIsInstance(tokens[8], ihm.format._LoopHeaderTokenGroup)
@@ -894,8 +894,8 @@ x y
         new_cif = "".join(x.as_mmcif() for x in tokens)
         self.assertEqual(new_cif, cif)
 
-    def test_preserving_cif_reader_filter(self):
-        """Test _PreservingCifReader class with filters"""
+    def test_cif_token_reader_filter(self):
+        """Test CifTokenReader class with filters"""
         cif = """
 data_foo_bar
 #
@@ -907,7 +907,7 @@ _foo.baz
 a b c d
 x y
 """
-        r = ihm.format._PreservingCifReader(StringIO(cif))
+        r = ihm.format.CifTokenReader(StringIO(cif))
         filters = [ihm.format._ChangeValueFilter(".bar", old='old', new='new'),
                    ihm.format._ChangeValueFilter(".bar", old='a', new='newa'),
                    ihm.format._ChangeValueFilter(".foo", old='old', new='new')]
@@ -964,7 +964,7 @@ _foo.bar
 _foo.baz
 x y
 """
-        r = ihm.format._PreservingCifReader(StringIO(cif))
+        r = ihm.format.CifTokenReader(StringIO(cif))
         token = list(r.read_file())[1]
         self.assertIsInstance(token, ihm.format._LoopHeaderTokenGroup)
         self.assertEqual(str(token),
@@ -1025,7 +1025,7 @@ _foo.bar
 _foo.baz
 x y
 """
-        r = ihm.format._PreservingCifReader(StringIO(cif))
+        r = ihm.format.CifTokenReader(StringIO(cif))
         tokens = list(r.read_file())
         header = tokens[1]
         row = tokens[2]

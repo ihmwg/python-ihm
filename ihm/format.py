@@ -662,13 +662,29 @@ class _ChangeValueFilter(object):
             return loop_filter
 
 
-class _PreservingCifReader(_PreservingCifTokenizer):
-    """Read an mmCIF file and break it into tokens"""
+class CifTokenReader(_PreservingCifTokenizer):
+    """Read an mmCIF file and break it into tokens.
+
+       Unlike :class:`CifReader` which extracts selected data from an mmCIF
+       file, this class operates on the file at a lower level, splitting
+       it into tokens, and preserving data such as comments and whitespace.
+       This can be used for various housekeeping tasks directly on an mmCIF
+       file, such as changing chain IDs or renaming categories or data items.
+
+       Use :meth:`read_file` to actually read the file.
+
+       :param file fh: Open handle to the mmCIF file
+    """
     def __init__(self, fh):
-        super(_PreservingCifReader, self).__init__(fh)
+        super(CifTokenReader, self).__init__(fh)
 
     def read_file(self, filters=None):
-        """Read the file and yield tokens and/or token groups"""
+        """Read the file and yield tokens and/or token groups.
+
+           :exc:`CifParserError` will be raised if the file cannot be parsed.
+
+           :return: tokens and/or token groups.
+        """
         if filters is None:
             return self._read_file_internal()
         else:
@@ -800,6 +816,10 @@ class CifReader(_Reader, _CifTokenizer):
     """Class to read an mmCIF file and extract some or all of its data.
 
        Use :meth:`read_file` to actually read the file.
+
+       See also :class:`CifTokenReader` for a class that operates on the
+       lower-level structure of an mmCIF file, preserving data such as
+       comments and whitespace.
 
        :param file fh: Open handle to the mmCIF file
        :param dict category_handler: A dict to handle data
