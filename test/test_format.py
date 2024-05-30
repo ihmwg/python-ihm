@@ -1003,6 +1003,10 @@ x y
         self.assertEqual(f.category, '_citation')
         self.assertEqual(f.keyword, 'id')
 
+        f = ihm.format.Filter("CITATION.ID")
+        self.assertEqual(f.category, '_citation')
+        self.assertEqual(f.keyword, 'id')
+
         f = ihm.format.Filter(".bar")
         self.assertIsNone(f.category)
         self.assertEqual(f.keyword, 'bar')

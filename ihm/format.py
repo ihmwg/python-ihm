@@ -655,11 +655,13 @@ class Filter(object):
               (e.g. ``_atom_site.type_symbol``).
     """
     def __init__(self, target):
-        ts = target.split('.')
+        ts = target.lower().split('.')
         if len(ts) == 1 or not ts[0]:
             self.category = None
-        else:
+        elif ts[0].startswith('_'):
             self.category = ts[0]
+        else:
+            self.category = '_' + ts[0]
         self.keyword = ts[-1]
 
     def match_token_category(self, tok):
