@@ -802,17 +802,23 @@ class CifTokenReader(_PreservingCifTokenizer):
 
     def _read_file_with_filters(self, filters):
         loop_filters = None
+        remove_all_loop_rows = False
         for tok in self._read_file_internal():
             if isinstance(tok, _CategoryTokenGroup):
                 tok = self._filter_category(tok, filters)
             elif isinstance(tok, ihm.format._LoopHeaderTokenGroup):
+                remove_all_loop_rows = False
                 loop_filters = [f.get_loop_filter(tok) for f in filters]
                 loop_filters = [f for f in loop_filters if f is not None]
-                # todo: handle case where all keywords were removed by filters
-                # (by skipping the loop header and all rows)
-            elif (isinstance(tok, ihm.format._LoopRowTokenGroup)
-                  and loop_filters):
-                tok = self._filter_loop(tok, loop_filters)
+                # Did filters remove all keywords from the loop?
+                if all(isinstance(k.token, _NullToken) for k in tok.keywords):
+                    tok = None
+                    remove_all_loop_rows = True
+            elif isinstance(tok, ihm.format._LoopRowTokenGroup):
+                if remove_all_loop_rows:
+                    tok = None
+                elif loop_filters:
+                    tok = self._filter_loop(tok, loop_filters)
             if tok is not None:
                 yield tok
 

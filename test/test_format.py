@@ -1109,6 +1109,23 @@ _foo.baz
  B D
 """)
 
+    def test_remove_item_all_loop_keywords(self):
+        """Test RemoveItemFilter removing all keywords from a loop"""
+        cif = """
+# start
+loop_
+_foo.a
+_foo.b
+a b
+c d
+# end
+"""
+        r = ihm.format.CifTokenReader(StringIO(cif))
+        filters = [ihm.format.RemoveItemFilter(".a"),
+                   ihm.format.RemoveItemFilter(".b")]
+        new_cif = "".join(t.as_mmcif() for t in r.read_file(filters))
+        self.assertEqual(new_cif, '\n# start\n\n# end\n')
+
 
 if __name__ == '__main__':
     unittest.main()
