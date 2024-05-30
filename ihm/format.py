@@ -682,7 +682,10 @@ class Filter(object):
 
     def get_loop_filter(self, tok):
         """Given a loop header token, potentially return a handler for each
-           loop row token.
+           loop row token. This function is also permitted to alter the
+           header in place (but not replace or remove it). Keywords should
+           not be removed from the header (as that may confuse other filters)
+           but can be replaced with null tokens.
 
            :return: a callable which will be called for each loop row token
                     (and acts like :meth:`filter_category`), or None if no
@@ -776,7 +779,12 @@ class CifTokenReader(_PreservingCifTokenizer):
         super(CifTokenReader, self).__init__(fh)
 
     def read_file(self, filters=None):
-        """Read the file and yield tokens and/or token groups.
+        """Read the file and yield tokens and/or token groups. The exact type
+           of the tokens is subject to change and is not currently documented;
+           however, each token or group object has an ``as_mmcif`` method
+           which returns the corresponding text in mmCIF format. Thus, the
+           file can be reconstructed by concatentating the result of
+           ``as_mmcif`` for all tokens.
 
            :exc:`CifParserError` will be raised if the file cannot be parsed.
 
