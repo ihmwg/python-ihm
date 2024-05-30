@@ -20,7 +20,6 @@ The :mod:`ihm.format` Python module
    :members:
 
 .. autoclass:: ChangeValueFilter
-   :members:
 
 .. autoexception:: CifParserError
    :members:
