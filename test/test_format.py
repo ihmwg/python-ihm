@@ -1072,7 +1072,8 @@ A B C D
 """
         r = ihm.format.CifTokenReader(StringIO(cif))
         filters = [ihm.format.RemoveItemFilter(".bar"),
-                   ihm.format.RemoveItemFilter("_foo.a")]
+                   ihm.format.RemoveItemFilter("_foo.a"),
+                   ihm.format.RemoveItemFilter("_foo.z")]
         new_cif = "".join(t.as_mmcif() for t in r.read_file(filters))
         self.assertEqual(new_cif, """
 _bar.id 1
