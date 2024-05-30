@@ -1056,6 +1056,34 @@ x y
         lf = f.get_loop_filter(header)
         self.assertEqual(lf(row).as_mmcif(), "new2 y")
 
+    def test_remove_item_filter(self):
+        """Test RemoveItemFilter"""
+        cif = """
+_bar.id 1
+_bar.bar 42
+#
+loop_
+_foo.a
+_foo.b
+_foo.bar
+_foo.baz
+a b c d 1 2 3 4
+A B C D
+"""
+        r = ihm.format.CifTokenReader(StringIO(cif))
+        filters = [ihm.format.RemoveItemFilter(".bar"),
+                   ihm.format.RemoveItemFilter("_foo.a")]
+        new_cif = "".join(t.as_mmcif() for t in r.read_file(filters))
+        self.assertEqual(new_cif, """
+_bar.id 1
+#
+loop_
+_foo.b
+_foo.baz
+ b d 2 4
+ B D
+""")
+
 
 if __name__ == '__main__':
     unittest.main()

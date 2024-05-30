@@ -341,6 +341,15 @@ class _EndOfLineToken(_Token):
         return "\n"
 
 
+class _NullToken(_Token):
+    """Null token"""
+    def as_mmcif(self):
+        return ""
+
+    # Return dummy values for filters that expect a variable or value token
+    keyword = property(lambda self: None)
+
+
 class _DataToken(_Token):
     """A data_* keyword in mmCIF, denoting a new data block"""
     __slots__ = ['txt']
@@ -716,6 +725,40 @@ class ChangeValueFilter(Filter):
             return loop_filter
 
 
+class RemoveItemFilter(Filter):
+    """Remove any token from the file that sets the given data item.
+
+       See :class:`Filter` for a description of the ``target`` parameter.
+    """
+    def filter_category(self, tok):
+        if self.match_token_keyword(tok):
+            return None
+        else:
+            return tok
+
+    def get_loop_filter(self, tok):
+        if self.match_token_category(tok):
+            try:
+                keyword_index = tok.keyword_index(self.keyword)
+            except ValueError:
+                return
+            # Remove keyword from loop header
+            tok.keywords[keyword_index].spacers = []
+            tok.keywords[keyword_index].token = _NullToken()
+
+            def loop_filter(t):
+                # Remove item from loop row (we don't want to pop from
+                # t.items as other filters may reference later indexes)
+                spc = t.items[keyword_index].spacers
+                if len(spc) > 0 and isinstance(spc[0], _EndOfLineToken):
+                    del spc[1:]
+                else:
+                    t.items[keyword_index].spacers = []
+                t.items[keyword_index].token = _NullToken()
+                return t
+            return loop_filter
+
+
 class CifTokenReader(_PreservingCifTokenizer):
     """Read an mmCIF file and break it into tokens.
 
@@ -757,6 +800,8 @@ class CifTokenReader(_PreservingCifTokenizer):
             elif isinstance(tok, ihm.format._LoopHeaderTokenGroup):
                 loop_filters = [f.get_loop_filter(tok) for f in filters]
                 loop_filters = [f for f in loop_filters if f is not None]
+                # todo: handle case where all keywords were removed by filters
+                # (by skipping the loop header and all rows)
             elif (isinstance(tok, ihm.format._LoopRowTokenGroup)
                   and loop_filters):
                 tok = self._filter_loop(tok, loop_filters)
@@ -820,8 +865,11 @@ class CifTokenReader(_PreservingCifTokenizer):
     def _read_loop(self, looptoken):
         """Handle a loop_ construct"""
         header = self._read_loop_header(looptoken)
+        # Record original number of keywords, in case the header token
+        # is filtered
+        num_keywords = len(header.keywords)
         yield header
-        for line in self._read_loop_data(header.keywords):
+        for line in self._read_loop_data(num_keywords):
             yield line
 
     def _read_loop_header(self, looptoken):
@@ -848,11 +896,11 @@ class CifTokenReader(_PreservingCifTokenizer):
                 raise CifParserError("Was expecting a keyword or value for "
                                      "loop at line %d" % self._linenum)
 
-    def _read_loop_data(self, keywords):
+    def _read_loop_data(self, num_keywords):
         """Read the data for a loop_ construct"""
         while True:
             items = []
-            for i, keyword in enumerate(keywords):
+            for i in range(num_keywords):
                 spt = self._get_spaced_token()
                 if isinstance(spt.token, _ValueToken):
                     items.append(spt)

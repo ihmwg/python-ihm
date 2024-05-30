@@ -17,7 +17,9 @@ filters = [
     # or understand the underlying dictionary. So we must also change other
     # tables that reference chain IDs. Here we change the label_asym_id keyword
     # in *any* table (typically in _atom_site).
-    ihm.format.ChangeValueFilter('.label_asym_id', old='B', new='Z')]
+    ihm.format.ChangeValueFilter('.label_asym_id', old='B', new='Z'),
+    # Remove the non-standard _modeller.version data item from the file
+    ihm.format.RemoveItemFilter('_modeller.version')]
 
 # Read the input file as a set of tokens, modify them using the filters
 # above, and write a new file:

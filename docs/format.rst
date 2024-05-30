@@ -21,5 +21,7 @@ The :mod:`ihm.format` Python module
 
 .. autoclass:: ChangeValueFilter
 
+.. autoclass:: RemoveItemFilter
+
 .. autoexception:: CifParserError
    :members:
