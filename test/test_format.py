@@ -894,6 +894,30 @@ x y
         new_cif = "".join(x.as_mmcif() for x in tokens)
         self.assertEqual(new_cif, cif)
 
+    def test_cif_token_reader_missing_value(self):
+        """Key without a value should be an error"""
+        cif = "_exptl.method\n"
+        r = ihm.format.CifTokenReader(StringIO(cif))
+        self.assertRaises(ihm.format.CifParserError, list, r.read_file())
+
+    def test_cif_token_reader_loop_mixed_categories(self):
+        """Test bad mmCIF loop with a mix of categories"""
+        cif = 'loop_\n_atom_site.id\n_foo.bar\n'
+        r = ihm.format.CifTokenReader(StringIO(cif))
+        self.assertRaises(ihm.format.CifParserError, list, r.read_file())
+
+    def test_cif_token_reader_loop_header(self):
+        """Loop constructs cannot be nested"""
+        cif = 'loop_\nloop_\n'
+        r = ihm.format.CifTokenReader(StringIO(cif))
+        self.assertRaises(ihm.format.CifParserError, list, r.read_file())
+
+    def test_cif_token_reader_loop_data_num(self):
+        """Check wrong number of loop data elements"""
+        cif = "loop_\n_atom_site.x\n_atom_site.y\noneval\n"
+        r = ihm.format.CifTokenReader(StringIO(cif))
+        self.assertRaises(ihm.format.CifParserError, list, r.read_file())
+
     def test_cif_token_reader_filter(self):
         """Test CifTokenReader class with filters"""
         cif = """
