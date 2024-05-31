@@ -1130,6 +1130,31 @@ c d
         new_cif = "".join(t.as_mmcif() for t in r.read_file(filters))
         self.assertEqual(new_cif, '\n# start\n\n# end\n')
 
+    def test_change_keyword_filter(self):
+        """Test ChangeKeywordFilter"""
+        cif = """
+_bar.id 1
+_bar.bar 42
+#
+loop_
+_foo.foo
+_foo.bar
+a b c d
+"""
+        r = ihm.format.CifTokenReader(StringIO(cif))
+        filters = [ihm.format.ChangeKeywordFilter(".bar", "newbar"),
+                   ihm.format.ChangeKeywordFilter(".baz", "newbaz")]
+        new_cif = "".join(t.as_mmcif() for t in r.read_file(filters))
+        self.assertEqual(new_cif, """
+_bar.id 1
+_bar.newbar 42
+#
+loop_
+_foo.foo
+_foo.newbar
+a b c d
+""")
+
 
 if __name__ == '__main__':
     unittest.main()

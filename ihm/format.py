@@ -764,6 +764,31 @@ class RemoveItemFilter(Filter):
             return loop_filter
 
 
+class ChangeKeywordFilter(Filter):
+    """Change the keyword in any applicable token to be ``new``.
+
+       :param str new: The new keyword.
+
+       See :class:`Filter` for a description of the ``target`` parameter.
+    """
+    def __init__(self, target, new):
+        super(ChangeKeywordFilter, self).__init__(target)
+        self.new = new
+
+    def filter_category(self, tok):
+        if self.match_token_keyword(tok):
+            tok.vartoken.keyword = self.new
+        return tok
+
+    def get_loop_filter(self, tok):
+        if self.match_token_category(tok):
+            try:
+                keyword_index = tok.keyword_index(self.keyword)
+            except ValueError:
+                return
+            tok.keywords[keyword_index].token.keyword = self.new
+
+
 class CifTokenReader(_PreservingCifTokenizer):
     """Read an mmCIF file and break it into tokens.
 
