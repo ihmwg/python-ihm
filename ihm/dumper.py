@@ -1037,11 +1037,16 @@ class _DatasetDumper(Dumper):
                 # since they live in different tables they need different IDs
                 util._remove_id(t, attr='_dtid')
             util._remove_id(d)
+        for t in system.orphan_dataset_transforms:
+            util._remove_id(t, attr='_dtid')
         for d in system._all_datasets():
             util._assign_id(d, seen_datasets, self._dataset_by_id)
             for t in _all_transforms(d):
                 util._assign_id(t, seen_transforms, self._transform_by_id,
                                 attr='_dtid')
+        for t in system.orphan_dataset_transforms:
+            util._assign_id(t, seen_transforms, self._transform_by_id,
+                            attr='_dtid')
 
         # Assign IDs to all groups and remove duplicates
         seen_group_ids = {}

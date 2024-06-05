@@ -1421,6 +1421,11 @@ _ihm_external_files.details
         ds4 = ihm.dataset.PDBDataset(None)
         system.orphan_datasets.append(ds4)
 
+        # Transformation not referenced by any object
+        trans2 = ihm.geometry.Transformation([[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+                                             [4., 5., 6.])
+        system.orphan_dataset_transforms.append(trans2)
+
         d = ihm.dumper._DatasetDumper()
         d.finalize(system)  # Assign IDs
         out = _get_dumper_output(d, system)
@@ -1500,6 +1505,8 @@ _ihm_data_transformation.tr_vector[2]
 _ihm_data_transformation.tr_vector[3]
 1 -0.640000 0.760000 0.150000 0.090000 -0.120000 0.990000 0.770000 0.640000
 0.010000 1.000 2.000 3.000
+2 1.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 0.000000
+1.000000 4.000 5.000 6.000
 #
 """)
 

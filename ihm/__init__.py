@@ -164,6 +164,13 @@ class System(object):
         #: See :class:`~ihm.dataset.DatasetGroup`.
         self.orphan_dataset_groups = []
 
+        #: All orphaned dataset transformations.
+        #: This can be used to keep track of all dataset transformations
+        #: that are not otherwise used - normally a
+        #: :class:`~ihm.geometry.Transformation` is assigned to a
+        #: :class:`~ihm.dataset.TransformedDataset`.
+        self.orphan_dataset_transforms = []
+
         #: All orphaned representations of the system.
         #: This can be used to keep track of all representations that are not
         #: otherwise used - normally one is assigned to a
