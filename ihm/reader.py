@@ -570,8 +570,9 @@ class SystemReader(object):
         self.centers = IDMapper(None, ihm.geometry.Center, *(None,) * 3)
 
         #: Mapping from ID to :class:`ihm.geometry.Transformation` objects
-        self.transformations = IDMapper(None, ihm.geometry.Transformation,
-                                        *(None,) * 2)
+        self.transformations = IDMapper(
+            self.system.orphan_geometric_transforms,
+            ihm.geometry.Transformation, *(None,) * 2)
 
         #: Mapping from ID to :class:`ihm.geometry.Transformation` objects
         #: used by :class:`ihm.dataset.TransformedDataset` objects (this is

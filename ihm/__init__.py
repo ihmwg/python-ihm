@@ -212,6 +212,13 @@ class System(object):
         #: See :class:`~ihm.geometry.GeometricObject`.
         self.orphan_geometric_objects = []
 
+        #: All orphaned geometric object transformations.
+        #: This can be used to keep track of all objects that are not
+        #: otherwise used - normally a
+        #: :class:`~ihm.geometry.Transformation` is assigned to a
+        #: :class:`~ihm.geometry.GeometricObject`.
+        self.orphan_geometric_transforms = []
+
         #: All orphaned features.
         #: This can be used to keep track of all features that are not
         #: otherwise used - normally a feature is assigned to a

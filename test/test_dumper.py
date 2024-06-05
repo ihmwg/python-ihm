@@ -3100,16 +3100,21 @@ _ihm_cross_link_result_parameters.sigma_2
         system.orphan_geometric_objects.extend((sphere, torus, half_torus,
                                                 axis, plane))
 
+        # Transformation not referenced by any object
+        trans2 = ihm.geometry.Transformation([[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+                                             [4., 5., 6.])
+        system.orphan_geometric_transforms.append(trans2)
+
         dumper = ihm.dumper._GeometricObjectDumper()
         dumper.finalize(system)  # assign IDs
         self.assertEqual(len(dumper._objects_by_id), 5)
         self.assertEqual(len(dumper._centers_by_id), 1)
-        self.assertEqual(len(dumper._transformations_by_id), 1)
+        self.assertEqual(len(dumper._transformations_by_id), 2)
         # Repeated calls to finalize should yield identical results
         dumper.finalize(system)
         self.assertEqual(len(dumper._objects_by_id), 5)
         self.assertEqual(len(dumper._centers_by_id), 1)
-        self.assertEqual(len(dumper._transformations_by_id), 1)
+        self.assertEqual(len(dumper._transformations_by_id), 2)
         out = _get_dumper_output(dumper, system)
         self.assertEqual(out, """#
 loop_
@@ -3136,6 +3141,8 @@ _ihm_geometric_object_transformation.tr_vector[2]
 _ihm_geometric_object_transformation.tr_vector[3]
 1 1.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 0.000000
 1.000000 1.000 2.000 3.000
+2 1.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 0.000000
+1.000000 4.000 5.000 6.000
 #
 #
 loop_

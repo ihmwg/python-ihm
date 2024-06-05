@@ -1887,6 +1887,8 @@ class _GeometricObjectDumper(Dumper):
                 util._remove_id(o.center)
             if hasattr(o, 'transformation') and o.transformation:
                 util._remove_id(o.transformation)
+        for t in system.orphan_geometric_transforms:
+            util._remove_id(t)
 
         for o in system._all_geometric_objects():
             util._assign_id(o, seen_objects, self._objects_by_id)
@@ -1895,6 +1897,9 @@ class _GeometricObjectDumper(Dumper):
             if hasattr(o, 'transformation') and o.transformation:
                 util._assign_id(o.transformation, seen_transformations,
                                 self._transformations_by_id)
+        for t in system.orphan_geometric_transforms:
+            util._assign_id(t, seen_transformations,
+                            self._transformations_by_id)
 
     def dump(self, system, writer):
         self.dump_centers(writer)
