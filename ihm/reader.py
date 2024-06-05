@@ -546,6 +546,11 @@ class SystemReader(object):
             self.system.restraints, ihm.restraint.DerivedDistanceRestraint,
             *(None,) * 4)
 
+        #: Mapping from ID to :class:`ihm.restraint.HDXRestraint` objects
+        self.hdx_restraints = IDMapper(
+            self.system.restraints, ihm.restraint.HDXRestraint,
+            *(None,) * 2)
+
         #: Mapping from ID to :class:`ihm.restraint.PredictedContactRestraint`
         #: objects
         self.pred_cont_restraints = IDMapper(
@@ -2344,6 +2349,18 @@ class _DerivedDistanceRestraintHandler(Handler):
         r.mic_value = self.get_float(mic_value)
 
 
+class _HDXRestraintHandler(Handler):
+    category = '_ihm_hdx_restraint'
+
+    def __call__(self, id, dataset_list_id, feature_id, protection_factor,
+                 details):
+        r = self.sysr.hdx_restraints.get_by_id(id)
+        r.dataset = self.sysr.datasets.get_by_id_or_none(dataset_list_id)
+        r.feature = self.sysr.features.get_by_id(feature_id)
+        r.protection_factor = self.get_float(protection_factor)
+        r.details = details
+
+
 class _PredictedContactRestraintHandler(Handler):
     category = '_ihm_predicted_contact_restraint'
 
@@ -3767,7 +3784,8 @@ class IHMVariant(Variant):
         _SphereObjSiteHandler, _AtomSiteHandler, _FeatureListHandler,
         _PolyResidueFeatureHandler, _PolyAtomFeatureHandler,
         _NonPolyFeatureHandler, _PseudoSiteFeatureHandler, _PseudoSiteHandler,
-        _DerivedDistanceRestraintHandler, _PredictedContactRestraintHandler,
+        _DerivedDistanceRestraintHandler, _HDXRestraintHandler,
+        _PredictedContactRestraintHandler,
         _CenterHandler, _TransformationHandler, _GeometricObjectHandler,
         _SphereHandler, _TorusHandler, _HalfTorusHandler, _AxisHandler,
         _PlaneHandler, _GeometricRestraintHandler, _PolySeqSchemeHandler,

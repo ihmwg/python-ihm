@@ -3454,6 +3454,39 @@ _ihm_derived_distance_restraint.dataset_list_id
         # r1 cannot be in multiple groups (rg1 and rg2)
         self.assertRaises(ValueError, dumper.finalize, system)
 
+    def test_hdx_restraint_dumper(self):
+        """Test HDXRestraintDumper"""
+        class MockObject(object):
+            pass
+        system = ihm.System()
+
+        feat = MockObject()
+        feat._id = 44
+        dataset = MockObject()
+        dataset._id = 97
+
+        r1 = ihm.restraint.HDXRestraint(
+            dataset=dataset, feature=feat, protection_factor=1.0,
+            details="foo")
+        r2 = ihm.restraint.HDXRestraint(dataset=None, feature=feat)
+        system.restraints.extend((r1, r2))
+
+        dumper = ihm.dumper._HDXRestraintDumper()
+        dumper.finalize(system)  # assign IDs
+
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_ihm_hdx_restraint.id
+_ihm_hdx_restraint.feature_id
+_ihm_hdx_restraint.protection_factor
+_ihm_hdx_restraint.dataset_list_id
+_ihm_hdx_restraint.details
+1 44 1.000 97 foo
+2 44 . . .
+#
+""")
+
     def test_bad_restraint_groups(self):
         """Test RestraintGroups containing unsupported restraints"""
         class MockObject(object):

@@ -2357,6 +2357,26 @@ class _DerivedDistanceRestraintDumper(Dumper):
                          dataset_list_id=r.dataset._id if r.dataset else None)
 
 
+class _HDXRestraintDumper(Dumper):
+    def _all_restraints(self, system):
+        return [r for r in system._all_restraints()
+                if isinstance(r, restraint.HDXRestraint)]
+
+    def finalize(self, system):
+        for nr, r in enumerate(self._all_restraints(system)):
+            r._id = nr + 1
+
+    def dump(self, system, writer):
+        with writer.loop("_ihm_hdx_restraint",
+                         ["id", "feature_id", "protection_factor",
+                          "dataset_list_id", "details"]) as lp:
+            for r in self._all_restraints(system):
+                lp.write(id=r._id, feature_id=r.feature._id,
+                         protection_factor=r.protection_factor,
+                         details=r.details,
+                         dataset_list_id=r.dataset._id if r.dataset else None)
+
+
 class _PredictedContactRestraintDumper(Dumper):
     def finalize(self, system):
         (self._restraints_by_id,
@@ -3619,6 +3639,7 @@ class IHMVariant(Variant):
         _ProtocolDumper, _PostProcessDumper, _PseudoSiteDumper,
         _GeometricObjectDumper, _FeatureDumper, _CrossLinkDumper,
         _GeometricRestraintDumper, _DerivedDistanceRestraintDumper,
+        _HDXRestraintDumper,
         _PredictedContactRestraintDumper, _EM3DDumper, _EM2DDumper, _SASDumper,
         _ModelDumper, _EnsembleDumper, _DensityDumper, _MultiStateDumper,
         _OrderedDumper,
