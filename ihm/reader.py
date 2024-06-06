@@ -1488,6 +1488,8 @@ class _DatasetListHandler(Handler):
             (x[1].data_type.lower(), x[1])
             for x in inspect.getmembers(ihm.dataset, inspect.isclass)
             if issubclass(x[1], ihm.dataset.Dataset))
+        # Map old 'CX-MS' data to new class
+        self.type_map['cx-ms data'] = ihm.dataset.CXMSDataset
 
     def __call__(self, data_type, id, details):
         typ = None if data_type is None else data_type.lower()
@@ -2939,8 +2941,8 @@ class _CrossLinkResultHandler(Handler):
             sigma2=self.get_float(sigma_2))
 
 
-class _OrderedEnsembleHandler(Handler):
-    category = '_ihm_ordered_ensemble'
+class _OrderedModelHandler(Handler):
+    category = '_ihm_ordered_model'
 
     def __call__(self, process_id, step_id, model_group_id_begin,
                  model_group_id_end, edge_description, ordered_by,
@@ -2963,6 +2965,12 @@ class _OrderedEnsembleHandler(Handler):
             mapkeys={'process_description': 'description'})
         self.copy_if_present(
             step, locals(), mapkeys={'step_description': 'description'})
+
+
+# Handle the old name for the ihm_ordered_model category. This is a separate
+# object so relies on _OrderedModelHandler not storing any state.
+class _OrderedEnsembleHandler(_OrderedModelHandler):
+    category = '_ihm_ordered_ensemble'
 
 
 class UnknownCategoryWarning(Warning):
@@ -3793,7 +3801,7 @@ class IHMVariant(Variant):
         _BranchDescriptorHandler, _BranchLinkHandler, _CrossLinkListHandler,
         _CrossLinkRestraintHandler, _CrossLinkPseudoSiteHandler,
         _CrossLinkResultHandler, _StartingModelSeqDifHandler,
-        _OrderedEnsembleHandler,
+        _OrderedModelHandler, _OrderedEnsembleHandler,
         _MultiStateSchemeHandler, _MultiStateSchemeConnectivityHandler,
         _KineticRateHandler,
         _RelaxationTimeHandler, _RelaxationTimeMultiStateSchemeHandler
