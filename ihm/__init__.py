@@ -248,6 +248,8 @@ class System(object):
         #: See :class:`~ihm.multi_state_scheme.MultiStateScheme`.
         self.multi_state_schemes = []
 
+        self._orphan_centers = []
+
     def _make_complete_assembly(self):
         """Fill in the complete assembly with all asym units"""
         # Clear out any existing components

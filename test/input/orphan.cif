@@ -1,0 +1,6 @@
+loop_
+_ihm_geometric_object_center.id
+_ihm_geometric_object_center.xcoord
+_ihm_geometric_object_center.ycoord
+_ihm_geometric_object_center.zcoord
+1 1.000 2.000 3.000

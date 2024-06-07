@@ -3112,15 +3112,19 @@ _ihm_cross_link_result_parameters.sigma_2
                                              [4., 5., 6.])
         system.orphan_geometric_transforms.append(trans2)
 
+        # Center not referenced by any object
+        center2 = ihm.geometry.Center(8., 9., 10.)
+        system._orphan_centers.append(center2)
+
         dumper = ihm.dumper._GeometricObjectDumper()
         dumper.finalize(system)  # assign IDs
         self.assertEqual(len(dumper._objects_by_id), 5)
-        self.assertEqual(len(dumper._centers_by_id), 1)
+        self.assertEqual(len(dumper._centers_by_id), 2)
         self.assertEqual(len(dumper._transformations_by_id), 2)
         # Repeated calls to finalize should yield identical results
         dumper.finalize(system)
         self.assertEqual(len(dumper._objects_by_id), 5)
-        self.assertEqual(len(dumper._centers_by_id), 1)
+        self.assertEqual(len(dumper._centers_by_id), 2)
         self.assertEqual(len(dumper._transformations_by_id), 2)
         out = _get_dumper_output(dumper, system)
         self.assertEqual(out, """#
@@ -3130,6 +3134,7 @@ _ihm_geometric_object_center.xcoord
 _ihm_geometric_object_center.ycoord
 _ihm_geometric_object_center.zcoord
 1 1.000 2.000 3.000
+2 8.000 9.000 10.000
 #
 #
 loop_
