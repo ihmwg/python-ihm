@@ -577,7 +577,7 @@ class SystemReader(object):
 
         #: Mapping from ID to :class:`ihm.geometry.Transformation` objects
         self.transformations = IDMapper(
-            self.system.orphan_geometric_transforms,
+            self.system._orphan_geometric_transforms,
             ihm.geometry.Transformation, *(None,) * 2)
 
         #: Mapping from ID to :class:`ihm.geometry.Transformation` objects
@@ -585,7 +585,7 @@ class SystemReader(object):
         #: distinct from :attr:`transformations` since they are stored in
         #: separate tables, with different IDs, in the mmCIF file).
         self.data_transformations = IDMapper(
-            self.system.orphan_dataset_transforms,
+            self.system._orphan_dataset_transforms,
             ihm.geometry.Transformation, *(None,) * 2)
 
         #: Mapping from ID to :class:`ihm.restraint.GeometricRestraint` objects

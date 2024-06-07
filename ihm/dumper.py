@@ -1037,14 +1037,14 @@ class _DatasetDumper(Dumper):
                 # since they live in different tables they need different IDs
                 util._remove_id(t, attr='_dtid')
             util._remove_id(d)
-        for t in system.orphan_dataset_transforms:
+        for t in system._orphan_dataset_transforms:
             util._remove_id(t, attr='_dtid')
         for d in system._all_datasets():
             util._assign_id(d, seen_datasets, self._dataset_by_id)
             for t in _all_transforms(d):
                 util._assign_id(t, seen_transforms, self._transform_by_id,
                                 attr='_dtid')
-        for t in system.orphan_dataset_transforms:
+        for t in system._orphan_dataset_transforms:
             util._assign_id(t, seen_transforms, self._transform_by_id,
                             attr='_dtid')
 
@@ -1892,7 +1892,7 @@ class _GeometricObjectDumper(Dumper):
                 util._remove_id(o.center)
             if hasattr(o, 'transformation') and o.transformation:
                 util._remove_id(o.transformation)
-        for t in system.orphan_geometric_transforms:
+        for t in system._orphan_geometric_transforms:
             util._remove_id(t)
         for c in system._orphan_centers:
             util._remove_id(c)
@@ -1904,7 +1904,7 @@ class _GeometricObjectDumper(Dumper):
             if hasattr(o, 'transformation') and o.transformation:
                 util._assign_id(o.transformation, seen_transformations,
                                 self._transformations_by_id)
-        for t in system.orphan_geometric_transforms:
+        for t in system._orphan_geometric_transforms:
             util._assign_id(t, seen_transformations,
                             self._transformations_by_id)
         for c in system._orphan_centers:

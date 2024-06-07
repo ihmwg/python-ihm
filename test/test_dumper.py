@@ -1424,7 +1424,7 @@ _ihm_external_files.details
         # Transformation not referenced by any object
         trans2 = ihm.geometry.Transformation([[1, 0, 0], [0, 1, 0], [0, 0, 1]],
                                              [4., 5., 6.])
-        system.orphan_dataset_transforms.append(trans2)
+        system._orphan_dataset_transforms.append(trans2)
 
         d = ihm.dumper._DatasetDumper()
         d.finalize(system)  # Assign IDs
@@ -3110,7 +3110,7 @@ _ihm_cross_link_result_parameters.sigma_2
         # Transformation not referenced by any object
         trans2 = ihm.geometry.Transformation([[1, 0, 0], [0, 1, 0], [0, 0, 1]],
                                              [4., 5., 6.])
-        system.orphan_geometric_transforms.append(trans2)
+        system._orphan_geometric_transforms.append(trans2)
 
         # Center not referenced by any object
         center2 = ihm.geometry.Center(8., 9., 10.)
