@@ -49,6 +49,7 @@ _entity_poly_seq.hetero
         # Make sure orphan object tables show up in the output
         self.assertIn('_ihm_geometric_object_center', newcif)
         self.assertIn('_ihm_relaxation_time', newcif)
+        self.assertIn('_ihm_external_reference_info', newcif)
 
 
 if __name__ == '__main__':

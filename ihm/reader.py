@@ -455,7 +455,8 @@ class SystemReader(object):
         self.ranges = RangeIDMapper()
 
         #: Mapping from ID to :class:`ihm.location.Repository` objects
-        self.repos = IDMapper(None, ihm.location.Repository, None)
+        self.repos = IDMapper(self.system._orphan_repos,
+                              ihm.location.Repository, None)
 
         #: Mapping from ID to :class:`ihm.location.FileLocation` objects
         self.external_files = IDMapper(self.system.locations,

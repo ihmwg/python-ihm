@@ -971,12 +971,16 @@ class _ExternalReferenceDumper(Dumper):
             util._remove_id(r)
             if r.repo:
                 util._remove_id(r.repo)
+        for r in system._orphan_repos:
+            util._remove_id(r)
         for r in self._refs:
             # Assign a unique ID to the reference
             util._assign_id(r, seen_refs, self._ref_by_id)
             # Assign a unique ID to the repository
             util._assign_id(r.repo or self._local_files,
                             seen_repos, self._repo_by_id)
+        for r in system._orphan_repos:
+            util._assign_id(r, seen_repos, self._repo_by_id)
 
     def dump(self, system, writer):
         self.dump_repos(writer)

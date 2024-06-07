@@ -238,6 +238,7 @@ class System(object):
         self._orphan_dataset_transforms = []
         self._orphan_geometric_transforms = []
         self._orphan_relaxation_times = []
+        self._orphan_repos = []
 
     def _make_complete_assembly(self):
         """Fill in the complete assembly with all asym units"""
