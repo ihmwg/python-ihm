@@ -237,6 +237,7 @@ class System(object):
         self._orphan_centers = []
         self._orphan_dataset_transforms = []
         self._orphan_geometric_transforms = []
+        self._orphan_relaxation_times = []
 
     def _make_complete_assembly(self):
         """Fill in the complete assembly with all asym units"""
@@ -652,6 +653,11 @@ class System(object):
                         continue
                     seen_relaxation_times.append(rt)
                     yield rt
+        for rt in self._orphan_relaxation_times:
+            if rt in seen_relaxation_times:
+                continue
+            seen_relaxation_times.append(rt)
+            yield rt
 
     def _before_write(self):
         """Do any setup necessary before writing out to a file"""

@@ -644,7 +644,7 @@ class SystemReader(object):
         #: Mapping from ID to
         #: :class:`ihm.multi_state_scheme.RelaxationTime` objects
         self.relaxation_times = IDMapper(
-            None,
+            self.system._orphan_relaxation_times,
             ihm.multi_state_scheme.RelaxationTime,
             *(None,) * 2)
 

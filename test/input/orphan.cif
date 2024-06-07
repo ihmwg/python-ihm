@@ -4,3 +4,13 @@ _ihm_geometric_object_center.xcoord
 _ihm_geometric_object_center.ycoord
 _ihm_geometric_object_center.zcoord
 1 1.000 2.000 3.000
+#
+loop_
+_ihm_relaxation_time.id
+_ihm_relaxation_time.value
+_ihm_relaxation_time.unit
+_ihm_relaxation_time.amplitude
+_ihm_relaxation_time.dataset_group_id
+_ihm_relaxation_time.external_file_id
+_ihm_relaxation_time.details
+1 3.000 seconds 0.5 . . details1
