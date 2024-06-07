@@ -50,6 +50,7 @@ _entity_poly_seq.hetero
         self.assertIn('_ihm_geometric_object_center', newcif)
         self.assertIn('_ihm_relaxation_time', newcif)
         self.assertIn('_ihm_external_reference_info', newcif)
+        self.assertIn('_chem_comp.', newcif)
 
 
 if __name__ == '__main__':

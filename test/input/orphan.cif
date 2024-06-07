@@ -24,3 +24,11 @@ _ihm_external_reference_info.refers_to
 _ihm_external_reference_info.associated_url
 _ihm_external_reference_info.details
 1 Zenodo DOI 10.5281/zenodo.46266 Archive nup84-v1.0.zip .
+#
+loop_
+_chem_comp.id
+_chem_comp.type
+_chem_comp.name
+_chem_comp.formula
+_chem_comp.formula_weight
+THR 'L-peptide linking' THREONINE 'C4 H9 N O3' 119.120

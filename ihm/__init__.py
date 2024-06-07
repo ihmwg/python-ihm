@@ -239,6 +239,7 @@ class System(object):
         self._orphan_geometric_transforms = []
         self._orphan_relaxation_times = []
         self._orphan_repos = []
+        self._orphan_chem_comps = []
 
     def _make_complete_assembly(self):
         """Fill in the complete assembly with all asym units"""

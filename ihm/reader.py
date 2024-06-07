@@ -142,7 +142,11 @@ class _ChemCompIDMapper(IDMapper):
     def get_by_id(self, objid, newcls=None):
         # Don't modify class of standard residue types
         if objid in self._standard_by_id:
-            return self._standard_by_id[objid]
+            obj = self._standard_by_id[objid]
+            if objid not in self._obj_by_id:
+                self._obj_by_id[objid] = obj
+                self.system_list.append(obj)
+            return obj
         else:
             # Assign nonpolymer class based on the ID
             if newcls is ihm.NonPolymerChemComp or newcls is ihm.WaterChemComp:
@@ -435,7 +439,8 @@ class SystemReader(object):
         self.asym_units = IDMapper(self.system.asym_units, ihm.AsymUnit, None)
 
         #: Mapping from ID to :class:`ihm.ChemComp` objects
-        self.chem_comps = _ChemCompIDMapper(None, ihm.ChemComp, *(None,) * 3)
+        self.chem_comps = _ChemCompIDMapper(self.system._orphan_chem_comps,
+                                            ihm.ChemComp, *(None,) * 3)
 
         #: Mapping from ID to :class:`ihm.reference.Alignment` objects
         self.alignments = IDMapper(None, ihm.reference.Alignment)

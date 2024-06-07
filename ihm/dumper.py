@@ -239,7 +239,9 @@ class _DatabaseStatusDumper(Dumper):
 
 class _ChemCompDumper(Dumper):
     def dump(self, system, writer):
-        comps = frozenset(comp for e in system.entities for comp in e.sequence)
+        comps = frozenset(itertools.chain(
+            (comp for e in system.entities for comp in e.sequence),
+            system._orphan_chem_comps))
 
         with writer.loop("_chem_comp", ["id", "type", "name",
                                         "formula", "formula_weight"]) as lp:
