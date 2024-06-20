@@ -1358,10 +1358,12 @@ class _ProtocolDumper(Dumper):
 
     def dump_summary(self, system, writer):
         with writer.loop("_ihm_modeling_protocol",
-                         ["id", "protocol_name", "num_steps"]) as lp:
+                         ["id", "protocol_name", "num_steps",
+                          "details"]) as lp:
             for p in system._all_protocols():
                 lp.write(id=p._id,
-                         protocol_name=p.name, num_steps=len(p.steps))
+                         protocol_name=p.name, num_steps=len(p.steps),
+                         details=p.details)
 
     def dump_details(self, system, writer):
         ordinal = itertools.count(1)

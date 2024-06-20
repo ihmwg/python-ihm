@@ -1762,7 +1762,7 @@ _ihm_starting_model_seq_dif.details
             num_models_end=2000, multi_scale=True, ensemble=False))
         system.orphan_protocols.append(p1)
 
-        p2 = ihm.protocol.Protocol('sampling')
+        p2 = ihm.protocol.Protocol('sampling', details='extra details')
         p2.steps.append(ihm.protocol.Step(
             assembly=assembly, dataset_group=dsg2,
             method='Replica exchange', num_models_begin=2000,
@@ -1779,8 +1779,9 @@ loop_
 _ihm_modeling_protocol.id
 _ihm_modeling_protocol.protocol_name
 _ihm_modeling_protocol.num_steps
-1 equilibration 2
-2 sampling 1
+_ihm_modeling_protocol.details
+1 equilibration 2 .
+2 sampling 1 'extra details'
 #
 #
 loop_

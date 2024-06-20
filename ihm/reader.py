@@ -1738,9 +1738,10 @@ class _ProtocolHandler(Handler):
     category = '_ihm_modeling_protocol'
     ignored_keywords = ['ordinal_id', 'struct_assembly_description']
 
-    def __call__(self, id, protocol_name, num_steps):
+    def __call__(self, id, protocol_name, num_steps, details):
         p = self.sysr.protocols.get_by_id(id)
-        self.copy_if_present(p, locals(), mapkeys={'protocol_name': 'name'})
+        self.copy_if_present(p, locals(), mapkeys={'protocol_name': 'name'},
+                             keys=['details'])
 
 
 class _ProtocolDetailsHandler(Handler):

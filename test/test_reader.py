@@ -1320,12 +1320,14 @@ loop_
 _ihm_modeling_protocol.id
 _ihm_modeling_protocol.protocol_name
 _ihm_modeling_protocol.num_steps
-1 Prot1 5
+_ihm_modeling_protocol.details
+1 Prot1 5 'extra details'
 """
         for fh in cif_file_handles(cif):
             s, = ihm.reader.read(fh)
             p1, = s.orphan_protocols
             self.assertEqual(p1.name, "Prot1")
+            self.assertEqual(p1.details, "extra details")
             # no step objects read yet, num_steps ignored
             self.assertEqual(len(p1.steps), 0)
 
