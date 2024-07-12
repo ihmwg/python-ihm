@@ -1435,8 +1435,8 @@ _ihm_dataset_list.id
 _ihm_dataset_list.data_type
 _ihm_dataset_list.database_hosted
 _ihm_dataset_list.details
-1 'CX-MS data' NO .
-2 'CX-MS data' NO .
+1 'Crosslinking-MS data' NO .
+2 'Crosslinking-MS data' NO .
 3 Other YES bar
 4 Other YES baz
 5 'Experimental model' YES 'test dataset details'
@@ -2750,15 +2750,15 @@ _ihm_multi_state_model_group_link.model_group_id
         out = _get_dumper_output(dumper, system)
         self.assertEqual(out, """#
 loop_
-_ihm_ordered_ensemble.process_id
-_ihm_ordered_ensemble.process_description
-_ihm_ordered_ensemble.ordered_by
-_ihm_ordered_ensemble.step_id
-_ihm_ordered_ensemble.step_description
-_ihm_ordered_ensemble.edge_id
-_ihm_ordered_ensemble.edge_description
-_ihm_ordered_ensemble.model_group_id_begin
-_ihm_ordered_ensemble.model_group_id_end
+_ihm_ordered_model.process_id
+_ihm_ordered_model.process_description
+_ihm_ordered_model.ordered_by
+_ihm_ordered_model.step_id
+_ihm_ordered_model.step_description
+_ihm_ordered_model.edge_id
+_ihm_ordered_model.edge_description
+_ihm_ordered_model.model_group_id_begin
+_ihm_ordered_model.model_group_id_end
 1 . 'time steps' 1 'Linear reaction' 1 . 42 82
 2 'Proc 2' 'time steps' 1 'Branched reaction' 1 . 42 82
 2 'Proc 2' 'time steps' 1 'Branched reaction' 2 . 42 92
