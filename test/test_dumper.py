@@ -2358,7 +2358,7 @@ _ihm_sphere_obj_site.model_id
                                        het=True),
                         ihm.model.Atom(asym_unit=asym, seq_id=2, atom_id='N',
                                        type_symbol='N', x=4.0, y=5.0, z=6.0,
-                                       biso=42.0, occupancy=0.2)]
+                                       biso=42.0, occupancy=0.2, alt_id='A')]
 
         dumper = ihm.dumper._ModelDumper()
         dumper.finalize(system)  # assign model/group IDs
@@ -2411,7 +2411,7 @@ _atom_site.pdbx_PDB_model_num
 _atom_site.ihm_model_id
 ATOM 1 C C . ALA 1 1 ? X 1.000 2.000 3.000 . 9 X ALA . 1 1
 HETATM 2 C CA . ALA 1 1 ? X 10.000 20.000 30.000 . 9 X ALA . 1 1
-ATOM 3 N N . CYS 2 2 ? X 4.000 5.000 6.000 0.200 9 X CYS 42.000 1 1
+ATOM 3 N N A CYS 2 2 ? X 4.000 5.000 6.000 0.200 9 X CYS 42.000 1 1
 #
 #
 loop_
@@ -2432,7 +2432,7 @@ N
         self.assertEqual(
             out.split('\n')[44:47:2],
             ["ATOM 1 C C . ALA 1 0 ? X 1.000 2.000 3.000 . 9 X ALA . 1 1",
-             "ATOM 3 N N . CYS 2 1 ? X 4.000 5.000 6.000 "
+             "ATOM 3 N N A CYS 2 1 ? X 4.000 5.000 6.000 "
              "0.200 9 X CYS 42.000 1 1"])
 
         # With auth_seq_id map
@@ -2441,7 +2441,7 @@ N
         self.assertEqual(
             out.split('\n')[44:47:2],
             ["ATOM 1 C C . ALA 1 42 ? X 1.000 2.000 3.000 . 9 X ALA . 1 1",
-             "ATOM 3 N N . CYS 2 99 ? X 4.000 5.000 6.000 "
+             "ATOM 3 N N A CYS 2 99 ? X 4.000 5.000 6.000 "
              "0.200 9 X CYS 42.000 1 1"])
 
     def test_model_dumper_water_atoms(self):

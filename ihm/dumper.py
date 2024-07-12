@@ -1659,6 +1659,7 @@ class _ModelDumperBase(Dumper):
                              type_symbol=atom.type_symbol,
                              group_PDB='HETATM' if atom.het else 'ATOM',
                              label_atom_id=atom.atom_id,
+                             label_alt_id=atom.alt_id,
                              label_comp_id=comp.id,
                              label_asym_id=atom.asym_unit._id,
                              label_entity_id=atom.asym_unit.entity._id,

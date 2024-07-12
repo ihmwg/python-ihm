@@ -1989,7 +1989,7 @@ _atom_site.B_iso_or_equiv
 _atom_site.pdbx_PDB_model_num
 _atom_site.ihm_model_id
 ATOM 1 N N . SER 1 A 54.401 -49.984 -35.287 . 1 A . 1 1
-HETATM 2 C CA . SER . B 54.452 -48.492 -35.210 0.200 1 A 42.0 1 1
+HETATM 2 C CA A SER . B 54.452 -48.492 -35.210 0.200 1 A 42.0 1 1
 """)
         s, = ihm.reader.read(fh)
         m = s.state_groups[0][0][0][0]
@@ -2004,6 +2004,7 @@ HETATM 2 C CA . SER . B 54.452 -48.492 -35.210 0.200 1 A 42.0 1 1
         self.assertEqual(a1.het, False)
         self.assertIsNone(a1.biso)
         self.assertIsNone(a1.occupancy)
+        self.assertIsNone(a1.alt_id)
 
         self.assertEqual(a2.asym_unit._id, 'B')
         self.assertEqual(a2.seq_id, 1)
@@ -2012,6 +2013,7 @@ HETATM 2 C CA . SER . B 54.452 -48.492 -35.210 0.200 1 A 42.0 1 1
         self.assertEqual(a2.het, True)
         self.assertAlmostEqual(a2.biso, 42.0, delta=1.0)
         self.assertAlmostEqual(a2.occupancy, 0.2, delta=0.1)
+        self.assertEqual(a2.alt_id, 'A')
 
     def test_atom_site_handler_auth_seq_id(self):
         """Test AtomSiteHandler handling of auth_seq_id and ins_code"""
