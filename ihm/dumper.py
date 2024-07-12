@@ -1516,12 +1516,12 @@ class _RangeChecker(object):
         # e.g. multiple bulk water oxygen atoms can have "same" seq_id (None)
         if atom.seq_id is None:
             return
-        k = (atom.asym_unit._id, atom.atom_id, atom.seq_id)
+        k = (atom.asym_unit._id, atom.atom_id, atom.seq_id, atom.alt_id)
         if k in self._seen_atoms:
             raise ValueError(
-                "Multiple atoms with same atom_id (%s) and seq_id (%d) "
-                "found in asym ID %s"
-                % (atom.atom_id, atom.seq_id, atom.asym_unit._id))
+                "Multiple atoms with same atom_id (%s), seq_id (%d) "
+                "and alt_id (%s) found in asym ID %s"
+                % (atom.atom_id, atom.seq_id, atom.alt_id, atom.asym_unit._id))
         self._seen_atoms.add(k)
 
     def _check_assembly(self, obj, asym, seq_id_range):

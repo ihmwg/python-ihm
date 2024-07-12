@@ -2062,6 +2062,16 @@ _ihm_model_group_link.model_id
         atom = ihm.model.Atom(asym_unit=asym, seq_id=1, atom_id='CA',
                               type_symbol='C', x=1.0, y=2.0, z=3.0)
         self.assertRaises(ValueError, rngcheck, atom)
+        # It's fine though if alt_id is different
+        atom = ihm.model.Atom(asym_unit=asym, seq_id=1, atom_id='CA',
+                              type_symbol='C', x=1.0, y=2.0, z=3.0, alt_id='A')
+        rngcheck(atom)
+        atom = ihm.model.Atom(asym_unit=asym, seq_id=1, atom_id='CA',
+                              type_symbol='C', x=1.0, y=2.0, z=3.0, alt_id='B')
+        rngcheck(atom)
+        atom = ihm.model.Atom(asym_unit=asym, seq_id=1, atom_id='CA',
+                              type_symbol='C', x=1.0, y=2.0, z=3.0, alt_id='A')
+        self.assertRaises(ValueError, rngcheck, atom)
 
     def test_range_checker_duplicate_atoms_water(self):
         """Test RangeChecker class checking duplicate water atoms"""
