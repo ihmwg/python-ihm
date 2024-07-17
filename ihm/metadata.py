@@ -708,9 +708,10 @@ class _ModellerTemplateHandler(ihm.reader.Handler):
 
 
 class CIFParser(Parser):
-    """Extract metadata from an mmCIF file. Currently, this does not handle
-       information from comparative modeling packages such as MODELLER
-       (see :class:`PDBParser`).
+    """Extract metadata (e.g. PDB ID, comparative modeling templates)
+       from an mmCIF file. This currently handles mmCIF files from the PDB
+       database itself, plus files from Model Archive or the outputs from the
+       MODELLER comparative modeling package.
 
        See also :class:`PDBParser` for coordinate files in legacy PDB format.
     """
