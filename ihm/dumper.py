@@ -1282,11 +1282,18 @@ class _StartingModelDumper(Dumper):
         denom = template.sequence_identity.denominator
         if denom is not None and denom is not ihm.unknown:
             denom = int(denom)
+        # Add offset only if seq_id_range isn't . or ?
+        seq_id_begin = template.seq_id_range[0]
+        if isinstance(template.seq_id_range[0], int):
+            seq_id_begin += off
+        seq_id_end = template.seq_id_range[1]
+        if isinstance(template.seq_id_range[1], int):
+            seq_id_end += off
         lp.write(id=next(ordinal),
                  starting_model_id=sm._id,
                  starting_model_auth_asym_id=sm.asym_id,
-                 starting_model_seq_id_begin=template.seq_id_range[0] + off,
-                 starting_model_seq_id_end=template.seq_id_range[1] + off,
+                 starting_model_seq_id_begin=seq_id_begin,
+                 starting_model_seq_id_end=seq_id_end,
                  template_auth_asym_id=template.asym_id,
                  template_seq_id_begin=template.template_seq_id_range[0],
                  template_seq_id_end=template.template_seq_id_range[1],

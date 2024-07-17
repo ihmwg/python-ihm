@@ -1621,8 +1621,14 @@ _ihm_model_representation_details.description
             sequence_identity=ihm.startmodel.SequenceIdentity(ihm.unknown,
                                                               ihm.unknown),
             alignment_file=ali)
+        s4 = ihm.startmodel.Template(
+            dataset=dstemplate, asym_id='D',
+            seq_id_range=(None, None),
+            template_seq_id_range=(None, None),
+            sequence_identity=ihm.startmodel.SequenceIdentity(None, None),
+            alignment_file=ali)
 
-        sm = TestStartingModel(asym(1, 12), dstarget, 'A', [s1, s2, s3],
+        sm = TestStartingModel(asym(1, 12), dstarget, 'A', [s1, s2, s3, s4],
                                offset=10, script_file=script,
                                software=software)
         system.orphan_starting_models.append(sm)
@@ -1697,6 +1703,7 @@ _ihm_starting_comparative_models.alignment_file_id
 1 1 A 1 10 C 101 110 30.000 1 101 .
 2 1 A 5 12 D 201 210 40.000 . 101 5
 3 1 A 5 12 D 201 210 ? ? 101 5
+4 1 A . . D . . . . 101 5
 #
 #
 loop_
@@ -3852,7 +3859,6 @@ _ihm_multi_state_scheme_connectivity.details
         dumper = ihm.dumper._RelaxationTimeDumper()
         dumper.finalize(system)
         out = _get_dumper_output(dumper, system)
-        self.maxDiff = None
         self.assertEqual(out, """#
 loop_
 _ihm_relaxation_time.id
