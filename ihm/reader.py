@@ -1723,8 +1723,8 @@ class _StartingComparativeModelsHandler(Handler):
         dataset = self.sysr.datasets.get_by_id(template_dataset_list_id)
         aln = self.sysr.external_files.get_by_id_or_none(alignment_file_id)
         asym_id = template_auth_asym_id
-        seq_id_range = (int(starting_model_seq_id_begin),
-                        int(starting_model_seq_id_end))
+        seq_id_range = (self.get_int(starting_model_seq_id_begin),
+                        self.get_int(starting_model_seq_id_end))
         template_seq_id_range = (self.get_int(template_seq_id_begin),
                                  self.get_int(template_seq_id_end))
         identity = ihm.startmodel.SequenceIdentity(

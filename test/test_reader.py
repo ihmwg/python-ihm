@@ -1303,11 +1303,12 @@ _ihm_starting_comparative_models.alignment_file_id
 1 1 A 7 436 C 9 438 90.000 1 3 2
 2 1 A 33 424 C 33 424 100.000 1 1 .
 3 1 A 33 424 C . ? 100.000 1 1 .
+4 1 A . . C . . . . 1 .
 """
         for fh in cif_file_handles(cif):
             s, = ihm.reader.read(fh)
             m1, = s.orphan_starting_models
-            t1, t2, t3 = m1.templates
+            t1, t2, t3, t4 = m1.templates
             self.assertEqual(t1.dataset._id, '3')
             self.assertEqual(t1.asym_id, 'C')
             self.assertEqual(t1.seq_id_range, (7, 436))
@@ -1318,6 +1319,8 @@ _ihm_starting_comparative_models.alignment_file_id
             self.assertEqual(t1.alignment_file._id, '2')
             self.assertIsNone(t2.alignment_file)
             self.assertEqual(t3.template_seq_id_range, (None, ihm.unknown))
+            self.assertEqual(t4.seq_id_range, (None, None))
+            self.assertEqual(t4.template_seq_id_range, (None, None))
 
     def test_protocol_handler(self):
         """Test ProtocolHandler"""
