@@ -10,7 +10,7 @@
   - :class:`ihm.protocol.Protocol` can now be given additional text to
     describe the protocol.
   - :class:`ihm.model.Atom` now takes an ``alt_id`` argument to support
-    alternate conformations.
+    alternate conformations (#146).
   - Support added for NumPy 2.0.
 
 1.2 - 2024-06-12
