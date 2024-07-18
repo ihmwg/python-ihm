@@ -7,7 +7,7 @@ import ihm
 class PseudoSite(object):
     """Selection of a pseudo position in the system.
        Pseudo positions are typically used to reference a point or sphere
-       that is not explcitly represented, in a :class:`PseudoSiteFeature`
+       that is not explicitly represented, in a :class:`PseudoSiteFeature`
        or :class:`CrossLinkPseudoSite`.
 
        :param float x: Cartesian X coordinate of this site.
