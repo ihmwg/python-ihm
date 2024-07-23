@@ -306,6 +306,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(p2.location.access_code, '3F3F')
         self.assertEqual(p3.location.access_code, '1ABC')
         s, = p['software']
+        self.assertEqual(len(s.citation.authors), 2)
         self.assertEqual(s.name, 'MODELLER')
         if cif:
             self.assertEqual(s.version, '10.4')
@@ -478,8 +479,8 @@ class Tests(unittest.TestCase):
         self.assertEqual(dataset.location.path, fname)
         self.assertEqual(dataset.location.details, 'Starting model structure')
 
-    def test_cif_modeller_model(self):
-        """Test CIFParser when given a Modeller model"""
+    def test_cif_modeller_model_old(self):
+        """Test CIFParser when given a Modeller model, old style"""
         fname = utils.get_input_file_name(TOPDIR, 'modeller_model.cif')
         p = self.check_modeller_model(fname, cif=True)
         aliname = utils.get_input_file_name(TOPDIR, 'modeller_model.ali')
@@ -494,6 +495,19 @@ class Tests(unittest.TestCase):
         fname = utils.get_input_file_name(TOPDIR, 'modeller_incomplete.cif')
         p = self._parse_cif(fname)
         self.assertIsNone(p['script'])
+
+    def test_cif_modeller_modelcif(self):
+        """Test CIFParser when given a Modeller ModelCIF-compliant model"""
+        # For new-style Modeller models, should read software info directly
+        # from the _software table, not _exptl
+        fname = utils.get_input_file_name(TOPDIR, 'modeller_modelcif.cif')
+        p = self.check_modeller_model(fname, cif=True)
+        aliname = utils.get_input_file_name(TOPDIR, 'modeller_model.ali')
+        script = utils.get_input_file_name(TOPDIR, 'modeller_model.py')
+        self.assertEqual(p['script'].path, script)
+        for templates in p['templates'].values():
+            for t in templates:
+                self.assertEqual(t.alignment_file.path, aliname)
 
 
 if __name__ == '__main__':

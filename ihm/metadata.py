@@ -707,6 +707,15 @@ class _ModellerTemplateHandler(ihm.reader.Handler):
         self.m['modeller_templates'].append(t)
 
 
+class _SystemReader(object):
+    """A minimal implementation, so we can use some of the Handlers
+       in ihm.reader but get outputs in the results dict."""
+    def __init__(self, m):
+        self.software = ihm.reader.IDMapper(m['software'], ihm.Software,
+                                            *(None,) * 4)
+        self.citations = ihm.reader.IDMapper(None, ihm.Citation, *(None,) * 8)
+
+
 class CIFParser(Parser):
     """Extract metadata (e.g. PDB ID, comparative modeling templates)
        from an mmCIF file. This currently handles mmCIF files from the PDB
@@ -746,11 +755,16 @@ class CIFParser(Parser):
             exptlh = _ExptlHandler(m)
             modellerh = _ModellerHandler(m, filename)
             modtmplh = _ModellerTemplateHandler(m)
+            sysr = _SystemReader(m)
             r = ihm.format.CifReader(
                 fh, {'_database_2': dbh, '_struct': structh,
                      '_pdbx_audit_revision_history': arevhisth,
                      '_exptl': exptlh, '_modeller': modellerh,
-                     '_modeller_template': modtmplh})
+                     '_modeller_template': modtmplh,
+                     '_software': ihm.reader._SoftwareHandler(sysr),
+                     '_citation': ihm.reader._CitationHandler(sysr),
+                     '_citation_author':
+                     ihm.reader._CitationAuthorHandler(sysr)})
             r.read_file()
         dset = self._get_dataset(filename, m)
         return {'dataset': dset, 'software': m['software'],
