@@ -540,6 +540,20 @@ class Tests(unittest.TestCase):
         self.assertEqual([s.name for s in p['software']],
                          ['ModPipe', 'MODELLER', 'modbase_pdb_to_cif.py'])
 
+    def test_cif_alphafold_modelcif(self):
+        """Test CIFParser when given an AlphaFoldDB ModelCIF-compliant model"""
+        fname = utils.get_input_file_name(TOPDIR, 'AF-O78126-F1-model_v4.cif')
+        p = self._parse_cif(fname)
+        dataset = p['dataset']
+        self.assertEqual(dataset.location.db_name, 'AlphaFoldDB')
+        self.assertEqual(dataset.location.access_code, 'AF-O78126-F1')
+        self.assertEqual(dataset.location.details, "Starting model structure")
+        self.assertEqual(p['templates'], {})
+        self.assertEqual(dataset.data_type, 'De Novo model')
+        self.assertEqual(len(dataset.parents), 0)
+        self.assertEqual([s.name for s in p['software']],
+                         ['AlphaFold', 'dssp'])
+
 
 if __name__ == '__main__':
     unittest.main()
