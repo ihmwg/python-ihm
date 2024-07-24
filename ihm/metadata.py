@@ -863,6 +863,15 @@ class _AlignmentDetailsHandler(ihm.reader.Handler):
         aln.template = tmpl_rng
 
 
+class _ModBaseLocation(location.DatabaseLocation):
+    """A model deposited in ModBase"""
+    def __init__(self, db_code, version=None, details=None):
+        # Use details to describe ModBase, ignoring the file title
+        super(_ModBaseLocation, self).__init__(
+            db_code, version=version,
+            details="ModBase database of comparative protein structure models")
+
+
 class CIFParser(Parser):
     """Extract metadata (e.g. PDB ID, comparative modeling templates)
        from an mmCIF file. This currently handles mmCIF files from the PDB
@@ -880,7 +889,8 @@ class CIFParser(Parser):
              'MODELARCHIVE': (location.ModelArchiveLocation,
                               dataset.DeNovoModelDataset),
              'ALPHAFOLDDB': (location.AlphaFoldDBLocation,
-                             dataset.DeNovoModelDataset)}
+                             dataset.DeNovoModelDataset),
+             'MODBASE': (_ModBaseLocation, dataset.ComparativeModelDataset)}
 
     def parse_file(self, filename):
         """Extract metadata. See :meth:`Parser.parse_file` for details.

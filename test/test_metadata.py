@@ -515,8 +515,14 @@ class Tests(unittest.TestCase):
             TOPDIR, 'modbase-model_e224ef5d7f96947a99dd618618021328.cif')
         p = self._parse_cif(fname)
         dataset = p['dataset']
-        # Currently reports local path, not ModBase ID
-        self.assertEqual(dataset.location.path, fname)
+        # ModBase isn't in IHMCIF's official set of databases, so should
+        # be reported as "Other"
+        self.assertEqual(dataset.location.db_name, 'Other')
+        self.assertEqual(dataset.location.access_code,
+                         'e224ef5d7f96947a99dd618618021328')
+        self.assertEqual(dataset.location.details,
+                         "ModBase database of comparative protein "
+                         "structure models")
         self.assertEqual(sorted(p['templates'].keys()), ['A'])
         s1, = p['templates']['A']
         self.assertEqual(s1.asym_id, 'B')
