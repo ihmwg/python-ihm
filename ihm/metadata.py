@@ -872,9 +872,15 @@ class CIFParser(Parser):
 
        See also :class:`PDBParser` for coordinate files in legacy PDB format.
     """
+
+    # Map PDBx database_2.database_name to IHMCIF equivalents
     dbmap = {'PDB': (location.PDBLocation, dataset.PDBDataset),
+             'PDB-DEV': (location.PDBDevLocation,
+                         dataset.IntegrativeModelDataset),
              'MODELARCHIVE': (location.ModelArchiveLocation,
-                              dataset.DeNovoModelDataset)}
+                              dataset.DeNovoModelDataset),
+             'ALPHAFOLDDB': (location.AlphaFoldDBLocation,
+                             dataset.DeNovoModelDataset)}
 
     def parse_file(self, filename):
         """Extract metadata. See :meth:`Parser.parse_file` for details.
