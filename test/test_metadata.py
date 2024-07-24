@@ -509,6 +509,31 @@ class Tests(unittest.TestCase):
             for t in templates:
                 self.assertEqual(t.alignment_file.path, aliname)
 
+    def test_cif_modbase_modelcif(self):
+        """Test CIFParser when given a ModBase ModelCIF-compliant model"""
+        fname = utils.get_input_file_name(
+            TOPDIR, 'modbase-model_e224ef5d7f96947a99dd618618021328.cif')
+        p = self._parse_cif(fname)
+        dataset = p['dataset']
+        # Currently reports local path, not ModBase ID
+        self.assertEqual(dataset.location.path, fname)
+        self.assertEqual(sorted(p['templates'].keys()), ['A'])
+        s1, = p['templates']['A']
+        self.assertEqual(s1.asym_id, 'B')
+        self.assertEqual(s1.seq_id_range, (1, 149))
+        self.assertEqual(s1.template_seq_id_range, (18, 166))
+        self.assertAlmostEqual(s1.sequence_identity.value, 99.0, delta=0.1)
+        self.assertEqual(
+            s1.sequence_identity.denominator,
+            ihm.startmodel.SequenceIdentityDenominator.SHORTER_LENGTH)
+        self.assertEqual(dataset.data_type, 'Comparative model')
+        p1, = dataset.parents
+        self.assertEqual(p1.data_type, 'Experimental model')
+        self.assertEqual(p1.location.db_name, 'PDB')
+        self.assertEqual(p1.location.access_code, '2fom')
+        self.assertEqual([s.name for s in p['software']],
+                         ['ModPipe', 'MODELLER', 'modbase_pdb_to_cif.py'])
+
 
 if __name__ == '__main__':
     unittest.main()
