@@ -561,7 +561,7 @@ class Tests(unittest.TestCase):
                          ['AlphaFold', 'dssp'])
         self.assertEqual(sorted(p['templates'].keys()), ['A'])
         s1, s2, s3, s4 = p['templates']['A']
-        self.assertIsNone(s1.asym_id)
+        self.assertEqual(s1.asym_id, 'F')
         self.assertEqual(s1.seq_id_range, (None, None))
         self.assertEqual(s1.template_seq_id_range, (None, None))
         self.assertIsNone(s1.sequence_identity)

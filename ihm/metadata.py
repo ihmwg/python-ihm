@@ -746,7 +746,7 @@ class _Template(object):
                                        location.AlphaFoldDBLocation)}
 
     def __init__(self):
-        self.label_asym_id = self.db_name = self.db_accession_code = None
+        self.auth_asym_id = self.db_name = self.db_accession_code = None
         self.db_version_date = self.target_asym_id = None
 
     def get_template_object(self, target_dataset, aln=None):
@@ -761,7 +761,7 @@ class _Template(object):
         target_dataset.parents.append(d)
 
         t = startmodel.Template(
-            dataset=d, asym_id=self.label_asym_id,
+            dataset=d, asym_id=self.auth_asym_id,
             seq_id_range=aln.target.seq_id_range if aln else (None, None),
             template_seq_id_range=aln.template.seq_id_range
             if aln else (None, None),
@@ -788,9 +788,9 @@ class _TemplateDetailsHandler(ihm.reader.Handler):
     def __init__(self, sysr):
         self.sysr = sysr
 
-    def __call__(self, template_id, target_asym_id, template_label_asym_id):
+    def __call__(self, template_id, target_asym_id, template_auth_asym_id):
         template = self.sysr.templates.get_by_id(template_id)
-        template.label_asym_id = template_label_asym_id
+        template.auth_asym_id = template_auth_asym_id
         template.target_asym_id = target_asym_id
 
 
