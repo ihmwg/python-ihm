@@ -548,11 +548,23 @@ class Tests(unittest.TestCase):
         self.assertEqual(dataset.location.db_name, 'AlphaFoldDB')
         self.assertEqual(dataset.location.access_code, 'AF-O78126-F1')
         self.assertEqual(dataset.location.details, "Starting model structure")
-        self.assertEqual(p['templates'], {})
         self.assertEqual(dataset.data_type, 'De Novo model')
-        self.assertEqual(len(dataset.parents), 0)
+        self.assertEqual(len(dataset.parents), 4)
+        p1, p2, p3, p4 = dataset.parents
+        self.assertEqual(p1.data_type, 'Experimental model')
+        self.assertEqual(p1.location.db_name, 'PDB')
+        self.assertEqual(p1.location.access_code, '6ENY')
+        self.assertEqual(p2.location.access_code, '6FGB')
+        self.assertEqual(p3.location.access_code, '1MHC')
+        self.assertEqual(p4.location.access_code, '1K5N')
         self.assertEqual([s.name for s in p['software']],
                          ['AlphaFold', 'dssp'])
+        self.assertEqual(sorted(p['templates'].keys()), ['A'])
+        s1, s2, s3, s4 = p['templates']['A']
+        self.assertIsNone(s1.asym_id)
+        self.assertEqual(s1.seq_id_range, (None, None))
+        self.assertEqual(s1.template_seq_id_range, (None, None))
+        self.assertIsNone(s1.sequence_identity)
 
 
 if __name__ == '__main__':

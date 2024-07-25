@@ -710,35 +710,13 @@ class _ModellerTemplateHandler(ihm.reader.Handler):
 class _ModelCifAlignment(object):
     """Store alignment information from a ModelCIF file"""
 
-    # Map ModelCIF ma_template_ref_db_details.db_name to IHMCIF equivalents
-    _modelcif_dbmap = {'PDB': (dataset.PDBDataset, location.PDBLocation),
-                       'PDB-DEV': (dataset.IntegrativeModelDataset,
-                                   location.PDBDevLocation),
-                       'MA': (dataset.DeNovoModelDataset,
-                              location.ModelArchiveLocation),
-                       'ALPHAFOLDDB': (dataset.DeNovoModelDataset,
-                                       location.AlphaFoldDBLocation)}
-
     def __init__(self):
         self.target = self.template = self.seq_id = None
 
     def get_template_object(self, target_dataset):
         """Convert the alignment information into an IHM Template object"""
-        dsetcls, loccls = self._modelcif_dbmap.get(
-            self.template.template.db_name.upper(),
-            (dataset.Dataset, location.DatabaseLocation))
-        loc = loccls(db_code=self.template.template.db_accession_code,
-                     version=self.template.template.db_version_date)
-        d = dsetcls(location=loc)
-        # Make the computed model dataset derive from the template's
-        target_dataset.parents.append(d)
-
-        t = startmodel.Template(
-            dataset=d, asym_id=self.template.template.label_asym_id,
-            seq_id_range=self.target.seq_id_range,
-            template_seq_id_range=self.template.seq_id_range,
-            sequence_identity=self.seq_id)
-        return self.target.asym_id, t
+        return self.template.template.get_template_object(target_dataset,
+                                                          aln=self)
 
 
 class _TemplateRange(object):
@@ -757,9 +735,38 @@ class _TargetRange(object):
 
 class _Template(object):
     """Store template information from a ModelCIF file"""
+
+    # Map ModelCIF ma_template_ref_db_details.db_name to IHMCIF equivalents
+    _modelcif_dbmap = {'PDB': (dataset.PDBDataset, location.PDBLocation),
+                       'PDB-DEV': (dataset.IntegrativeModelDataset,
+                                   location.PDBDevLocation),
+                       'MA': (dataset.DeNovoModelDataset,
+                              location.ModelArchiveLocation),
+                       'ALPHAFOLDDB': (dataset.DeNovoModelDataset,
+                                       location.AlphaFoldDBLocation)}
+
     def __init__(self):
         self.label_asym_id = self.db_name = self.db_accession_code = None
-        self.db_version_date = None
+        self.db_version_date = self.target_asym_id = None
+
+    def get_template_object(self, target_dataset, aln=None):
+        """Convert the template information into an IHM Template object"""
+        dsetcls, loccls = self._modelcif_dbmap.get(
+            self.db_name.upper(),
+            (dataset.Dataset, location.DatabaseLocation))
+        loc = loccls(db_code=self.db_accession_code,
+                     version=self.db_version_date)
+        d = dsetcls(location=loc)
+        # Make the computed model dataset derive from the template's
+        target_dataset.parents.append(d)
+
+        t = startmodel.Template(
+            dataset=d, asym_id=self.label_asym_id,
+            seq_id_range=aln.target.seq_id_range if aln else (None, None),
+            template_seq_id_range=aln.template.seq_id_range
+            if aln else (None, None),
+            sequence_identity=aln.seq_id if aln else None)
+        return aln.target.asym_id if aln else self.target_asym_id, t
 
 
 class _SystemReader(object):
@@ -773,7 +780,7 @@ class _SystemReader(object):
                                               _ModelCifAlignment)
         self.template_ranges = ihm.reader.IDMapper(None, _TemplateRange)
         self.target_ranges = ihm.reader.IDMapper(None, _TargetRange)
-        self.templates = ihm.reader.IDMapper(None, _Template)
+        self.templates = ihm.reader.IDMapper(m['templates'], _Template)
 
 
 class _TemplateDetailsHandler(ihm.reader.Handler):
@@ -781,9 +788,10 @@ class _TemplateDetailsHandler(ihm.reader.Handler):
     def __init__(self, sysr):
         self.sysr = sysr
 
-    def __call__(self, template_id, template_label_asym_id):
+    def __call__(self, template_id, target_asym_id, template_label_asym_id):
         template = self.sysr.templates.get_by_id(template_id)
         template.label_asym_id = template_label_asym_id
+        template.target_asym_id = target_asym_id
 
 
 class _TemplateRefDBDetailsHandler(ihm.reader.Handler):
@@ -911,7 +919,7 @@ class CIFParser(Parser):
                     objects).
         """
         m = {'db': {}, 'title': 'Starting model structure',
-             'software': [], 'alignments': []}
+             'software': [], 'templates': [], 'alignments': []}
         with open(filename) as fh:
             dbh = _Database2Handler(m)
             structh = _StructHandler(m)
@@ -970,8 +978,14 @@ class CIFParser(Parser):
                         t, template_path_map, dset, alnfile)
             # Otherwise, use ModelCIF templates
             else:
+                seen_templates = set()
                 for aln in m['alignments']:
+                    seen_templates.add(aln.template.template)
                     yield aln.get_template_object(dset)
+                # Handle any unaligned templates (e.g. AlphaFold)
+                for t in m['templates']:
+                    if t not in seen_templates:
+                        yield t.get_template_object(dset)
 
         for chain, template in _handle_templates():
             if chain not in templates:
