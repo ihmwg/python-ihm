@@ -2059,6 +2059,8 @@ class _FeatureDumper(Dumper):
             for f in self._features_by_id:
                 if not isinstance(f, restraint.ResidueFeature):
                     continue
+                if not f.ranges:
+                    raise ValueError("%s selects no residues" % f)
                 for r in f.ranges:
                     entity = _get_entity(r)
                     seq = entity.sequence

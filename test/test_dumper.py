@@ -3340,6 +3340,18 @@ _ihm_pseudo_site_feature.pseudo_site_id
 #
 """)
 
+    def test_feature_dumper_no_residues(self):
+        """Test FeatureDumper with an empty ResidueFeature"""
+        system = ihm.System()
+
+        f = ihm.restraint.ResidueFeature([])
+        system.orphan_features.append(f)
+
+        dumper = ihm.dumper._FeatureDumper()
+        dumper.finalize(system)  # assign IDs
+        self.assertEqual(len(dumper._features_by_id), 1)
+        self.assertRaises(ValueError, _get_dumper_output, dumper, system)
+
     def test_pseudo_site_dumper(self):
         """Test PseudoSiteDumper"""
         system = ihm.System()
