@@ -422,11 +422,19 @@ def _prettyprint_seq(seq, width):
 
 class _StructRefDumper(Dumper):
     def finalize(self, system):
-        ref_id = itertools.count(1)
+        self._refs_by_id = {}
         align_id = itertools.count(1)
         for e in system.entities:
             for r in e.references:
-                r._id = next(ref_id)
+                util._remove_id(r)
+
+        for e in system.entities:
+            seen_refs = {}
+            # Two refs are not considered duplicated if they relate to
+            # different entities, so keep list per entity
+            self._refs_by_id[id(e)] = by_id = []
+            for r in e.references:
+                util._assign_id(r, seen_refs, by_id, seen_obj=r._signature())
                 for a in r._get_alignments():
                     a._id = next(align_id)
 
@@ -513,7 +521,7 @@ class _StructRefDumper(Dumper):
                  "pdbx_align_begin", "pdbx_seq_one_letter_code",
                  "details"]) as lp:
             for e in system.entities:
-                for r in e.references:
+                for r in self._refs_by_id[id(e)]:
                     self._check_reference_sequence(e, r)
                     db_begin = min(a.db_begin for a in r._get_alignments())
                     lp.write(id=r._id, entity_id=e._id, db_name=r.db_name,
@@ -526,7 +534,7 @@ class _StructRefDumper(Dumper):
     def dump_seq(self, system, writer):
         def _all_alignments():
             for e in system.entities:
-                for r in e.references:
+                for r in self._refs_by_id[id(e)]:
                     for a in r._get_alignments():
                         yield e, r, a
         with writer.loop(
@@ -550,7 +558,7 @@ class _StructRefDumper(Dumper):
                 ["pdbx_ordinal", "align_id", "seq_num", "db_mon_id", "mon_id",
                  "details"]) as lp:
             for e in system.entities:
-                for r in e.references:
+                for r in self._refs_by_id[id(e)]:
                     for a in r._get_alignments():
                         for sd in a.seq_dif:
                             lp.write(pdbx_ordinal=next(ordinal),

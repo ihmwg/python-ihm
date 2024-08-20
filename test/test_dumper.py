@@ -597,7 +597,15 @@ _entity_src_gen.pdbx_host_org_strain
             db_code='testcode3', accession='testacc3', sequence=ihm.unknown)
         r4.alignments.append(ihm.reference.Alignment(
             db_begin=4, db_end=5, entity_begin=2, entity_end=3))
-        system.entities.append(ihm.Entity('LSPT', references=[r1, r2, r3, r4]))
+        # Duplicate reference; should be omitted even though details differ
+        r5 = ihm.reference.UniProtSequence(
+            db_code='NUP84_YEAST', accession='P52891', sequence='MELWPTYQT',
+            details='other test sequence')
+        r5.alignments.append(ihm.reference.Alignment(db_begin=3,
+                                                     seq_dif=[sd, sd2]))
+
+        system.entities.append(ihm.Entity('LSPT', references=[r1, r2, r3, r4,
+                                                              r5]))
         dumper = ihm.dumper._EntityDumper()
         dumper.finalize(system)  # Assign entity IDs
 
