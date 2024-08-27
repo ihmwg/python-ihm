@@ -22,6 +22,10 @@ class PseudoSite(object):
         self.radius = radius
         self.description = description
 
+    def _signature(self):
+        return tuple("%.3f" % v if v else None
+                     for v in (self.x, self.y, self.z, self.radius))
+
 
 class Restraint(object):
     """Base class for all restraints.
