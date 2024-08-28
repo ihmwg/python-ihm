@@ -2034,7 +2034,9 @@ class _FeatureDumper(Dumper):
         for f in system._all_features():
             util._remove_id(f)
         for f in system._all_features():
-            util._assign_id(f, seen_features, self._features_by_id)
+            util._assign_id(f, seen_features, self._features_by_id,
+                            seen_obj=f._signature()
+                            if hasattr(f, '_signature') else f)
 
     def dump(self, system, writer):
         self.dump_list(writer)

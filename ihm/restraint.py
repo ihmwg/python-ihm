@@ -706,6 +706,9 @@ class PseudoSiteFeature(Feature):
     def _get_entity_type(self):
         return 'other'
 
+    def _signature(self):
+        return self.site._signature()
+
 
 class GeometricRestraint(Restraint):
     """A restraint between part of the system and some part of a

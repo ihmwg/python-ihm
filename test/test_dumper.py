@@ -3277,6 +3277,11 @@ _ihm_geometric_object_plane.transformation_id
         f = ihm.restraint.PseudoSiteFeature(site=ps)
         system.orphan_features.append(f)
 
+        # Duplicate Pseudo site feature
+        ps = ihm.restraint.PseudoSite(x=10., y=20., z=30.)
+        f = ihm.restraint.PseudoSiteFeature(site=ps)
+        system.orphan_features.append(f)
+
         ihm.dumper._EntityDumper().finalize(system)  # assign entity IDs
         ihm.dumper._StructAsymDumper().finalize(system)  # assign asym IDs
 
@@ -3366,7 +3371,10 @@ _ihm_pseudo_site_feature.pseudo_site_id
         ps1 = ihm.restraint.PseudoSite(x=10., y=20., z=30.)
         ps2 = ihm.restraint.PseudoSite(x=10., y=20., z=30.,
                                        radius=40., description="test pseudo")
-        system.orphan_pseudo_sites.extend((ps1, ps2))
+        # Duplicate pseudo site, should be pruned
+        ps3 = ihm.restraint.PseudoSite(x=10., y=20., z=30.,
+                                       radius=40., description="other pseudo")
+        system.orphan_pseudo_sites.extend((ps1, ps2, ps3))
 
         dumper = ihm.dumper._PseudoSiteDumper()
         dumper.finalize(system)  # assign IDs
