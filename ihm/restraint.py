@@ -615,6 +615,9 @@ class ResidueFeature(Feature):
         self.ranges, self.details = ranges, details
         _ = self._get_entity_type()
 
+    def _signature(self):
+        return tuple(self.ranges)
+
     def _all_entities_or_asyms(self):
         return self.ranges
 

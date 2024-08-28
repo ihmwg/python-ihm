@@ -3249,6 +3249,12 @@ _ihm_geometric_object_plane.transformation_id
         f = ihm.restraint.ResidueFeature([a1, a2(2, 3), e1, e1(2, 3)],
                                          details='test feature')
         system.orphan_features.append(f)
+
+        # Duplicate feature, should be pruned from output
+        f = ihm.restraint.ResidueFeature([a1, a2(2, 3), e1, e1(2, 3)],
+                                         details='other details')
+        system.orphan_features.append(f)
+
         # Cannot make a ResidueFeature that includes a non-polymer 'residue'
         self.assertRaises(ValueError, ihm.restraint.ResidueFeature, [a1, a3])
 
