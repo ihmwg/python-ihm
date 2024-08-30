@@ -1,6 +1,6 @@
 1.4 - 2024-08-30
 ================
-  - :class:`ihm.metadata.CifParser` now extracts metadata from mmCIF starting
+  - :class:`ihm.metadata.CIFParser` now extracts metadata from mmCIF starting
     models from Model Archive or compliant with the ModelCIF dictionary.
   - :meth:`ihm.Citation.from_pubmed_id` now takes an ``is_primary`` argument,
     to allow denoting the publication as the most pertinent for the modeling.
