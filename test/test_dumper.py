@@ -2671,8 +2671,10 @@ _ihm_entity_poly_segment.comp_id_end
             system = ihm.System()
             e1 = ihm.Entity('AHCD')
             system.entities.append(e1)
+            # Disable construction-time check so that we
+            # can see dump time check
             system.orphan_features.append(
-                ihm.restraint.ResidueFeature([e1(*badrng)]))
+                ihm.restraint.ResidueFeature([e1(*badrng, _check=False)]))
 
             dumper = ihm.dumper._EntityDumper()
             dumper.finalize(system)  # assign IDs
