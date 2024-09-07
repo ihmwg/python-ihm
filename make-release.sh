@@ -25,3 +25,5 @@ rm -f "src/ihm_format_wrap_${VERSION}.c"
 
 echo "Now use 'twine upload dist/ihm-${VERSION}.tar.gz' to publish the release on PyPi."
 echo "Then, update the conda-forge, COPR, PPA, and Homebrew packages to match."
+echo "For COPR, use dist/ihm-${VERSION}.tar.gz together with util/python-ihm.spec"
+echo "For the PPA, use the GitHub release tarball, renamed to python-ihm_${VERSION}.orig.tar.gz"
