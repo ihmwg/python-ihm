@@ -684,7 +684,7 @@ class _EntityPolySegmentDumper(Dumper):
             for rng in self._ranges_by_id:
                 if hasattr(rng, 'entity'):
                     entity = rng.entity
-                    util._check_residue_range(rng)
+                    util._check_residue_range(rng.seq_id_range, entity)
                 else:
                     entity = rng
                 lp.write(
@@ -1760,6 +1760,8 @@ class _NotModeledResidueRangeDumper(Dumper):
             for group, model in system._all_models():
                 for rr in model.not_modeled_residue_ranges:
                     e = rr.asym_unit.entity
+                    util._check_residue_range(
+                        (rr.seq_id_begin, rr.seq_id_end), e)
                     lp.write(id=next(ordinal), model_id=model._id,
                              entity_description=e.description,
                              entity_id=e._id,

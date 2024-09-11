@@ -1972,8 +1972,9 @@ class _NotModeledResidueRangeHandler(Handler):
                  reason):
         model = self.sysr.models.get_by_id(model_id)
         asym = self.sysr.asym_units.get_by_id(asym_id)
+        # Allow for out-of-range seq_ids for now
         rr = ihm.model.NotModeledResidueRange(
-            asym, int(seq_id_begin), int(seq_id_end))
+            asym, int(seq_id_begin), int(seq_id_end), _check=False)
         # Default to "Other" if invalid reason read
         try:
             rr.reason = reason

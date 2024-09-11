@@ -4,7 +4,7 @@
 
 import struct
 import itertools
-from ihm.util import _text_choice_property
+from ihm.util import _text_choice_property, _check_residue_range
 
 
 class Sphere(object):
@@ -278,10 +278,13 @@ class NotModeledResidueRange(object):
        :param str reason: Optional text describing why the residues were
               not modeled.
     """
-    def __init__(self, asym_unit, seq_id_begin, seq_id_end, reason=None):
+    def __init__(self, asym_unit, seq_id_begin, seq_id_end, reason=None,
+                 _check=True):
         self.asym_unit = asym_unit
         self.seq_id_begin, self.seq_id_end = seq_id_begin, seq_id_end
         self.reason = reason
+        if _check:
+            _check_residue_range((seq_id_begin, seq_id_end), asym_unit.entity)
 
     reason = _text_choice_property(
         "reason",

@@ -2544,6 +2544,23 @@ _ihm_residues_not_modeled.reason
 #
 """)
 
+    def test_not_modeled_residue_range_bad_range(self):
+        """Test NotModeledResidueRangeDumper with bad residue ranges"""
+        for badrng, exc in [((10, 14), IndexError),
+                            ((-4, 1), IndexError),
+                            ((3, 1), ValueError)]:
+            system, model, asym = self._make_test_model()
+            # Disable construction-time check so that we
+            # can see dump time check
+            rr1 = ihm.model.NotModeledResidueRange(asym, *badrng, _check=False)
+            model.not_modeled_residue_ranges.append(rr1)
+
+            dumper = ihm.dumper._ModelDumper()
+            dumper.finalize(system)  # assign model/group IDs
+
+            dumper = ihm.dumper._NotModeledResidueRangeDumper()
+            self.assertRaises(exc, _get_dumper_output, dumper, system)
+
     def test_ensemble_dumper(self):
         """Test EnsembleDumper"""
         class MockObject(object):

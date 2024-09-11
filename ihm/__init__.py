@@ -1241,7 +1241,7 @@ class EntityRange(object):
         self.entity = entity
         self.seq_id_range = (seq_id_begin, seq_id_end)
         if _check:
-            util._check_residue_range(self)
+            util._check_residue_range(self.seq_id_range, self.entity)
 
     def __eq__(self, other):
         try:
@@ -1495,7 +1495,7 @@ class AsymUnitRange(object):
         self.asym = asym
         self.seq_id_range = (seq_id_begin, seq_id_end)
         if _check:
-            util._check_residue_range(self)
+            util._check_residue_range(self.seq_id_range, self.entity)
 
     def __eq__(self, other):
         try:
