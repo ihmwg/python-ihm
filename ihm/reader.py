@@ -1965,6 +1965,23 @@ class _EnsembleHandler(Handler):
                 del e._sub_sampling_type
 
 
+class _NotModeledResidueRangeHandler(Handler):
+    category = '_ihm_residues_not_modeled'
+
+    def __call__(self, model_id, asym_id, seq_id_begin, seq_id_end,
+                 reason):
+        model = self.sysr.models.get_by_id(model_id)
+        asym = self.sysr.asym_units.get_by_id(asym_id)
+        rr = ihm.model.NotModeledResidueRange(
+            asym, int(seq_id_begin), int(seq_id_end))
+        # Default to "Other" if invalid reason read
+        try:
+            rr.reason = reason
+        except ValueError:
+            rr.reason = "Other"
+        model.not_modeled_residue_ranges.append(rr)
+
+
 class _SubsampleHandler(Handler):
     category = '_ihm_ensemble_sub_sample'
 
@@ -3797,6 +3814,7 @@ class IHMVariant(Variant):
         _ProtocolHandler, _ProtocolDetailsHandler, _PostProcessHandler,
         _ModelListHandler, _ModelGroupHandler, _ModelGroupLinkHandler,
         _MultiStateHandler, _MultiStateLinkHandler, _EnsembleHandler,
+        _NotModeledResidueRangeHandler,
         _DensityHandler, _SubsampleHandler, _EM3DRestraintHandler,
         _EM2DRestraintHandler, _EM2DFittingHandler, _SASRestraintHandler,
         _SphereObjSiteHandler, _AtomSiteHandler, _FeatureListHandler,

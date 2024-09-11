@@ -1750,6 +1750,27 @@ class _ModelDumper(_ModelDumperBase):
                              rmsf=sphere.rmsf, model_id=model._id)
 
 
+class _NotModeledResidueRangeDumper(Dumper):
+    def dump(self, system, writer):
+        ordinal = itertools.count(1)
+        with writer.loop("_ihm_residues_not_modeled",
+                         ["id", "model_id", "entity_description",
+                          "entity_id", "asym_id", "seq_id_begin", "seq_id_end",
+                          "comp_id_begin", "comp_id_end", "reason"]) as lp:
+            for group, model in system._all_models():
+                for rr in model.not_modeled_residue_ranges:
+                    e = rr.asym_unit.entity
+                    lp.write(id=next(ordinal), model_id=model._id,
+                             entity_description=e.description,
+                             entity_id=e._id,
+                             asym_id=rr.asym_unit._id,
+                             seq_id_begin=rr.seq_id_begin,
+                             seq_id_end=rr.seq_id_end,
+                             comp_id_begin=e.sequence[rr.seq_id_begin - 1].id,
+                             comp_id_end=e.sequence[rr.seq_id_end - 1].id,
+                             reason=rr.reason)
+
+
 class _EnsembleDumper(Dumper):
     def finalize(self, system):
         # Assign IDs
@@ -3677,7 +3698,8 @@ class IHMVariant(Variant):
         _GeometricRestraintDumper, _DerivedDistanceRestraintDumper,
         _HDXRestraintDumper,
         _PredictedContactRestraintDumper, _EM3DDumper, _EM2DDumper, _SASDumper,
-        _ModelDumper, _EnsembleDumper, _DensityDumper, _MultiStateDumper,
+        _ModelDumper, _NotModeledResidueRangeDumper,
+        _EnsembleDumper, _DensityDumper, _MultiStateDumper,
         _OrderedDumper,
         _MultiStateSchemeDumper, _MultiStateSchemeConnectivityDumper,
         _RelaxationTimeDumper, _KineticRateDumper]

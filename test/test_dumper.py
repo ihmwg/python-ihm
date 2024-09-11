@@ -1964,7 +1964,7 @@ _ihm_model_group_link.model_id
         if water:
             e1 = ihm.Entity([ihm.WaterChemComp()])
         else:
-            e1 = ihm.Entity('ACGT')
+            e1 = ihm.Entity('ACGT', description="Nup84")
         e1._id = 9
         system.entities.append(e1)
         if water:
@@ -2512,6 +2512,37 @@ N
             ['HETATM 1 O O . HOH . 42 ? X 1.000 2.000 3.000 . 9 X HOH . 1 1',
              'HETATM 2 O O . HOH . 99 ? X 4.000 5.000 6.000 . 9 X HOH . 1 1',
              'HETATM 3 O O . HOH . 3 ? X 7.000 8.000 9.000 . 9 X HOH . 1 1'])
+
+    def test_not_modeled_residue_range_dumper(self):
+        """Test NotModeledResidueRangeDumper"""
+        system, model, asym = self._make_test_model()
+
+        rr1 = ihm.model.NotModeledResidueRange(asym, 1, 2)
+        rr2 = ihm.model.NotModeledResidueRange(
+            asym, 3, 4, reason="Highly variable models with poor precision")
+        model.not_modeled_residue_ranges.extend((rr1, rr2))
+
+        dumper = ihm.dumper._ModelDumper()
+        dumper.finalize(system)  # assign model/group IDs
+
+        dumper = ihm.dumper._NotModeledResidueRangeDumper()
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_ihm_residues_not_modeled.id
+_ihm_residues_not_modeled.model_id
+_ihm_residues_not_modeled.entity_description
+_ihm_residues_not_modeled.entity_id
+_ihm_residues_not_modeled.asym_id
+_ihm_residues_not_modeled.seq_id_begin
+_ihm_residues_not_modeled.seq_id_end
+_ihm_residues_not_modeled.comp_id_begin
+_ihm_residues_not_modeled.comp_id_end
+_ihm_residues_not_modeled.reason
+1 1 Nup84 9 X 1 2 ALA CYS .
+2 1 Nup84 9 X 3 4 GLY THR 'Highly variable models with poor precision'
+#
+""")
 
     def test_ensemble_dumper(self):
         """Test EnsembleDumper"""
