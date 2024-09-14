@@ -731,16 +731,50 @@ class _PolySeqSchemeDumper(Dumper):
                 entity = asym.entity
                 if not entity.is_polymeric():
                     continue
-                for num, comp in enumerate(entity.sequence):
-                    pdb_seq_num, auth_seq_num, ins = \
-                        asym._get_pdb_auth_seq_id_ins_code(num + 1)
-                    lp.write(asym_id=asym._id, pdb_strand_id=asym.strand_id,
-                             entity_id=entity._id,
-                             seq_id=num + 1, pdb_seq_num=pdb_seq_num,
-                             auth_seq_num=auth_seq_num,
-                             mon_id=comp.id, pdb_mon_id=comp.id,
-                             auth_mon_id=comp.id,
-                             pdb_ins_code=ins)
+                for start, end, modeled in self._get_ranges(system, asym):
+                    for num in range(start, end + 1):
+                        comp = entity.sequence[num - 1]
+                        auth_comp_id = comp.id
+                        pdb_seq_num, auth_seq_num, ins = \
+                            asym._get_pdb_auth_seq_id_ins_code(num)
+                        if not modeled:
+                            # If a residue wasn't modeled, PDB convention is
+                            # to state ? for auth_seq_num, pdb_mon_id,
+                            # auth_mon_id.
+                            # See, e.g., https://files.rcsb.org/view/8QB4.cif
+                            auth_comp_id = ihm.unknown
+                            auth_seq_num = ihm.unknown
+                        lp.write(asym_id=asym._id,
+                                 pdb_strand_id=asym.strand_id,
+                                 entity_id=entity._id, seq_id=num,
+                                 pdb_seq_num=pdb_seq_num,
+                                 auth_seq_num=auth_seq_num, mon_id=comp.id,
+                                 pdb_mon_id=auth_comp_id,
+                                 auth_mon_id=auth_comp_id, pdb_ins_code=ins)
+
+    def _get_ranges(self, system, asym):
+        """Get a list of (seq_id_begin, seq_id_end, modeled) residue ranges
+           for the given asym. The list is guaranteed to be sorted and to cover
+           all residues in the asym. `modeled` is True if no Model has any
+           residue in that range in a NotModeledResidueRange."""
+        _all_modeled = []
+        num_models = 0
+        for group, model in system._all_models():
+            num_models += 1
+            # Get a sorted non-overlapping list of all not-modeled ranges
+            _all_not_modeled = util._combine_ranges(
+                (rr.seq_id_begin, rr.seq_id_end)
+                for rr in model.not_modeled_residue_ranges
+                if rr.asym_unit is asym)
+            # Invert to get a list of modeled ranges for this model
+            _all_modeled.extend(util._invert_ranges(_all_not_modeled,
+                                                    len(asym.entity.sequence)))
+        # If no models, there are no "not modeled residues", so say everything
+        # was modeled
+        if num_models == 0:
+            _all_modeled = [(1, len(asym.entity.sequence))]
+        return util._pred_ranges(util._combine_ranges(_all_modeled),
+                                 len(asym.entity.sequence))
 
 
 class _NonPolySchemeDumper(Dumper):

@@ -86,3 +86,49 @@ def _check_residue(r):
     if r.seq_id > len(r.entity.sequence) or r.seq_id < 1:
         raise IndexError("Residue %d out of range for %s (1-%d)"
                          % (r.seq_id, r.entity, len(r.entity.sequence)))
+
+
+def _invert_ranges(ranges, end):
+    """Given a sorted list of non-overlapping ranges, yield a new list which
+       contains every range in the range 1-end which was not in the original
+       list.  For example, if end=4,
+       [(2, 3)] -> [(1, 1), (4, 4)]"""
+    start = 1
+    for r in ranges:
+        if r[0] > start:
+            yield (start, r[0] - 1)
+        start = r[1] + 1
+    if end >= start:
+        yield (start, end)
+
+
+def _pred_ranges(ranges, end):
+    """Given a sorted list of non-overlapping ranges, yield a new list which
+       covers the range 1-end. Each element in the new list contains a new
+       third bool member which is True iff the element was in the original
+       list. For example, if end=4,
+       [(2, 3)] -> [(1, 1, False), (2, 3, True), (4, 4, False)]"""
+    start = 1
+    for r in ranges:
+        if r[0] > start:
+            yield (start, r[0] - 1, False)
+        yield (r[0], r[1], True)
+        start = r[1] + 1
+    if end >= start:
+        yield (start, end, False)
+
+
+def _combine_ranges(ranges):
+    """Sort the input ranges and remove any overlaps; yield the result.
+       For example, [(8, 10), (1, 2), (3, 4)] -> [(1, 4), (8, 10)]"""
+    ranges = sorted(ranges)
+    if not ranges:
+        return
+    current = ranges[0]
+    for r in ranges[1:]:
+        if current[1] + 1 >= r[0]:
+            current = (current[0], max(r[1], current[1]))
+        else:
+            yield current
+            current = r
+    yield current
