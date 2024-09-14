@@ -88,12 +88,11 @@ def _check_residue(r):
                          % (r.seq_id, r.entity, len(r.entity.sequence)))
 
 
-def _invert_ranges(ranges, end):
+def _invert_ranges(ranges, end, start=1):
     """Given a sorted list of non-overlapping ranges, yield a new list which
-       contains every range in the range 1-end which was not in the original
-       list.  For example, if end=4,
+       contains every range in the range start-end which was not in the
+       original list.  For example, if end=4,
        [(2, 3)] -> [(1, 1), (4, 4)]"""
-    start = 1
     for r in ranges:
         if r[0] > start:
             yield (start, r[0] - 1)
@@ -131,4 +130,19 @@ def _combine_ranges(ranges):
         else:
             yield current
             current = r
+    yield current
+
+
+def _make_range_from_list(rr):
+    """Yield a list of ranges given a sorted list of values.
+       For example, [1, 2, 5, 6] -> [[1, 2], [5, 6]]"""
+    if not rr:
+        return
+    current = [rr[0], rr[0]]
+    for r in rr[1:]:
+        if current[1] + 1 == r:
+            current[1] = r
+        else:
+            yield current
+            current = [r, r]
     yield current

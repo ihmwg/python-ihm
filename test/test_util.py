@@ -76,6 +76,14 @@ class Tests(unittest.TestCase):
         inrng = [(2, 2), (4, 7)]
         self.assertEqual(list(ihm.util._invert_ranges(inrng, 7)),
                          [(1, 1), (3, 3)])
+        # Test with non-default start value
+        inrng = [(5, 8)]
+        self.assertEqual(list(ihm.util._invert_ranges(inrng, 10, start=3)),
+                         [(3, 4), (9, 10)])
+        self.assertEqual(list(ihm.util._invert_ranges(inrng, 20, start=10)),
+                         [(9, 20)])
+        self.assertEqual(list(ihm.util._invert_ranges(inrng, 4, start=1)),
+                         [(1, 4)])
 
     def test_pred_ranges(self):
         """Test _pred_ranges function"""
@@ -104,6 +112,14 @@ class Tests(unittest.TestCase):
         self.assertEqual(list(ihm.util._combine_ranges(inrng)),
                          [(1, 2), (4, 4)])
         self.assertEqual(list(ihm.util._combine_ranges([])), [])
+
+    def test_make_range_from_list(self):
+        """Test _make_range_from_list function"""
+        rr = []
+        self.assertEqual(list(ihm.util._make_range_from_list(rr)), [])
+        rr = [1, 2, 5, 6, 10, 11, 20]
+        self.assertEqual(list(ihm.util._make_range_from_list(rr)),
+                         [[1, 2], [5, 6], [10, 11], [20, 20]])
 
 
 if __name__ == '__main__':
