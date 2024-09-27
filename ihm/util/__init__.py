@@ -71,6 +71,8 @@ def _text_choice_property(attr, choices, doc=None):
 
 def _check_residue_range(seq_id_range, entity):
     """Make sure that a residue range is not out of range of its Entity"""
+    if not entity or not entity._range_check:
+        return
     if seq_id_range[1] < seq_id_range[0]:
         raise ValueError("Range %d-%d is invalid; end is before start"
                          % seq_id_range)
@@ -83,6 +85,8 @@ def _check_residue_range(seq_id_range, entity):
 
 def _check_residue(r):
     """Make sure that a residue is not out of range of its Entity"""
+    if not r.entity or not r.entity._range_check:
+        return
     if r.seq_id > len(r.entity.sequence) or r.seq_id < 1:
         raise IndexError("Residue %d out of range for %s (1-%d)"
                          % (r.seq_id, r.entity, len(r.entity.sequence)))

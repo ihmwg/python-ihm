@@ -2597,7 +2597,9 @@ _ihm_residues_not_modeled.reason
             system, model, asym = self._make_test_model()
             # Disable construction-time check so that we
             # can see dump time check
-            rr1 = ihm.model.NotModeledResidueRange(asym, *badrng, _check=False)
+            asym.entity._range_check = False
+            rr1 = ihm.model.NotModeledResidueRange(asym, *badrng)
+            asym.entity._range_check = True
             model.not_modeled_residue_ranges.append(rr1)
 
             dumper = ihm.dumper._ModelDumper()
@@ -2777,8 +2779,10 @@ _ihm_entity_poly_segment.comp_id_end
             system.entities.append(e1)
             # Disable construction-time check so that we
             # can see dump time check
+            e1._range_check = False
             system.orphan_features.append(
-                ihm.restraint.ResidueFeature([e1(*badrng, _check=False)]))
+                ihm.restraint.ResidueFeature([e1(*badrng)]))
+            e1._range_check = True
 
             dumper = ihm.dumper._EntityDumper()
             dumper.finalize(system)  # assign IDs
