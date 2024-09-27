@@ -7,7 +7,7 @@
     excluded from the ``pdbx_poly_seq_scheme`` table.
   - The ``make_mmcif`` utility script will now automatically add any
     missing :class:`ihm.model.NotModeledResidueRange` objects for
-    not-modeled residue ranges.
+    not-modeled residue ranges (#150).
   - Bugfix: the residue range checks introduced in version 1.5 broke the
     API used by python-modelcif. They have been reimplemented using the
     original API.
