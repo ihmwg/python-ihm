@@ -1061,6 +1061,40 @@ A 1 4 THR 4 4 THR THR A .
 #
 """)
 
+    def test_poly_seq_scheme_dumper_no_not_modeled(self):
+        """Test PolySeqSchemeDumper with no not-modeled residue list"""
+        # Older model with no not_modeled_residue_ranges member (e.g.
+        # older versions of python-modelcif)
+        system, m1, asym = self._make_test_model()
+        del m1.not_modeled_residue_ranges
+
+        mg = system.state_groups[0][0][0]
+        mg.append(m1)
+
+        ihm.dumper._EntityDumper().finalize(system)
+        ihm.dumper._StructAsymDumper().finalize(system)
+        dumper = ihm.dumper._PolySeqSchemeDumper()
+        out = _get_dumper_output(dumper, system)
+        # all residues are modeled
+        self.assertEqual(out, """#
+loop_
+_pdbx_poly_seq_scheme.asym_id
+_pdbx_poly_seq_scheme.entity_id
+_pdbx_poly_seq_scheme.seq_id
+_pdbx_poly_seq_scheme.mon_id
+_pdbx_poly_seq_scheme.pdb_seq_num
+_pdbx_poly_seq_scheme.auth_seq_num
+_pdbx_poly_seq_scheme.pdb_mon_id
+_pdbx_poly_seq_scheme.auth_mon_id
+_pdbx_poly_seq_scheme.pdb_strand_id
+_pdbx_poly_seq_scheme.pdb_ins_code
+A 1 1 ALA 1 1 ALA ALA A .
+A 1 2 CYS 2 2 CYS CYS A .
+A 1 3 GLY 3 3 GLY GLY A .
+A 1 4 THR 4 4 THR THR A .
+#
+""")
+
     def test_nonpoly_scheme_dumper(self):
         """Test NonPolySchemeDumper"""
         system = ihm.System()

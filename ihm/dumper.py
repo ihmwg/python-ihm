@@ -765,11 +765,16 @@ class _PolySeqSchemeDumper(Dumper):
         num_models = 0
         for group, model in system._all_models():
             num_models += 1
+            # Handle Model-like objects with no not-modeled member (e.g.
+            # older versions of python-modelcif)
+            if hasattr(model, 'not_modeled_residue_ranges'):
+                ranges = model.not_modeled_residue_ranges
+            else:
+                ranges = []
             # Get a sorted non-overlapping list of all not-modeled ranges
             _all_not_modeled = util._combine_ranges(
                 (rr.seq_id_begin, rr.seq_id_end)
-                for rr in model.not_modeled_residue_ranges
-                if rr.asym_unit is asym)
+                for rr in ranges if rr.asym_unit is asym)
             # Invert to get a list of modeled ranges for this model
             _all_modeled.extend(util._invert_ranges(_all_not_modeled,
                                                     len(asym.entity.sequence)))
