@@ -2832,6 +2832,26 @@ A 1 4 10 X
         self.assertIsNone(asym.residue(1).ins_code)
         self.assertIsNone(asym.orig_auth_seq_id_map)
 
+    def test_poly_seq_scheme_handler_unknown_auth_seq(self):
+        """Test PolySeqSchemeHandler with explicit unknown auth_seq_num"""
+        fh = StringIO(ASYM_ENTITY + """
+loop_
+_pdbx_poly_seq_scheme.asym_id
+_pdbx_poly_seq_scheme.entity_id
+_pdbx_poly_seq_scheme.seq_id
+_pdbx_poly_seq_scheme.pdb_seq_num
+_pdbx_poly_seq_scheme.auth_seq_num
+_pdbx_poly_seq_scheme.pdb_strand_id
+A 1 1 1 1 A
+A 1 2 2 2 A
+A 1 3 3 ? A
+A 1 4 4 4 A
+""")
+        s, = ihm.reader.read(fh)
+        asym, = s.asym_units
+        self.assertEqual(asym.auth_seq_id_map, 0)
+        self.assertEqual(asym.orig_auth_seq_id_map, {3: ihm.unknown})
+
     def test_poly_seq_scheme_handler_str_seq_id(self):
         """Test PolySeqSchemeHandler with a non-integer pdb_seq_num"""
         fh = StringIO(ASYM_ENTITY + """

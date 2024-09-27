@@ -982,6 +982,40 @@ D 4 2 DC 1 1 DC DC X B
 #
 """)
 
+    def test_poly_seq_scheme_unknown_auth_seq(self):
+        """Test PolySeqSchemeDumper with explicit unknown auth_seq_num"""
+        system = ihm.System()
+        e1 = ihm.Entity('ACGT')
+        system.entities.append(e1)
+        a1 = ihm.AsymUnit(e1, 'foo',
+                          orig_auth_seq_id_map={1: 3, 2: 4,
+                                                3: ihm.unknown, 4: 6})
+        system.asym_units.append(a1)
+        ihm.dumper._EntityDumper().finalize(system)
+        ihm.dumper._StructAsymDumper().finalize(system)
+        dumper = ihm.dumper._PolySeqSchemeDumper()
+        out = _get_dumper_output(dumper, system)
+        # If auth_seq_num is ?, so should pdb_mon_id and auth_mon_id;
+        # see, e.g. PDB ID 8qb4
+        self.assertEqual(out, """#
+loop_
+_pdbx_poly_seq_scheme.asym_id
+_pdbx_poly_seq_scheme.entity_id
+_pdbx_poly_seq_scheme.seq_id
+_pdbx_poly_seq_scheme.mon_id
+_pdbx_poly_seq_scheme.pdb_seq_num
+_pdbx_poly_seq_scheme.auth_seq_num
+_pdbx_poly_seq_scheme.pdb_mon_id
+_pdbx_poly_seq_scheme.auth_mon_id
+_pdbx_poly_seq_scheme.pdb_strand_id
+_pdbx_poly_seq_scheme.pdb_ins_code
+A 1 1 ALA 1 3 ALA ALA A .
+A 1 2 CYS 2 4 CYS CYS A .
+A 1 3 GLY 3 ? ? ? A .
+A 1 4 THR 4 6 THR THR A .
+#
+""")
+
     def test_poly_seq_scheme_dumper_not_modeled(self):
         """Test PolySeqSchemeDumper with not-modeled residues"""
         system, m1, asym = self._make_test_model()

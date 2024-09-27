@@ -744,6 +744,10 @@ class _PolySeqSchemeDumper(Dumper):
                             # See, e.g., https://files.rcsb.org/view/8QB4.cif
                             auth_comp_id = ihm.unknown
                             auth_seq_num = ihm.unknown
+                        elif auth_seq_num is ihm.unknown:
+                            # If we don't know the seq num, we can't know
+                            # the component ID either
+                            auth_comp_id = ihm.unknown
                         lp.write(asym_id=asym._id,
                                  pdb_strand_id=asym.strand_id,
                                  entity_id=entity._id, seq_id=num,
