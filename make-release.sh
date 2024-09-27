@@ -4,6 +4,7 @@
 # - Update AuditConformDumper to match latest IHM dictionary if necessary
 # - Run util/validate-outputs.py to make sure all example outputs validate
 #   (cd util; PYTHONPATH=.. python3 ./validate-outputs.py)
+# - Make sure all python-modelcif tests work using new IHM version
 # - Update ChangeLog.rst, util/debian/changelog, and util/python-ihm.spec
 #   with the release number and date
 # - Update release number in ihm/__init__.py, MANIFEST.in, and setup.py
