@@ -94,6 +94,9 @@ class Model(object):
        :param str name: Descriptive name for this model.
     """
     def __init__(self, assembly, protocol, representation, name=None):
+        # Note that a similar Model class is used in python-modelcif but it
+        # is not a subclass. So be careful when modifying this class to not
+        # break the API (e.g. by adding new members).
         self.assembly, self.protocol = assembly, protocol
         self.representation, self.name = representation, name
         self._atoms = []
