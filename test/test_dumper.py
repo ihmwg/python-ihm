@@ -3006,9 +3006,9 @@ _ihm_ordered_model.model_group_id_end
             number_of_gaussians=40, details='GMM fitting')
         r2 = ihm.restraint.EM3DRestraint(
             dataset=dataset2, assembly=assembly,
-            segment=False, fitting_method='Gaussian mixture model',
+            segment=True, fitting_method='Gaussian mixture model',
             fitting_method_citation=citation,
-            number_of_gaussians=30, details='GMM fitting')
+            number_of_gaussians=30, details='Other details')
         m = ihm.model.Model(assembly='foo', protocol='bar',
                             representation='baz')
         m._id = 42
@@ -3032,12 +3032,14 @@ _ihm_3dem_restraint.dataset_list_id
 _ihm_3dem_restraint.fitting_method
 _ihm_3dem_restraint.fitting_method_citation_id
 _ihm_3dem_restraint.struct_assembly_id
+_ihm_3dem_restraint.map_segment_flag
 _ihm_3dem_restraint.number_of_gaussians
 _ihm_3dem_restraint.model_id
 _ihm_3dem_restraint.cross_correlation_coefficient
-1 97 'Gaussian mixture model' . 99 40 42 0.400
-2 97 'Gaussian mixture model' . 99 40 44 .
-3 87 'Gaussian mixture model' 8 99 30 44 .
+_ihm_3dem_restraint.details
+1 97 'Gaussian mixture model' . 99 NO 40 42 0.400 'GMM fitting'
+2 97 'Gaussian mixture model' . 99 NO 40 44 . 'GMM fitting'
+3 87 'Gaussian mixture model' 8 99 YES 30 44 . 'Other details'
 #
 """)
 

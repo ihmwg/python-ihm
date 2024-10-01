@@ -2538,9 +2538,9 @@ class _EM3DDumper(Dumper):
         with writer.loop("_ihm_3dem_restraint",
                          ["id", "dataset_list_id", "fitting_method",
                           "fitting_method_citation_id",
-                          "struct_assembly_id",
+                          "struct_assembly_id", "map_segment_flag",
                           "number_of_gaussians", "model_id",
-                          "cross_correlation_coefficient"]) as lp:
+                          "cross_correlation_coefficient", "details"]) as lp:
             for r in self._all_restraints(system):
                 if r.fitting_method_citation:
                     citation_id = r.fitting_method_citation._id
@@ -2555,9 +2555,11 @@ class _EM3DDumper(Dumper):
                              fitting_method=r.fitting_method,
                              fitting_method_citation_id=citation_id,
                              struct_assembly_id=r.assembly._id,
+                             map_segment_flag=r.segment,
                              number_of_gaussians=r.number_of_gaussians,
                              model_id=model._id,
-                             cross_correlation_coefficient=ccc)
+                             cross_correlation_coefficient=ccc,
+                             details=r.details)
 
 
 class _EM2DDumper(Dumper):

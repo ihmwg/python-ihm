@@ -1740,11 +1740,13 @@ _ihm_3dem_restraint.dataset_list_id
 _ihm_3dem_restraint.fitting_method
 _ihm_3dem_restraint.fitting_method_citation_id
 _ihm_3dem_restraint.struct_assembly_id
+_ihm_3dem_restraint.map_segment_flag
 _ihm_3dem_restraint.number_of_gaussians
 _ihm_3dem_restraint.model_id
 _ihm_3dem_restraint.cross_correlation_coefficient
-1 26 'Gaussian mixture models' 9 2 400 1 .
-2 26 'Gaussian mixture models' 9 2 400 2 0.9
+_ihm_3dem_restraint.details
+1 26 'Gaussian mixture models' 9 2 YES 400 1 . details
+2 26 'Gaussian mixture models' 9 2 YES 400 2 0.9 details
 """)
         s, = ihm.reader.read(fh)
         r, = s.restraints
@@ -1752,7 +1754,9 @@ _ihm_3dem_restraint.cross_correlation_coefficient
         self.assertEqual(r.fitting_method, 'Gaussian mixture models')
         self.assertEqual(r.fitting_method_citation._id, '9')
         self.assertEqual(r.assembly._id, '2')
+        self.assertTrue(r.segment)
         self.assertEqual(r.number_of_gaussians, 400)
+        self.assertEqual(r.details, 'details')
         # Sort fits by model ID
         fits = sorted(r.fits.items(), key=lambda x: x[0]._id)
         self.assertEqual(len(fits), 2)

@@ -2045,14 +2045,16 @@ class _EM3DRestraintHandler(Handler):
     category = '_ihm_3dem_restraint'
 
     def __call__(self, dataset_list_id, struct_assembly_id,
-                 fitting_method_citation_id, fitting_method,
-                 number_of_gaussians, model_id, cross_correlation_coefficient):
+                 fitting_method_citation_id, map_segment_flag, fitting_method,
+                 number_of_gaussians, model_id, cross_correlation_coefficient,
+                 details):
         # EM3D restraints don't have their own IDs - they use the dataset id
         r = self.sysr.em3d_restraints.get_by_dataset(dataset_list_id)
         r.assembly = self.sysr.assemblies.get_by_id_or_none(struct_assembly_id)
         r.fitting_method_citation = self.sysr.citations.get_by_id_or_none(
             fitting_method_citation_id)
-        self.copy_if_present(r, locals(), keys=('fitting_method',))
+        self.copy_if_present(r, locals(), keys=('fitting_method', 'details'))
+        r.segment = self.get_bool(map_segment_flag)
         r.number_of_gaussians = self.get_int(number_of_gaussians)
 
         model = self.sysr.models.get_by_id(model_id)
