@@ -1747,24 +1747,33 @@ _ihm_3dem_restraint.cross_correlation_coefficient
 _ihm_3dem_restraint.details
 1 26 'Gaussian mixture models' 9 2 YES 400 1 . details
 2 26 'Gaussian mixture models' 9 2 YES 400 2 0.9 details
+3 26 'Gaussian mixture models' 9 3 NO 400 1 0.8 'other assembly'
+4 27 'Gaussian mixture models' 9 2 NO 400 1 0.8 'other dataset'
 """)
         s, = ihm.reader.read(fh)
-        r, = s.restraints
-        self.assertEqual(r.dataset._id, '26')
-        self.assertEqual(r.fitting_method, 'Gaussian mixture models')
-        self.assertEqual(r.fitting_method_citation._id, '9')
-        self.assertEqual(r.assembly._id, '2')
-        self.assertTrue(r.segment)
-        self.assertEqual(r.number_of_gaussians, 400)
-        self.assertEqual(r.details, 'details')
+        r1, r2, r3 = s.restraints
+        self.assertEqual(r1.dataset._id, '26')
+        self.assertEqual(r1.fitting_method, 'Gaussian mixture models')
+        self.assertEqual(r1.fitting_method_citation._id, '9')
+        self.assertEqual(r1.assembly._id, '2')
+        self.assertTrue(r1.segment)
+        self.assertEqual(r1.number_of_gaussians, 400)
+        self.assertEqual(r1.details, 'details')
         # Sort fits by model ID
-        fits = sorted(r.fits.items(), key=lambda x: x[0]._id)
+        fits = sorted(r1.fits.items(), key=lambda x: x[0]._id)
         self.assertEqual(len(fits), 2)
         self.assertEqual(fits[0][0]._id, '1')
         self.assertIsNone(fits[0][1].cross_correlation_coefficient)
         self.assertEqual(fits[1][0]._id, '2')
         self.assertAlmostEqual(fits[1][1].cross_correlation_coefficient,
                                0.9, delta=0.1)
+        # r2 acts on same dataset but a different assembly, so should be a
+        # distinct restraint object
+        self.assertEqual(r2.details, 'other assembly')
+        self.assertFalse(r2.segment)
+        # r3 acts on different dataset, so should be a distinct
+        # restraint object
+        self.assertEqual(r3.details, 'other dataset')
 
     def test_get_int(self):
         """Test _get_int method"""
@@ -1926,9 +1935,11 @@ _ihm_sas_restraint.radius_of_gyration
 _ihm_sas_restraint.chi_value
 _ihm_sas_restraint.details
 1 27 8 3 NO 'Heavy atoms' FoXS Single 27.9 1.36 .
+2 27 8 4 NO 'Heavy atoms' FoXS Single 27.9 1.4 'different assembly'
+2 28 8 3 NO 'Heavy atoms' FoXS Single 27.9 1.6 'different dataset'
 """)
         s, = ihm.reader.read(fh)
-        r, = s.restraints
+        r, r2, r3 = s.restraints
         self.assertEqual(r.dataset._id, '27')
         self.assertEqual(r.assembly._id, '3')
         self.assertEqual(r.segment, False)
@@ -1939,6 +1950,12 @@ _ihm_sas_restraint.details
         fit, = list(r.fits.items())
         self.assertEqual(fit[0]._id, '8')
         self.assertAlmostEqual(fit[1].chi_value, 1.36, delta=0.01)
+        # r2 acts on same dataset but a different assembly, so should be
+        # a distinct restraint object
+        self.assertEqual(r2.details, 'different assembly')
+        # r3 acts on different dataset, so should be a distinct
+        # restraint object
+        self.assertEqual(r3.details, 'different dataset')
 
     def test_sphere_obj_site_handler(self):
         """Test SphereObjSiteHandler"""

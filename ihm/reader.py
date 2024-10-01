@@ -367,7 +367,7 @@ class _FLRIDMapper(IDMapper):
         super(_FLRIDMapper, self).__init__(system_list, cls, *args, **keys)
 
 
-class _DatasetIDMapper(object):
+class _DatasetAssemblyIDMapper(object):
     """Handle mapping from mmCIF dataset IDs to Python objects.
 
        This is similar to IDMapper but is intended for objects like restraints
@@ -387,14 +387,15 @@ class _DatasetIDMapper(object):
         self._cls_args = cls_args
         self._cls_keys = cls_keys
 
-    def get_by_dataset(self, dataset_id):
+    def get_by_dataset(self, dataset_id, assembly_id):
         dataset = self.datasets.get_by_id(dataset_id)
-        if dataset._id not in self._obj_by_id:
+        k = (dataset._id, assembly_id)
+        if k not in self._obj_by_id:
             r = self._cls(dataset, *self._cls_args, **self._cls_keys)
             self.system_list.append(r)
-            self._obj_by_id[dataset._id] = r
+            self._obj_by_id[k] = r
         else:
-            r = self._obj_by_id[dataset._id]
+            r = self._obj_by_id[k]
         return r
 
 
@@ -536,10 +537,9 @@ class SystemReader(object):
                                   ihm.model.LocalizationDensity, *(None,) * 2)
 
         #: Mapping from ID to :class:`ihm.restraint.EM3DRestraint` objects
-        self.em3d_restraints = _DatasetIDMapper(self.system.restraints,
-                                                self.datasets,
-                                                ihm.restraint.EM3DRestraint,
-                                                None)
+        self.em3d_restraints = _DatasetAssemblyIDMapper(
+            self.system.restraints, self.datasets,
+            ihm.restraint.EM3DRestraint, None)
 
         #: Mapping from ID to :class:`ihm.restraint.EM2DRestraint` objects
         self.em2d_restraints = IDMapper(self.system.restraints,
@@ -547,10 +547,9 @@ class SystemReader(object):
                                         *(None,) * 2)
 
         #: Mapping from ID to :class:`ihm.restraint.SASRestraint` objects
-        self.sas_restraints = _DatasetIDMapper(self.system.restraints,
-                                               self.datasets,
-                                               ihm.restraint.SASRestraint,
-                                               None)
+        self.sas_restraints = _DatasetAssemblyIDMapper(
+            self.system.restraints, self.datasets,
+            ihm.restraint.SASRestraint, None)
 
         #: Mapping from ID to :class:`ihm.restraint.Feature` objects
         self.features = _FeatureIDMapper(self.system.orphan_features,
@@ -2048,8 +2047,10 @@ class _EM3DRestraintHandler(Handler):
                  fitting_method_citation_id, map_segment_flag, fitting_method,
                  number_of_gaussians, model_id, cross_correlation_coefficient,
                  details):
-        # EM3D restraints don't have their own IDs - they use the dataset id
-        r = self.sysr.em3d_restraints.get_by_dataset(dataset_list_id)
+        # EM3D restraints don't have their own IDs - they use the dataset
+        # and assembly IDs
+        r = self.sysr.em3d_restraints.get_by_dataset(dataset_list_id,
+                                                     struct_assembly_id)
         r.assembly = self.sysr.assemblies.get_by_id_or_none(struct_assembly_id)
         r.fitting_method_citation = self.sysr.citations.get_by_id_or_none(
             fitting_method_citation_id)
@@ -2106,8 +2107,10 @@ class _SASRestraintHandler(Handler):
                  profile_segment_flag, fitting_atom_type, fitting_method,
                  details, fitting_state, radius_of_gyration,
                  number_of_gaussians, model_id, chi_value):
-        # SAS restraints don't have their own IDs - they use the dataset id
-        r = self.sysr.sas_restraints.get_by_dataset(dataset_list_id)
+        # SAS restraints don't have their own IDs - they use the dataset and
+        # assembly IDs
+        r = self.sysr.sas_restraints.get_by_dataset(dataset_list_id,
+                                                    struct_assembly_id)
         r.assembly = self.sysr.assemblies.get_by_id_or_none(
             struct_assembly_id)
         r.segment = self.get_bool(profile_segment_flag)
