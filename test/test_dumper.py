@@ -1553,6 +1553,15 @@ _ihm_external_files.details
         ds4 = ihm.dataset.PDBDataset(None)
         system.orphan_datasets.append(ds4)
 
+        # Dataset with multiple locations
+        ds5 = ihm.dataset.PDBDataset(None)
+        loc = ihm.location.PDBLocation('2xyz', '1.0', 'other details')
+        ds5._add_location(loc)
+        loc = ihm.location.InputFileLocation(repo='foo', path='bar')
+        loc._id = 102
+        ds5._add_location(loc)
+        system.orphan_datasets.append(ds5)
+
         # Transformation not referenced by any object
         trans2 = ihm.geometry.Transformation([[1, 0, 0], [0, 1, 0], [0, 0, 1]],
                                              [4., 5., 6.])
@@ -1573,6 +1582,7 @@ _ihm_dataset_list.details
 4 Other YES baz
 5 'Experimental model' YES 'test dataset details'
 6 'Experimental model' NO .
+7 'Experimental model' YES .
 #
 #
 loop_
@@ -1598,6 +1608,7 @@ _ihm_dataset_external_reference.dataset_list_id
 _ihm_dataset_external_reference.file_id
 1 1 97
 2 2 98
+3 7 102
 #
 #
 loop_
@@ -1610,6 +1621,7 @@ _ihm_dataset_related_db_reference.details
 1 3 PDB 1cde foo bar
 2 4 PDB 1cdf foo bar
 3 5 PDB 1abc 1.0 'test details'
+4 7 PDB 2xyz 1.0 'other details'
 #
 #
 loop_

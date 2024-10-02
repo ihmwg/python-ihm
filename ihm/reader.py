@@ -1544,7 +1544,7 @@ class _DatasetExtRefHandler(Handler):
     def __call__(self, file_id, dataset_list_id):
         ds = self.sysr.datasets.get_by_id(dataset_list_id)
         f = self.sysr.external_files.get_by_id(file_id)
-        ds.location = f
+        ds._add_location(f)
 
 
 class _DatasetDBRefHandler(Handler):
@@ -1569,7 +1569,7 @@ class _DatasetDBRefHandler(Handler):
         # Preserve user-provided name for unknown databases
         if dbloc.db_name == 'Other' and db_name is not None:
             dbloc.db_name = db_name
-        ds.location = dbloc
+        ds._add_location(dbloc)
         self.copy_if_present(
             dbloc, locals(), keys=['version', 'details'],
             mapkeys={'accession_code': 'access_code'})

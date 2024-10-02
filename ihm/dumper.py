@@ -1126,18 +1126,12 @@ class _DatasetDumper(Dumper):
                           "details"]) as lp:
             for d in self._dataset_by_id:
                 lp.write(id=d._id, data_type=d.data_type, details=d.details,
-                         database_hosted=isinstance(d.location,
-                                                    location.DatabaseLocation))
+                         database_hosted=any(isinstance(
+                             loc, location.DatabaseLocation)
+                             for loc in d._locations))
         self.dump_groups(writer)
-        self.dump_other((d for d in self._dataset_by_id
-                         if d.location is not None
-                         and not isinstance(d.location,
-                                            location.DatabaseLocation)),
-                        writer)
-        self.dump_rel_dbs((d for d in self._dataset_by_id
-                           if isinstance(d.location,
-                                         location.DatabaseLocation)),
-                          writer)
+        self.dump_other(writer)
+        self.dump_rel_dbs(writer)
         self.dump_related(system, writer)
         self.dump_related_transform(system, writer)
 
@@ -1160,25 +1154,31 @@ class _DatasetDumper(Dumper):
                 for dataset_id in sorted(set(d._id for d in g)):
                     lp.write(group_id=g._id, dataset_list_id=dataset_id)
 
-    def dump_other(self, datasets, writer):
+    def dump_other(self, writer):
         ordinal = itertools.count(1)
         with writer.loop("_ihm_dataset_external_reference",
                          ["id", "dataset_list_id", "file_id"]) as lp:
-            for d in datasets:
-                lp.write(id=next(ordinal), dataset_list_id=d._id,
-                         file_id=d.location._id)
+            for d in self._dataset_by_id:
+                for loc in d._locations:
+                    if (loc is not None and
+                            not isinstance(loc, location.DatabaseLocation)):
+                        lp.write(id=next(ordinal), dataset_list_id=d._id,
+                                 file_id=loc._id)
 
-    def dump_rel_dbs(self, datasets, writer):
+    def dump_rel_dbs(self, writer):
         ordinal = itertools.count(1)
         with writer.loop("_ihm_dataset_related_db_reference",
                          ["id", "dataset_list_id", "db_name",
                           "accession_code", "version", "details"]) as lp:
-            for d in datasets:
-                lp.write(id=next(ordinal), dataset_list_id=d._id,
-                         db_name=d.location.db_name,
-                         accession_code=d.location.access_code,
-                         version=d.location.version,
-                         details=d.location.details)
+            for d in self._dataset_by_id:
+                for loc in d._locations:
+                    if (loc is not None
+                            and isinstance(loc, location.DatabaseLocation)):
+                        lp.write(id=next(ordinal), dataset_list_id=d._id,
+                                 db_name=loc.db_name,
+                                 accession_code=loc.access_code,
+                                 version=loc.version,
+                                 details=loc.details)
 
     def dump_related(self, system, writer):
         with writer.loop("_ihm_related_datasets",

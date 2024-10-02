@@ -1037,6 +1037,41 @@ _ihm_dataset_group_link.dataset_list_id
             self.assertEqual(d1.__class__, ihm.dataset.Dataset)
             self.assertEqual(d2.__class__, ihm.dataset.Dataset)
 
+    def test_dataset_multiple_locations(self):
+        """Check handling of a dataset with multiple locations"""
+        cif = """
+loop_
+_ihm_dataset_external_reference.id
+_ihm_dataset_external_reference.dataset_list_id
+_ihm_dataset_external_reference.file_id
+1 1 11
+2 1 12
+#
+loop_
+_ihm_dataset_related_db_reference.id
+_ihm_dataset_related_db_reference.dataset_list_id
+_ihm_dataset_related_db_reference.db_name
+_ihm_dataset_related_db_reference.accession_code
+_ihm_dataset_related_db_reference.version
+_ihm_dataset_related_db_reference.details
+1 1 PDB 3JRO . .
+2 1 PDB 1ABC . .
+"""
+        for fh in cif_file_handles(cif):
+            s, = ihm.reader.read(fh)
+            d, = s.orphan_datasets
+            # "location" should match first _locations
+            self.assertEqual(d.location._id, '11')
+            loc1, loc2, loc3, loc4 = d._locations
+            self.assertEqual(loc1._id, '11')
+            self.assertEqual(loc2._id, '12')
+            self.assertEqual(loc3._id, '1')
+            self.assertEqual(loc4._id, '2')
+            self.assertIsInstance(loc1, ihm.location.FileLocation)
+            self.assertIsInstance(loc2, ihm.location.FileLocation)
+            self.assertIsInstance(loc3, ihm.location.PDBLocation)
+            self.assertIsInstance(loc4, ihm.location.PDBLocation)
+
     def test_dataset_extref_handler(self):
         """Test DatasetExtRefHandler"""
         cif = """
