@@ -3946,7 +3946,9 @@ def read(fh, model_class=ihm.model.Model, format='mmCIF', handlers=[],
        :type variant: :class:`Variant`
        :param add_to_system: If provided, all data read from the file is added
               to the existing System, rather than being placed in new System
-              objects.
+              objects. This System must itself have previously been read from
+              a file (so that objects have IDs, which can be used to map data
+              in the new file to the existing System).
        :type add_to_system: :class:`ihm.System`
        :return: A list of :class:`ihm.System` objects.
     """
