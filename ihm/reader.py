@@ -90,6 +90,11 @@ class IDMapper(object):
         self._cls = cls
         self._cls_args = cls_args
         self._cls_keys = cls_keys
+        # e.g. some handlers use FLRListAdapter, which doesn't
+        # support iteration
+        if system_list and hasattr(system_list, '__iter__'):
+            for obj in system_list:
+                self._obj_by_id[getattr(obj, self.id_attr)] = obj
 
     def get_all(self):
         """Yield all objects seen so far (unordered)"""
@@ -426,9 +431,9 @@ class SystemReader(object):
        being read from a file, such as the mapping from IDs to objects
        (as :class:`IDMapper` objects). This can be used by :class:`Handler`
        subclasses."""
-    def __init__(self, model_class, starting_model_class):
+    def __init__(self, model_class, starting_model_class, system=None):
         #: The :class:`ihm.System` object being read in
-        self.system = ihm.System()
+        self.system = system or ihm.System()
 
         #: Mapping from ID to :class:`ihm.Software` objects
         self.software = IDMapper(self.system.software, ihm.Software,
@@ -3865,7 +3870,8 @@ def read(fh, model_class=ihm.model.Model, format='mmCIF', handlers=[],
          warn_unknown_category=False, warn_unknown_keyword=False,
          read_starting_model_coord=True,
          starting_model_class=ihm.startmodel.StartingModel,
-         reject_old_file=False, variant=IHMVariant):
+         reject_old_file=False, variant=IHMVariant,
+         add_to_system=None):
     """Read data from the file handle `fh`.
 
        Note that the reader currently expects to see a file compliant
@@ -3938,6 +3944,10 @@ def read(fh, model_class=ihm.model.Model, format='mmCIF', handlers=[],
               read from the file. In most cases the default
               :class:`IHMVariant` should be used.
        :type variant: :class:`Variant`
+       :param add_to_system: If provided, all data read from the file is added
+              to the existing System, rather than being placed in new System
+              objects.
+       :type add_to_system: :class:`ihm.System`
        :return: A list of :class:`ihm.System` objects.
     """
     if isinstance(variant, type):
@@ -3952,7 +3962,12 @@ def read(fh, model_class=ihm.model.Model, format='mmCIF', handlers=[],
     r = reader_map[format](fh, {}, unknown_category_handler=uchandler,
                            unknown_keyword_handler=ukhandler)
     while True:
-        s = variant.system_reader(model_class, starting_model_class)
+        if add_to_system:
+            s = variant.system_reader(model_class, starting_model_class,
+                                      system=add_to_system)
+        else:
+            # e.g. older ModelCIF's SystemReader doesn't support add_to_system
+            s = variant.system_reader(model_class, starting_model_class)
         hs = variant.get_handlers(s) + [h(s) for h in handlers]
         if reject_old_file:
             hs.append(variant.get_audit_conform_handler(s))
