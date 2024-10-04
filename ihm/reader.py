@@ -3944,11 +3944,14 @@ def read(fh, model_class=ihm.model.Model, format='mmCIF', handlers=[],
               read from the file. In most cases the default
               :class:`IHMVariant` should be used.
        :type variant: :class:`Variant`
-       :param add_to_system: If provided, all data read from the file is added
+       :param add_to_system: If provided, all data read from the file are added
               to the existing System, rather than being placed in new System
               objects. This System must itself have previously been read from
               a file (so that objects have IDs, which can be used to map data
-              in the new file to the existing System).
+              in the new file to the existing System). Note however that this
+              will not handle duplicate IDs (it is intended for depositions
+              where the data are split between multiple files) so cannot be
+              used to combine two disparate mmCIF files into one.
        :type add_to_system: :class:`ihm.System`
        :return: A list of :class:`ihm.System` objects.
     """
