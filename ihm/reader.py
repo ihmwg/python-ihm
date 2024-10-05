@@ -90,6 +90,9 @@ class IDMapper(object):
         self._cls = cls
         self._cls_args = cls_args
         self._cls_keys = cls_keys
+        # Fill in any existing IDs if available, so that we can objects
+        # to an existing system
+        # todo: handle objects where system_list is None
         # e.g. some handlers use FLRListAdapter, which doesn't
         # support iteration
         if system_list and hasattr(system_list, '__iter__'):
