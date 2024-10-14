@@ -1288,7 +1288,8 @@ class Residue(object):
         if entity is None and asym:
             self.entity = asym.entity
         self.seq_id = seq_id
-        util._check_residue(self)
+        if self.entity is not None and self.entity.is_polymeric():
+            util._check_residue(self)
 
     def atom(self, atom_id):
         """Get a :class:`~ihm.Atom` in this residue with the given name."""
