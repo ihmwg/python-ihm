@@ -1260,7 +1260,7 @@ class _StructRefSeqDifHandler(Handler):
     def __call__(self, align_id, seq_num, db_mon_id, mon_id, details):
         align = self.sysr.alignments.get_by_id(align_id)
         db_monomer = self.sysr.chem_comps.get_by_id_or_none(db_mon_id)
-        monomer = self.sysr.chem_comps.get_by_id(mon_id)
+        monomer = self.sysr.chem_comps.get_by_id_or_none(mon_id)
         sd = ihm.reference.SeqDif(self.get_int(seq_num), db_monomer, monomer,
                                   details)
         align.seq_dif.append(sd)

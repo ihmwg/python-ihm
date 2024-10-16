@@ -574,9 +574,9 @@ _entity_src_gen.pdbx_host_org_strain
         lpep = ihm.LPeptideAlphabet()
         sd = ihm.reference.SeqDif(seq_id=2, db_monomer=lpep['W'],
                                   monomer=lpep['S'], details='Test mutation')
-        # Test non-mandatory db_monomer
+        # Test non-mandatory db_monomer and monomer
         sd2 = ihm.reference.SeqDif(seq_id=3, db_monomer=None,
-                                   monomer=lpep['P'], details='Test mutation')
+                                   monomer=None, details='Test mutation')
         r1 = ihm.reference.UniProtSequence(
             db_code='NUP84_YEAST', accession='P52891', sequence='MELWPTYQT',
             details='test sequence')
@@ -661,7 +661,7 @@ _struct_ref_seq_dif.db_mon_id
 _struct_ref_seq_dif.mon_id
 _struct_ref_seq_dif.details
 1 1 2 TRP SER 'Test mutation'
-2 1 3 ? PRO 'Test mutation'
+2 1 3 ? ? 'Test mutation'
 #
 """)
 

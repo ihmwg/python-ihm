@@ -708,6 +708,7 @@ _struct_ref_seq_dif.db_mon_id
 _struct_ref_seq_dif.mon_id
 _struct_ref_seq_dif.details
 1 1 2 TRP SER 'Test mutation'
+2 1 2 . . 'Test mutation'
 #
 """
         # Order of the categories shouldn't matter
@@ -731,13 +732,17 @@ _struct_ref_seq_dif.details
                 self.assertEqual(a1.db_end, 6)
                 self.assertEqual(a1.entity_begin, 1)
                 self.assertEqual(a1.entity_end, 4)
-                sd, = a1.seq_dif
+                sd, sd2 = a1.seq_dif
                 self.assertEqual(sd.seq_id, 2)
                 self.assertIsInstance(sd.db_monomer, ihm.ChemComp)
                 self.assertIsInstance(sd.monomer, ihm.ChemComp)
                 self.assertEqual(sd.db_monomer.id, 'TRP')
                 self.assertEqual(sd.monomer.id, 'SER')
                 self.assertEqual(sd.details, 'Test mutation')
+                # Both mon_id and db_mon_id are optional, so could be empty
+                self.assertIsNone(sd2.db_monomer)
+                self.assertIsNone(sd2.monomer)
+
                 self.assertEqual(a2.db_begin, 8)
                 self.assertEqual(a2.db_end, 8)
                 self.assertEqual(a2.entity_begin, 5)

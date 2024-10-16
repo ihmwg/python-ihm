@@ -461,7 +461,8 @@ class _StructRefDumper(Dumper):
                 raise IndexError("SeqDif.seq_id for %s is %d, out of "
                                  "range 1-%d"
                                  % (entity, sd.seq_id, len(entseq)))
-            if sd.monomer.code_canonical != entseq[sd.seq_id - 1]:
+            if (sd.monomer
+                    and sd.monomer.code_canonical != entseq[sd.seq_id - 1]):
                 raise ValueError("SeqDif.monomer one-letter code (%s) does "
                                  "not match that in %s (%s at position %d)"
                                  % (sd.monomer.code_canonical, entity,
@@ -564,7 +565,9 @@ class _StructRefDumper(Dumper):
                                  align_id=a._id, seq_num=sd.seq_id,
                                  db_mon_id=sd.db_monomer.id
                                  if sd.db_monomer else ihm.unknown,
-                                 mon_id=sd.monomer.id, details=sd.details)
+                                 mon_id=sd.monomer.id
+                                 if sd.monomer else ihm.unknown,
+                                 details=sd.details)
 
 
 class _EntityPolyDumper(Dumper):
