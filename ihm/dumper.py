@@ -2297,6 +2297,8 @@ class _CrossLinkDumper(Dumper):
             for r, xl in self._ex_xls_by_id:
                 entity1 = xl.residue1.entity
                 entity2 = xl.residue2.entity
+                util._check_residue(xl.residue1)
+                util._check_residue(xl.residue2)
                 seq1 = entity1.sequence
                 seq2 = entity2.sequence
                 lp.write(id=xl._id, group_id=xl._group_id,

@@ -3322,6 +3322,42 @@ _ihm_cross_link_result_parameters.sigma_2
 #
 """)
 
+    def test_cross_link_restraint_dumper_range_check(self):
+        """Test CrossLinkRestraintDumper with out-of-range residue"""
+        class MockObject(object):
+            pass
+        system = ihm.System()
+        e1 = ihm.Entity('ATC', description='foo')
+        system.entities.append(e1)
+        asym1 = ihm.AsymUnit(e1)
+        system.asym_units.append(asym1)
+
+        dataset = MockObject()
+        dataset._id = 97
+        dss = ihm.ChemDescriptor('DSS')
+        r = ihm.restraint.CrossLinkRestraint(dataset=dataset, linker=dss)
+        # Disable construction-time check so that we
+        # can see dump time check
+        e1._range_check = False
+        xxl1 = ihm.restraint.ExperimentalCrossLink(
+            e1.residue(2), e1.residue(300))
+        e1._range_check = True
+        r.experimental_cross_links.append([xxl1])
+        system.restraints.append(r)
+
+        d = ihm.restraint.UpperBoundDistanceRestraint(25.0)
+        xl1 = ihm.restraint.ResidueCrossLink(
+            xxl1, asym1, asym1, d, psi=0.5, sigma1=1.0, sigma2=2.0,
+            restrain_all=True)
+        r.cross_links.append(xl1)
+
+        ihm.dumper._EntityDumper().finalize(system)  # assign entity IDs
+        ihm.dumper._StructAsymDumper().finalize(system)  # assign asym IDs
+        ihm.dumper._ChemDescriptorDumper().finalize(system)  # descriptor IDs
+        dumper = ihm.dumper._CrossLinkDumper()
+        dumper.finalize(system)  # assign IDs
+        self.assertRaises(IndexError, _get_dumper_output, dumper, system)
+
     def test_geometric_object_dumper(self):
         """Test GeometricObjectDumper"""
         system = ihm.System()
