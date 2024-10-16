@@ -28,7 +28,8 @@ import ihm.multi_state_scheme
 from test_format_bcif import MockFh, MockMsgPack
 
 
-def _get_dumper_output(dumper, system):
+def _get_dumper_output(dumper, system, check=True):
+    dumper._check = check
     fh = StringIO()
     writer = ihm.format.CifWriter(fh)
     dumper.dump(system, writer)
@@ -55,6 +56,21 @@ class Tests(unittest.TestCase):
         self.assertEqual(lines[:2], ["data_system1", "_entry.id system1"])
         self.assertEqual(lines[16:18],
                          ["data_system23", "_entry.id 'system 2+3'"])
+
+    def test_write_checks(self):
+        """Test write() function with checks enabled or disabled"""
+        s = ihm.System(id='system1')
+        s.entities.append(ihm.Entity('AHC'))
+        # Duplicate entity
+        s.entities.append(ihm.Entity('AHC'))
+        fh = StringIO()
+        # Duplicate entity should cause a check failure by default
+        self.assertRaises(ValueError, ihm.dumper.write, fh, [s])
+        # But OK if checks are disabled
+        fh = StringIO()
+        ihm.dumper.write(fh, [s], check=False)
+        self.assertEqual(s.entities[0]._id, 1)
+        self.assertEqual(s.entities[1]._id, 2)
 
     def test_write_custom_dumper(self):
         """Test write() function with custom dumper"""
@@ -422,6 +438,11 @@ _entity.details
         system.entities.append(ihm.Entity('AHC'))
         dumper = ihm.dumper._EntityDumper()
         self.assertRaises(ValueError, dumper.finalize, system)
+        # Also test with checks skipped
+        dumper._check = False
+        dumper.finalize(system)
+        self.assertEqual(system.entities[0]._id, 1)
+        self.assertEqual(system.entities[1]._id, 2)
 
     def test_entity_duplicate_branched(self):
         """Test EntityDumper with duplicate branched entities"""

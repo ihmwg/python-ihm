@@ -32,6 +32,10 @@ def _is_subrange(rng1, rng2):
 class Dumper(object):
     """Base class for helpers to dump output to mmCIF or BinaryCIF.
        See :func:`write`."""
+
+    # Set to False to disable dump-time sanity checks
+    _check = True
+
     def __init__(self):
         pass
 
@@ -287,7 +291,7 @@ class _EntityDumper(Dumper):
         seen = {}
         empty = []
         for num, entity in enumerate(system.entities):
-            if entity in seen and len(entity.sequence) > 0:
+            if self._check and entity in seen and len(entity.sequence) > 0:
                 raise ValueError("Duplicate entity %s found" % entity)
             if len(entity.sequence) == 0:
                 empty.append(entity)
@@ -3795,7 +3799,8 @@ def set_line_wrap(line_wrap):
     ihm.format.CifWriter._set_line_wrap(line_wrap)
 
 
-def write(fh, systems, format='mmCIF', dumpers=[], variant=IHMVariant):
+def write(fh, systems, format='mmCIF', dumpers=[], variant=IHMVariant,
+          check=True):
     """Write out all `systems` to the file handle `fh`.
        Files can be written in either the text-based mmCIF format or the
        BinaryCIF format. The BinaryCIF writer needs the msgpack Python
@@ -3830,6 +3835,10 @@ def write(fh, systems, format='mmCIF', dumpers=[], variant=IHMVariant):
               written to the file. In most cases the default
               :class:`IHMVariant` should be used.
        :type variant: :class:`Variant`
+       :param bool check: If True (the default), check the output objects
+              for self-consistency. If this is set to False, disabling these
+              checks, the output files may not correctly validate against
+              the mmCIF dictionaries.
     """
     if isinstance(variant, type):
         variant = variant()
@@ -3843,6 +3852,7 @@ def write(fh, systems, format='mmCIF', dumpers=[], variant=IHMVariant):
         system._before_write()
 
         for d in dumpers:
+            d._check = check
             d.finalize(system)
         system._check_after_write()
         for d in dumpers:
