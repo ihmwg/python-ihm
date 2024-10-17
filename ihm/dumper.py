@@ -424,6 +424,14 @@ def _prettyprint_seq(seq, width):
         yield ''.join(line)
 
 
+def _get_comp_id(entity, seq_id):
+    """Get the component ID for a given seq_id, or ? if it is out of range"""
+    if 1 <= seq_id <= len(entity.sequence):
+        return entity.sequence[seq_id - 1].id
+    else:
+        return ihm.unknown
+
+
 class _StructRefDumper(Dumper):
     def finalize(self, system):
         # List of (entity, ref) by ID
@@ -1815,17 +1823,17 @@ class _NotModeledResidueRangeDumper(Dumper):
             for group, model in system._all_models():
                 for rr in model.not_modeled_residue_ranges:
                     e = rr.asym_unit.entity
-                    # Always check as comp_id lookups may fail otherwise
-                    util._check_residue_range(
-                        (rr.seq_id_begin, rr.seq_id_end), e)
+                    if self._check:
+                        util._check_residue_range(
+                            (rr.seq_id_begin, rr.seq_id_end), e)
                     lp.write(id=next(ordinal), model_id=model._id,
                              entity_description=e.description,
                              entity_id=e._id,
                              asym_id=rr.asym_unit._id,
                              seq_id_begin=rr.seq_id_begin,
                              seq_id_end=rr.seq_id_end,
-                             comp_id_begin=e.sequence[rr.seq_id_begin - 1].id,
-                             comp_id_end=e.sequence[rr.seq_id_end - 1].id,
+                             comp_id_begin=_get_comp_id(e, rr.seq_id_begin),
+                             comp_id_end=_get_comp_id(e, rr.seq_id_end),
                              reason=rr.reason)
 
 

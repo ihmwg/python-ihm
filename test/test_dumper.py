@@ -2727,6 +2727,8 @@ _ihm_residues_not_modeled.reason
 
             dumper = ihm.dumper._NotModeledResidueRangeDumper()
             self.assertRaises(exc, _get_dumper_output, dumper, system)
+            # Should be OK if checks are disabled
+            _ = _get_dumper_output(dumper, system, check=False)
 
     def test_ensemble_dumper(self):
         """Test EnsembleDumper"""
