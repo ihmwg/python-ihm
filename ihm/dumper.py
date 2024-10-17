@@ -2315,20 +2315,18 @@ class _CrossLinkDumper(Dumper):
             for r, xl in self._ex_xls_by_id:
                 entity1 = xl.residue1.entity
                 entity2 = xl.residue2.entity
-                # Always check as comp_id lookups may fail otherwise
-                util._check_residue(xl.residue1)
-                util._check_residue(xl.residue2)
-                seq1 = entity1.sequence
-                seq2 = entity2.sequence
+                if self._check:
+                    util._check_residue(xl.residue1)
+                    util._check_residue(xl.residue2)
                 lp.write(id=xl._id, group_id=xl._group_id,
                          entity_description_1=entity1.description,
                          entity_id_1=entity1._id,
                          seq_id_1=xl.residue1.seq_id,
-                         comp_id_1=seq1[xl.residue1.seq_id - 1].id,
+                         comp_id_1=_get_comp_id(entity1, xl.residue1.seq_id),
                          entity_description_2=entity2.description,
                          entity_id_2=entity2._id,
                          seq_id_2=xl.residue2.seq_id,
-                         comp_id_2=seq2[xl.residue2.seq_id - 1].id,
+                         comp_id_2=_get_comp_id(entity2, xl.residue2.seq_id),
                          linker_chem_comp_descriptor_id=r.linker._id,
                          linker_type=r.linker.auth_name,
                          dataset_list_id=r.dataset._id,
@@ -2350,8 +2348,6 @@ class _CrossLinkDumper(Dumper):
                 ex_xl = xl.experimental_cross_link
                 entity1 = ex_xl.residue1.entity
                 entity2 = ex_xl.residue2.entity
-                seq1 = entity1.sequence
-                seq2 = entity2.sequence
                 pseudo = False
                 for np, ps in enumerate((xl.pseudo1, xl.pseudo2)):
                     if ps:
@@ -2361,10 +2357,12 @@ class _CrossLinkDumper(Dumper):
                 lp.write(id=xl._id, group_id=ex_xl._id,
                          entity_id_1=entity1._id, asym_id_1=xl.asym1._id,
                          seq_id_1=ex_xl.residue1.seq_id,
-                         comp_id_1=seq1[ex_xl.residue1.seq_id - 1].id,
+                         comp_id_1=_get_comp_id(entity1,
+                                                ex_xl.residue1.seq_id),
                          entity_id_2=entity2._id, asym_id_2=xl.asym2._id,
                          seq_id_2=ex_xl.residue2.seq_id,
-                         comp_id_2=seq2[ex_xl.residue2.seq_id - 1].id,
+                         comp_id_2=_get_comp_id(entity2,
+                                                ex_xl.residue2.seq_id),
                          atom_id_1=xl.atom1, atom_id_2=xl.atom2,
                          restraint_type=xl.distance.restraint_type,
                          conditional_crosslink_flag=condmap[xl.restrain_all],

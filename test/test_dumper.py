@@ -3399,6 +3399,8 @@ _ihm_cross_link_result_parameters.sigma_2
         dumper = ihm.dumper._CrossLinkDumper()
         dumper.finalize(system)  # assign IDs
         self.assertRaises(IndexError, _get_dumper_output, dumper, system)
+        # Should work though if checks are disabled
+        _ = _get_dumper_output(dumper, system, check=False)
 
     def test_geometric_object_dumper(self):
         """Test GeometricObjectDumper"""
