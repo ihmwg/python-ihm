@@ -700,16 +700,16 @@ class _EntityPolySegmentDumper(Dumper):
             for rng in self._ranges_by_id:
                 if hasattr(rng, 'entity'):
                     entity = rng.entity
-                    # Always check as comp_id lookups may fail otherwise
-                    util._check_residue_range(rng.seq_id_range, entity)
+                    if self._check:
+                        util._check_residue_range(rng.seq_id_range, entity)
                 else:
                     entity = rng
                 lp.write(
                     id=rng._range_id, entity_id=entity._id,
                     seq_id_begin=rng.seq_id_range[0],
                     seq_id_end=rng.seq_id_range[1],
-                    comp_id_begin=entity.sequence[rng.seq_id_range[0] - 1].id,
-                    comp_id_end=entity.sequence[rng.seq_id_range[1] - 1].id)
+                    comp_id_begin=_get_comp_id(entity, rng.seq_id_range[0]),
+                    comp_id_end=_get_comp_id(entity, rng.seq_id_range[1]))
 
 
 class _EntityBranchListDumper(Dumper):
@@ -3851,9 +3851,9 @@ def write(fh, systems, format='mmCIF', dumpers=[], variant=IHMVariant,
        :param bool check: If True (the default), check the output objects
               for self-consistency. If this is set to False, disabling some of
               these checks, the output files may not correctly validate against
-              the mmCIF dictionaries. (Note that some checks, such as for valid
-              residue indices, are always performed, as the library cannot
-              function correctly without these.)
+              the mmCIF dictionaries. (Note that some checks are always
+              performed, as the library cannot function correctly without
+              these.)
     """
     if isinstance(variant, type):
         variant = variant()

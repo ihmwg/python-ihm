@@ -2912,6 +2912,8 @@ _ihm_entity_poly_segment.comp_id_end
             dumper.finalize(system)  # assign IDs
 
             self.assertRaises(exc, _get_dumper_output, dumper, system)
+            # Should be OK though if checks are disabled
+            _ = _get_dumper_output(dumper, system, check=False)
 
     def test_single_state(self):
         """Test MultiStateDumper with a single state"""
