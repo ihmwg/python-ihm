@@ -1513,7 +1513,8 @@ class _PostProcessDumper(Dumper):
 class _RangeChecker(object):
     """Check Atom or Sphere objects to make sure they match the
        Representation and Assembly"""
-    def __init__(self, model):
+    def __init__(self, model, check=True):
+        self.check = check
         self._setup_representation(model)
         self._setup_assembly(model)
         self._seen_atoms = set()
@@ -1567,6 +1568,8 @@ class _RangeChecker(object):
 
     def __call__(self, obj):
         """Check the given Atom or Sphere object"""
+        if not self.check:
+            return
         asym = obj.asym_unit
         if isinstance(obj, ihm.model.Sphere):
             type_check = self._type_check_sphere
@@ -1713,7 +1716,7 @@ class _ModelDumperBase(Dumper):
             it.append("ihm_model_id")
         with writer.loop("_atom_site", it) as lp:
             for group, model in system._all_models():
-                rngcheck = _RangeChecker(model)
+                rngcheck = _RangeChecker(model, self._check)
                 for atom in model.get_atoms():
                     rngcheck(atom)
                     seq_id = 1 if atom.seq_id is None else atom.seq_id
@@ -1788,7 +1791,7 @@ class _ModelDumper(_ModelDumperBase):
                           "Cartn_y", "Cartn_z", "object_radius", "rmsf",
                           "model_id"]) as lp:
             for group, model in system._all_models():
-                rngcheck = _RangeChecker(model)
+                rngcheck = _RangeChecker(model, self._check)
                 for sphere in model.get_spheres():
                     rngcheck(sphere)
                     lp.write(id=next(ordinal),

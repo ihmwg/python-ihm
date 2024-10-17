@@ -2164,6 +2164,7 @@ _ihm_model_group_link.model_id
             model.representation.append(s)
 
         rngcheck = ihm.dumper._RangeChecker(model)
+        rngcheck_nocheck = ihm.dumper._RangeChecker(model, check=False)
         # Atom is OK (good asym)
         atom = ihm.model.Atom(asym_unit=asym, seq_id=1, atom_id='C',
                               type_symbol='C', x=1.0, y=2.0, z=3.0)
@@ -2177,11 +2178,13 @@ _ihm_model_group_link.model_id
         atom = ihm.model.Atom(asym_unit=asym2, seq_id=1, atom_id='C',
                               type_symbol='C', x=1.0, y=2.0, z=3.0)
         self.assertRaises(ValueError, rngcheck, atom)
+        rngcheck_nocheck(atom)
 
         # Sphere is not OK (bad asym)
         sphere = ihm.model.Sphere(asym_unit=asym2, seq_id_range=(1, 2),
                                   x=1.0, y=2.0, z=3.0, radius=4.0)
         self.assertRaises(ValueError, rngcheck, sphere)
+        rngcheck_nocheck(sphere)
 
     def test_range_checker_asmb_seq_id(self):
         """Test RangeChecker class checking assembly seq_id range"""
@@ -2635,6 +2638,12 @@ N
             ["ATOM 1 C C . ALA 1 42 ? X 1.000 2.000 3.000 . 9 X ALA . 1 1",
              "ATOM 3 N N A CYS 2 99 ? X 4.000 5.000 6.000 "
              "0.200 9 X CYS 42.000 1 1"])
+
+        # With duplicate atom IDs (atoms[0] is already 'C')
+        model._atoms[1].atom_id = 'C'
+        self.assertRaises(ValueError, _get_dumper_output, dumper, system)
+        # Should work though if checks are disabled
+        _ = _get_dumper_output(dumper, system, check=False)
 
     def test_model_dumper_water_atoms(self):
         """Test ModelDumper with water atoms"""
