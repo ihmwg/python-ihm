@@ -528,7 +528,8 @@ class _StructRefDumper(Dumper):
                  "pdbx_align_begin", "pdbx_seq_one_letter_code",
                  "details"]) as lp:
             for e, r in self._refs_by_id:
-                self._check_reference_sequence(e, r)
+                if self._check:
+                    self._check_reference_sequence(e, r)
                 db_begin = min(a.db_begin for a in r._get_alignments())
                 lp.write(id=r._id, entity_id=e._id, db_name=r.db_name,
                          db_code=r.db_code, pdbx_db_accession=r.accession,

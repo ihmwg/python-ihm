@@ -702,6 +702,8 @@ _struct_ref_seq_dif.details
         with self.assertRaises(IndexError) as cm:
             _get_dumper_output(dumper, system)
         self.assertIn('is (90-4), out of range 1-4', str(cm.exception))
+        # Should work with checks disabled
+        _ = _get_dumper_output(dumper, system, check=False)
 
     def test_struct_ref_bad_db_align(self):
         """Test StructRefDumper with bad db align"""
@@ -719,6 +721,8 @@ _struct_ref_seq_dif.details
         with self.assertRaises(IndexError) as cm:
             _get_dumper_output(dumper, system)
         self.assertIn('is (90-9), out of range 1-9', str(cm.exception))
+        # Should work with checks disabled
+        _ = _get_dumper_output(dumper, system, check=False)
 
     def test_struct_ref_seq_mismatch(self):
         """Test StructRefDumper with sequence mismatch"""
@@ -736,6 +740,8 @@ _struct_ref_seq_dif.details
             _get_dumper_output(dumper, system)
         self.assertIn('does not match entity canonical sequence',
                       str(cm.exception))
+        # Should work with checks disabled
+        _ = _get_dumper_output(dumper, system, check=False)
 
     def test_struct_ref_seq_dif_outrange(self):
         """Test StructRefDumper with SeqDif out of range"""
@@ -756,6 +762,8 @@ _struct_ref_seq_dif.details
         with self.assertRaises(IndexError) as cm:
             _get_dumper_output(dumper, system)
         self.assertIn('is 40, out of range 1-4', str(cm.exception))
+        # Should work with checks disabled
+        _ = _get_dumper_output(dumper, system, check=False)
 
     def test_struct_ref_seq_dif_mismatch(self):
         """Test StructRefDumper with SeqDif code mismatch"""
@@ -777,6 +785,8 @@ _struct_ref_seq_dif.details
             _get_dumper_output(dumper, system)
         self.assertIn('one-letter code (Y) does not match', str(cm.exception))
         self.assertIn('(S at position 2)', str(cm.exception))
+        # Should work with checks disabled
+        _ = _get_dumper_output(dumper, system, check=False)
 
     def test_chem_comp_dumper(self):
         """Test ChemCompDumper"""
