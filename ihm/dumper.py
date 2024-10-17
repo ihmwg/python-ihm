@@ -692,6 +692,7 @@ class _EntityPolySegmentDumper(Dumper):
             for rng in self._ranges_by_id:
                 if hasattr(rng, 'entity'):
                     entity = rng.entity
+                    # Always check as comp_id lookups may fail otherwise
                     util._check_residue_range(rng.seq_id_range, entity)
                 else:
                     entity = rng
@@ -1814,6 +1815,7 @@ class _NotModeledResidueRangeDumper(Dumper):
             for group, model in system._all_models():
                 for rr in model.not_modeled_residue_ranges:
                     e = rr.asym_unit.entity
+                    # Always check as comp_id lookups may fail otherwise
                     util._check_residue_range(
                         (rr.seq_id_begin, rr.seq_id_end), e)
                     lp.write(id=next(ordinal), model_id=model._id,
@@ -2305,6 +2307,7 @@ class _CrossLinkDumper(Dumper):
             for r, xl in self._ex_xls_by_id:
                 entity1 = xl.residue1.entity
                 entity2 = xl.residue2.entity
+                # Always check as comp_id lookups may fail otherwise
                 util._check_residue(xl.residue1)
                 util._check_residue(xl.residue2)
                 seq1 = entity1.sequence
@@ -3840,9 +3843,11 @@ def write(fh, systems, format='mmCIF', dumpers=[], variant=IHMVariant,
               :class:`IHMVariant` should be used.
        :type variant: :class:`Variant`
        :param bool check: If True (the default), check the output objects
-              for self-consistency. If this is set to False, disabling these
-              checks, the output files may not correctly validate against
-              the mmCIF dictionaries.
+              for self-consistency. If this is set to False, disabling some of
+              these checks, the output files may not correctly validate against
+              the mmCIF dictionaries. (Note that some checks, such as for valid
+              residue indices, are always performed, as the library cannot
+              function correctly without these.)
     """
     if isinstance(variant, type):
         variant = variant()
