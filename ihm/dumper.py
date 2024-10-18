@@ -1291,6 +1291,23 @@ class _ModelRepresentationDumper(Dumper):
                         description=segment.description)
 
 
+class _StartingModelRangeChecker(object):
+    """Check Atoms in StartingModels to make sure they match the Entities"""
+    def __init__(self, model, check):
+        self.model = model
+        self._check = check
+
+    def __call__(self, atom):
+        if not self._check:
+            return
+        # Check that atom seq_id is in range
+        e = atom.asym_unit.entity
+        if atom.seq_id > len(e.sequence) or atom.seq_id < 1:
+            raise IndexError(
+                "Starting model %d atom seq_id (%d) out of range (1-%d) for %s"
+                % (self.model._id, atom.seq_id, len(e.sequence), e))
+
+
 class _StartingModelDumper(Dumper):
     def finalize(self, system):
         # Assign IDs to starting models
@@ -1401,14 +1418,16 @@ class _StartingModelDumper(Dumper):
                  "seq_id", "Cartn_x", "Cartn_y", "Cartn_z", "B_iso_or_equiv",
                  "ordinal_id"]) as lp:
             for model in system._all_starting_models():
+                rngcheck = _StartingModelRangeChecker(model, self._check)
                 for natom, atom in enumerate(model.get_atoms()):
-                    comp = atom.asym_unit.entity.sequence[atom.seq_id - 1]
+                    rngcheck(atom)
                     lp.write(starting_model_id=model._id,
                              group_PDB='HETATM' if atom.het else 'ATOM',
                              id=natom + 1,
                              type_symbol=atom.type_symbol,
                              atom_id=atom.atom_id,
-                             comp_id=comp.id,
+                             comp_id=_get_comp_id(atom.asym_unit.entity,
+                                                  atom.seq_id),
                              asym_id=atom.asym_unit._id,
                              entity_id=atom.asym_unit.entity._id,
                              seq_id=atom.seq_id,

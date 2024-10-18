@@ -1927,6 +1927,41 @@ _ihm_starting_model_seq_dif.details
 #
 """)
 
+    def test_starting_model_dumper_atom_range(self):
+        """Test StartingModelDumper with invalid atom seq_id"""
+        class TestStartingModel(ihm.startmodel.StartingModel):
+            def get_atoms(self):
+                asym = self.asym_unit
+                return [ihm.model.Atom(asym_unit=asym, seq_id=99, atom_id='CA',
+                                       type_symbol='C', x=-8.0, y=-5.0, z=91.0,
+                                       biso=42.)]
+
+        system = ihm.System()
+        e1 = ihm.Entity('ACG', description='foo')
+        system.entities.append(e1)
+        asym = ihm.AsymUnit(e1, 'bar')
+        system.asym_units.append(asym)
+
+        loc = ihm.location.PDBLocation('2xyz', '1.0', 'test details')
+        dstarget = ihm.dataset.PDBDataset(loc)
+        sm = TestStartingModel(asym(1, 3), dstarget, 'A', [])
+        system.orphan_starting_models.append(sm)
+
+        e1._id = 42
+        asym._id = 99
+        dstarget._id = 8
+        sm._id = 5
+        # Assign and check segment IDs
+        dumper = ihm.dumper._EntityPolySegmentDumper()
+        dumper.finalize(system)
+        dumper = ihm.dumper._StartingModelDumper()
+        with self.assertRaises(IndexError) as cm:
+            _get_dumper_output(dumper, system)
+        self.assertIn('Starting model 5 atom seq_id (99) out of range (1-3)',
+                      str(cm.exception))
+        # Should work with checks disabled
+        _ = _get_dumper_output(dumper, system, check=False)
+
     def test_modeling_protocol(self):
         """Test ProtocolDumper"""
         class MockObject(object):
