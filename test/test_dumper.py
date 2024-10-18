@@ -2801,7 +2801,11 @@ _ihm_residues_not_modeled.reason
                                              model_group=group, file=loc)
         ss3 = ihm.model.RandomSubsample(name='ss3', num_models=5)
         e2.subsamples.extend((ss1, ss2, ss3))
-        system.ensembles.extend((e1, e2))
+
+        # Ensemble without a model group
+        e3 = ihm.model.Ensemble(model_group=None, num_models=10,
+                                details='no-group details')
+        system.ensembles.extend((e1, e2, e3))
 
         dumper = ihm.dumper._EnsembleDumper()
         dumper.finalize(system)  # assign IDs
@@ -2829,6 +2833,7 @@ _ihm_ensemble_info.sub_sample_flag
 _ihm_ensemble_info.sub_sampling_type
 1 cluster1 99 42 Hierarchical RMSD 10 2 4.200 . . YES NO .
 2 . . 42 . . 10 2 . 3 'test details' . YES independent
+3 . . . . . 10 . . . 'no-group details' . NO .
 #
 #
 loop_

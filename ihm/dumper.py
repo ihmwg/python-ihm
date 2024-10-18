@@ -1901,7 +1901,8 @@ class _EnsembleDumper(Dumper):
                 lp.write(ensemble_id=e._id, ensemble_name=e.name,
                          post_process_id=e.post_process._id if e.post_process
                          else None,
-                         model_group_id=e.model_group._id,
+                         model_group_id=e.model_group._id if e.model_group
+                         else None,
                          ensemble_clustering_method=e.clustering_method,
                          ensemble_clustering_feature=e.clustering_feature,
                          num_ensemble_models=e.num_models,
