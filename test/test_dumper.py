@@ -3712,6 +3712,29 @@ _ihm_pseudo_site_feature.pseudo_site_id
         self.assertEqual(len(dumper._features_by_id), 1)
         self.assertRaises(ValueError, _get_dumper_output, dumper, system)
 
+    def test_feature_dumper_base_class(self):
+        """Test FeatureDumper with a Feature base class"""
+        system = ihm.System()
+
+        f = ihm.restraint.Feature()
+        system.orphan_features.append(f)
+
+        dumper = ihm.dumper._FeatureDumper()
+        dumper.finalize(system)  # assign IDs
+        self.assertEqual(len(dumper._features_by_id), 1)
+        self.assertRaises(ValueError, _get_dumper_output, dumper, system)
+        # Should be OK if checks are disabled
+        out = _get_dumper_output(dumper, system, check=False)
+        self.assertEqual(out, """#
+loop_
+_ihm_feature_list.feature_id
+_ihm_feature_list.feature_type
+_ihm_feature_list.entity_type
+_ihm_feature_list.details
+1 ? ? .
+#
+""")
+
     def test_pseudo_site_dumper(self):
         """Test PseudoSiteDumper"""
         system = ihm.System()
