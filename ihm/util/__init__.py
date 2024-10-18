@@ -150,3 +150,22 @@ def _make_range_from_list(rr):
             yield current
             current = [r, r]
     yield current
+
+
+def _get_codes(codestr):
+    """Convert a one-letter-code string into a sequence of individual
+       codes"""
+    if codestr is None or codestr is ihm.unknown:
+        return
+    i = 0
+    while i < len(codestr):
+        # Strip out linebreaks
+        if codestr[i] == '\n':
+            pass
+        elif codestr[i] == '(':
+            end = codestr.index(')', i)
+            yield codestr[i + 1:end]
+            i = end
+        else:
+            yield codestr[i]
+        i += 1

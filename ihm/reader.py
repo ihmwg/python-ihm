@@ -19,6 +19,7 @@ import ihm.flr
 import inspect
 import warnings
 import collections
+from . import util
 try:
     from . import _format
 except ImportError:
@@ -1306,31 +1307,13 @@ class _EntityPolyHandler(Handler):
         super(_EntityPolyHandler, self).__init__(*args)
         self._entity_info = {}
 
-    def _get_codes(self, codestr):
-        """Convert a one-letter-code string into a sequence of individual
-           codes"""
-        if codestr is None:
-            return
-        i = 0
-        while i < len(codestr):
-            # Strip out linebreaks
-            if codestr[i] == '\n':
-                pass
-            elif codestr[i] == '(':
-                end = codestr.index(')', i)
-                yield codestr[i + 1:end]
-                i = end
-            else:
-                yield codestr[i]
-            i += 1
-
     def __call__(self, entity_id, type, pdbx_seq_one_letter_code,
                  pdbx_seq_one_letter_code_can):
         class EntityInfo(object):
             pass
         e = EntityInfo()
-        e.one_letter = tuple(self._get_codes(pdbx_seq_one_letter_code))
-        e.one_letter_can = tuple(self._get_codes(pdbx_seq_one_letter_code_can))
+        e.one_letter = tuple(util._get_codes(pdbx_seq_one_letter_code))
+        e.one_letter_can = tuple(util._get_codes(pdbx_seq_one_letter_code_can))
         e.sequence_type = type
         self._entity_info[entity_id] = e
 

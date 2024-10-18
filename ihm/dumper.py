@@ -460,9 +460,11 @@ class _StructRefDumper(Dumper):
         # our entities
         db_begin = min(a.db_begin for a in reference._get_alignments())
         db_end = max(a.db_end for a in reference._get_alignments())
+        fullrefseq = list(util._get_codes(reference.sequence))
         # Split into lines to get tidier CIF output
         return "\n".join(_prettyprint_seq(
-            reference.sequence[db_begin - 1:db_end], 70))
+            (code if len(code) == 1 else '(%s)' % code
+             for code in fullrefseq[db_begin - 1:db_end]), 70))
 
     def _check_seq_dif(self, entity, ref, align):
         """Check all SeqDif objects for the Entity sequence. Return the mutated
@@ -481,15 +483,15 @@ class _StructRefDumper(Dumper):
                                     entseq[sd.seq_id - 1], sd.seq_id))
             if sd.db_monomer:
                 entseq[sd.seq_id - 1] = sd.db_monomer.code_canonical
-        return ''.join(entseq)
+        return entseq
 
-    def _get_ranges(self, entity, ref, align):
+    def _get_ranges(self, entity, fullrefseq, align):
         """Get the sequence ranges for an Entity and Reference"""
         return ((align.entity_begin,
                  len(entity.sequence) if align.entity_end is None
                  else align.entity_end),
                 (align.db_begin,
-                 len(ref.sequence) if align.db_end is None else align.db_end))
+                 len(fullrefseq) if align.db_end is None else align.db_end))
 
     def _check_reference_sequence(self, entity, ref):
         """Make sure that the Entity and Reference sequences match"""
@@ -502,20 +504,29 @@ class _StructRefDumper(Dumper):
             # We just have to trust the range if the ref sequence is blank
             return
         entseq = self._check_seq_dif(entity, ref, align)
+        # Reference sequence may contain non-standard residues, so parse them
+        # out; e.g. "FLGHGGN(WP9)LHFVQLAS"
+        fullrefseq = list(util._get_codes(ref.sequence))
 
         def check_rng(rng, seq, rngstr, obj):
             if any(r < 1 or r > len(seq) for r in rng):
                 raise IndexError("Alignment.%s for %s is (%d-%d), "
                                  "out of range 1-%d"
                                  % (rngstr, obj, rng[0], rng[1], len(seq)))
-        entity_rng, db_rng = self._get_ranges(entity, ref, align)
+        entity_rng, db_rng = self._get_ranges(entity, fullrefseq, align)
         check_rng(entity_rng, entseq, "entity_begin,entity_end", entity)
-        check_rng(db_rng, ref.sequence, "db_begin,db_end", ref)
+        check_rng(db_rng, fullrefseq, "db_begin,db_end", ref)
 
         matchlen = min(entity_rng[1] - entity_rng[0], db_rng[1] - db_rng[0])
         entseq = entseq[entity_rng[0] - 1:entity_rng[0] + matchlen - 1]
-        refseq = ref.sequence[db_rng[0] - 1:db_rng[0] + matchlen - 1]
-        if refseq != entseq:
+        refseq = fullrefseq[db_rng[0] - 1:db_rng[0] + matchlen - 1]
+
+        # Entity sequence is canonical so likely won't match any non-standard
+        # residue (anything of length > 1), so just skip checks of these
+        def matchseq(a, b):
+            return a == b or len(a) > 1 or len(b) > 1
+        if (len(refseq) != len(entseq)
+                or not all(matchseq(a, b) for (a, b) in zip(refseq, entseq))):
             raise ValueError(
                 "Reference sequence from %s does not match entity canonical"
                 " sequence (after mutations) for %s - you may need to "
@@ -525,8 +536,12 @@ class _StructRefDumper(Dumper):
                 "Reference: %s\nEntity:    %s\n"
                 "Match:     %s"
                 % (ref, entity, db_rng[0], db_rng[1],
-                   entity_rng[0], entity_rng[1], refseq, entseq,
-                   ''.join('*' if a == b else ' '
+                   entity_rng[0], entity_rng[1],
+                   # Use "X" for any non-standard residue so the alignment
+                   # lines up
+                   ''.join(x if len(x) == 1 else 'X' for x in refseq),
+                   ''.join(entseq),
+                   ''.join('*' if matchseq(a, b) else ' '
                            for (a, b) in zip(refseq, entseq))))
 
     def dump(self, system, writer):
@@ -556,7 +571,8 @@ class _StructRefDumper(Dumper):
                 ["align_id", "ref_id", "seq_align_beg", "seq_align_end",
                  "db_align_beg", "db_align_end"]) as lp:
             for e, r, a in _all_alignments():
-                entity_rng, db_rng = self._get_ranges(e, r, a)
+                fullrefseq = list(util._get_codes(r.sequence))
+                entity_rng, db_rng = self._get_ranges(e, fullrefseq, a)
                 matchlen = min(entity_rng[1] - entity_rng[0],
                                db_rng[1] - db_rng[0])
                 lp.write(align_id=a._id, ref_id=r._id,

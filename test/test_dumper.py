@@ -636,6 +636,13 @@ _entity_src_gen.pdbx_host_org_strain
             db_begin=4, db_end=5, entity_begin=2, entity_end=3))
         system.entities.append(ihm.Entity('LSPTW', references=[r3a]))
 
+        # Reference containing non-standard residues
+        r6 = ihm.reference.UniProtSequence(
+            db_code='testcode4', accession='testacc4',
+            sequence='AA(FOO)ALS(BAR)TW')
+        system.entities.append(ihm.Entity('LSATW', references=[r6]))
+        r6.alignments.append(ihm.reference.Alignment(db_begin=5, db_end=9))
+
         dumper = ihm.dumper._EntityDumper()
         dumper.finalize(system)  # Assign entity IDs
 
@@ -657,6 +664,7 @@ _struct_ref.details
 3 1 UNP testcode2 testacc2 4 . .
 4 1 UNP testcode3 testacc3 4 ? .
 5 2 UNP testcode2 testacc2 4 . .
+6 3 UNP testcode4 testacc4 5 LS(BAR)TW .
 #
 #
 loop_
@@ -672,6 +680,7 @@ _struct_ref_seq.db_align_end
 4 3 2 3 4 5
 5 4 2 3 4 5
 7 5 2 3 4 5
+8 6 1 5 5 9
 #
 #
 loop_
@@ -709,8 +718,8 @@ _struct_ref_seq_dif.details
         """Test StructRefDumper with bad db align"""
         system = ihm.System()
         r = ihm.reference.UniProtSequence(
-            db_code='NUP84_YEAST', accession='P52891', sequence='MELSPTYQT',
-            details='test sequence')
+            db_code='NUP84_YEAST', accession='P52891',
+            sequence='M(FOO)LSPTYQT', details='test sequence')
         r.alignments.append(ihm.reference.Alignment(db_begin=90))
         system.entities.append(ihm.Entity('LSPT', references=[r]))
         dumper = ihm.dumper._EntityDumper()
