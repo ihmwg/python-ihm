@@ -62,10 +62,15 @@ class Dumper(object):
 def _get_transform(rot_matrix, tr_vector):
     """Return a dict encoding a transform, suitable for passing to
        loop.write()"""
-    # mmCIF writer usually outputs floats to 3 decimal
-    # places, but we need more precision for rotation
-    # matrices
-    rm = [["%.6f" % e for e in rot_matrix[i]] for i in range(3)]
+    if rot_matrix in (None, ihm.unknown):
+        rm = [[rot_matrix for _ in range(3)] for _ in range(3)]
+    else:
+        # mmCIF writer usually outputs floats to 3 decimal
+        # places, but we need more precision for rotation
+        # matrices
+        rm = [["%.6f" % e for e in rot_matrix[i]] for i in range(3)]
+    if tr_vector in (None, ihm.unknown):
+        tr_vector = [tr_vector for _ in range(3)]
 
     return {'rot_matrix11': rm[0][0], 'rot_matrix21': rm[1][0],
             'rot_matrix31': rm[2][0], 'rot_matrix12': rm[0][1],
@@ -1242,6 +1247,8 @@ class _DatasetDumper(Dumper):
                  "rot_matrix[1][3]", "rot_matrix[2][3]", "rot_matrix[3][3]",
                  "tr_vector[1]", "tr_vector[2]", "tr_vector[3]"]) as lp:
             for t in self._transform_by_id:
+                if self._check:
+                    util._check_transform(t)
                 lp.write(id=t._dtid,
                          **_get_transform(t.rot_matrix, t.tr_vector))
 
@@ -2085,6 +2092,8 @@ class _GeometricObjectDumper(Dumper):
                  "rot_matrix[1][3]", "rot_matrix[2][3]", "rot_matrix[3][3]",
                  "tr_vector[1]", "tr_vector[2]", "tr_vector[3]"]) as lp:
             for t in self._transformations_by_id:
+                if self._check:
+                    util._check_transform(t)
                 lp.write(id=t._id, **_get_transform(t.rot_matrix, t.tr_vector))
 
     def dump_generic(self, writer):

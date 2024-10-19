@@ -92,6 +92,13 @@ def _check_residue(r):
                          % (r.seq_id, r.entity, len(r.entity.sequence)))
 
 
+def _check_transform(t):
+    if t.rot_matrix in (None, ihm.unknown):
+        raise ValueError("Transformation %s is missing rotation" % t)
+    if t.tr_vector in (None, ihm.unknown):
+        raise ValueError("Transformation %s is missing translation" % t)
+
+
 def _invert_ranges(ranges, end, start=1):
     """Given a sorted list of non-overlapping ranges, yield a new list which
        contains every range in the range start-end which was not in the

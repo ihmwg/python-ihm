@@ -1694,6 +1694,29 @@ _ihm_data_transformation.tr_vector[3]
 #
 """)
 
+    def test_dataset_dumper_dump_invalid_transform(self):
+        """Test DatasetDumper.dump() with invalid transformed dataset"""
+        system = ihm.System()
+
+        loc = ihm.location.PDBLocation('1cdf', version='foo', details='bar')
+        loc._id = 1
+        dst = ihm.dataset.Dataset(loc, details='baz')
+        t = ihm.geometry.Transformation(
+            rot_matrix=None, tr_vector=[1., 2., 3.])
+        td = ihm.dataset.TransformedDataset(dst, transform=t)
+
+        loc = ihm.location.InputFileLocation(repo='foo', path='bar')
+        loc._id = 2
+        ds2 = ihm.dataset.CXMSDataset(loc)
+        ds2.parents.append(td)
+        system.orphan_datasets.append(ds2)
+
+        d = ihm.dumper._DatasetDumper()
+        d.finalize(system)  # Assign IDs
+        self.assertRaises(ValueError, _get_dumper_output, d, system)
+        # OK if checks are disabled
+        _ = _get_dumper_output(d, system, check=False)
+
     def test_model_representation_dump(self):
         """Test ModelRepresentationDumper"""
         system = ihm.System()
@@ -3575,6 +3598,39 @@ _ihm_geometric_object_plane.transformation_id
 5 xy-plane .
 #
 """)
+
+    def test_geometric_object_dumper_invalid_rotation(self):
+        """Test GeometricObjectDumper with invalid rotation"""
+        system = ihm.System()
+        center = ihm.geometry.Center(1., 2., 3.)
+        trans = ihm.geometry.Transformation(None, [1., 2., 3.])
+        sphere = ihm.geometry.Sphere(center=center, transformation=trans,
+                                     radius=2.2, name='my sphere',
+                                     description='a test sphere')
+        system.orphan_geometric_objects.append(sphere)
+
+        dumper = ihm.dumper._GeometricObjectDumper()
+        dumper.finalize(system)
+        self.assertRaises(ValueError, _get_dumper_output, dumper, system)
+        # OK if checks are disabled
+        _ = _get_dumper_output(dumper, system, check=False)
+
+    def test_geometric_object_dumper_invalid_translation(self):
+        """Test GeometricObjectDumper with invalid translation"""
+        system = ihm.System()
+        center = ihm.geometry.Center(1., 2., 3.)
+        trans = ihm.geometry.Transformation([[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+                                            ihm.unknown)
+        sphere = ihm.geometry.Sphere(center=center, transformation=trans,
+                                     radius=2.2, name='my sphere',
+                                     description='a test sphere')
+        system.orphan_geometric_objects.append(sphere)
+
+        dumper = ihm.dumper._GeometricObjectDumper()
+        dumper.finalize(system)
+        self.assertRaises(ValueError, _get_dumper_output, dumper, system)
+        # OK if checks are disabled
+        _ = _get_dumper_output(dumper, system, check=False)
 
     def test_feature_dumper(self):
         """Test FeatureDumper"""
