@@ -1,5 +1,5 @@
-HEAD
-====
+1.7 - 2024-10-22
+================
   - Sanity checks when writing out a file can now be disabled if desired,
     using the new ``check`` argument to :func:`ihm.dumper.write` (#153).
   - Data that have been split over multiple mmCIF or BinaryCIF files can now
