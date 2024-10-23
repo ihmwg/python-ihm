@@ -36,7 +36,7 @@ sed -i -e "s/install_requires=\['msgpack'\]/#/" setup.py
 %defattr(-,root,root)
 
 %changelog
-* Thu Oct 22 2024 Ben Webb <ben@salilab.org>   1.7-1
+* Tue Oct 22 2024 Ben Webb <ben@salilab.org>   1.7-1
 - Update to latest upstream.
 
 * Fri Sep 27 2024 Ben Webb <ben@salilab.org>   1.6-1
