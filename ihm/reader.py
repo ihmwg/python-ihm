@@ -17,6 +17,7 @@ import ihm.cross_linkers
 import ihm.multi_state_scheme
 import ihm.flr
 import inspect
+import datetime
 import warnings
 import collections
 from . import util
@@ -72,6 +73,15 @@ def _get_matrix33(d, key):
         # Assume if one element is present, all are
         return [[float(d[key + "%d%d" % (i, j)]) for j in (1, 2, 3)]
                 for i in (1, 2, 3)]
+
+
+def _get_iso_date(iso_date_str):
+    """Get a datetime.date obj for a string in isoformat."""
+    if not iso_date_str:
+        return iso_date_str
+    return datetime.date(int(iso_date_str[0:4]),
+                         int(iso_date_str[5:7]),
+                         int(iso_date_str[8:10]))
 
 
 class IDMapper(object):
@@ -446,6 +456,10 @@ class SystemReader(object):
         #: Mapping from ID to :class:`ihm.Citation` objects
         self.citations = IDMapper(self.system.citations, ihm.Citation,
                                   *(None,) * 8)
+
+        #: Mapping from ID to :class:`ihm.Revision` objects
+        self.revisions = IDMapper(self.system.revisions, ihm.Revision,
+                                  *(None,) * 4)
 
         #: Mapping from ID to :class:`ihm.Entity` objects
         self.entities = IDMapper(self.system.entities, _make_new_entity)
@@ -1040,6 +1054,52 @@ class _AuditAuthorHandler(Handler):
 
     def __call__(self, name):
         self.system.authors.append(name)
+
+
+class _AuditRevisionHistoryHandler(Handler):
+    category = '_pdbx_audit_revision_history'
+
+    def __call__(self, ordinal, data_content_type, major_revision,
+                 minor_revision, revision_date):
+        r = self.sysr.revisions.get_by_id(ordinal)
+        r.data_content_type = data_content_type
+        r.major = self.get_int(major_revision)
+        r.minor = self.get_int(minor_revision)
+        r.date = _get_iso_date(revision_date)
+
+
+class _AuditRevisionDetailsHandler(Handler):
+    category = '_pdbx_audit_revision_details'
+
+    def __call__(self, revision_ordinal, provider, type, description):
+        r = self.sysr.revisions.get_by_id(revision_ordinal)
+        d = ihm.RevisionDetails(provider=provider, type=type,
+                                description=description)
+        r.details.append(d)
+
+
+class _AuditRevisionGroupHandler(Handler):
+    category = '_pdbx_audit_revision_group'
+
+    def __call__(self, revision_ordinal, group):
+        r = self.sysr.revisions.get_by_id(revision_ordinal)
+        r.groups.append(group)
+
+
+class _AuditRevisionCategoryHandler(Handler):
+    category = '_pdbx_audit_revision_category'
+
+    def __call__(self, revision_ordinal, category):
+        r = self.sysr.revisions.get_by_id(revision_ordinal)
+        r.categories.append(category)
+
+
+class _AuditRevisionItemHandler(Handler):
+    category = '_pdbx_audit_revision_item'
+
+    def __call__(self, revision_ordinal, item):
+        r = self.sysr.revisions.get_by_id(revision_ordinal)
+        r.items.append(item)
 
 
 class _GrantHandler(Handler):
@@ -3809,7 +3869,10 @@ class IHMVariant(Variant):
     _handlers = [
         _CollectionHandler, _StructHandler, _SoftwareHandler, _CitationHandler,
         _DatabaseHandler, _DatabaseStatusHandler,
-        _AuditAuthorHandler, _GrantHandler, _CitationAuthorHandler,
+        _AuditAuthorHandler, _AuditRevisionHistoryHandler,
+        _AuditRevisionDetailsHandler, _AuditRevisionGroupHandler,
+        _AuditRevisionCategoryHandler, _AuditRevisionItemHandler,
+        _GrantHandler, _CitationAuthorHandler,
         _ChemCompHandler, _ChemDescriptorHandler, _EntityHandler,
         _EntitySrcNatHandler, _EntitySrcGenHandler, _EntitySrcSynHandler,
         _StructRefHandler, _StructRefSeqHandler, _StructRefSeqDifHandler,

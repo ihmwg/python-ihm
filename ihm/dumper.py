@@ -6,6 +6,7 @@ import collections
 import operator
 import itertools
 import warnings
+import datetime
 import ihm.format
 import ihm.format_bcif
 import ihm.model
@@ -215,6 +216,75 @@ class _AuditAuthorDumper(Dumper):
                          ["name", "pdbx_ordinal"]) as lp:
             for n, author in enumerate(authors):
                 lp.write(name=author, pdbx_ordinal=n + 1)
+
+
+class _AuditRevisionDumper(Dumper):
+    def finalize(self, system):
+        for n, rev in enumerate(system.revisions):
+            rev._id = n + 1
+
+    def dump(self, system, writer):
+        self._dump_history(system, writer)
+        self._dump_details(system, writer)
+        self._dump_groups(system, writer)
+        self._dump_categories(system, writer)
+        self._dump_items(system, writer)
+
+    def _dump_history(self, system, writer):
+        with writer.loop("_pdbx_audit_revision_history",
+                         ["ordinal", "data_content_type", "major_revision",
+                          "minor_revision", "revision_date"]) as lp:
+            for rev in system.revisions:
+                lp.write(ordinal=rev._id,
+                         data_content_type=rev.data_content_type,
+                         major_revision=rev.major, minor_revision=rev.minor,
+                         revision_date=datetime.date.isoformat(rev.date)
+                         if rev.date else rev.date)
+
+    def _dump_details(self, system, writer):
+        ordinal = itertools.count(1)
+        with writer.loop("_pdbx_audit_revision_details",
+                         ["ordinal", "revision_ordinal", "data_content_type",
+                          "provider", "type", "description"]) as lp:
+            for rev in system.revisions:
+                for d in rev.details:
+                    lp.write(ordinal=next(ordinal), revision_ordinal=rev._id,
+                             data_content_type=rev.data_content_type,
+                             provider=d.provider, type=d.type,
+                             description=d.description)
+
+    def _dump_groups(self, system, writer):
+        ordinal = itertools.count(1)
+        with writer.loop("_pdbx_audit_revision_group",
+                         ["ordinal", "revision_ordinal", "data_content_type",
+                          "group"]) as lp:
+            for rev in system.revisions:
+                for group in rev.groups:
+                    lp.write(ordinal=next(ordinal), revision_ordinal=rev._id,
+                             data_content_type=rev.data_content_type,
+                             group=group)
+
+    def _dump_categories(self, system, writer):
+        ordinal = itertools.count(1)
+        with writer.loop("_pdbx_audit_revision_category",
+                         ["ordinal", "revision_ordinal", "data_content_type",
+                          "category"]) as lp:
+            for rev in system.revisions:
+                for category in rev.categories:
+                    lp.write(ordinal=next(ordinal), revision_ordinal=rev._id,
+                             data_content_type=rev.data_content_type,
+                             category=category)
+
+    def _dump_items(self, system, writer):
+        ordinal = itertools.count(1)
+        with writer.loop("_pdbx_audit_revision_item",
+                         ["ordinal", "revision_ordinal", "data_content_type",
+                          "item"]) as lp:
+            for rev in system.revisions:
+                for item in rev.items:
+                    lp.write(ordinal=next(ordinal), revision_ordinal=rev._id,
+                             data_content_type=rev.data_content_type,
+                             item=item)
 
 
 class _GrantDumper(Dumper):
@@ -3800,7 +3870,8 @@ class IHMVariant(Variant):
         _EntryDumper,  # must be first
         _CollectionDumper, _StructDumper, _CommentDumper, _AuditConformDumper,
         _DatabaseDumper, _DatabaseStatusDumper, _CitationDumper,
-        _SoftwareDumper, _AuditAuthorDumper, _GrantDumper, _ChemCompDumper,
+        _SoftwareDumper, _AuditAuthorDumper, _AuditRevisionDumper,
+        _GrantDumper, _ChemCompDumper,
         _ChemDescriptorDumper, _EntityDumper, _EntitySrcGenDumper,
         _EntitySrcNatDumper, _EntitySrcSynDumper, _StructRefDumper,
         _EntityPolyDumper, _EntityNonPolyDumper, _EntityPolySeqDumper,

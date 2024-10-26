@@ -1,4 +1,5 @@
 import utils
+import datetime
 import os
 import unittest
 import warnings
@@ -371,6 +372,78 @@ _audit_author.pdbx_ordinal
 auth1 1
 auth2 2
 auth3 3
+#
+""")
+
+    def test_audit_revision_dumper(self):
+        """Test AuditRevisionDumper"""
+        system = ihm.System()
+        rev = ihm.Revision(data_content_type='Structure model',
+                           minor=2, major=0,
+                           date=datetime.date(year=1979, month=5, day=3))
+        rev.groups.extend(('group1', 'group2'))
+        rev.categories.extend(('cat1', 'cat2'))
+        rev.items.append('item1')
+        d = ihm.RevisionDetails(provider="repository", type="Initial release",
+                                description="Test desc")
+        rev.details.append(d)
+        system.revisions.append(rev)
+        rev = ihm.Revision(data_content_type=None, major=None, minor=None,
+                           date=None)
+        system.revisions.append(rev)
+        rev = ihm.Revision(data_content_type=None, major=None, minor=None,
+                           date=ihm.unknown)
+        system.revisions.append(rev)
+
+        dumper = ihm.dumper._AuditRevisionDumper()
+        dumper.finalize(system)
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_pdbx_audit_revision_history.ordinal
+_pdbx_audit_revision_history.data_content_type
+_pdbx_audit_revision_history.major_revision
+_pdbx_audit_revision_history.minor_revision
+_pdbx_audit_revision_history.revision_date
+1 'Structure model' 0 2 1979-05-03
+2 . . . .
+3 . . . ?
+#
+#
+loop_
+_pdbx_audit_revision_details.ordinal
+_pdbx_audit_revision_details.revision_ordinal
+_pdbx_audit_revision_details.data_content_type
+_pdbx_audit_revision_details.provider
+_pdbx_audit_revision_details.type
+_pdbx_audit_revision_details.description
+1 1 'Structure model' repository 'Initial release' 'Test desc'
+#
+#
+loop_
+_pdbx_audit_revision_group.ordinal
+_pdbx_audit_revision_group.revision_ordinal
+_pdbx_audit_revision_group.data_content_type
+_pdbx_audit_revision_group.group
+1 1 'Structure model' group1
+2 1 'Structure model' group2
+#
+#
+loop_
+_pdbx_audit_revision_category.ordinal
+_pdbx_audit_revision_category.revision_ordinal
+_pdbx_audit_revision_category.data_content_type
+_pdbx_audit_revision_category.category
+1 1 'Structure model' cat1
+2 1 'Structure model' cat2
+#
+#
+loop_
+_pdbx_audit_revision_item.ordinal
+_pdbx_audit_revision_item.revision_ordinal
+_pdbx_audit_revision_item.data_content_type
+_pdbx_audit_revision_item.item
+1 1 'Structure model' item1
 #
 """)
 

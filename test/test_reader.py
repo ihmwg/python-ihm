@@ -1,4 +1,5 @@
 import utils
+import datetime
 import os
 import unittest
 import gzip
@@ -276,6 +277,77 @@ auth3 3
         for fh in cif_file_handles(cif):
             s, = ihm.reader.read(fh)
             self.assertEqual(s.authors, ['auth1', 'auth2', 'auth3'])
+
+    def test_audit_revision_handler(self):
+        """Test AuditRevisionHistoryHandler and related handlers"""
+        cif = """
+loop_
+_pdbx_audit_revision_history.ordinal
+_pdbx_audit_revision_history.data_content_type
+_pdbx_audit_revision_history.major_revision
+_pdbx_audit_revision_history.minor_revision
+_pdbx_audit_revision_history.revision_date
+40 'Structure model' 1 0 ?
+41 'Structure model' 1 0 .
+42 'Structure model' 2 0 1979-05-03
+#
+#
+loop_
+_pdbx_audit_revision_details.ordinal
+_pdbx_audit_revision_details.revision_ordinal
+_pdbx_audit_revision_details.data_content_type
+_pdbx_audit_revision_details.provider
+_pdbx_audit_revision_details.type
+_pdbx_audit_revision_details.description
+1 42 'Structure model' repository 'Initial release' 'Test desc'
+#
+#
+loop_
+_pdbx_audit_revision_group.ordinal
+_pdbx_audit_revision_group.revision_ordinal
+_pdbx_audit_revision_group.data_content_type
+_pdbx_audit_revision_group.group
+1 42 'Structure model' group1
+2 42 'Structure model' group2
+#
+#
+loop_
+_pdbx_audit_revision_category.ordinal
+_pdbx_audit_revision_category.revision_ordinal
+_pdbx_audit_revision_category.data_content_type
+_pdbx_audit_revision_category.category
+1 42 'Structure model' cat1
+2 42 'Structure model' cat2
+#
+#
+loop_
+_pdbx_audit_revision_item.ordinal
+_pdbx_audit_revision_item.revision_ordinal
+_pdbx_audit_revision_item.data_content_type
+_pdbx_audit_revision_item.item
+1 42 'Structure model' item1
+"""
+        for fh in cif_file_handles(cif):
+            s, = ihm.reader.read(fh)
+            r1, r2, r = s.revisions
+            self.assertIs(r1.date, ihm.unknown)
+            self.assertEqual(len(r1.details), 0)
+            self.assertEqual(len(r1.groups), 0)
+            self.assertEqual(len(r1.categories), 0)
+            self.assertEqual(len(r1.items), 0)
+            self.assertIsNone(r2.date)
+            self.assertIsInstance(r, ihm.Revision)
+            self.assertEqual(r.data_content_type, "Structure model")
+            self.assertEqual(r.major, 2)
+            self.assertEqual(r.minor, 0)
+            self.assertEqual(r.date, datetime.date(1979, 5, 3))
+            self.assertEqual(len(r.details), 1)
+            self.assertEqual(r.details[0].provider, 'repository')
+            self.assertEqual(r.details[0].type, 'Initial release')
+            self.assertEqual(r.details[0].description, 'Test desc')
+            self.assertEqual(r.groups, ['group1', 'group2'])
+            self.assertEqual(r.categories, ['cat1', 'cat2'])
+            self.assertEqual(r.items, ['item1'])
 
     def test_grant_handler(self):
         """Test GrantHandler"""
