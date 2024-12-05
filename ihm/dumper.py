@@ -1895,7 +1895,7 @@ class _ModelDumper(_ModelDumperBase):
     def dump_model_group_summary(self, system, writer):
         with writer.loop("_ihm_model_group", ["id", "name", "details"]) as lp:
             for group in system._all_model_groups():
-                lp.write(id=group._id, name=group.name)
+                lp.write(id=group._id, name=group.name, details=group.details)
 
     def dump_model_group_link(self, system, writer):
         with writer.loop("_ihm_model_group_link",

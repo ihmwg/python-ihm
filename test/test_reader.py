@@ -1588,7 +1588,7 @@ _ihm_model_group.id
 _ihm_model_group.name
 _ihm_model_group.details
 1 "Cluster 1" .
-2 "Cluster 2" .
+2 "Cluster 2" 'cluster 2 details'
 #
 loop_
 _ihm_model_group_link.group_id
@@ -1625,6 +1625,7 @@ ATOM 1 N N . MET 1 A 14.326 -2.326 8.122 1.000 1 A 0.000 42 42
             mg1, mg2 = state
             self.assertEqual(mg1.name, 'Cluster 1')
             self.assertEqual(mg1._id, '1')
+            self.assertIsNone(mg1.details)
             m, = mg1
             self.assertEqual(m._id, '1')
             self.assertEqual(m.name, 'Best scoring model')
@@ -1632,6 +1633,7 @@ ATOM 1 N N . MET 1 A 14.326 -2.326 8.122 1.000 1 A 0.000 42 42
             self.assertEqual(m.protocol._id, '2')
             self.assertEqual(m.representation._id, '3')
             self.assertEqual(mg2.name, 'Cluster 2')
+            self.assertEqual(mg2.details, 'cluster 2 details')
             self.assertEqual(mg2._id, '2')
             m, = mg2
             self.assertEqual(m._id, '2')
