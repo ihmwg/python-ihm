@@ -10,14 +10,14 @@ environment:
 
 install:
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
-  - "python.exe -m pip install codecov coverage nose setuptools"
+  - "python.exe -m pip install codecov coverage pytest setuptools"
   - choco install -y swig
   - python.exe setup.py build_ext --inplace
 
 build: off
 
 test_script:
-  - "nosetests --with-coverage --cover-branches"
+  - "py.test --cov=ihm --cov-branch -v ."
 
 on_success:
   - "codecov"
