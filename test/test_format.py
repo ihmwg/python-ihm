@@ -15,6 +15,7 @@ else:
 TOPDIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 utils.set_search_paths(TOPDIR)
 import ihm.format
+import ihm.dumper
 
 try:
     from ihm import _format
@@ -956,6 +957,46 @@ _foo.bar
 _foo.baz
 newa b c d
 x y
+""")
+
+    def test_cif_token_reader_replace_category_filter(self):
+        """Test CifTokenReader class with ReplaceCategoryFilter"""
+        cif = """
+data_foo_bar
+#
+_cat1.bar old
+#
+loop_
+_cat2.bar
+_cat2.baz
+a b c d
+x y
+#
+_cat3.x 1
+_cat3.y 2
+#
+_cat4.z 1
+"""
+        d = ihm.dumper._CommentDumper()
+        s = ihm.System()
+        s.comments.extend(['comment1', 'comment2'])
+        r = ihm.format.CifTokenReader(StringIO(cif))
+        filters = [ihm.format.ReplaceCategoryFilter("cat1"),
+                   ihm.format.ReplaceCategoryFilter("cat2", raw_cif='FOO'),
+                   ihm.format.ReplaceCategoryFilter("cat3", dumper=d,
+                                                    system=s)]
+        tokens = list(r.read_file(filters))
+        new_cif = "".join(x.as_mmcif() for x in tokens)
+        self.assertEqual(new_cif, """
+data_foo_bar
+#
+#
+FOO
+#
+# comment1
+# comment2
+#
+_cat4.z 1
 """)
 
     def test_category_token_group(self):
