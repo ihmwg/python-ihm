@@ -976,13 +976,18 @@ _cat3.x 1
 _cat3.y 2
 #
 _cat4.z 1
+#
+loop_
+_cat5.bar
+_cat5.baz
+a b
 """
         d = ihm.dumper._CommentDumper()
         s = ihm.System()
         s.comments.extend(['comment1', 'comment2'])
         r = ihm.format.CifTokenReader(StringIO(cif))
         filters = [ihm.format.ReplaceCategoryFilter("cat1"),
-                   ihm.format.ReplaceCategoryFilter("cat2", raw_cif='FOO'),
+                   ihm.format.ReplaceCategoryFilter("_cat2", raw_cif='FOO'),
                    ihm.format.ReplaceCategoryFilter("cat3", dumper=d,
                                                     system=s)]
         tokens = list(r.read_file(filters))
@@ -997,6 +1002,11 @@ FOO
 # comment2
 #
 _cat4.z 1
+#
+loop_
+_cat5.bar
+_cat5.baz
+a b
 """)
 
     def test_category_token_group(self):
@@ -1193,7 +1203,8 @@ a b c d
 """
         r = ihm.format.CifTokenReader(StringIO(cif))
         filters = [ihm.format.ChangeKeywordFilter(".bar", "newbar"),
-                   ihm.format.ChangeKeywordFilter(".baz", "newbaz")]
+                   ihm.format.ChangeKeywordFilter(".baz", "newbaz"),
+                   ihm.format.ChangeKeywordFilter("x.y", "newy")]
         new_cif = "".join(t.as_mmcif() for t in r.read_file(filters))
         self.assertEqual(new_cif, """
 _bar.id 1
