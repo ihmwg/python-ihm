@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <inttypes.h>
 #if defined(_WIN32) || defined(_WIN64)
 # include <windows.h>
 # include <io.h>
@@ -20,6 +21,7 @@
 #endif
 #include <errno.h>
 #include <assert.h>
+#include "cmp.h"
 
 #define INT_TO_POINTER(i) ((void *) (long) (i))
 #define POINTER_TO_INT(p) ((int)  (long) (p))
