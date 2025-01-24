@@ -157,8 +157,10 @@ struct ihm_file *ihm_file_new(ihm_file_read_callback read_callback,
 /* Make a new ihm_file that will read data from the given file descriptor */
 struct ihm_file *ihm_file_new_from_fd(int fd);
 
-/* Make a new struct ihm_reader */
-struct ihm_reader *ihm_reader_new(struct ihm_file *fh);
+/* Make a new struct ihm_reader.
+   To read an mmCIF file, set binary=false; to read BinaryCIF, set binary=true.
+ */
+struct ihm_reader *ihm_reader_new(struct ihm_file *fh, bool binary);
 
 /* Free memory used by a struct ihm_reader.
    Note that this does not close the

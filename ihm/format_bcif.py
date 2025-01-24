@@ -15,6 +15,10 @@ import sys
 import inspect
 import ihm.format
 import ihm
+try:
+    from . import _format
+except ImportError:
+    _format = None
 
 # ByteArray types
 _Int8 = 1
@@ -198,18 +202,31 @@ class BinaryCifReader(ihm.format._Reader):
     """
     def __init__(self, fh, category_handler, unknown_category_handler=None,
                  unknown_keyword_handler=None):
+        if _format is not None:
+            c_file = _format.ihm_file_new_from_python(fh)
+            self._c_format = _format.ihm_reader_new(c_file, True)
         self.category_handler = category_handler
         self.unknown_category_handler = unknown_category_handler
         self.unknown_keyword_handler = unknown_keyword_handler
         self.fh = fh
         self._file_blocks = None
 
+    def __del__(self):
+        if hasattr(self, '_c_format'):
+            _format.ihm_reader_free(self._c_format)
+
     def read_file(self):
         """Read the file and extract data.
+
+           If the C-accelerated _format module is available, then it is used
+           instead of the (much slower) Python reader.
 
            :return: True iff more data blocks are available to be read.
         """
         self._add_category_keys()
+        if hasattr(self, '_c_format'):
+            return self._read_file_c()
+
         if self._file_blocks is None:
             self._file_blocks = self._read_msgpack()
         if len(self._file_blocks) > 0:
@@ -222,6 +239,22 @@ class BinaryCifReader(ihm.format._Reader):
                     self.unknown_category_handler(cat_name, None)
             del self._file_blocks[0]
         return len(self._file_blocks) > 0
+
+    def _read_file_c(self):
+        """Read the file using the C parser"""
+        _format.ihm_reader_remove_all_categories(self._c_format)
+        for category, handler in self.category_handler.items():
+            func = getattr(handler, '_add_c_handler', None) \
+                or _format.add_category_handler
+            func(self._c_format, category, handler._keys, handler)
+        if self.unknown_category_handler is not None:
+            _format.add_unknown_category_handler(self._c_format,
+                                                 self.unknown_category_handler)
+        if self.unknown_keyword_handler is not None:
+            _format.add_unknown_keyword_handler(self._c_format,
+                                                self.unknown_keyword_handler)
+        eof, more_data = _format.ihm_read_file(self._c_format)
+        return more_data
 
     def _handle_category(self, handler, category, cat_name):
         """Extract data for the given category"""

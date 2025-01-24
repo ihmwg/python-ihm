@@ -6,7 +6,7 @@
 %}
 
 /* Get simple return values */
-%apply int *OUTPUT { int * };
+%apply bool *OUTPUT { bool * };
 
 %ignore ihm_keyword;
 %ignore ihm_error_set;

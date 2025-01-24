@@ -356,10 +356,12 @@ struct ihm_category {
   ihm_free_callback free_func;
 };
 
-/* Keep track of data used while reading an mmCIF file. */
+/* Keep track of data used while reading an mmCIF or BinaryCIF file. */
 struct ihm_reader {
   /* The file handle to read from */
   struct ihm_file *fh;
+  /* true for BinaryCIF, false for mmCIF */
+  bool binary;
   /* The current line number in the file */
   int linenum;
   /* For multiline tokens, the entire contents of the lines */
@@ -630,11 +632,12 @@ struct ihm_file *ihm_file_new_from_fd(int fd)
 }
 
 /* Make a new struct ihm_reader */
-struct ihm_reader *ihm_reader_new(struct ihm_file *fh)
+struct ihm_reader *ihm_reader_new(struct ihm_file *fh, bool binary)
 {
   struct ihm_reader *reader =
             (struct ihm_reader *)ihm_malloc(sizeof(struct ihm_reader));
   reader->fh = fh;
+  reader->binary = binary;
   reader->linenum = 0;
   reader->multiline = ihm_string_new();
   reader->tokens = ihm_array_new(sizeof(struct ihm_token));
