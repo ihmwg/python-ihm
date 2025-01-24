@@ -25,8 +25,6 @@
 
 #define INT_TO_POINTER(i) ((void *) (long) (i))
 #define POINTER_TO_INT(p) ((int)  (long) (p))
-#define TRUE 1
-#define FALSE 0
 
 #if defined(_WIN32) || defined(_WIN64)
 # define strcasecmp _stricmp
@@ -445,32 +443,32 @@ struct ihm_keyword *ihm_keyword_new(struct ihm_category *category,
   struct ihm_keyword *key =
           (struct ihm_keyword *)ihm_malloc(sizeof(struct ihm_keyword));
   key->name = strdup(name);
-  key->own_data = FALSE;
-  key->in_file = FALSE;
+  key->own_data = false;
+  key->in_file = false;
   ihm_mapping_insert(category->keyword_map, key->name, key);
   key->data = NULL;
-  key->own_data = FALSE;
+  key->own_data = false;
   return key;
 }
 
 static void set_keyword_to_default(struct ihm_keyword *key)
 {
   key->data = NULL;
-  key->own_data = FALSE;
+  key->own_data = false;
 }
 
 /* Set the value of a given keyword from the given string */
 static void set_value(struct ihm_reader *reader,
                       struct ihm_category *category,
                       struct ihm_keyword *key, char *str,
-                      int own_data, struct ihm_error **err)
+                      bool own_data, struct ihm_error **err)
 {
   /* If a key is duplicated, overwrite it with the new value */
   if (key->in_file && key->own_data) {
     free(key->data);
   }
 
-  key->omitted = key->unknown = FALSE;
+  key->omitted = key->unknown = false;
 
   key->own_data = own_data;
   if (own_data) {
@@ -479,7 +477,7 @@ static void set_value(struct ihm_reader *reader,
     key->data = str;
   }
 
-  key->in_file = TRUE;
+  key->in_file = true;
 }
 
 /* Set the given keyword to the 'omitted' special value */
@@ -490,10 +488,10 @@ static void set_omitted_value(struct ihm_keyword *key)
     free(key->data);
   }
 
-  key->omitted = TRUE;
-  key->unknown = FALSE;
+  key->omitted = true;
+  key->unknown = false;
   set_keyword_to_default(key);
-  key->in_file = TRUE;
+  key->in_file = true;
 }
 
 /* Set the given keyword to the 'unknown' special value */
@@ -504,10 +502,10 @@ static void set_unknown_value(struct ihm_keyword *key)
     free(key->data);
   }
 
-  key->omitted = FALSE;
-  key->unknown = TRUE;
+  key->omitted = false;
+  key->unknown = true;
   set_keyword_to_default(key);
-  key->in_file = TRUE;
+  key->in_file = true;
 }
 
 /* Make a new ihm_file */
@@ -583,23 +581,23 @@ static ssize_t expand_buffer(struct ihm_file *fh, struct ihm_error **err)
 }
 
 /* Read the next line from the file. Lines are terminated by \n, \r, \r\n,
-   or \0. On success, TRUE is returned. fh->line_start points to the start of
-   the null-terminated line. *eof is set TRUE iff the end of the line is
+   or \0. On success, true is returned. fh->line_start points to the start of
+   the null-terminated line. *eof is set true iff the end of the line is
    the end of the file.
-   On error, FALSE is returned and err is set.
+   On error, false is returned and err is set.
  */
-static int ihm_file_read_line(struct ihm_file *fh, int *eof,
-                              struct ihm_error **err)
+static bool ihm_file_read_line(struct ihm_file *fh, int *eof,
+                               struct ihm_error **err)
 {
   size_t line_end;
-  *eof = FALSE;
+  *eof = false;
   fh->line_start = fh->next_line_start;
   if (fh->line_start > fh->buffer->len) {
     /* EOF occurred earlier - return it (plus an empty string) again */
-    *eof = TRUE;
+    *eof = true;
     fh->line_start = 0;
     fh->buffer->str[0] = '\0';
-    return TRUE;
+    return true;
   }
 
   /* Line is only definitely terminated if there are characters after it
@@ -609,9 +607,9 @@ static int ihm_file_read_line(struct ihm_file *fh, int *eof,
          == fh->buffer->len) {
     ssize_t num_added = expand_buffer(fh, err);
     if (num_added < 0) {
-      return FALSE; /* error occurred */
+      return false; /* error occurred */
     } else if (num_added == 0) {
-      *eof = TRUE; /* end of file */
+      *eof = true; /* end of file */
       break;
     }
   }
@@ -622,7 +620,7 @@ static int ihm_file_read_line(struct ihm_file *fh, int *eof,
     fh->next_line_start++;
   }
   fh->buffer->str[line_end] = '\0';
-  return TRUE;
+  return true;
 }
 
 /* Make a new ihm_file that will read data from the given file descriptor */
@@ -867,7 +865,7 @@ static void unget_token(struct ihm_reader *reader)
 /* Get the next token from an mmCIF file, or NULL on end of file.
    The memory used by the token is valid for N calls to this function, where
    N is the result of get_num_line_tokens().
-   If ignore_multiline is TRUE, the string contents of any multiline
+   If ignore_multiline is true, the string contents of any multiline
    value tokens (those that are semicolon-delimited) are not stored
    in memory. */
 static struct ihm_token *get_token(struct ihm_reader *reader,
@@ -947,9 +945,9 @@ static void read_value(struct ihm_reader *reader,
     key = (struct ihm_keyword *)ihm_mapping_lookup(category->keyword_map,
                                                    keyword_name);
     if (key) {
-      struct ihm_token *val_token = get_token(reader, FALSE, err);
+      struct ihm_token *val_token = get_token(reader, false, err);
       if (val_token && val_token->type == MMCIF_TOKEN_VALUE) {
-        set_value(reader, category, key, val_token->str, TRUE, err);
+        set_value(reader, category, key, val_token->str, true, err);
       } else if (val_token && val_token->type == MMCIF_TOKEN_OMITTED) {
         set_omitted_value(key);
       } else if (val_token && val_token->type == MMCIF_TOKEN_UNKNOWN) {
@@ -977,7 +975,7 @@ static void read_value(struct ihm_reader *reader,
 static struct ihm_keyword *handle_loop_index(struct ihm_reader *reader,
                                              struct ihm_category **catpt,
                                              struct ihm_token *token,
-                                             int first_loop,
+                                             bool first_loop,
                                              struct ihm_error **err)
 {
   struct ihm_category *category;
@@ -1026,7 +1024,7 @@ static struct ihm_keyword *handle_loop_index(struct ihm_reader *reader,
 static void check_keywords_in_file(void *k, void *value, void *user_data)
 {
   struct ihm_keyword *key = (struct ihm_keyword *)value;
-  int *in_file = (int *)user_data;
+  bool *in_file = (bool *)user_data;
   *in_file |= key->in_file;
 }
 
@@ -1036,14 +1034,14 @@ static void clear_keywords(void *k, void *value, void *user_data)
   if (key->own_data) {
     free(key->data);
   }
-  key->in_file = FALSE;
+  key->in_file = false;
   set_keyword_to_default(key);
 }
 
 /* Call the category's data callback function.
-   If force is FALSE, only call it if data has actually been read in. */
+   If force is false, only call it if data has actually been read in. */
 static void call_category(struct ihm_reader *reader,
-                          struct ihm_category *category, int force,
+                          struct ihm_category *category, bool force,
                           struct ihm_error **err)
 {
   if (category->data_callback) {
@@ -1065,19 +1063,19 @@ static struct ihm_array *read_loop_keywords(struct ihm_reader *reader,
                                             struct ihm_category **category,
                                             struct ihm_error **err)
 {
-  int first_loop = TRUE;
+  bool first_loop = true;
   struct ihm_token *token;
   /* An array of ihm_keyword*, in the order the values should be given.
      Any NULL pointers correspond to keywords we're not interested in. */
   struct ihm_array *keywords = ihm_array_new(sizeof(struct ihm_keyword*));
   *category = NULL;
 
-  while (!*err && (token = get_token(reader, FALSE, err))) {
+  while (!*err && (token = get_token(reader, false, err))) {
     if (token->type == MMCIF_TOKEN_VARIABLE) {
       struct ihm_keyword *k = handle_loop_index(reader, category,
                                                 token, first_loop, err);
       ihm_array_append(keywords, &k);
-      first_loop = FALSE;
+      first_loop = false;
     } else if (token->type == MMCIF_TOKEN_VALUE
                || token->type == MMCIF_TOKEN_UNKNOWN
                || token->type == MMCIF_TOKEN_OMITTED) {
@@ -1109,7 +1107,7 @@ static void read_loop_data(struct ihm_reader *reader,
     int oneline = get_num_line_tokens(reader) >= len;
     unsigned i;
     for (i = 0; !*err && i < len; ++i) {
-      struct ihm_token *token = get_token(reader, FALSE, err);
+      struct ihm_token *token = get_token(reader, false, err);
       if (*err) {
         break;
       } else if (token && token->type == MMCIF_TOKEN_VALUE) {
@@ -1138,7 +1136,7 @@ static void read_loop_data(struct ihm_reader *reader,
       }
     }
     if (!*err) {
-      call_category(reader, category, TRUE, err);
+      call_category(reader, category, true, err);
     }
   }
 }
@@ -1170,7 +1168,7 @@ static void call_category_foreach(void *key, void *value, void *user_data)
   struct category_foreach_data *d = (struct category_foreach_data *)user_data;
   struct ihm_category *category = (struct ihm_category *)value;
   if (!*(d->err)) {
-    call_category(d->reader, category, FALSE, d->err);
+    call_category(d->reader, category, false, d->err);
   }
 }
 
@@ -1236,13 +1234,13 @@ static void sort_mappings(struct ihm_reader *reader)
 }
 
 /* Read an entire mmCIF file. */
-int ihm_read_file(struct ihm_reader *reader, int *more_data,
-                  struct ihm_error **err)
+bool ihm_read_file(struct ihm_reader *reader, bool *more_data,
+                   struct ihm_error **err)
 {
   int ndata = 0, in_save = 0;
   struct ihm_token *token;
   sort_mappings(reader);
-  while (!*err && (token = get_token(reader, TRUE, err))) {
+  while (!*err && (token = get_token(reader, true, err))) {
     if (token->type == MMCIF_TOKEN_VARIABLE) {
       read_value(reader, token, err);
     } else if (token->type == MMCIF_TOKEN_DATA) {
@@ -1268,9 +1266,9 @@ int ihm_read_file(struct ihm_reader *reader, int *more_data,
     finalize_all_categories(reader, err);
   }
   if (*err) {
-    return FALSE;
+    return false;
   } else {
     *more_data = (ndata > 1);
-    return TRUE;
+    return true;
   }
 }

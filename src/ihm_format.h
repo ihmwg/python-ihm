@@ -10,6 +10,7 @@
 #ifndef IHM_FORMAT_H
 #define IHM_FORMAT_H
 
+#include <stdbool.h> /* For bool */
 #include <stdlib.h> /* For size_t */
 #if defined(_MSC_VER)
 #include <BaseTsd.h>
@@ -51,14 +52,14 @@ struct ihm_keyword {
   char *name;
   /* Last value read from the file */
   char *data;
-  /* If TRUE, we own the memory for data */
-  int own_data;
-  /* TRUE iff this keyword is in the file (not necessarily with a value) */
-  int in_file;
-  /* TRUE iff the keyword is in the file but the value is omitted ('.') */
-  int omitted;
-  /* TRUE iff the keyword is in the file but the value is unknown ('?') */
-  int unknown;
+  /* If true, we own the memory for data */
+  bool own_data;
+  /* true iff this keyword is in the file (not necessarily with a value) */
+  bool in_file;
+  /* true iff the keyword is in the file but the value is omitted ('.') */
+  bool omitted;
+  /* true iff the keyword is in the file but the value is unknown ('?') */
+  bool unknown;
 };
 
 /* Opaque types */
@@ -165,10 +166,10 @@ struct ihm_reader *ihm_reader_new(struct ihm_file *fh);
 void ihm_reader_free(struct ihm_reader *reader);
 
 /* Read a data block from an mmCIF file.
-   *more_data is set TRUE iff more data blocks are available after this one.
-   Return FALSE and set err on error. */
-int ihm_read_file(struct ihm_reader *reader, int *more_data,
-                  struct ihm_error **err);
+   *more_data is set true iff more data blocks are available after this one.
+   Return false and set err on error. */
+bool ihm_read_file(struct ihm_reader *reader, bool *more_data,
+                   struct ihm_error **err);
 
 #ifdef  __cplusplus
 }
