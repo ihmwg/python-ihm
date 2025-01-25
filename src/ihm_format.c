@@ -1439,6 +1439,25 @@ static bool read_bcif_string(struct ihm_reader *reader, char **str,
   return true;
 }
 
+/* Read the next string from the BinaryCIF file and store a copy of it at
+   the given pointer. The caller is responsible for freeing it later. */
+static bool read_bcif_string_dup(struct ihm_reader *reader, char **str,
+                                 struct ihm_error **err)
+{
+  char *buf;
+  uint32_t strsz;
+  if (!cmp_read_str_size(&reader->cmp, &strsz)) {
+    ihm_error_set(err, IHM_ERROR_FILE_FORMAT, "Was expecting a string; %s",
+                  cmp_strerror(&reader->cmp));
+    return false;
+  }
+  if (!ihm_file_read_bytes(reader->fh, &buf, strsz, err)) return false;
+  /* strdup into new buffer */
+  free(*str);
+  *str = strndup(buf, strsz);
+  return true;
+}
+
 /* Read the next string from the BinaryCIF file. Set match if it compares
    equal to str. This is slightly more efficient than returning the
    null-terminated string and then comparing it as it eliminates a copy. */
@@ -1479,8 +1498,99 @@ static bool read_bcif_header(struct ihm_reader *reader, struct ihm_error **err)
   return true;
 }
 
+/* A single column in a BinaryCIF category */
+struct bcif_column {
+  /* Keyword name */
+  char *name;
+  /* Next column, or NULL */
+  struct bcif_column *next;
+};
+
+/* A single category in a BinaryCIF file */
+struct bcif_category {
+  /* Category name */
+  char *name;
+  /* Singly-linked list of column (keyword) information */
+  struct bcif_column *first_column;
+};
+
+/* Create and return a new bcif_column */
+static struct bcif_column *bcif_column_new()
+{
+  struct bcif_column *c = (struct bcif_column *)ihm_malloc(
+                                             sizeof(struct bcif_column));
+  c->name = NULL;
+  c->next = NULL;
+  return c;
+}
+
+/* Free memory used by a bcif_column */
+static void bcif_column_free(struct bcif_column *col)
+{
+  free(col->name);
+  free(col);
+}
+
+/* Initialize a new bcif_category */
+static void bcif_category_init(struct bcif_category *cat)
+{
+  cat->name = NULL;
+  cat->first_column = NULL;
+}
+
+/* Free memory used by a bcif_category */
+static void bcif_category_free(struct bcif_category *cat)
+{
+  free(cat->name);
+  while(cat->first_column) {
+    struct bcif_column *col = cat->first_column;
+    cat->first_column = col->next;
+    free(col);
+  }
+}
+
+/* Read a single column from a BinaryCIF file */
+static bool read_bcif_column(struct ihm_reader *reader,
+                             struct bcif_column *col,
+                             struct ihm_error **err)
+{
+  uint32_t map_size, i;
+  if (!read_bcif_map(reader, &map_size, err)) return false;
+  for (i = 0; i < map_size; ++i) {
+    char *str;
+    if (!read_bcif_string(reader, &str, err)) return false;
+    if (strcmp(str, "name") == 0) {
+      if (!read_bcif_string_dup(reader, &col->name, err)) return false;
+    } else {
+      if (!skip_bcif_object_no_limit(reader, err)) return false;
+    }
+  }
+  return true;
+}
+
+/* Read all columns for a category from a BinaryCIF file */
+static bool read_bcif_columns(struct ihm_reader *reader,
+                              struct bcif_category *cat,
+                              struct ihm_error **err)
+{
+  uint32_t array_size, i;
+  if (!read_bcif_array(reader, &array_size, err)) return false;
+  for (i = 0; i < array_size; ++i) {
+    struct bcif_column *col = bcif_column_new();
+    if (!read_bcif_column(reader, col, err)) {
+      bcif_column_free(col);
+      return false;
+    } else {
+      col->next = cat->first_column;
+      cat->first_column = col;
+    }
+  }
+  return true;
+}
+
 /* Read a single category from a BinaryCIF file */
 static bool read_bcif_category(struct ihm_reader *reader,
+                               struct bcif_category *cat,
                                struct ihm_error **err)
 {
   uint32_t map_size, i;
@@ -1489,8 +1599,9 @@ static bool read_bcif_category(struct ihm_reader *reader,
     char *str;
     if (!read_bcif_string(reader, &str, err)) return false;
     if (strcmp(str, "name") == 0) {
-      if (!read_bcif_string(reader, &str, err)) return false;
-      printf("%s\n", str);
+      if (!read_bcif_string_dup(reader, &cat->name, err)) return false;
+    } else if (strcmp(str, "columns") == 0) {
+      if (!read_bcif_columns(reader, cat, err)) return false;
     } else {
       if (!skip_bcif_object_no_limit(reader, err)) return false;
     }
@@ -1505,7 +1616,19 @@ static bool read_bcif_categories(struct ihm_reader *reader,
   uint32_t ncat, icat;
   if (!read_bcif_array(reader, &ncat, err)) return false;
   for (icat = 0; icat < ncat; ++icat) {
-    if (!read_bcif_category(reader, err)) return false;
+    struct bcif_category cat;
+    bcif_category_init(&cat);
+    if (!read_bcif_category(reader, &cat, err)) {
+      bcif_category_free(&cat);
+      return false;
+    } else {
+      struct bcif_column *col;
+      printf("read category %s\n", cat.name);
+      for (col = cat.first_column; col; col = col->next) {
+        printf("  .%s\n", col->name);
+      }
+      bcif_category_free(&cat);
+    }
   }
   return true;
 }
