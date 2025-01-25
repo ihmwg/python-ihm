@@ -196,12 +196,20 @@ static void ihm_string_set_size(struct ihm_string *s, size_t len)
   s->str[s->len] = '\0';
 }
 
-/* Set the ihm_string contents to be equal to str */
+/* Set the ihm_string contents to be equal to (null-terminated) str */
 static void ihm_string_assign(struct ihm_string *s, const char *str)
 {
   size_t len = strlen(str);
   ihm_string_set_size(s, len);
   memcpy(s->str, str, len);
+}
+
+/* Set the ihm_string contents to be equal to str of given size */
+static void ihm_string_assign_n(struct ihm_string *s, const char *str,
+                                size_t strsz)
+{
+  ihm_string_set_size(s, strsz);
+  memcpy(s->str, str, strsz);
 }
 
 /* Append str to the end of the ihm_string */
@@ -364,8 +372,9 @@ struct ihm_reader {
   bool binary;
   /* The current line number in the file */
   int linenum;
-  /* For multiline tokens, the entire contents of the lines */
-  struct ihm_string *multiline;
+  /* Temporary buffer for string data. For mmCIF, this is used for
+      multiline tokens, to contain the entire contents of the lines */
+  struct ihm_string *tmp_str;
   /* All tokens parsed from the last line */
   struct ihm_array *tokens;
   /* The next token to be returned */
@@ -645,7 +654,7 @@ struct ihm_reader *ihm_reader_new(struct ihm_file *fh, bool binary)
   reader->fh = fh;
   reader->binary = binary;
   reader->linenum = 0;
-  reader->multiline = ihm_string_new();
+  reader->tmp_str = ihm_string_new();
   reader->tokens = ihm_array_new(sizeof(struct ihm_token));
   reader->token_index = 0;
   reader->category_map = ihm_mapping_new(ihm_category_free);
@@ -665,7 +674,7 @@ struct ihm_reader *ihm_reader_new(struct ihm_file *fh, bool binary)
 /* Free memory used by a struct ihm_reader */
 void ihm_reader_free(struct ihm_reader *reader)
 {
-  ihm_string_free(reader->multiline);
+  ihm_string_free(reader->tmp_str);
   ihm_array_free(reader->tokens);
   ihm_mapping_free(reader->category_map);
   ihm_file_free(reader->fh);
@@ -845,14 +854,14 @@ static void read_multiline_token(struct ihm_reader *reader,
     } else if (line_pt(reader)[0] == ';') {
       struct ihm_token t;
       t.type = MMCIF_TOKEN_VALUE;
-      t.str = reader->multiline->str;
+      t.str = reader->tmp_str->str;
       ihm_array_clear(reader->tokens);
       ihm_array_append(reader->tokens, &t);
       reader->token_index = 0;
       return;
     } else if (!ignore_multiline) {
-      ihm_string_append(reader->multiline, "\n");
-      ihm_string_append(reader->multiline, line_pt(reader));
+      ihm_string_append(reader->tmp_str, "\n");
+      ihm_string_append(reader->tmp_str, line_pt(reader));
     }
   }
   ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
@@ -893,7 +902,7 @@ static struct ihm_token *get_token(struct ihm_reader *reader,
       } else if (line_pt(reader)[0] == ';') {
         if (!ignore_multiline) {
           /* Skip initial semicolon */
-          ihm_string_assign(reader->multiline, line_pt(reader) + 1);
+          ihm_string_assign(reader->tmp_str, line_pt(reader) + 1);
         }
         read_multiline_token(reader, ignore_multiline, err);
         if (*err) {
@@ -1396,6 +1405,40 @@ static bool skip_bcif_object(struct ihm_reader *reader, struct ihm_error **err)
   }
 }
 
+/* Skip the next msgpack object from the BinaryCIF file; it can be any kind
+   of object, including an array or map.
+ */
+static bool skip_bcif_object_no_limit(struct ihm_reader *reader,
+                                      struct ihm_error **err)
+{
+  if (!cmp_skip_object_no_limit(&reader->cmp)) {
+    ihm_error_set(err, IHM_ERROR_FILE_FORMAT, "Could not skip object; %s",
+                  cmp_strerror(&reader->cmp));
+    return false;
+  } else {
+    return true;
+  }
+}
+
+/* Read the next string from the BinaryCIF file and return a pointer to it.
+   This pointer points into ihm_reader and is valid until the next read. */
+static bool read_bcif_string(struct ihm_reader *reader, char **str,
+                             struct ihm_error **err)
+{
+  char *buf;
+  uint32_t strsz;
+  if (!cmp_read_str_size(&reader->cmp, &strsz)) {
+    ihm_error_set(err, IHM_ERROR_FILE_FORMAT, "Was expecting a string; %s",
+                  cmp_strerror(&reader->cmp));
+    return false;
+  }
+  if (!ihm_file_read_bytes(reader->fh, &buf, strsz, err)) return false;
+  /* Copy into reader's temporary string buffer and return a pointer to it */
+  ihm_string_assign_n(reader->tmp_str, buf, strsz);
+  *str = reader->tmp_str->str;
+  return true;
+}
+
 /* Read the next string from the BinaryCIF file. Set match if it compares
    equal to str. This is slightly more efficient than returning the
    null-terminated string and then comparing it as it eliminates a copy. */
@@ -1418,7 +1461,6 @@ static bool read_bcif_exact_string(struct ihm_reader *reader, const char *str,
 static bool read_bcif_header(struct ihm_reader *reader, struct ihm_error **err)
 {
   uint32_t map_size, i;
-  printf("read bcif header\n");
   if (!read_bcif_map(reader, &map_size, err)) return false;
   for (i = 0; i < map_size; ++i) {
     bool match;
@@ -1437,10 +1479,52 @@ static bool read_bcif_header(struct ihm_reader *reader, struct ihm_error **err)
   return true;
 }
 
+/* Read a single category from a BinaryCIF file */
+static bool read_bcif_category(struct ihm_reader *reader,
+                               struct ihm_error **err)
+{
+  uint32_t map_size, i;
+  if (!read_bcif_map(reader, &map_size, err)) return false;
+  for (i = 0; i < map_size; ++i) {
+    char *str;
+    if (!read_bcif_string(reader, &str, err)) return false;
+    if (strcmp(str, "name") == 0) {
+      if (!read_bcif_string(reader, &str, err)) return false;
+      printf("%s\n", str);
+    } else {
+      if (!skip_bcif_object_no_limit(reader, err)) return false;
+    }
+  }
+  return true;
+}
+
+/* Read all categories from a BinaryCIF file */
+static bool read_bcif_categories(struct ihm_reader *reader,
+                                 struct ihm_error **err)
+{
+  uint32_t ncat, icat;
+  if (!read_bcif_array(reader, &ncat, err)) return false;
+  for (icat = 0; icat < ncat; ++icat) {
+    if (!read_bcif_category(reader, err)) return false;
+  }
+  return true;
+}
+
 /* Read the next data block from a BinaryCIF file */
 static bool read_bcif_block(struct ihm_reader *reader, struct ihm_error **err)
 {
-  printf("read bcif block, %d left\n", reader->num_blocks_left);
+  uint32_t map_size, i;
+  if (!read_bcif_map(reader, &map_size, err)) return false;
+  for (i = 0; i < map_size; ++i) {
+    bool match;
+    if (!read_bcif_exact_string(reader, "categories", &match,
+                                err)) return false;
+    if (match) {
+      return read_bcif_categories(reader, err);
+    } else {
+      if (!skip_bcif_object(reader, err)) return false;
+    }
+  }
   reader->num_blocks_left--;
   return true;
 }
