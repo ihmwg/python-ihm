@@ -386,6 +386,12 @@ struct ihm_reader {
   void *unknown_keyword_data;
   /* Function to release unknown keyword data */
   ihm_free_callback unknown_keyword_free_func;
+
+  /* msgpack context for reading BinaryCIF file */
+  cmp_ctx_t cmp;
+  /* Number of BinaryCIF data blocks left to read, or -1 if header
+     not read yet */
+  int num_blocks_left;
 };
 
 typedef enum {
@@ -651,6 +657,8 @@ struct ihm_reader *ihm_reader_new(struct ihm_file *fh, bool binary)
   reader->unknown_keyword_callback = NULL;
   reader->unknown_keyword_data = NULL;
   reader->unknown_keyword_free_func = NULL;
+
+  reader->num_blocks_left = -1;
   return reader;
 }
 
@@ -1237,8 +1245,8 @@ static void sort_mappings(struct ihm_reader *reader)
 }
 
 /* Read an entire mmCIF file. */
-bool ihm_read_file(struct ihm_reader *reader, bool *more_data,
-                   struct ihm_error **err)
+static bool read_mmcif_file(struct ihm_reader *reader, bool *more_data,
+                            struct ihm_error **err)
 {
   int ndata = 0, in_save = 0;
   struct ihm_token *token;
@@ -1273,5 +1281,192 @@ bool ihm_read_file(struct ihm_reader *reader, bool *more_data,
   } else {
     *more_data = (ndata > 1);
     return true;
+  }
+}
+
+/* Read exactly sz bytes from the given file. Return a pointer to the
+   location in the file read buffer of those bytes. This pointer is only
+   valid until the next file read. */
+static bool ihm_file_read_bytes(struct ihm_file *fh, char **buf, size_t sz,
+                                struct ihm_error **err)
+{
+  /* Read at least 4MiB of data at a time */
+  static const ssize_t READ_SIZE = 4194304;
+  if (fh->line_start + sz > fh->buffer->len) {
+    size_t current_size, to_read;
+    ssize_t readlen, needed;
+    /* Move any existing data to the start of the buffer, so it doesn't
+       grow to the full size of the file */
+    if (fh->line_start) {
+      ihm_string_erase(fh->buffer, 0, fh->line_start);
+      fh->line_start = 0;
+    }
+    /* Fill buffer with new data, at least sz long (but could be more) */
+    current_size = fh->buffer->len;
+    needed = sz - current_size;
+    to_read = READ_SIZE > needed ? READ_SIZE : needed;
+    /* Expand buffer as needed */
+    ihm_string_set_size(fh->buffer, current_size + to_read);
+    readlen = (*fh->read_callback)(
+          fh->buffer->str + current_size, to_read, fh->data, err);
+    if (readlen < needed) {
+      ihm_error_set(err, IHM_ERROR_IO, "Less data read than requested");
+      return false;
+    }
+    /* Set buffer size to match data actually read */
+    ihm_string_set_size(fh->buffer, current_size + readlen);
+  }
+  *buf = fh->buffer->str + fh->line_start;
+  fh->line_start += sz;
+  return true;
+}
+
+/* Read callback for the cmp library */
+static bool bcif_cmp_read(cmp_ctx_t *ctx, void *data, size_t limit)
+{
+  char *buf;
+  struct ihm_error *err = NULL;
+  struct ihm_reader *reader = (struct ihm_reader *)ctx->buf;
+  if (!ihm_file_read_bytes(reader->fh, &buf, limit, &err)) {
+    ihm_error_free(err); /* todo: pass IO error back */
+    return false;
+  } else {
+    memcpy(data, buf, limit);
+    return true;
+  }
+}
+
+/* Skip callback for the cmp library */
+static bool bcif_cmp_skip(cmp_ctx_t *ctx, size_t count)
+{
+  char *buf;
+  struct ihm_error *err = NULL;
+  struct ihm_reader *reader = (struct ihm_reader *)ctx->buf;
+  if (!ihm_file_read_bytes(reader->fh, &buf, count, &err)) {
+    ihm_error_free(err); /* todo: pass IO error back */
+    return false;
+  } else {
+    return true;
+  }
+}
+
+/* Read the next msgpack object from the BinaryCIF file; it must be a map.
+   Return true on success and return the number of elements in the map;
+   return false on error (and set err)
+ */
+static bool read_bcif_map(struct ihm_reader *reader, uint32_t *map_size,
+                          struct ihm_error **err)
+{
+  if (!cmp_read_map(&reader->cmp, map_size)) {
+    ihm_error_set(err, IHM_ERROR_FILE_FORMAT, "Was expecting a map; %s",
+                  cmp_strerror(&reader->cmp));
+    return false;
+  } else {
+    return true;
+  }
+}
+
+/* Read the next msgpack object from the BinaryCIF file; it must be an array.
+   Return true on success and return the number of elements in the array;
+   return false on error (and set err)
+ */
+static bool read_bcif_array(struct ihm_reader *reader, uint32_t *array_size,
+                            struct ihm_error **err)
+{
+  if (!cmp_read_array(&reader->cmp, array_size)) {
+    ihm_error_set(err, IHM_ERROR_FILE_FORMAT, "Was expecting an array; %s",
+                  cmp_strerror(&reader->cmp));
+    return false;
+  } else {
+    return true;
+  }
+}
+
+/* Skip the next msgpack object from the BinaryCIF file; it can be any kind
+   of simple object (not an array or map).
+ */
+static bool skip_bcif_object(struct ihm_reader *reader, struct ihm_error **err)
+{
+  if (!cmp_skip_object(&reader->cmp, NULL)) {
+    ihm_error_set(err, IHM_ERROR_FILE_FORMAT, "Could not skip object; %s",
+                  cmp_strerror(&reader->cmp));
+    return false;
+  } else {
+    return true;
+  }
+}
+
+/* Read the next string from the BinaryCIF file. Set match if it compares
+   equal to str. This is slightly more efficient than returning the
+   null-terminated string and then comparing it as it eliminates a copy. */
+static bool read_bcif_exact_string(struct ihm_reader *reader, const char *str,
+                                   bool *match, struct ihm_error **err)
+{
+  char *buf;
+  uint32_t actual_len, want_len = strlen(str);
+  if (!cmp_read_str_size(&reader->cmp, &actual_len)) {
+    ihm_error_set(err, IHM_ERROR_FILE_FORMAT, "Was expecting a string; %s",
+                  cmp_strerror(&reader->cmp));
+    return false;
+  }
+  if (!ihm_file_read_bytes(reader->fh, &buf, actual_len, err)) return false;
+  *match = (actual_len == want_len && strncmp(str, buf, want_len) == 0);
+  return true;
+}
+
+/* Read the header from a BinaryCIF file to get the number of data blocks */
+static bool read_bcif_header(struct ihm_reader *reader, struct ihm_error **err)
+{
+  uint32_t map_size, i;
+  printf("read bcif header\n");
+  if (!read_bcif_map(reader, &map_size, err)) return false;
+  for (i = 0; i < map_size; ++i) {
+    bool match;
+    if (!read_bcif_exact_string(reader, "dataBlocks", &match,
+                                err)) return false;
+    if (match) {
+      uint32_t array_size;
+      if (!read_bcif_array(reader, &array_size, err)) return false;
+      reader->num_blocks_left = array_size;
+      return true;
+    } else {
+      if (!skip_bcif_object(reader, err)) return false;
+    }
+  }
+  reader->num_blocks_left = 0;
+  return true;
+}
+
+/* Read the next data block from a BinaryCIF file */
+static bool read_bcif_block(struct ihm_reader *reader, struct ihm_error **err)
+{
+  printf("read bcif block, %d left\n", reader->num_blocks_left);
+  reader->num_blocks_left--;
+  return true;
+}
+
+/* Read an entire BinaryCIF file. */
+static bool read_bcif_file(struct ihm_reader *reader, bool *more_data,
+                           struct ihm_error **err)
+{
+  if (reader->num_blocks_left == -1) {
+    cmp_init(&reader->cmp, reader, bcif_cmp_read, bcif_cmp_skip, NULL);
+    if (!read_bcif_header(reader, err)) return false;
+  }
+
+  if (reader->num_blocks_left > 0) {
+    if (!read_bcif_block(reader, err)) return false;
+  }
+  return reader->num_blocks_left > 0;
+}
+
+/* Read an entire mmCIF or BinaryCIF file. */
+bool ihm_read_file(struct ihm_reader *reader, bool *more_data,
+                   struct ihm_error **err)
+{
+  if (reader->binary) {
+    return read_bcif_file(reader, more_data, err);
+  } else {
+    return read_mmcif_file(reader, more_data, err);
   }
 }

@@ -1098,7 +1098,7 @@ class CifReader(_Reader, _CifTokenizer):
     def __init__(self, fh, category_handler, unknown_category_handler=None,
                  unknown_keyword_handler=None):
         if _format is not None:
-            c_file = _format.ihm_file_new_from_python(fh)
+            c_file = _format.ihm_file_new_from_python(fh, False)
             self._c_format = _format.ihm_reader_new(c_file, False)
         self.category_handler = category_handler
         self.unknown_category_handler = unknown_category_handler

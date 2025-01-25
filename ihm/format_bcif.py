@@ -203,7 +203,7 @@ class BinaryCifReader(ihm.format._Reader):
     def __init__(self, fh, category_handler, unknown_category_handler=None,
                  unknown_keyword_handler=None):
         if _format is not None:
-            c_file = _format.ihm_file_new_from_python(fh)
+            c_file = _format.ihm_file_new_from_python(fh, True)
             self._c_format = _format.ihm_reader_new(c_file, True)
         self.category_handler = category_handler
         self.unknown_category_handler = unknown_category_handler
