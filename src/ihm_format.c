@@ -1476,6 +1476,27 @@ static bool read_bcif_exact_string(struct ihm_reader *reader, const char *str,
   return true;
 }
 
+/* Read the next binary object from the BinaryCIF file and store a copy of it
+   at the given pointer. The caller is responsible for freeing it later. */
+static bool read_bcif_binary_dup(struct ihm_reader *reader, char **bin,
+                                 size_t *bin_size, struct ihm_error **err)
+{
+  char *buf;
+  uint32_t binsz;
+  if (!cmp_read_bin_size(&reader->cmp, &binsz)) {
+    ihm_error_set(err, IHM_ERROR_FILE_FORMAT, "Was expecting binary; %s",
+                  cmp_strerror(&reader->cmp));
+    return false;
+  }
+  if (!ihm_file_read_bytes(reader->fh, &buf, binsz, err)) return false;
+  /* memcpy into new buffer */
+  free(*bin);
+  *bin = ihm_malloc(binsz);
+  *bin_size = binsz;
+  memcpy(*bin, buf, binsz);
+  return true;
+}
+
 /* Read the header from a BinaryCIF file to get the number of data blocks */
 static bool read_bcif_header(struct ihm_reader *reader, struct ihm_error **err)
 {
@@ -1502,6 +1523,9 @@ static bool read_bcif_header(struct ihm_reader *reader, struct ihm_error **err)
 struct bcif_column {
   /* Keyword name */
   char *name;
+  /* Raw data and size */
+  char *data;
+  size_t data_size;
   /* Next column, or NULL */
   struct bcif_column *next;
 };
@@ -1520,6 +1544,8 @@ static struct bcif_column *bcif_column_new()
   struct bcif_column *c = (struct bcif_column *)ihm_malloc(
                                              sizeof(struct bcif_column));
   c->name = NULL;
+  c->data = NULL;
+  c->data_size = 0;
   c->next = NULL;
   return c;
 }
@@ -1528,6 +1554,7 @@ static struct bcif_column *bcif_column_new()
 static void bcif_column_free(struct bcif_column *col)
 {
   free(col->name);
+  free(col->data);
   free(col);
 }
 
@@ -1549,6 +1576,26 @@ static void bcif_category_free(struct bcif_category *cat)
   }
 }
 
+/* Read raw data from a BinaryCIF file */
+static bool read_bcif_data(struct ihm_reader *reader,
+                             struct bcif_column *col,
+                             struct ihm_error **err)
+{
+  uint32_t map_size, i;
+  if (!read_bcif_map(reader, &map_size, err)) return false;
+  for (i = 0; i < map_size; ++i) {
+    char *str;
+    if (!read_bcif_string(reader, &str, err)) return false;
+    if (strcmp(str, "data") == 0) {
+      if (!read_bcif_binary_dup(reader, &col->data,
+                                &col->data_size, err)) return false;
+    } else {
+      if (!skip_bcif_object_no_limit(reader, err)) return false;
+    }
+  }
+  return true;
+}
+
 /* Read a single column from a BinaryCIF file */
 static bool read_bcif_column(struct ihm_reader *reader,
                              struct bcif_column *col,
@@ -1561,6 +1608,8 @@ static bool read_bcif_column(struct ihm_reader *reader,
     if (!read_bcif_string(reader, &str, err)) return false;
     if (strcmp(str, "name") == 0) {
       if (!read_bcif_string_dup(reader, &col->name, err)) return false;
+    } else if (strcmp(str, "data") == 0) {
+      if (!read_bcif_data(reader, col, err)) return false;
     } else {
       if (!skip_bcif_object_no_limit(reader, err)) return false;
     }
@@ -1625,7 +1674,7 @@ static bool read_bcif_categories(struct ihm_reader *reader,
       struct bcif_column *col;
       printf("read category %s\n", cat.name);
       for (col = cat.first_column; col; col = col->next) {
-        printf("  .%s\n", col->name);
+        printf("  .%s <data %d>\n", col->name, col->data_size);
       }
       bcif_category_free(&cat);
     }
