@@ -1375,6 +1375,31 @@ static bool read_bcif_map(struct ihm_reader *reader, uint32_t *map_size,
   }
 }
 
+/* Like read_bcif_map, but if a NIL object is encountered instead, act
+   as if a zero-size map was read. */
+static bool read_bcif_map_or_nil(struct ihm_reader *reader, uint32_t *map_size,
+                                 struct ihm_error **err)
+{
+  cmp_object_t obj;
+  if (!cmp_read_object(&reader->cmp, &obj)) {
+    ihm_error_set(err, IHM_ERROR_FILE_FORMAT, "%s", cmp_strerror(&reader->cmp));
+    return false;
+  }
+  switch(obj.type) {
+  case CMP_TYPE_NIL:
+    *map_size = 0;
+    return true;
+  case CMP_TYPE_FIXMAP:
+  case CMP_TYPE_MAP16:
+  case CMP_TYPE_MAP32:
+    *map_size = obj.as.map_size;
+    return true;
+  default:
+    ihm_error_set(err, IHM_ERROR_FILE_FORMAT, "Was expecting a map or nil");
+    return false;
+  }
+}
+
 /* Read the next msgpack object from the BinaryCIF file; it must be an array.
    Return true on success and return the number of elements in the array;
    return false on error (and set err)
@@ -1592,8 +1617,13 @@ struct bcif_column {
   /* Raw data and size */
   char *data;
   size_t data_size;
+  /* Mask raw data and size (or NULL) */
+  char *mask_data;
+  size_t mask_data_size;
   /* Singly-linked list of data encodings */
   struct bcif_encoding *first_encoding;
+  /* Singly-linked list of mask encodings */
+  struct bcif_encoding *first_mask_encoding;
   /* Next column, or NULL */
   struct bcif_column *next;
 };
@@ -1652,7 +1682,10 @@ static struct bcif_column *bcif_column_new()
   c->name = NULL;
   c->data = NULL;
   c->data_size = 0;
+  c->mask_data = NULL;
+  c->mask_data_size = 0;
   c->first_encoding = NULL;
+  c->first_mask_encoding = NULL;
   c->next = NULL;
   return c;
 }
@@ -1662,10 +1695,16 @@ static void bcif_column_free(struct bcif_column *col)
 {
   free(col->name);
   free(col->data);
+  free(col->mask_data);
 
   while(col->first_encoding) {
     struct bcif_encoding *enc = col->first_encoding;
     col->first_encoding = enc->next;
+    bcif_encoding_free(enc);
+  }
+  while(col->first_mask_encoding) {
+    struct bcif_encoding *enc = col->first_mask_encoding;
+    col->first_mask_encoding = enc->next;
     bcif_encoding_free(enc);
   }
   free(col);
@@ -1768,8 +1807,8 @@ static bool read_bcif_encodings(struct ihm_reader *reader,
 
 /* Read raw data from a BinaryCIF file */
 static bool read_bcif_data(struct ihm_reader *reader,
-                             struct bcif_column *col,
-                             struct ihm_error **err)
+                           struct bcif_column *col,
+                           struct ihm_error **err)
 {
   uint32_t map_size, i;
   if (!read_bcif_map(reader, &map_size, err)) return false;
@@ -1788,6 +1827,30 @@ static bool read_bcif_data(struct ihm_reader *reader,
   return true;
 }
 
+/* Read a column's mask from a BinaryCIF file */
+static bool read_bcif_mask(struct ihm_reader *reader,
+                           struct bcif_column *col,
+                           struct ihm_error **err)
+{
+  uint32_t map_size, i;
+  if (!read_bcif_map_or_nil(reader, &map_size, err)) return false;
+  for (i = 0; i < map_size; ++i) {
+    char *str;
+    if (!read_bcif_string(reader, &str, err)) return false;
+    if (strcmp(str, "encoding") == 0) {
+      if (!read_bcif_encodings(reader, &col->first_mask_encoding,
+                               err)) return false;
+    } else if (strcmp(str, "data") == 0) {
+      if (!read_bcif_binary_dup(reader, &col->mask_data,
+                                &col->mask_data_size, err)) return false;
+    } else {
+      if (!skip_bcif_object(reader, err)) return false;
+    }
+  }
+  return true;
+}
+
+
 /* Read a single column from a BinaryCIF file */
 static bool read_bcif_column(struct ihm_reader *reader,
                              struct bcif_column *col,
@@ -1802,6 +1865,8 @@ static bool read_bcif_column(struct ihm_reader *reader,
       if (!read_bcif_string_dup(reader, &col->name, err)) return false;
     } else if (strcmp(str, "data") == 0) {
       if (!read_bcif_data(reader, col, err)) return false;
+    } else if (strcmp(str, "mask") == 0) {
+      if (!read_bcif_mask(reader, col, err)) return false;
     } else {
       if (!skip_bcif_object_no_limit(reader, err)) return false;
     }
@@ -1877,7 +1942,11 @@ static bool read_bcif_categories(struct ihm_reader *reader,
                  enc->kind == BCIF_ENC_RUN_LENGTH ? "RunLength" :
                  enc->kind == BCIF_ENC_FIXED_POINT ? "FixedPoint" : "none");
 	}
-	printf(">\n");
+	if (col->mask_data) {
+          printf("> <mask %d>\n", col->mask_data_size);
+	} else {
+          printf(">\n");
+	}
       }
       bcif_category_free(&cat);
     }
