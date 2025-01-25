@@ -1519,6 +1519,23 @@ static bool read_bcif_header(struct ihm_reader *reader, struct ihm_error **err)
   return true;
 }
 
+/* All valid and supported raw encoder types */
+typedef enum {
+  BCIF_ENC_NONE,
+  BCIF_ENC_STRING_ARRAY,
+  BCIF_ENC_BYTE_ARRAY,
+  BCIF_ENC_INTEGER_PACKING,
+  BCIF_ENC_DELTA,
+  BCIF_ENC_RUN_LENGTH,
+  BCIF_ENC_FIXED_POINT
+} bcif_encoding_kind;
+
+/* An encoding used to compress raw data in BinaryCIF */
+struct bcif_encoding {
+  bcif_encoding_kind kind;
+  struct bcif_encoding *next;
+};
+
 /* A single column in a BinaryCIF category */
 struct bcif_column {
   /* Keyword name */
@@ -1526,6 +1543,8 @@ struct bcif_column {
   /* Raw data and size */
   char *data;
   size_t data_size;
+  /* Singly-linked list of data encodings */
+  struct bcif_encoding *first_encoding;
   /* Next column, or NULL */
   struct bcif_column *next;
 };
@@ -1538,6 +1557,22 @@ struct bcif_category {
   struct bcif_column *first_column;
 };
 
+/* Create and return a new bcif_encoding */
+static struct bcif_encoding *bcif_encoding_new()
+{
+  struct bcif_encoding *enc = (struct bcif_encoding *)ihm_malloc(
+                                             sizeof(struct bcif_encoding));
+  enc->kind = BCIF_ENC_NONE;
+  enc->next = NULL;
+  return enc;
+}
+
+/* Free memory used by a bcif_encoding */
+static void bcif_encoding_free(struct bcif_encoding *enc)
+{
+  free(enc);
+}
+
 /* Create and return a new bcif_column */
 static struct bcif_column *bcif_column_new()
 {
@@ -1546,6 +1581,7 @@ static struct bcif_column *bcif_column_new()
   c->name = NULL;
   c->data = NULL;
   c->data_size = 0;
+  c->first_encoding = NULL;
   c->next = NULL;
   return c;
 }
@@ -1555,6 +1591,12 @@ static void bcif_column_free(struct bcif_column *col)
 {
   free(col->name);
   free(col->data);
+
+  while(col->first_encoding) {
+    struct bcif_encoding *enc = col->first_encoding;
+    col->first_encoding = enc->next;
+    bcif_encoding_free(enc);
+  }
   free(col);
 }
 
@@ -1572,8 +1614,60 @@ static void bcif_category_free(struct bcif_category *cat)
   while(cat->first_column) {
     struct bcif_column *col = cat->first_column;
     cat->first_column = col->next;
-    free(col);
+    bcif_column_free(col);
   }
+}
+
+/* Read a single encoding from a BinaryCIF file */
+static bool read_bcif_encoding(struct ihm_reader *reader,
+                               struct bcif_encoding *enc,
+                               struct ihm_error **err)
+{
+  uint32_t map_size, i;
+  if (!read_bcif_map(reader, &map_size, err)) return false;
+  for (i = 0; i < map_size; ++i) {
+    char *str;
+    if (!read_bcif_string(reader, &str, err)) return false;
+    if (strcmp(str, "kind") == 0) {
+      if (!read_bcif_string(reader, &str, err)) return false;
+      if (strcmp(str, "StringArray") == 0) {
+        enc->kind = BCIF_ENC_STRING_ARRAY;
+      } else if (strcmp(str, "ByteArray") == 0) {
+        enc->kind = BCIF_ENC_BYTE_ARRAY;
+      } else if (strcmp(str, "IntegerPacking") == 0) {
+        enc->kind = BCIF_ENC_INTEGER_PACKING;
+      } else if (strcmp(str, "Delta") == 0) {
+        enc->kind = BCIF_ENC_DELTA;
+      } else if (strcmp(str, "RunLength") == 0) {
+        enc->kind = BCIF_ENC_RUN_LENGTH;
+      } else if (strcmp(str, "FixedPoint") == 0) {
+        enc->kind = BCIF_ENC_FIXED_POINT;
+      }
+    } else {
+      if (!skip_bcif_object_no_limit(reader, err)) return false;
+    }
+  }
+  return true;
+}
+
+/* Read all encoding information from a BinaryCIF file */
+static bool read_bcif_encodings(struct ihm_reader *reader,
+                                struct bcif_encoding **first,
+                                struct ihm_error **err)
+{
+  uint32_t array_size, i;
+  if (!read_bcif_array(reader, &array_size, err)) return false;
+  for (i = 0; i < array_size; ++i) {
+    struct bcif_encoding *enc = bcif_encoding_new();
+    if (!read_bcif_encoding(reader, enc, err)) {
+      bcif_encoding_free(enc);
+      return false;
+    } else {
+      enc->next = *first;
+      *first = enc;
+    }
+  }
+  return true;
 }
 
 /* Read raw data from a BinaryCIF file */
@@ -1589,6 +1683,8 @@ static bool read_bcif_data(struct ihm_reader *reader,
     if (strcmp(str, "data") == 0) {
       if (!read_bcif_binary_dup(reader, &col->data,
                                 &col->data_size, err)) return false;
+    } else if (strcmp(str, "encoding") == 0) {
+      if (!read_bcif_encodings(reader, &col->first_encoding, err)) return false;
     } else {
       if (!skip_bcif_object_no_limit(reader, err)) return false;
     }
@@ -1674,7 +1770,18 @@ static bool read_bcif_categories(struct ihm_reader *reader,
       struct bcif_column *col;
       printf("read category %s\n", cat.name);
       for (col = cat.first_column; col; col = col->next) {
-        printf("  .%s <data %d>\n", col->name, col->data_size);
+        struct bcif_encoding *enc;
+        printf("  .%s <data %d", col->name, col->data_size);
+	for (enc = col->first_encoding; enc; enc = enc->next) {
+          printf(":%s",
+                 enc->kind == BCIF_ENC_STRING_ARRAY ? "StringArray" :
+                 enc->kind == BCIF_ENC_BYTE_ARRAY ? "ByteArray" :
+                 enc->kind == BCIF_ENC_INTEGER_PACKING ? "IntegerPacking" :
+                 enc->kind == BCIF_ENC_DELTA ? "Delta" :
+                 enc->kind == BCIF_ENC_RUN_LENGTH ? "RunLength" :
+                 enc->kind == BCIF_ENC_FIXED_POINT ? "FixedPoint" : "none");
+	}
+	printf(">\n");
       }
       bcif_category_free(&cat);
     }
