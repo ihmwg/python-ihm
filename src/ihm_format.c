@@ -1574,13 +1574,29 @@ static bool read_bcif_header(struct ihm_reader *reader, struct ihm_error **err)
 
 /* The type of data stored in bcif_data */
 typedef enum {
-  BCIF_DATA_NULL, /* No data present (e.g. empty mask) */
-  BCIF_DATA_RAW   /* Raw data, before decoding */
+  BCIF_DATA_NULL,   /* No data present (e.g. empty mask) */
+  BCIF_DATA_RAW,    /* Raw data, before decoding */
+  BCIF_DATA_INT8,   /* Array of signed bytes */
+  BCIF_DATA_UINT8,  /* Array of unsigned bytes */
+  BCIF_DATA_INT16,  /* Array of signed 16-bit integers */
+  BCIF_DATA_UINT16, /* Array of unsigned 16-bit integers */
+  BCIF_DATA_INT32,  /* Array of signed 32-bit integers */
+  BCIF_DATA_UINT32, /* Array of unsigned 32-bit integers */
+  BCIF_DATA_FLOAT,  /* Array of single-precision floating point values */
+  BCIF_DATA_DOUBLE  /* Array of double-precision floating point values */
 } bcif_data_type;
 
 /* All possible C types store in bcif_data */
 union bcif_data_c {
   char *raw;
+  int8_t *int8;
+  uint8_t *uint8;
+  int16_t *int16;
+  uint16_t *uint16;
+  int32_t *int32;
+  uint32_t *uint32;
+  float *float32;
+  double *float64;
 };
 
 /* Data stored in BinaryCIF for a column, mask, or StringArray offsets.
@@ -1609,6 +1625,30 @@ static void bcif_data_free(struct bcif_data *d)
     break;
   case BCIF_DATA_RAW:
     free(d->data.raw);
+    break;
+  case BCIF_DATA_INT8:
+    free(d->data.int8);
+    break;
+  case BCIF_DATA_UINT8:
+    free(d->data.uint8);
+    break;
+  case BCIF_DATA_INT16:
+    free(d->data.int16);
+    break;
+  case BCIF_DATA_UINT16:
+    free(d->data.uint16);
+    break;
+  case BCIF_DATA_INT32:
+    free(d->data.int32);
+    break;
+  case BCIF_DATA_UINT32:
+    free(d->data.uint32);
+    break;
+  case BCIF_DATA_FLOAT:
+    free(d->data.float32);
+    break;
+  case BCIF_DATA_DOUBLE:
+    free(d->data.float64);
     break;
   }
 }
@@ -1966,7 +2006,163 @@ static bool read_bcif_category(struct ihm_reader *reader,
   return true;
 }
 
-static void process_bcif_category(struct bcif_category *cat)
+/* Valid ByteArray data types */
+static const int32_t BYTE_ARRAY_INT8 = 1;
+static const int32_t BYTE_ARRAY_INT16 = 2;
+static const int32_t BYTE_ARRAY_INT32 = 3;
+static const int32_t BYTE_ARRAY_UINT8 = 4;
+static const int32_t BYTE_ARRAY_UINT16 = 5;
+static const int32_t BYTE_ARRAY_UINT32 = 6;
+static const int32_t BYTE_ARRAY_FLOAT = 32;
+static const int32_t BYTE_ARRAY_DOUBLE = 33;
+
+static bool handle_byte_array_size(struct bcif_data *d, size_t type_size,
+                                   struct ihm_error **err)
+{
+  if (d->size % type_size != 0) {
+    ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
+                  "ByteArray raw data size is not a multiple of the type size");
+    return false;
+  }
+  d->size /= type_size;
+  /* todo: handle bigendian */
+  return true;
+}
+
+static bool decode_bcif_byte_array(struct bcif_data *d,
+                                   struct bcif_encoding *enc,
+                                   struct ihm_error **err)
+{
+  if (d->type != BCIF_DATA_RAW) {
+    ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
+                  "ByteArray not given raw data as input");
+    return false;
+  }
+  switch(enc->type) {
+  case BYTE_ARRAY_INT8:
+    d->type = BCIF_DATA_INT8;
+    d->data.int8 = (int8_t *)d->data.raw;
+    break;
+  case BYTE_ARRAY_UINT8:
+    d->type = BCIF_DATA_UINT8;
+    d->data.uint8 = (uint8_t *)d->data.raw;
+    break;
+  case BYTE_ARRAY_INT16:
+    if (!handle_byte_array_size(d, sizeof(int16_t), err)) return false;
+    d->type = BCIF_DATA_INT16;
+    d->data.int16 = (int16_t *)d->data.raw;
+    break;
+  case BYTE_ARRAY_UINT16:
+    if (!handle_byte_array_size(d, sizeof(uint16_t), err)) return false;
+    d->type = BCIF_DATA_UINT16;
+    d->data.uint16 = (uint16_t *)d->data.raw;
+    break;
+  case BYTE_ARRAY_INT32:
+    if (!handle_byte_array_size(d, sizeof(int32_t), err)) return false;
+    d->type = BCIF_DATA_INT32;
+    d->data.int32 = (int32_t *)d->data.raw;
+    break;
+  case BYTE_ARRAY_UINT32:
+    if (!handle_byte_array_size(d, sizeof(uint32_t), err)) return false;
+    d->type = BCIF_DATA_UINT32;
+    d->data.uint32 = (uint32_t *)d->data.raw;
+    break;
+  case BYTE_ARRAY_FLOAT:
+    if (!handle_byte_array_size(d, sizeof(float), err)) return false;
+    d->type = BCIF_DATA_FLOAT;
+    d->data.float32 = (float *)d->data.raw;
+    break;
+  case BYTE_ARRAY_DOUBLE:
+    if (!handle_byte_array_size(d, sizeof(double), err)) return false;
+    d->type = BCIF_DATA_DOUBLE;
+    d->data.float64 = (double *)d->data.raw;
+    break;
+  default:
+    ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
+                  "ByteArray unhandled data type %d", enc->type);
+    return false;
+  }
+  return true;
+}
+
+#define DECODE_BCIF_INT_PACK(limit_check, datapt, datatyp) \
+  {                                                                      \
+  int32_t *outdata, value;                                               \
+  size_t i, j;                                                           \
+  size_t outsz = 0;                                                      \
+  /* Get the size of the decoded array. Limit values don't count. */     \
+  for (i = 0; i < d->size; ++i) {                                        \
+    datatyp t = datapt[i];                                               \
+    if (!(limit_check)) { outsz++; }                                     \
+  }                                                                      \
+  outdata = (int32_t *)ihm_malloc(outsz * sizeof(int32_t));              \
+  j = 0;                                                                 \
+  value = 0;                                                             \
+  for (i = 0; i < d->size; ++i) {                                        \
+    datatyp t = datapt[i];                                               \
+    if (limit_check) {                                                   \
+      value += t;                                                        \
+    } else {                                                             \
+      outdata[j++] = value + t;                                          \
+      value = 0;                                                         \
+    }                                                                    \
+  }                                                                      \
+  bcif_data_free(d);                                                     \
+  /* todo: can the output be unsigned 32-bit ? */                        \
+  d->type = BCIF_DATA_INT32;                                             \
+  d->size = outsz;                                                       \
+  d->data.int32 = outdata;                                               \
+  }
+
+static bool decode_bcif_integer_packing(struct bcif_data *d,
+                                        struct bcif_encoding *enc,
+                                        struct ihm_error **err)
+{
+  /* Encoded data must be 8- or 16-bit integers (signed or unsigned).
+     The behavior is similar in each case, so use a macro */
+  switch(d->type) {
+  case BCIF_DATA_UINT8:
+    DECODE_BCIF_INT_PACK(t == 0xFF, d->data.uint8, uint8_t);
+    break;
+  case BCIF_DATA_INT8:
+    DECODE_BCIF_INT_PACK(t == 0x7F || t == -0x80, d->data.int8, int8_t);
+    break;
+  case BCIF_DATA_UINT16:
+    DECODE_BCIF_INT_PACK(t == 0xFFFF, d->data.uint16, uint16_t);
+    break;
+  case BCIF_DATA_INT16:
+    DECODE_BCIF_INT_PACK(t == 0x7FFF || t == -0x8000, d->data.int16, int16_t);
+    break;
+  default:
+    ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
+                  "IntegerPacking bad input data type %d", d->type);
+    return false;
+  }
+  return true;
+}
+
+static bool decode_bcif_data(struct bcif_data *d, struct bcif_encoding *enc,
+                             struct ihm_error **err)
+{
+  while (enc) {
+    switch(enc->kind) {
+    case BCIF_ENC_BYTE_ARRAY:
+      if (!decode_bcif_byte_array(d, enc, err)) return false;
+      break;
+    case BCIF_ENC_INTEGER_PACKING:
+      if (!decode_bcif_integer_packing(d, enc, err)) return false;
+      break;
+    default:
+      /* unhandled for now */
+      break;
+    }
+    enc = enc->next;
+  }
+  return true;
+}
+
+static bool process_bcif_category(struct bcif_category *cat,
+                                  struct ihm_error **err)
 {
   struct bcif_column *col;
   printf("read category %s\n", cat->name);
@@ -1987,7 +2183,9 @@ static void process_bcif_category(struct bcif_category *cat)
     } else {
       printf(">\n");
     }
+    if (!decode_bcif_data(&col->data, col->first_encoding, err)) return false;
   }
+  return true;
 }
 
 /* Read all categories from a BinaryCIF file */
@@ -1999,11 +2197,11 @@ static bool read_bcif_categories(struct ihm_reader *reader,
   for (icat = 0; icat < ncat; ++icat) {
     struct bcif_category cat;
     bcif_category_init(&cat);
-    if (!read_bcif_category(reader, &cat, err)) {
+    if (!read_bcif_category(reader, &cat, err)
+        || !process_bcif_category(&cat, err)) {
       bcif_category_free(&cat);
       return false;
     } else {
-      process_bcif_category(&cat);
       bcif_category_free(&cat);
     }
   }
