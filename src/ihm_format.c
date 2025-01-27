@@ -2139,6 +2139,7 @@ static bool decode_bcif_integer_packing(struct bcif_data *d,
 static bool decode_bcif_data(struct bcif_data *d, struct bcif_encoding *enc,
                              struct ihm_error **err)
 {
+  bool handled = true;
   while (enc) {
     switch(enc->kind) {
     case BCIF_ENC_BYTE_ARRAY:
@@ -2149,9 +2150,31 @@ static bool decode_bcif_data(struct bcif_data *d, struct bcif_encoding *enc,
       break;
     default:
       /* unhandled for now */
+      handled = false;
       break;
     }
     enc = enc->next;
+  }
+  if (handled) {
+    if (d->type == BCIF_DATA_INT32) {
+      size_t i;
+      printf("decoded int32 data: [");
+      for (i = 0; i < d->size; ++i) {
+        printf("%d, ", d->data.int32[i]);
+      }
+      printf("]\n");
+    } else if (d->type == BCIF_DATA_DOUBLE) {
+      size_t i;
+      printf("decoded double data: [");
+      for (i = 0; i < d->size; ++i) {
+        printf("%.3f, ", d->data.float64[i]);
+      }
+      printf("]\n");
+    } else {
+      printf("decoded data type %d\n", d->type);
+    }
+  } else {
+    printf("unhandled data\n");
   }
   return true;
 }
