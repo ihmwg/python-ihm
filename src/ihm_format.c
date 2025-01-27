@@ -1586,7 +1586,7 @@ typedef enum {
   BCIF_DATA_DOUBLE  /* Array of double-precision floating point values */
 } bcif_data_type;
 
-/* All possible C types store in bcif_data */
+/* All possible C types stored in bcif_data */
 union bcif_data_c {
   char *raw;
   int8_t *int8;
@@ -1683,10 +1683,6 @@ struct bcif_encoding {
   int32_t factor;
   /* ByteArray type */
   int32_t type;
-  /* For integer packing encoding */
-  bool is_unsigned;
-  /* For integer packing encoding */
-  int32_t byte_count;
   /* Encoding of StringArray data */
   struct bcif_encoding *first_data_encoding;
   /* Encoding of StringArray offset */
@@ -1732,8 +1728,6 @@ static struct bcif_encoding *bcif_encoding_new()
   enc->origin = 0;
   enc->factor = 1;
   enc->type = -1;
-  enc->is_unsigned = false;
-  enc->byte_count = 1;
   enc->first_data_encoding = NULL;
   enc->first_offset_encoding = NULL;
   enc->string_data = NULL;
@@ -1860,10 +1854,6 @@ static bool read_bcif_encoding(struct ihm_reader *reader,
       if (!read_bcif_int(reader, &enc->factor, err)) return false;
     } else if (strcmp(str, "type") == 0) {
       if (!read_bcif_int(reader, &enc->type, err)) return false;
-    } else if (strcmp(str, "isUnsigned") == 0) {
-      if (!read_bcif_bool(reader, &enc->is_unsigned, err)) return false;
-    } else if (strcmp(str, "byteCount") == 0) {
-      if (!read_bcif_int(reader, &enc->byte_count, err)) return false;
     } else {
       if (!skip_bcif_object_no_limit(reader, err)) return false;
     }
@@ -2016,6 +2006,8 @@ static const int32_t BYTE_ARRAY_UINT32 = 6;
 static const int32_t BYTE_ARRAY_FLOAT = 32;
 static const int32_t BYTE_ARRAY_DOUBLE = 33;
 
+/* Make sure the input data size for ByteArray decoding is correct, and
+   set the output size. */
 static bool handle_byte_array_size(struct bcif_data *d, size_t type_size,
                                    struct ihm_error **err)
 {
@@ -2029,6 +2021,7 @@ static bool handle_byte_array_size(struct bcif_data *d, size_t type_size,
   return true;
 }
 
+/* Decode data using BinaryCIF ByteArray encoding */
 static bool decode_bcif_byte_array(struct bcif_data *d,
                                    struct bcif_encoding *enc,
                                    struct ihm_error **err)
@@ -2114,6 +2107,7 @@ static bool decode_bcif_byte_array(struct bcif_data *d,
   d->data.int32 = outdata;                                               \
   }
 
+/* Decode data using BinaryCIF IntegerPacking encoding */
 static bool decode_bcif_integer_packing(struct bcif_data *d,
                                         struct bcif_encoding *enc,
                                         struct ihm_error **err)
@@ -2141,6 +2135,7 @@ static bool decode_bcif_integer_packing(struct bcif_data *d,
   return true;
 }
 
+/* Decode raw BinaryCIF data by using all encoders specified */
 static bool decode_bcif_data(struct bcif_data *d, struct bcif_encoding *enc,
                              struct ihm_error **err)
 {
