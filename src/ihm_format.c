@@ -2135,6 +2135,28 @@ static bool decode_bcif_integer_packing(struct bcif_data *d,
   return true;
 }
 
+/* Decode data using BinaryCIF Delta encoding */
+static bool decode_bcif_delta(struct bcif_data *d,
+                              struct bcif_encoding *enc,
+                              struct ihm_error **err)
+{
+  int32_t value;
+  size_t i;
+  printf("Delta decode type %d origin %d\n", d->type, enc->origin);
+  /* todo: handle srcType != int32 */
+  if (d->type != BCIF_DATA_INT32) {
+    ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
+                  "Delta not given signed 32-bit integers as input");
+    return false;
+  }
+  value = enc->origin;
+  for (i = 0; i < d->size; ++i) {
+    value += d->data.int32[i];
+    d->data.int32[i] = value;
+  }
+  return true;
+}
+
 /* Decode raw BinaryCIF data by using all encoders specified */
 static bool decode_bcif_data(struct bcif_data *d, struct bcif_encoding *enc,
                              struct ihm_error **err)
@@ -2147,6 +2169,9 @@ static bool decode_bcif_data(struct bcif_data *d, struct bcif_encoding *enc,
       break;
     case BCIF_ENC_INTEGER_PACKING:
       if (!decode_bcif_integer_packing(d, enc, err)) return false;
+      break;
+    case BCIF_ENC_DELTA:
+      if (!decode_bcif_delta(d, enc, err)) return false;
       break;
     default:
       /* unhandled for now */
