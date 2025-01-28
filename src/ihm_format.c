@@ -2157,6 +2157,38 @@ static bool decode_bcif_delta(struct bcif_data *d,
   return true;
 }
 
+/* Decode data using BinaryCIF RunLength encoding */
+static bool decode_bcif_run_length(struct bcif_data *d,
+                                   struct bcif_encoding *enc,
+                                   struct ihm_error **err)
+{
+  size_t i, k;
+  int32_t outsz, j, *outdata;
+  /* todo: handle srcType != int32 */
+  if (d->type != BCIF_DATA_INT32) {
+    ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
+                  "RunLength not given signed 32-bit integers as input");
+    return false;
+  }
+  outsz = 0;
+  for (i = 1; i < d->size; i += 2) {
+    outsz += d->data.int32[i];
+  }
+  assert(outsz > 0);
+  outdata = (int32_t *)ihm_malloc(outsz * sizeof(int32_t));
+  for (i = 0, k = 0; i < d->size; i += 2) {
+    int32_t value = d->data.int32[i];
+    int32_t n_repeats = d->data.int32[i + 1];
+    for (j = 0; j < n_repeats; ++j) {
+      outdata[k++] = value;
+    }
+  }
+  free(d->data.int32);
+  d->size = outsz;
+  d->data.int32 = outdata;
+  return true;
+}
+
 /* Decode raw BinaryCIF data by using all encoders specified */
 static bool decode_bcif_data(struct bcif_data *d, struct bcif_encoding *enc,
                              struct ihm_error **err)
@@ -2172,6 +2204,9 @@ static bool decode_bcif_data(struct bcif_data *d, struct bcif_encoding *enc,
       break;
     case BCIF_ENC_DELTA:
       if (!decode_bcif_delta(d, enc, err)) return false;
+      break;
+    case BCIF_ENC_RUN_LENGTH:
+      if (!decode_bcif_run_length(d, enc, err)) return false;
       break;
     default:
       /* unhandled for now */
