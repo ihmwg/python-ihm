@@ -2227,7 +2227,7 @@ static bool decode_bcif_fixed_point(struct bcif_data *d,
   for (i = 0; i < d->size; ++i) {
     outdata[i] = (double)d->data.int32[i] / enc->factor;
   }
-  free(d->data.int32);
+  bcif_data_free(d);
   d->type = BCIF_DATA_DOUBLE;
   d->data.float64 = outdata;
   return true;
@@ -2288,7 +2288,7 @@ static bool decode_bcif_string_array(struct bcif_data *d,
     strarr[i] = enc->string_data + starts[strnum];
   }
   free(starts);
-  free(d->data.int32);
+  bcif_data_free(d);
   d->type = BCIF_DATA_STRING;
   d->data.string = strarr;
   return true;
