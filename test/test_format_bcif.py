@@ -2,14 +2,21 @@ import utils
 import os
 import unittest
 import sys
+import struct
+from io import BytesIO
 
 TOPDIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 utils.set_search_paths(TOPDIR)
 import ihm.format_bcif
 
+try:
+    from ihm import _format
+except ImportError:
+    _format = None
+
 
 # Provide dummy implementations of msgpack.unpack() and msgpack.pack() which
-# just return the data unchanged. We can use these to test the BinaryCIF
+# just return the data unchanged. We can use these to test the Python BinaryCIF
 # parser with Python objects rather than having to install msgpack and
 # generate real binary files
 class MockMsgPack(object):
@@ -108,12 +115,54 @@ class Block(list):
     pass
 
 
+if sys.version_info[0] == 2:
+    UNICODE_STRING_TYPE = unicode
+else:
+    UNICODE_STRING_TYPE = str
+
+
+def _add_msgpack(d, fh):
+    """Add `d` to filelike object `fh` in msgpack format"""
+    if isinstance(d, dict):
+        fh.write(struct.pack('>Bi', 0xdf, len(d)))
+        for key, val in d.items():
+            _add_msgpack(key, fh)
+            _add_msgpack(val, fh)
+    elif isinstance(d, list):
+        fh.write(struct.pack('>Bi', 0xdd, len(d)))
+        for val in d:
+            _add_msgpack(val, fh)
+    elif isinstance(d, UNICODE_STRING_TYPE):
+        b = d.encode('utf8')
+        fh.write(struct.pack('>Bi', 0xdb, len(b)))
+        fh.write(b)
+    elif isinstance(d, bytes):
+        fh.write(struct.pack('>Bi', 0xc6, len(d)))
+        fh.write(d)
+    elif isinstance(d, int):
+        fh.write(struct.pack('>Bi', 0xce, d))
+    elif d is None:
+        fh.write(b'\xc0')
+    else:
+        raise TypeError("Cannot handle %s" % type(d))
+
+
 def _make_bcif_file(blocks):
     blocks = [{u'header': 'ihm',
                u'categories': [c.get_bcif() for c in block]}
               for block in blocks]
-    return {u'version': u'0.1', u'encoder': u'python-ihm test suite',
-            u'dataBlocks': blocks}
+    d = {u'version': u'0.1', u'encoder': u'python-ihm test suite',
+         u'dataBlocks': blocks}
+    if _format:
+        # Convert Python object `d` into msgpack format for the C-accelerated
+        # parser
+        fh = BytesIO()
+        _add_msgpack(d, fh)
+        fh.seek(0)
+        return fh
+    else:
+        # Pure Python reader uses mocked-out msgpack to work on `d` directly
+        return d
 
 
 class Tests(unittest.TestCase):
