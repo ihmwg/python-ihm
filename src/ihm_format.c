@@ -1459,20 +1459,6 @@ static bool read_bcif_int(struct ihm_reader *reader, int32_t *value,
   }
 }
 
-/* Read the next bool object from the BinaryCIF file.
- */
-static bool read_bcif_bool(struct ihm_reader *reader, bool *value,
-                          struct ihm_error **err)
-{
-  if (!cmp_read_bool(&reader->cmp, value)) {
-    ihm_error_set(err, IHM_ERROR_FILE_FORMAT, "Was expecting a boolean; %s",
-                  cmp_strerror(&reader->cmp));
-    return false;
-  } else {
-    return true;
-  }
-}
-
 /* Read the next string from the BinaryCIF file and return a pointer to it.
    This pointer points into ihm_reader and is valid until the next read. */
 static bool read_bcif_string(struct ihm_reader *reader, char **str,
