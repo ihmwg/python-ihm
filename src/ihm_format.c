@@ -2350,6 +2350,52 @@ static bool check_bcif_columns(struct ihm_reader *reader,
   return true;
 }
 
+static bool process_column_data(struct bcif_column *col,
+                                struct ihm_error **err)
+{
+  if (!decode_bcif_data(&col->data, col->first_encoding, err)) return false;
+  if (col->data.type != BCIF_DATA_INT32
+      && col->data.type != BCIF_DATA_DOUBLE
+      && col->data.type != BCIF_DATA_STRING) {
+    ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
+                  "Unsupported column data type %d", col->data.type);
+    return false;
+  }
+  return true;
+}
+
+static bool process_column_mask(struct bcif_column *col,
+                                struct ihm_error **err)
+{
+  if (col->mask_data.type == BCIF_DATA_NULL) {
+    return true;
+  }
+
+  if (!decode_bcif_data(&col->mask_data, col->first_mask_encoding,
+                        err)) return false;
+
+  /* Masks are supposed to be uint8 but some of our decoders return int32
+     for simplicity. If this happened, map back to uint8 */
+  if (col->mask_data.type == BCIF_DATA_INT32) {
+    uint8_t *newdata;
+    size_t i;
+    newdata = (uint8_t *)ihm_malloc(col->mask_data.size * sizeof(uint8_t));
+    for (i = 0; i < col->mask_data.size; ++i) {
+      newdata[i] = (uint8_t)col->mask_data.data.int32[i];
+    }
+    free(col->mask_data.data.int32);
+    col->mask_data.data.uint8 = newdata;
+    col->mask_data.type = BCIF_DATA_UINT8;
+  }
+
+  if (col->mask_data.type != BCIF_DATA_UINT8) {
+    ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
+                  "Unsupported column mask data type %d", col->mask_data.type);
+    return false;
+  }
+  return true;
+}
+
 static bool process_bcif_category(struct ihm_reader *reader,
                                   struct bcif_category *cat,
                                   struct ihm_category *ihm_cat,
@@ -2369,11 +2415,8 @@ static bool process_bcif_category(struct ihm_reader *reader,
   if (!check_bcif_columns(reader, cat, ihm_cat, err)) return false;
   for (col = cat->first_column; col; col = col->next) {
     if (!col->keyword) continue;
-    if (!decode_bcif_data(&col->data, col->first_encoding, err)) return false;
-    if (col->mask_data.type != BCIF_DATA_NULL) {
-      if (!decode_bcif_data(&col->mask_data, col->first_mask_encoding,
-                            err)) return false;
-    }
+    if (!process_column_data(col, err)
+        || !process_column_mask(col, err)) return false;
     /* Make buffer for value as a string; should be long enough to
        store any int or double */
     col->str = ihm_malloc(80);
