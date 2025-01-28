@@ -1700,6 +1700,8 @@ struct bcif_column {
   struct bcif_encoding *first_mask_encoding;
   /* The corresponding ihm_keyword, if any */
   struct ihm_keyword *keyword;
+  /* Temporary buffer for keyword value as a string */
+  char *str;
   /* Next column, or NULL */
   struct bcif_column *next;
 };
@@ -1758,6 +1760,7 @@ static struct bcif_column *bcif_column_new()
   c->first_encoding = NULL;
   c->first_mask_encoding = NULL;
   c->keyword = NULL;
+  c->str = NULL;
   c->next = NULL;
   return c;
 }
@@ -1779,6 +1782,7 @@ static void bcif_column_free(struct bcif_column *col)
     col->first_mask_encoding = enc->next;
     bcif_encoding_free(enc);
   }
+  free(col->str);
   free(col);
 }
 
@@ -2159,7 +2163,6 @@ static bool decode_bcif_delta(struct bcif_data *d,
 {
   int32_t value;
   size_t i;
-  printf("Delta decode type %d origin %d\n", d->type, enc->origin);
   /* todo: handle srcType != int32 */
   if (d->type != BCIF_DATA_INT32) {
     ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
@@ -2295,7 +2298,6 @@ static bool decode_bcif_string_array(struct bcif_data *d,
 static bool decode_bcif_data(struct bcif_data *d, struct bcif_encoding *enc,
                              struct ihm_error **err)
 {
-  bool handled = true;
   while (enc) {
     switch(enc->kind) {
     case BCIF_ENC_BYTE_ARRAY:
@@ -2320,46 +2322,11 @@ static bool decode_bcif_data(struct bcif_data *d, struct bcif_encoding *enc,
       if (!decode_bcif_string_array(d, enc, err)) return false;
       break;
     default:
-      /* unhandled for now */
-      handled = false;
-      break;
+      ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
+                    "Unhandled encoding type %d", enc->kind);
+      return false;
     }
     enc = enc->next;
-  }
-  if (handled) {
-    if (d->type == BCIF_DATA_INT32) {
-      size_t i;
-      printf("decoded int32 data: [");
-      for (i = 0; i < d->size; ++i) {
-        printf("%d, ", d->data.int32[i]);
-      }
-      printf("]\n");
-    } else if (d->type == BCIF_DATA_UINT8) {
-      size_t i;
-      printf("decoded uint8 data: [");
-      for (i = 0; i < d->size; ++i) {
-        printf("%d, ", d->data.uint8[i]);
-      }
-      printf("]\n");
-    } else if (d->type == BCIF_DATA_DOUBLE) {
-      size_t i;
-      printf("decoded double data: [");
-      for (i = 0; i < d->size; ++i) {
-        printf("%.3f, ", d->data.float64[i]);
-      }
-      printf("]\n");
-    } else if (d->type == BCIF_DATA_STRING) {
-      size_t i;
-      printf("decoded string data: [");
-      for (i = 0; i < d->size; ++i) {
-        printf("'%s', ", d->data.string[i]);
-      }
-      printf("]\n");
-    } else {
-      printf("decoded data type %d\n", d->type);
-    }
-  } else {
-    printf("unhandled data\n");
   }
   return true;
 }
@@ -2389,6 +2356,7 @@ static bool process_bcif_category(struct ihm_reader *reader,
                                   struct ihm_error **err)
 {
   struct bcif_column *col;
+  size_t n_rows = 0;
   if (!ihm_cat) {
     if (reader->unknown_category_callback) {
       (*reader->unknown_category_callback)(
@@ -2401,12 +2369,27 @@ static bool process_bcif_category(struct ihm_reader *reader,
   if (!check_bcif_columns(reader, cat, ihm_cat, err)) return false;
   for (col = cat->first_column; col; col = col->next) {
     if (!col->keyword) continue;
-    printf("  .%s <data %d", col->name, col->data.size);
     if (!decode_bcif_data(&col->data, col->first_encoding, err)) return false;
     if (col->mask_data.type != BCIF_DATA_NULL) {
       if (!decode_bcif_data(&col->mask_data, col->first_mask_encoding,
                             err)) return false;
     }
+    /* Make buffer for value as a string; should be long enough to
+       store any int or double */
+    col->str = ihm_malloc(80);
+    printf("  .%s\n", col->name);
+    if (n_rows == 0) {
+      n_rows = col->data.size;
+    } else if (col->data.size != n_rows) {
+      ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
+                    "Column size mismatch %d != %d in category %s",
+		    col->data.size, n_rows, cat->name);
+      return false;
+    }
+  }
+  if (ihm_cat->finalize_callback) {
+    (*ihm_cat->finalize_callback)(reader, ihm_cat->data, err);
+    if (*err) return false;
   }
   return true;
 }
