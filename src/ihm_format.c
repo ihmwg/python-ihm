@@ -1698,6 +1698,8 @@ struct bcif_column {
   struct bcif_encoding *first_encoding;
   /* Singly-linked list of mask encodings */
   struct bcif_encoding *first_mask_encoding;
+  /* The corresponding ihm_keyword, if any */
+  struct ihm_keyword *keyword;
   /* Next column, or NULL */
   struct bcif_column *next;
 };
@@ -1755,6 +1757,7 @@ static struct bcif_column *bcif_column_new()
   bcif_data_init(&c->mask_data);
   c->first_encoding = NULL;
   c->first_mask_encoding = NULL;
+  c->keyword = NULL;
   c->next = NULL;
   return c;
 }
@@ -1928,18 +1931,30 @@ static bool read_bcif_mask(struct ihm_reader *reader,
 /* Read a single column from a BinaryCIF file */
 static bool read_bcif_column(struct ihm_reader *reader,
                              struct bcif_column *col,
+                             struct ihm_category *ihm_cat,
                              struct ihm_error **err)
 {
   uint32_t map_size, i;
+  /* If we already read the category name then we can potentially skip
+     reading data/mask if we don't have a handler for the keyword */
+  bool skip = false;
   if (!read_bcif_map(reader, &map_size, err)) return false;
   for (i = 0; i < map_size; ++i) {
     char *str;
     if (!read_bcif_string(reader, &str, err)) return false;
     if (strcmp(str, "name") == 0) {
       if (!read_bcif_string_dup(reader, &col->name, err)) return false;
-    } else if (strcmp(str, "data") == 0) {
+      if (ihm_cat) {
+        struct ihm_keyword *key;
+	key = (struct ihm_keyword *)ihm_mapping_lookup(
+                              ihm_cat->keyword_map, col->name);
+	if (!key) {
+          skip = true;
+	}
+      }
+    } else if (!skip && strcmp(str, "data") == 0) {
       if (!read_bcif_data(reader, col, err)) return false;
-    } else if (strcmp(str, "mask") == 0) {
+    } else if (!skip && strcmp(str, "mask") == 0) {
       if (!read_bcif_mask(reader, col, err)) return false;
     } else {
       if (!skip_bcif_object_no_limit(reader, err)) return false;
@@ -1951,13 +1966,14 @@ static bool read_bcif_column(struct ihm_reader *reader,
 /* Read all columns for a category from a BinaryCIF file */
 static bool read_bcif_columns(struct ihm_reader *reader,
                               struct bcif_category *cat,
+                              struct ihm_category *ihm_cat,
                               struct ihm_error **err)
 {
   uint32_t array_size, i;
   if (!read_bcif_array(reader, &array_size, err)) return false;
   for (i = 0; i < array_size; ++i) {
     struct bcif_column *col = bcif_column_new();
-    if (!read_bcif_column(reader, col, err)) {
+    if (!read_bcif_column(reader, col, ihm_cat, err)) {
       bcif_column_free(col);
       return false;
     } else {
@@ -1989,7 +2005,7 @@ static bool read_bcif_category(struct ihm_reader *reader,
         skip = true; /* no need to read columns if we don't have a callback */
       }
     } else if (!skip && strcmp(str, "columns") == 0) {
-      if (!read_bcif_columns(reader, cat, err)) return false;
+      if (!read_bcif_columns(reader, cat, *ihm_cat, err)) return false;
     } else {
       if (!skip_bcif_object_no_limit(reader, err)) return false;
     }
@@ -2348,6 +2364,25 @@ static bool decode_bcif_data(struct bcif_data *d, struct bcif_encoding *enc,
   return true;
 }
 
+static bool check_bcif_columns(struct ihm_reader *reader,
+                               struct bcif_category *cat,
+                               struct ihm_category *ihm_cat,
+                               struct ihm_error **err)
+{
+  struct bcif_column *col;
+  /* Match columns to ihm_keywords; call back for any unknown */
+  for (col = cat->first_column; col; col = col->next) {
+    col->keyword = (struct ihm_keyword *)ihm_mapping_lookup(
+                                  ihm_cat->keyword_map, col->name);
+    if (!col->keyword && reader->unknown_keyword_callback) {
+      (*reader->unknown_keyword_callback)(reader, cat->name, col->name, 0,
+                                          reader->unknown_keyword_data, err);
+      if (*err) return false;
+    }
+  }
+  return true;
+}
+
 static bool process_bcif_category(struct ihm_reader *reader,
                                   struct bcif_category *cat,
                                   struct ihm_category *ihm_cat,
@@ -2363,26 +2398,12 @@ static bool process_bcif_category(struct ihm_reader *reader,
     return true;
   }
   printf("read category %s\n", cat->name);
+  if (!check_bcif_columns(reader, cat, ihm_cat, err)) return false;
   for (col = cat->first_column; col; col = col->next) {
-    struct bcif_encoding *enc;
+    if (!col->keyword) continue;
     printf("  .%s <data %d", col->name, col->data.size);
-    for (enc = col->first_encoding; enc; enc = enc->next) {
-      printf(":%s",
-             enc->kind == BCIF_ENC_STRING_ARRAY ? "StringArray" :
-             enc->kind == BCIF_ENC_BYTE_ARRAY ? "ByteArray" :
-             enc->kind == BCIF_ENC_INTEGER_PACKING ? "IntegerPacking" :
-             enc->kind == BCIF_ENC_DELTA ? "Delta" :
-             enc->kind == BCIF_ENC_RUN_LENGTH ? "RunLength" :
-             enc->kind == BCIF_ENC_FIXED_POINT ? "FixedPoint" : "none");
-    }
-    if (col->mask_data.type != BCIF_DATA_NULL) {
-      printf("> <mask %d>\n", col->mask_data.size);
-    } else {
-      printf(">\n");
-    }
     if (!decode_bcif_data(&col->data, col->first_encoding, err)) return false;
     if (col->mask_data.type != BCIF_DATA_NULL) {
-      printf("Decoding mask\n");
       if (!decode_bcif_data(&col->mask_data, col->first_mask_encoding,
                             err)) return false;
     }
