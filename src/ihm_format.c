@@ -2396,13 +2396,52 @@ static bool process_column_mask(struct bcif_column *col,
   return true;
 }
 
+static bool process_bcif_row(struct ihm_reader *reader,
+                             struct bcif_category *cat,
+                             struct ihm_category *ihm_cat,
+                             size_t irow, struct ihm_error **err)
+{
+  struct bcif_column *col;
+  for (col = cat->first_column; col; col = col->next) {
+    if (!col->keyword) continue;
+
+    if (col->mask_data.type == BCIF_DATA_UINT8
+        && col->mask_data.data.uint8[irow] == 1) {
+      set_omitted_value(col->keyword);
+    } else if (col->mask_data.type == BCIF_DATA_UINT8
+               && col->mask_data.data.uint8[irow] == 2) {
+      set_unknown_value(col->keyword);
+    } else {
+      char *str;
+      /* BinaryCIF data is typed but mmCIF data is not (and is always a string)
+         so for backwards compatibility, coerce to string for now */
+      if (col->data.type == BCIF_DATA_STRING) {
+        str = col->data.data.string[irow];
+      } else if (col->data.type == BCIF_DATA_DOUBLE) {
+        str = col->str;
+        sprintf(str, "%g", col->data.data.float64[irow]);
+      } else {
+        str = col->str;
+        sprintf(str, "%d", col->data.data.int32[irow]);
+      }
+      set_value(reader, ihm_cat, col->keyword, str, false, NULL);
+    }
+  }
+
+  call_category(reader, ihm_cat, true, err);
+  if (*err) return false;
+
+  return true;
+}
+
+
 static bool process_bcif_category(struct ihm_reader *reader,
                                   struct bcif_category *cat,
                                   struct ihm_category *ihm_cat,
                                   struct ihm_error **err)
 {
   struct bcif_column *col;
-  size_t n_rows = 0;
+  size_t i, n_rows = 0;
   if (!ihm_cat) {
     if (reader->unknown_category_callback) {
       (*reader->unknown_category_callback)(
@@ -2411,7 +2450,6 @@ static bool process_bcif_category(struct ihm_reader *reader,
     }
     return true;
   }
-  printf("read category %s\n", cat->name);
   if (!check_bcif_columns(reader, cat, ihm_cat, err)) return false;
   for (col = cat->first_column; col; col = col->next) {
     if (!col->keyword) continue;
@@ -2420,7 +2458,6 @@ static bool process_bcif_category(struct ihm_reader *reader,
     /* Make buffer for value as a string; should be long enough to
        store any int or double */
     col->str = ihm_malloc(80);
-    printf("  .%s\n", col->name);
     if (n_rows == 0) {
       n_rows = col->data.size;
     } else if (col->data.size != n_rows) {
@@ -2429,6 +2466,9 @@ static bool process_bcif_category(struct ihm_reader *reader,
 		    col->data.size, n_rows, cat->name);
       return false;
     }
+  }
+  for (i = 0; i < n_rows; ++i) {
+    if (!process_bcif_row(reader, cat, ihm_cat, i, err)) return false;
   }
   if (ihm_cat->finalize_callback) {
     (*ihm_cat->finalize_callback)(reader, ihm_cat->data, err);
