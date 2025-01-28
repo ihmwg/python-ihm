@@ -1985,16 +1985,24 @@ static bool read_bcif_columns(struct ihm_reader *reader,
 /* Read a single category from a BinaryCIF file */
 static bool read_bcif_category(struct ihm_reader *reader,
                                struct bcif_category *cat,
+                               struct ihm_category **ihm_cat,
                                struct ihm_error **err)
 {
   uint32_t map_size, i;
+  bool skip = false;
+  *ihm_cat = NULL;
   if (!read_bcif_map(reader, &map_size, err)) return false;
   for (i = 0; i < map_size; ++i) {
     char *str;
     if (!read_bcif_string(reader, &str, err)) return false;
     if (strcmp(str, "name") == 0) {
       if (!read_bcif_string_dup(reader, &cat->name, err)) return false;
-    } else if (strcmp(str, "columns") == 0) {
+      *ihm_cat = (struct ihm_category *)ihm_mapping_lookup(
+                                  reader->category_map, cat->name);
+      if (!*ihm_cat) {
+        skip = true; /* no need to read columns if we don't have a callback */
+      }
+    } else if (!skip && strcmp(str, "columns") == 0) {
       if (!read_bcif_columns(reader, cat, err)) return false;
     } else {
       if (!skip_bcif_object_no_limit(reader, err)) return false;
@@ -2354,10 +2362,20 @@ static bool decode_bcif_data(struct bcif_data *d, struct bcif_encoding *enc,
   return true;
 }
 
-static bool process_bcif_category(struct bcif_category *cat,
+static bool process_bcif_category(struct ihm_reader *reader,
+                                  struct bcif_category *cat,
+                                  struct ihm_category *ihm_cat,
                                   struct ihm_error **err)
 {
   struct bcif_column *col;
+  if (!ihm_cat) {
+    if (reader->unknown_category_callback) {
+      (*reader->unknown_category_callback)(
+              reader, cat->name, 0, reader->unknown_category_data, err);
+      if (*err) return false;
+    }
+    return true;
+  }
   printf("read category %s\n", cat->name);
   for (col = cat->first_column; col; col = col->next) {
     struct bcif_encoding *enc;
@@ -2394,9 +2412,10 @@ static bool read_bcif_categories(struct ihm_reader *reader,
   if (!read_bcif_array(reader, &ncat, err)) return false;
   for (icat = 0; icat < ncat; ++icat) {
     struct bcif_category cat;
+    struct ihm_category *ihm_cat;
     bcif_category_init(&cat);
-    if (!read_bcif_category(reader, &cat, err)
-        || !process_bcif_category(&cat, err)) {
+    if (!read_bcif_category(reader, &cat, &ihm_cat, err)
+        || !process_bcif_category(reader, &cat, ihm_cat, err)) {
       bcif_category_free(&cat);
       return false;
     } else {
@@ -2429,6 +2448,7 @@ static bool read_bcif_block(struct ihm_reader *reader, struct ihm_error **err)
 static bool read_bcif_file(struct ihm_reader *reader, bool *more_data,
                            struct ihm_error **err)
 {
+  sort_mappings(reader);
   if (reader->num_blocks_left == -1) {
     cmp_init(&reader->cmp, reader, bcif_cmp_read, bcif_cmp_skip, NULL);
     if (!read_bcif_header(reader, err)) return false;
