@@ -1583,7 +1583,8 @@ typedef enum {
   BCIF_DATA_INT32,  /* Array of signed 32-bit integers */
   BCIF_DATA_UINT32, /* Array of unsigned 32-bit integers */
   BCIF_DATA_FLOAT,  /* Array of single-precision floating point values */
-  BCIF_DATA_DOUBLE  /* Array of double-precision floating point values */
+  BCIF_DATA_DOUBLE, /* Array of double-precision floating point values */
+  BCIF_DATA_STRING  /* Array of char* null-terminated strings */
 } bcif_data_type;
 
 /* All possible C types stored in bcif_data */
@@ -1597,6 +1598,7 @@ union bcif_data_c {
   uint32_t *uint32;
   float *float32;
   double *float64;
+  char **string;
 };
 
 /* Data stored in BinaryCIF for a column, mask, or StringArray offsets.
@@ -1649,6 +1651,9 @@ static void bcif_data_free(struct bcif_data *d)
     break;
   case BCIF_DATA_DOUBLE:
     free(d->data.float64);
+    break;
+  case BCIF_DATA_STRING:
+    free(d->data.string);
     break;
   }
 }
@@ -1836,6 +1841,8 @@ static bool read_bcif_encoding(struct ihm_reader *reader,
         enc->kind = BCIF_ENC_FIXED_POINT;
       }
     } else if (strcmp(str, "dataEncoding") == 0) {
+      /* todo: dataEncoding and offsetEncoding should not include StringArray
+         encoding */
       if (!read_bcif_encodings(reader,
                                &enc->first_data_encoding, err)) return false;
     } else if (strcmp(str, "offsetEncoding") == 0) {
@@ -2213,6 +2220,67 @@ static bool decode_bcif_fixed_point(struct bcif_data *d,
   return true;
 }
 
+/* Decode data using BinaryCIF StringArray encoding */
+static bool decode_bcif_string_array(struct bcif_data *d,
+                                     struct bcif_encoding *enc,
+                                     struct ihm_error **err)
+{
+  char *newstring, **strarr;
+  int32_t stringsz;
+  size_t i;
+  int *starts, start;
+  if (d->type != BCIF_DATA_INT32) {
+    ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
+                  "StringArray not given signed 32-bit integers as input");
+    return false;
+  }
+  if (enc->offsets.type != BCIF_DATA_INT32) {
+    ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
+                  "StringArray not given signed 32-bit integers as offsets");
+    return false;
+  }
+  /* Make sure offsets are in range */
+  stringsz = strlen(enc->string_data);
+  for (i = 0; i < enc->offsets.size; ++i) {
+    if (enc->offsets.data.int32[i] < 0
+        || enc->offsets.data.int32[i] > stringsz) {
+      ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
+                    "StringArray offset %d out of range 0-%d",
+		    enc->offsets.data.int32[i], 0, stringsz);
+      return false;
+    }
+  }
+  /* Add nulls to string_data so we can point directly into it */
+  stringsz = 0;
+  for (i = 0; i < enc->offsets.size - 1; ++i) {
+    stringsz += 1 + enc->offsets.data.int32[i + 1] - enc->offsets.data.int32[i];
+  }
+  newstring = (char *)ihm_malloc(stringsz);
+  starts = (int *)ihm_malloc((enc->offsets.size - 1) * sizeof(int));
+  start = 0;
+  for (i = 0; i < enc->offsets.size - 1; ++i) {
+    stringsz = enc->offsets.data.int32[i + 1] - enc->offsets.data.int32[i];
+    memcpy(newstring + start, enc->string_data + enc->offsets.data.int32[i],
+           stringsz);
+    newstring[start + stringsz] = '\0';
+    starts[i] = start;
+    start += stringsz + 1;
+  }
+  free(enc->string_data);
+  enc->string_data = newstring;
+  strarr = (char **)ihm_malloc(d->size * sizeof(char *));
+  for (i = 0; i < d->size; ++i) {
+    int32_t strnum = d->data.int32[i];
+    /* todo: make sure strnum in range */
+    strarr[i] = enc->string_data + starts[strnum];
+  }
+  free(starts);
+  free(d->data.int32);
+  d->type = BCIF_DATA_STRING;
+  d->data.string = strarr;
+  return true;
+}
+
 /* Decode raw BinaryCIF data by using all encoders specified */
 static bool decode_bcif_data(struct bcif_data *d, struct bcif_encoding *enc,
                              struct ihm_error **err)
@@ -2235,6 +2303,12 @@ static bool decode_bcif_data(struct bcif_data *d, struct bcif_encoding *enc,
     case BCIF_ENC_FIXED_POINT:
       if (!decode_bcif_fixed_point(d, enc, err)) return false;
       break;
+    case BCIF_ENC_STRING_ARRAY:
+      if (!decode_bcif_data(&enc->offsets, enc->first_offset_encoding,
+                            err)) return false;
+      if (!decode_bcif_data(d, enc->first_data_encoding, err)) return false;
+      if (!decode_bcif_string_array(d, enc, err)) return false;
+      break;
     default:
       /* unhandled for now */
       handled = false;
@@ -2255,6 +2329,13 @@ static bool decode_bcif_data(struct bcif_data *d, struct bcif_encoding *enc,
       printf("decoded double data: [");
       for (i = 0; i < d->size; ++i) {
         printf("%.3f, ", d->data.float64[i]);
+      }
+      printf("]\n");
+    } else if (d->type == BCIF_DATA_STRING) {
+      size_t i;
+      printf("decoded string data: [");
+      for (i = 0; i < d->size; ++i) {
+        printf("'%s', ", d->data.string[i]);
       }
       printf("]\n");
     } else {
