@@ -2324,6 +2324,13 @@ static bool decode_bcif_data(struct bcif_data *d, struct bcif_encoding *enc,
         printf("%d, ", d->data.int32[i]);
       }
       printf("]\n");
+    } else if (d->type == BCIF_DATA_UINT8) {
+      size_t i;
+      printf("decoded uint8 data: [");
+      for (i = 0; i < d->size; ++i) {
+        printf("%d, ", d->data.uint8[i]);
+      }
+      printf("]\n");
     } else if (d->type == BCIF_DATA_DOUBLE) {
       size_t i;
       printf("decoded double data: [");
@@ -2370,6 +2377,11 @@ static bool process_bcif_category(struct bcif_category *cat,
       printf(">\n");
     }
     if (!decode_bcif_data(&col->data, col->first_encoding, err)) return false;
+    if (col->mask_data.type != BCIF_DATA_NULL) {
+      printf("Decoding mask\n");
+      if (!decode_bcif_data(&col->mask_data, col->first_mask_encoding,
+                            err)) return false;
+    }
   }
   return true;
 }
