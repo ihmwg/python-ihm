@@ -2189,6 +2189,30 @@ static bool decode_bcif_run_length(struct bcif_data *d,
   return true;
 }
 
+/* Decode data using BinaryCIF FixedPoint encoding */
+static bool decode_bcif_fixed_point(struct bcif_data *d,
+                                    struct bcif_encoding *enc,
+                                    struct ihm_error **err)
+{
+  size_t i;
+  double *outdata;
+  if (d->type != BCIF_DATA_INT32) {
+    ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
+                  "FixedPoint not given signed 32-bit integers as input");
+    return false;
+  }
+
+  /* We ignore srcType and always output double (not float) */
+  outdata = (double *)ihm_malloc(d->size * sizeof(double));
+  for (i = 0; i < d->size; ++i) {
+    outdata[i] = (double)d->data.int32[i] / enc->factor;
+  }
+  free(d->data.int32);
+  d->type = BCIF_DATA_DOUBLE;
+  d->data.float64 = outdata;
+  return true;
+}
+
 /* Decode raw BinaryCIF data by using all encoders specified */
 static bool decode_bcif_data(struct bcif_data *d, struct bcif_encoding *enc,
                              struct ihm_error **err)
@@ -2207,6 +2231,9 @@ static bool decode_bcif_data(struct bcif_data *d, struct bcif_encoding *enc,
       break;
     case BCIF_ENC_RUN_LENGTH:
       if (!decode_bcif_run_length(d, enc, err)) return false;
+      break;
+    case BCIF_ENC_FIXED_POINT:
+      if (!decode_bcif_fixed_point(d, enc, err)) return false;
       break;
     default:
       /* unhandled for now */
