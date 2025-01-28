@@ -1,6 +1,6 @@
 """Utility classes to handle BinaryCIF format.
 
-   See https://github.com/dsehnal/BinaryCIF for a description of the
+   See https://github.com/molstar/BinaryCIF for a description of the
    BinaryCIF file format.
 
    This module provides classes to read in and write out BinaryCIF files. It is

@@ -7,7 +7,7 @@
 [![codecov](https://codecov.io/gh/ihmwg/python-ihm/branch/main/graph/badge.svg)](https://codecov.io/gh/ihmwg/python-ihm)
 
 This is a Python package to assist in handling [mmCIF](https://mmcif.wwpdb.org/)
-and [BinaryCIF](https://github.com/dsehnal/BinaryCIF) files compliant with the
+and [BinaryCIF](https://github.com/molstar/BinaryCIF) files compliant with the
 [integrative/hybrid modeling (IHM)](https://mmcif.wwpdb.org/dictionaries/mmcif_ihm_ext.dic/Index/)
 extension. It works with Python 2.7 or Python 3.
 
@@ -76,7 +76,7 @@ and [SWIG](http://www.swig.org/). If either of these components are missing, you
 can choose to build without the extension by adding `--without-ext` to both
 `setup.py` command lines above.
 
-If you want to read or write [BinaryCIF](https://github.com/dsehnal/BinaryCIF)
+If you want to read or write [BinaryCIF](https://github.com/molstar/BinaryCIF)
 files, you will also need the
 Python [msgpack](https://github.com/msgpack/msgpack-python) package.
 
