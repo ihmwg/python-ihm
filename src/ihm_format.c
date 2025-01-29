@@ -1490,9 +1490,11 @@ static bool read_bcif_string_dup(struct ihm_reader *reader, char **str,
     return false;
   }
   if (!ihm_file_read_bytes(reader->fh, &buf, strsz, err)) return false;
-  /* strdup into new buffer */
+  /* strdup into new buffer; we can't use strndup as Windows doesn't have it */
   free(*str);
-  *str = strndup(buf, strsz);
+  *str = (char *)ihm_malloc(strsz + 1);
+  memcpy(*str, buf, strsz);
+  (*str)[strsz] = '\0';
   return true;
 }
 
