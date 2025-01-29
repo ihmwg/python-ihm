@@ -481,8 +481,8 @@ class Tests(unittest.TestCase):
                           d, {'_foo': h})
 
     @unittest.skipIf(_format is None, "No C tokenizer")
-    def test_bad_string_array_encoding(self):
-        """Test handling of various bad BinaryCIF StringArray encodings"""
+    def test_string_array_encoding(self):
+        """Test handling of various BinaryCIF StringArray encodings"""
         def make_bcif(data, data_type, offsets, offsets_type):
             c = {u'name': u'bar',
                  u'data': {u'data': data,
@@ -497,12 +497,18 @@ class Tests(unittest.TestCase):
                                                       u'columns': [c]}]}]}
 
         # Test normal usage
-        d = make_bcif(data=b'\x00\x01', data_type=ihm.format_bcif._Uint8,
-                      offsets=b'\x00\x01\x03',
-                      offsets_type=ihm.format_bcif._Uint8)
-        h = GenericHandler()
-        self._read_bcif_raw(d, {'_foo': h})
-        self.assertEqual(h.data, [{'bar': 'a'}, {'bar': 'AB'}])
+        for (data, data_type) in (
+                (b'\x00\x01', ihm.format_bcif._Uint8),
+                (b'\x00\x01', ihm.format_bcif._Int8),
+                (b'\x00\x00\x01\x00', ihm.format_bcif._Uint16),
+                (b'\x00\x00\x01\x00', ihm.format_bcif._Int16),
+                (b'\x00\x00\x00\x00\x01\x00\x00\x00', ihm.format_bcif._Int32)):
+            d = make_bcif(data=data, data_type=data_type,
+                          offsets=b'\x00\x01\x03',
+                          offsets_type=ihm.format_bcif._Uint8)
+            h = GenericHandler()
+            self._read_bcif_raw(d, {'_foo': h})
+            self.assertEqual(h.data, [{'bar': 'a'}, {'bar': 'AB'}])
 
         # Indices must be int, not float
         d = make_bcif(data=b'\x00\x00(B', data_type=ihm.format_bcif._Float32,
