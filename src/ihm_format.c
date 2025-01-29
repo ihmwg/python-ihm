@@ -2544,7 +2544,7 @@ static bool read_bcif_block(struct ihm_reader *reader, struct ihm_error **err)
     if (!read_bcif_exact_string(reader, "categories", &match,
                                 err)) return false;
     if (match) {
-      return read_bcif_categories(reader, err);
+      if (!read_bcif_categories(reader, err)) return false;
     } else {
       if (!skip_bcif_object(reader, err)) return false;
     }
@@ -2566,7 +2566,8 @@ static bool read_bcif_file(struct ihm_reader *reader, bool *more_data,
   if (reader->num_blocks_left > 0) {
     if (!read_bcif_block(reader, err)) return false;
   }
-  return reader->num_blocks_left > 0;
+  *more_data = (reader->num_blocks_left > 0);
+  return true;
 }
 
 /* Read an entire mmCIF or BinaryCIF file. */
