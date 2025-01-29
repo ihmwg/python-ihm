@@ -400,10 +400,68 @@ class Tests(unittest.TestCase):
 
     @unittest.skipIf(_format is None, "No C tokenizer")
     def test_bad_categories(self):
-        """Test handling of various bad BinaryCIF categories"""
+        """Test handling of various bad BinaryCIF category lists"""
         # Categories not a list
         d = {u'dataBlocks': [{u'categories': 42}]}
         self.assertRaises(_format.FileFormatError, self._read_bcif_raw, d, {})
+
+    @unittest.skipIf(_format is None, "No C tokenizer")
+    def test_bad_category(self):
+        """Test handling of various bad BinaryCIF categories"""
+        def make_bcif(c):
+            return {u'dataBlocks': [{u'categories': [c]}]}
+
+        # Category not a map
+        d = make_bcif(42)
+        self.assertRaises(_format.FileFormatError, self._read_bcif_raw, d, {})
+        # Category keys not strings
+        d = make_bcif({42: 50})
+        self.assertRaises(_format.FileFormatError, self._read_bcif_raw, d, {})
+        # Category name not a string
+        d = make_bcif({u'name': 42})
+        self.assertRaises(_format.FileFormatError, self._read_bcif_raw, d, {})
+
+    @unittest.skipIf(_format is None, "No C tokenizer")
+    def test_bad_columns(self):
+        """Test handling of various bad BinaryCIF column lists"""
+        def make_bcif(c):
+            return {u'dataBlocks': [{u'categories': [{u'name': '_foo',
+                                                      u'columns': c}]}]}
+
+        # Columns are skipped
+        d = make_bcif([])
+        self._read_bcif_raw(d, {})
+
+        # Columns not an array
+        d = make_bcif(42)
+        h = GenericHandler()
+        self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
+                          d, {'_foo': h})
+
+    @unittest.skipIf(_format is None, "No C tokenizer")
+    def test_bad_column(self):
+        """Test handling of various bad BinaryCIF columns"""
+        def make_bcif(c):
+            return {u'dataBlocks': [{u'categories': [{u'name': '_foo',
+                                                      u'columns': [c]}]}]}
+
+        # Column not a map
+        d = make_bcif(42)
+        h = GenericHandler()
+        self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
+                          d, {'_foo': h})
+        # Column keys not strings
+        d = make_bcif({42: 50})
+        h = GenericHandler()
+        self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
+                          d, {'_foo': h})
+        # Column name not string
+        d = make_bcif({u'name': 50})
+        h = GenericHandler()
+        self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
+                          d, {'_foo': h})
+
+        self._read_bcif_raw(d, {'_foo': h})
 
     def test_omitted_unknown_not_in_file_explicit(self):
         """Test explicit handling of omitted/unknown/not in file data"""
