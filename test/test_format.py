@@ -611,7 +611,7 @@ x y
     def test_file_new_python_no_read_method(self):
         """Test ihm_file_new_from_python with object with no read method"""
         self.assertRaises(AttributeError, _format.ihm_file_new_from_python,
-                          None)
+                          None, False)
 
     @unittest.skipIf(_format is None, "No C tokenizer")
     def test_python_read_exception(self):
@@ -623,8 +623,8 @@ x y
             def read(self, numbytes):
                 raise MyError("some error")
         fh = MyFileLike()
-        f = _format.ihm_file_new_from_python(fh)
-        reader = _format.ihm_reader_new(f)
+        f = _format.ihm_file_new_from_python(fh, False)
+        reader = _format.ihm_reader_new(f, False)
         self.assertRaises(MyError, _format.ihm_read_file, reader)
         _format.ihm_reader_free(reader)
 
@@ -635,8 +635,8 @@ x y
             def read(self, numbytes):
                 return 42
         fh = MyFileLike()
-        f = _format.ihm_file_new_from_python(fh)
-        reader = _format.ihm_reader_new(f)
+        f = _format.ihm_file_new_from_python(fh, False)
+        reader = _format.ihm_reader_new(f, False)
         self.assertRaises(ValueError, _format.ihm_read_file, reader)
         _format.ihm_reader_free(reader)
 
@@ -647,8 +647,8 @@ x y
             def read(self, numbytes):
                 return " " * (numbytes * 4 + 10)
         fh = MyFileLike()
-        f = _format.ihm_file_new_from_python(fh)
-        reader = _format.ihm_reader_new(f)
+        f = _format.ihm_file_new_from_python(fh, False)
+        reader = _format.ihm_reader_new(f, False)
         self.assertRaises(ValueError, _format.ihm_read_file, reader)
         _format.ihm_reader_free(reader)
 
@@ -794,8 +794,8 @@ x y
                 pass
         uc = Handler()
         fh = StringIO()
-        c_file = _format.ihm_file_new_from_python(fh)
-        reader = _format.ihm_reader_new(c_file)
+        c_file = _format.ihm_file_new_from_python(fh, False)
+        reader = _format.ihm_reader_new(c_file, False)
         # Handler must be a callable object
         self.assertRaises(ValueError, _format.add_unknown_category_handler,
                           reader, None)
