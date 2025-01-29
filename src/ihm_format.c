@@ -2391,6 +2391,7 @@ static bool process_column_data(struct bcif_column *col,
 {
   if (!decode_bcif_data(&col->data, col->first_encoding, err)) return false;
   if (col->data.type != BCIF_DATA_INT32
+      && col->data.type != BCIF_DATA_UINT8
       && col->data.type != BCIF_DATA_DOUBLE
       && col->data.type != BCIF_DATA_STRING) {
     ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
@@ -2456,6 +2457,9 @@ static bool process_bcif_row(struct ihm_reader *reader,
       } else if (col->data.type == BCIF_DATA_DOUBLE) {
         str = col->str;
         sprintf(str, "%g", col->data.data.float64[irow]);
+      } else if (col->data.type == BCIF_DATA_UINT8) {
+        str = col->str;
+        sprintf(str, "%d", col->data.data.uint8[irow]);
       } else {
         str = col->str;
         sprintf(str, "%d", col->data.data.int32[irow]);
