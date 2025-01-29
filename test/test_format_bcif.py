@@ -481,7 +481,7 @@ class Tests(unittest.TestCase):
                           d, {'_foo': h})
 
     @unittest.skipIf(_format is None, "No C tokenizer")
-    def test_string_array_encoding(self):
+    def test_string_array_encoding_c(self):
         """Test handling of various BinaryCIF StringArray encodings"""
         def make_bcif(data, data_type, offsets, offsets_type):
             c = {u'name': u'bar',
@@ -538,6 +538,44 @@ class Tests(unittest.TestCase):
         d = make_bcif(data=b'\x00\xcc', data_type=ihm.format_bcif._Uint8,
                       offsets=b'\x00\x01\x03',
                       offsets_type=ihm.format_bcif._Uint8)
+        h = GenericHandler()
+        self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
+                          d, {'_foo': h})
+
+    @unittest.skipIf(_format is None, "No C tokenizer")
+    def test_fixed_point_encoding_c(self):
+        """Test handling of various BinaryCIF FixedPoint encodings"""
+        def make_bcif(data, data_type, factor):
+            c = {u'name': u'bar',
+                 u'data': {u'data': data,
+                           u'encoding':
+                           [{u'kind': u'FixedPoint', u'factor': factor},
+                            {u'kind': u'ByteArray', u'type': data_type}]}}
+            return {u'dataBlocks': [{u'categories': [{u'name': u'_foo',
+                                                      u'columns': [c]}]}]}
+
+        # Test normal usage
+        d = make_bcif(data=b'\xcc\x00\x00\x00',
+                      data_type=ihm.format_bcif._Int32,
+                      factor=100)
+        h = GenericHandler()
+        self._read_bcif_raw(d, {'_foo': h})
+        bar = h.data[0][u'bar']
+        self.assertIsInstance(bar, str)
+        self.assertAlmostEqual(float(bar), 2.04, delta=0.01)
+
+        # Bad factor type
+        d = make_bcif(data=b'\xcc\x00\x00\x00',
+                      data_type=ihm.format_bcif._Int32,
+                      factor='bad factor')
+        h = GenericHandler()
+        self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
+                          d, {'_foo': h})
+
+        # Bad input type
+        d = make_bcif(data=b'\xcc\x00',
+                      data_type=ihm.format_bcif._Int16,
+                      factor=100)
         h = GenericHandler()
         self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
                           d, {'_foo': h})
