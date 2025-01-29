@@ -156,6 +156,9 @@ def _make_bcif_file(blocks):
               for block in blocks]
     d = {u'version': u'0.1', u'encoder': u'python-ihm test suite',
          u'dataBlocks': blocks}
+    return _python_to_msgpack(d)
+
+def _python_to_msgpack(d):
     if _format:
         # Convert Python object `d` into msgpack format for the C-accelerated
         # parser
@@ -365,6 +368,41 @@ class Tests(unittest.TestCase):
         self.assertEqual(h.data,
                          [{u'var1': u'test1'}, {u'var1': u'?'},
                           {u'var1': u'test2'}, {}, {u'var1': u'test3'}])
+
+    def _read_bcif_raw(self, d, category_handlers):
+        fh = _python_to_msgpack(d)
+        r = ihm.format_bcif.BinaryCifReader(fh, category_handlers)
+        r.read_file()
+
+    @unittest.skipIf(_format is None, "No C tokenizer")
+    def test_bad_header(self):
+        """Test handling of various bad BinaryCIF headers"""
+        # No header
+        d = 42
+        self.assertRaises(_format.FileFormatError, self._read_bcif_raw, d, {})
+        # Header keys not strings
+        d = {42: 50}
+        self.assertRaises(_format.FileFormatError, self._read_bcif_raw, d, {})
+        # Data blocks not a list
+        d = {u'dataBlocks': 42}
+        self.assertRaises(_format.FileFormatError, self._read_bcif_raw, d, {})
+
+    @unittest.skipIf(_format is None, "No C tokenizer")
+    def test_bad_block(self):
+        """Test handling of various bad BinaryCIF blocks"""
+        # Block not a map
+        d = {u'dataBlocks': [42]}
+        self.assertRaises(_format.FileFormatError, self._read_bcif_raw, d, {})
+        # Block keys not strings
+        d = {u'dataBlocks': [{42: 50}]}
+        self.assertRaises(_format.FileFormatError, self._read_bcif_raw, d, {})
+
+    @unittest.skipIf(_format is None, "No C tokenizer")
+    def test_bad_categories(self):
+        """Test handling of various bad BinaryCIF categories"""
+        # Categories not a list
+        d = {u'dataBlocks': [{u'categories': 42}]}
+        self.assertRaises(_format.FileFormatError, self._read_bcif_raw, d, {})
 
     def test_omitted_unknown_not_in_file_explicit(self):
         """Test explicit handling of omitted/unknown/not in file data"""
