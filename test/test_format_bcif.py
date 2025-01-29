@@ -605,6 +605,88 @@ class Tests(unittest.TestCase):
         self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
                           d, {'_foo': h})
 
+    @unittest.skipIf(_format is None, "No C tokenizer")
+    def test_delta_encoding_c(self):
+        """Test handling of various BinaryCIF Delta encodings"""
+        def make_bcif(data, data_type, origin):
+            c = {u'name': u'bar',
+                 u'data': {u'data': data,
+                           u'encoding':
+                           [{u'kind': u'Delta', u'origin': origin},
+                            {u'kind': u'ByteArray', u'type': data_type}]}}
+            return {u'dataBlocks': [{u'categories': [{u'name': u'_foo',
+                                                      u'columns': [c]}]}]}
+
+        # Test normal usage
+        d = make_bcif(data=b'\x05\x00\x00\x00\x03\x00\x00\x00',
+                      data_type=ihm.format_bcif._Int32, origin=50)
+        h = GenericHandler()
+        self._read_bcif_raw(d, {'_foo': h})
+        self.assertEqual(h.data, [{'bar': '55'}, {'bar': '58'}])
+
+        # Bad input type
+        d = make_bcif(data=b'\x05\x03', data_type=ihm.format_bcif._Int8,
+                      origin=50)
+        h = GenericHandler()
+        self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
+                          d, {'_foo': h})
+
+        # Bad origin type
+        d = make_bcif(data=b'\x05\x00\x00\x00\x03\x00\x00\x00',
+                      data_type=ihm.format_bcif._Int32, origin='foo')
+        h = GenericHandler()
+        self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
+                          d, {'_foo': h})
+
+    @unittest.skipIf(_format is None, "No C tokenizer")
+    def test_integer_packing_encoding_c(self):
+        """Test handling of various BinaryCIF IntegerPacking encodings"""
+        def make_bcif(data, data_type):
+            c = {u'name': u'bar',
+                 u'data': {u'data': data,
+                           u'encoding':
+                           [{u'kind': u'IntegerPacking'},
+                            {u'kind': u'ByteArray', u'type': data_type}]}}
+            return {u'dataBlocks': [{u'categories': [{u'name': u'_foo',
+                                                      u'columns': [c]}]}]}
+
+        # Test signed 8-bit input
+        d = make_bcif(data=struct.pack('6b', 5, 127, 8, -30, -128, -10),
+                      data_type=ihm.format_bcif._Int8)
+        h = GenericHandler()
+        self._read_bcif_raw(d, {'_foo': h})
+        self.assertEqual(h.data, [{'bar': '5'}, {'bar': '135'},
+                                  {'bar': '-30'}, {'bar': '-138'}])
+
+        # Test unsigned 8-bit input
+        d = make_bcif(data=struct.pack('3B', 5, 255, 8),
+                      data_type=ihm.format_bcif._Uint8)
+        h = GenericHandler()
+        self._read_bcif_raw(d, {'_foo': h})
+        self.assertEqual(h.data, [{'bar': '5'}, {'bar': '263'}])
+
+        # Test signed 16-bit input
+        d = make_bcif(data=struct.pack('<6h', 5, 32767, 8, -30, -32768, -10),
+                      data_type=ihm.format_bcif._Int16)
+        h = GenericHandler()
+        self._read_bcif_raw(d, {'_foo': h})
+        self.assertEqual(h.data, [{'bar': '5'}, {'bar': '32775'},
+                                  {'bar': '-30'}, {'bar': '-32778'}])
+
+        # Test unsigned 16-bit input
+        d = make_bcif(data=struct.pack('<3H', 5, 65535, 8),
+                      data_type=ihm.format_bcif._Uint16)
+        h = GenericHandler()
+        self._read_bcif_raw(d, {'_foo': h})
+        self.assertEqual(h.data, [{'bar': '5'}, {'bar': '65543'}])
+
+        # Bad input type
+        d = make_bcif(data=struct.pack('<f', 42.0),
+                      data_type=ihm.format_bcif._Float32)
+        h = GenericHandler()
+        self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
+                          d, {'_foo': h})
+
     def test_omitted_unknown_not_in_file_explicit(self):
         """Test explicit handling of omitted/unknown/not in file data"""
         cat = Category(u'_foo',
