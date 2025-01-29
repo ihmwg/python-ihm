@@ -253,7 +253,7 @@ class BinaryCifReader(ihm.format._Reader):
         if self.unknown_keyword_handler is not None:
             _format.add_unknown_keyword_handler(self._c_format,
                                                 self.unknown_keyword_handler)
-        eof, more_data = _format.ihm_read_file(self._c_format)
+        ret_ok, more_data = _format.ihm_read_file(self._c_format)
         return more_data
 
     def _handle_category(self, handler, category, cat_name):

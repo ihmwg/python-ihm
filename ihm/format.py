@@ -1277,7 +1277,7 @@ class CifReader(_Reader, _CifTokenizer):
             _format.add_unknown_keyword_handler(self._c_format,
                                                 self.unknown_keyword_handler)
         try:
-            eof, more_data = _format.ihm_read_file(self._c_format)
+            ret_ok, more_data = _format.ihm_read_file(self._c_format)
         except _format.FileFormatError as exc:
             # Convert to the same exception used by the Python code
             raise CifParserError(str(exc))
