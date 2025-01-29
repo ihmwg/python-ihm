@@ -487,7 +487,7 @@ class Tests(unittest.TestCase):
             c = {u'name': u'bar',
                  u'data': {u'data': data,
                            u'encoding':
-                           [{u'kind': 'StringArray', u'stringData': u'aAB',
+                           [{u'kind': u'StringArray', u'stringData': u'aAB',
                              u'dataEncoding': [{u'kind': u'ByteArray',
                                                 u'type': data_type}],
                              u'offsetEncoding': [{u'kind': u'ByteArray',
