@@ -148,7 +148,7 @@ def _add_msgpack(d, fh):
 
 
 def _make_bcif_file(blocks):
-    blocks = [{u'header': 'ihm',
+    blocks = [{u'header': u'ihm',
                u'categories': [c.get_bcif() for c in block]}
               for block in blocks]
     d = {u'version': u'0.1', u'encoder': u'python-ihm test suite',
@@ -309,27 +309,27 @@ class Tests(unittest.TestCase):
 
     def test_category_case_insensitive(self):
         """Categories and keywords should be case insensitive"""
-        cat1 = Category('_exptl', {'method': ['foo']})
-        cat2 = Category('_Exptl', {'METHod': ['foo']})
+        cat1 = Category(u'_exptl', {u'method': [u'foo']})
+        cat2 = Category(u'_Exptl', {u'METHod': [u'foo']})
         for cat in cat1, cat2:
             h = GenericHandler()
             self._read_bcif([Block([cat])], {'_exptl': h})
-        self.assertEqual(h.data, [{'method': 'foo'}])
+        self.assertEqual(h.data, [{u'method': u'foo'}])
 
     def test_omitted_unknown(self):
         """Test handling of omitted/unknown data"""
-        cat = Category('_foo',
-                       {'var1': ['test1', '?', 'test2', None, 'test3']})
+        cat = Category(u'_foo',
+                       {u'var1': [u'test1', u'?', u'test2', None, u'test3']})
         h = GenericHandler()
         self._read_bcif([Block([cat])], {'_foo': h})
         self.assertEqual(h.data,
-                         [{'var1': 'test1'}, {'var1': '?'}, {'var1': 'test2'},
-                          {}, {'var1': 'test3'}])
+                         [{u'var1': u'test1'}, {u'var1': u'?'},
+                          {u'var1': u'test2'}, {}, {u'var1': u'test3'}])
 
     def test_omitted_unknown_not_in_file_explicit(self):
         """Test explicit handling of omitted/unknown/not in file data"""
-        cat = Category('_foo',
-                       {'var1': ['test1', '?', 'test2', None, 'test3']})
+        cat = Category(u'_foo',
+                       {u'var1': [u'test1', u'?', u'test2', None, u'test3']})
         h = GenericHandler()
         h.omitted = 'OMIT'
         h.unknown = 'UNK'
@@ -337,19 +337,19 @@ class Tests(unittest.TestCase):
         h._keys = ('var1', 'var2')
         self._read_bcif([Block([cat])], {'_foo': h})
         self.assertEqual(h.data,
-                         [{'var1': 'test1', 'var2': 'NOT'},
-                          {'var1': 'UNK', 'var2': 'NOT'},
-                          {'var1': 'test2', 'var2': 'NOT'},
-                          {'var1': 'OMIT', 'var2': 'NOT'},
-                          {'var1': 'test3', 'var2': 'NOT'}])
+                         [{u'var1': u'test1', u'var2': u'NOT'},
+                          {u'var1': u'UNK', u'var2': u'NOT'},
+                          {u'var1': u'test2', u'var2': u'NOT'},
+                          {u'var1': u'OMIT', u'var2': u'NOT'},
+                          {u'var1': u'test3', u'var2': u'NOT'}])
 
     def test_unknown_categories_ignored(self):
         """Check that unknown categories are just ignored"""
-        cat1 = Category('_foo', {'var1': ['test1']})
-        cat2 = Category('_bar', {'var2': ['test2']})
+        cat1 = Category(u'_foo', {u'var1': [u'test1']})
+        cat2 = Category(u'_bar', {u'var2': [u'test2']})
         h = GenericHandler()
         self._read_bcif([Block([cat1, cat2])], {'_foo': h})
-        self.assertEqual(h.data, [{'var1': 'test1'}])
+        self.assertEqual(h.data, [{u'var1': u'test1'}])
 
     def test_unknown_categories_handled(self):
         """Check that unknown categories are handled if requested"""
@@ -361,20 +361,20 @@ class Tests(unittest.TestCase):
                 self.warns.append((cat, line))
 
         ch = CatHandler()
-        cat1 = Category('_foo', {'var1': ['test1']})
-        cat2 = Category('_bar', {'var2': ['test2']})
+        cat1 = Category(u'_foo', {u'var1': [u'test1']})
+        cat2 = Category(u'_bar', {u'var2': [u'test2']})
         h = GenericHandler()
         self._read_bcif([Block([cat1, cat2])], {'_foo': h},
                         unknown_category_handler=ch)
-        self.assertEqual(h.data, [{'var1': 'test1'}])
-        self.assertEqual(ch.warns, [('_bar', 0)])
+        self.assertEqual(h.data, [{u'var1': u'test1'}])
+        self.assertEqual(ch.warns, [(u'_bar', 0)])
 
     def test_unknown_keywords_ignored(self):
         """Check that unknown keywords are ignored"""
-        cat = Category('_foo', {'var1': ['test1'], 'othervar': ['test2']})
+        cat = Category(u'_foo', {u'var1': [u'test1'], u'othervar': [u'test2']})
         h = GenericHandler()
         self._read_bcif([Block([cat])], {'_foo': h})
-        self.assertEqual(h.data, [{'var1': 'test1'}])
+        self.assertEqual(h.data, [{u'var1': u'test1'}])
 
     def test_unknown_keywords_handled(self):
         """Check that unknown keywords are handled if requested"""
@@ -386,18 +386,18 @@ class Tests(unittest.TestCase):
                 self.warns.append((cat, key, line))
 
         kh = KeyHandler()
-        cat = Category('_foo', {'var1': ['test1'], 'othervar': ['test2']})
+        cat = Category(u'_foo', {u'var1': [u'test1'], u'othervar': [u'test2']})
         h = GenericHandler()
         self._read_bcif([Block([cat])], {'_foo': h},
                         unknown_keyword_handler=kh)
-        self.assertEqual(h.data, [{'var1': 'test1'}])
-        self.assertEqual(kh.warns, [('_foo', 'othervar', 0)])
+        self.assertEqual(h.data, [{u'var1': u'test1'}])
+        self.assertEqual(kh.warns, [(u'_foo', u'othervar', 0)])
 
     def test_multiple_data_blocks(self):
         """Test handling of multiple data blocks"""
-        block1 = Block([Category('_foo',
-                                 {'var1': ['test1'], 'var2': ['test2']})])
-        block2 = Block([Category('_foo', {'var3': ['test3']})])
+        block1 = Block([Category(u'_foo',
+                                 {u'var1': [u'test1'], u'var2': [u'test2']})])
+        block2 = Block([Category(u'_foo', {u'var3': [u'test3']})])
         fh = _make_bcif_file([block1, block2])
 
         h = GenericHandler()
@@ -405,12 +405,12 @@ class Tests(unittest.TestCase):
         sys.modules['msgpack'] = MockMsgPack
         # Read first data block
         self.assertTrue(r.read_file())
-        self.assertEqual(h.data, [{'var1': 'test1', 'var2': 'test2'}])
+        self.assertEqual(h.data, [{u'var1': u'test1', u'var2': u'test2'}])
 
         # Read second data block
         h.data = []
         self.assertFalse(r.read_file())
-        self.assertEqual(h.data, [{'var3': 'test3'}])
+        self.assertEqual(h.data, [{u'var3': u'test3'}])
 
         # No more data blocks
         h.data = []
