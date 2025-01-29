@@ -367,7 +367,7 @@ class Tests(unittest.TestCase):
         self._read_bcif([Block([cat1, cat2])], {'_foo': h},
                         unknown_category_handler=ch)
         self.assertEqual(h.data, [{'var1': 'test1'}])
-        self.assertEqual(ch.warns, [('_bar', None)])
+        self.assertEqual(ch.warns, [('_bar', 0)])
 
     def test_unknown_keywords_ignored(self):
         """Check that unknown keywords are ignored"""
@@ -391,7 +391,7 @@ class Tests(unittest.TestCase):
         self._read_bcif([Block([cat])], {'_foo': h},
                         unknown_keyword_handler=kh)
         self.assertEqual(h.data, [{'var1': 'test1'}])
-        self.assertEqual(kh.warns, [('_foo', 'othervar', None)])
+        self.assertEqual(kh.warns, [('_foo', 'othervar', 0)])
 
     def test_multiple_data_blocks(self):
         """Test handling of multiple data blocks"""

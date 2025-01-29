@@ -236,7 +236,7 @@ class BinaryCifReader(ihm.format._Reader):
                 if handler:
                     self._handle_category(handler, category, cat_name)
                 elif self.unknown_category_handler is not None:
-                    self.unknown_category_handler(cat_name, None)
+                    self.unknown_category_handler(cat_name, 0)
             del self._file_blocks[0]
         return len(self._file_blocks) > 0
 
@@ -277,7 +277,7 @@ class BinaryCifReader(ihm.format._Reader):
                 num_rows = len(r)
                 category_data[ki] = r
             elif self.unknown_keyword_handler is not None:
-                self.unknown_keyword_handler(cat_name, key_name, None)
+                self.unknown_keyword_handler(cat_name, key_name, 0)
         row_data = [handler.not_in_file] * num_cols
         for row in range(num_rows):
             # Only update data for columns that we read (others will
