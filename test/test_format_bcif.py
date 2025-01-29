@@ -248,9 +248,9 @@ class Tests(unittest.TestCase):
                 self.raw_data, self.data_type = raw_data, data_type
 
             def _encode_rows(self, rows):
-                return {'data': self.raw_data,
-                        'encoding': [{u'kind': u'ByteArray',
-                                      u'type': self.data_type}]}, None
+                return {u'data': self.raw_data,
+                        u'encoding': [{u'kind': u'ByteArray',
+                                       u'type': self.data_type}]}, None
 
         def get_decoded(data_type, raw_data):
             cat = MyCategory(u'_exptl', {u'method': []}, raw_data, data_type)
@@ -425,7 +425,7 @@ class Tests(unittest.TestCase):
     def test_bad_columns(self):
         """Test handling of various bad BinaryCIF column lists"""
         def make_bcif(c):
-            return {u'dataBlocks': [{u'categories': [{u'name': '_foo',
+            return {u'dataBlocks': [{u'categories': [{u'name': u'_foo',
                                                       u'columns': c}]}]}
 
         # Columns are skipped
@@ -442,7 +442,7 @@ class Tests(unittest.TestCase):
     def test_bad_column(self):
         """Test handling of various bad BinaryCIF columns"""
         def make_bcif(c):
-            return {u'dataBlocks': [{u'categories': [{u'name': '_foo',
+            return {u'dataBlocks': [{u'categories': [{u'name': u'_foo',
                                                       u'columns': [c]}]}]}
 
         # Column not a map
