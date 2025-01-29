@@ -1098,8 +1098,8 @@ class CifReader(_Reader, _CifTokenizer):
     def __init__(self, fh, category_handler, unknown_category_handler=None,
                  unknown_keyword_handler=None):
         if _format is not None:
-            c_file = _format.ihm_file_new_from_python(fh)
-            self._c_format = _format.ihm_reader_new(c_file)
+            c_file = _format.ihm_file_new_from_python(fh, False)
+            self._c_format = _format.ihm_reader_new(c_file, False)
         self.category_handler = category_handler
         self.unknown_category_handler = unknown_category_handler
         self.unknown_keyword_handler = unknown_keyword_handler
@@ -1277,8 +1277,8 @@ class CifReader(_Reader, _CifTokenizer):
             _format.add_unknown_keyword_handler(self._c_format,
                                                 self.unknown_keyword_handler)
         try:
-            eof, more_data = _format.ihm_read_file(self._c_format)
+            ret_ok, more_data = _format.ihm_read_file(self._c_format)
         except _format.FileFormatError as exc:
             # Convert to the same exception used by the Python code
             raise CifParserError(str(exc))
-        return more_data != 0
+        return more_data
