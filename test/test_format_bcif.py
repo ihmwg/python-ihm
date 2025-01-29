@@ -243,17 +243,22 @@ class Tests(unittest.TestCase):
     def test_byte_array_decoder_full_file(self):
         """Test ByteArray decoder working on full BinaryCIF file"""
         class MyCategory(Category):
-            def __init__(self, name, data, raw_data, data_type):
+            def __init__(self, name, data, raw_data, data_type, enc=None):
                 Category.__init__(self, name, data)
                 self.raw_data, self.data_type = raw_data, data_type
+                self.enc = enc
 
             def _encode_rows(self, rows):
+                if self.enc is not None:
+                    enc = self.enc
+                else:
+                    enc = [{u'kind': u'ByteArray', u'type': self.data_type}]
                 return {u'data': self.raw_data,
-                        u'encoding': [{u'kind': u'ByteArray',
-                                       u'type': self.data_type}]}, None
+                        u'encoding': enc}, None
 
-        def get_decoded(data_type, raw_data):
-            cat = MyCategory(u'_exptl', {u'method': []}, raw_data, data_type)
+        def get_decoded(data_type, raw_data, enc=None):
+            cat = MyCategory(u'_exptl', {u'method': []}, raw_data, data_type,
+                             enc=enc)
             h = GenericHandler()
             self._read_bcif([Block([cat])], {'_exptl': h})
             return [x[u'method'] for x in h.data]
@@ -261,6 +266,20 @@ class Tests(unittest.TestCase):
         # type 3 (signed int)
         data = get_decoded(ihm.format_bcif._Int32, b'\x00\x01\x01\x05')
         self.assertEqual(data, ['83951872'])
+
+        # Raw data not a multiple of type size
+        self.assertRaises(_format.FileFormatError, get_decoded,
+                          ihm.format_bcif._Int32, b'\x00\x01\x01')
+        self.assertRaises(_format.FileFormatError, get_decoded,
+                          ihm.format_bcif._Float64, b'\x00\x00\x00\x00')
+        self.assertRaises(_format.FileFormatError, get_decoded,
+                          ihm.format_bcif._Float32, b'\x00\x00\x00')
+
+        # ByteArray must take raw data, not the output of another decoder
+        self.assertRaises(_format.FileFormatError, get_decoded,
+                          ihm.format_bcif._Int32, b'\x00\x01\x01\x05',
+                          enc=[{u'kind': u'ByteArray',
+                                u'type': ihm.format_bcif._Int32}]*2)
 
         # type 4 (unsigned char)
         data = get_decoded(ihm.format_bcif._Uint8, b'\x00\xFF')
