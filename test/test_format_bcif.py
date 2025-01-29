@@ -480,6 +480,62 @@ class Tests(unittest.TestCase):
         self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
                           d, {'_foo': h})
 
+    @unittest.skipIf(_format is None, "No C tokenizer")
+    def test_bad_string_array_encoding(self):
+        """Test handling of various bad BinaryCIF StringArray encodings"""
+        def make_bcif(data, data_type, offsets, offsets_type):
+            c = {u'name': u'bar',
+                 u'data': {u'data': data,
+                           u'encoding':
+                           [{u'kind': 'StringArray', u'stringData': u'aAB',
+                             u'dataEncoding': [{u'kind': u'ByteArray',
+                                                u'type': data_type}],
+                             u'offsetEncoding': [{u'kind': u'ByteArray',
+                                                  u'type': offsets_type}],
+                             u'offsets': offsets}]}}
+            return {u'dataBlocks': [{u'categories': [{u'name': u'_foo',
+                                                      u'columns': [c]}]}]}
+
+        # Test normal usage
+        d = make_bcif(data=b'\x00\x01', data_type=ihm.format_bcif._Uint8,
+                      offsets=b'\x00\x01\x03',
+                      offsets_type=ihm.format_bcif._Uint8)
+        h = GenericHandler()
+        self._read_bcif_raw(d, {'_foo': h})
+        self.assertEqual(h.data, [{'bar': 'a'}, {'bar': 'AB'}])
+
+        # Indices must be int, not float
+        d = make_bcif(data=b'\x00\x00(B', data_type=ihm.format_bcif._Float32,
+                      offsets=b'\x00\x01\x03',
+                      offsets_type=ihm.format_bcif._Uint8)
+        h = GenericHandler()
+        self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
+                          d, {'_foo': h})
+
+        # Offsets must be int, not float
+        d = make_bcif(data=b'\x00\x01', data_type=ihm.format_bcif._Uint8,
+                      offsets=b'\x00\x00(B',
+                      offsets_type=ihm.format_bcif._Float32)
+        h = GenericHandler()
+        self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
+                          d, {'_foo': h})
+
+        # Offsets must be in range of string data
+        d = make_bcif(data=b'\x00\x01', data_type=ihm.format_bcif._Uint8,
+                      offsets=b'\x00\x01\xcc',
+                      offsets_type=ihm.format_bcif._Uint8)
+        h = GenericHandler()
+        self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
+                          d, {'_foo': h})
+
+        # Indices must be in range
+        d = make_bcif(data=b'\x00\xcc', data_type=ihm.format_bcif._Uint8,
+                      offsets=b'\x00\x01\x03',
+                      offsets_type=ihm.format_bcif._Uint8)
+        h = GenericHandler()
+        self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
+                          d, {'_foo': h})
+
     def test_omitted_unknown_not_in_file_explicit(self):
         """Test explicit handling of omitted/unknown/not in file data"""
         cat = Category(u'_foo',
