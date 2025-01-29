@@ -158,6 +158,7 @@ def _make_bcif_file(blocks):
          u'dataBlocks': blocks}
     return _python_to_msgpack(d)
 
+
 def _python_to_msgpack(d):
     if _format:
         # Convert Python object `d` into msgpack format for the C-accelerated
