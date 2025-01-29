@@ -2346,8 +2346,17 @@ static bool decode_bcif_string_array(struct bcif_data *d,
   enc->string_data = newstring;
   strarr = (char **)ihm_malloc(d->size * sizeof(char *));
   for (i = 0; i < d->size; ++i) {
-    /* todo: make sure strnum in range */
-    strarr[i] = enc->string_data + starts[get_int_data(d, i)];
+    int32_t strnum = get_int_data(d, i);
+    /* make sure strnum in range */
+    if (strnum < 0 || (size_t)strnum >= enc->offsets.size) {
+      free(strarr);
+      free(starts);
+      ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
+                    "StringArray index %d out of range 0-%d",
+		    strnum, enc->offsets.size - 1);
+      return false;
+    }
+    strarr[i] = enc->string_data + starts[strnum];
   }
   free(starts);
   bcif_data_free(d);
