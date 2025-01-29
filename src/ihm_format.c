@@ -1,10 +1,15 @@
-/** \file ihm_format.c      Routines for handling mmCIF format files.
+/** \file ihm_format.c Routines for handling mmCIF or BinaryCIF format files.
  *
  *  The file is read sequentially. All values for desired keywords in
- *  desired categories are collected (other parts of the file are ignored)
- *  At the end of the file a callback function for each category is called
- *  to process the data. In the case of mmCIF loops, this callback will be
- *  called multiple times, one for each entry in the loop.
+ *  desired categories are collected (other parts of the file are ignored).
+ *
+ *  For mmCIF, at the end of the file and each save frame a callback function
+ *  for each category is called to process the data. In the case of mmCIF
+ *  loops, this callback will be called multiple times, once for each entry
+ *  in the loop.
+ *
+ *  For BinaryCIF, the category callback will be called as each category
+ *  is encountered in the file, once per row.
  */
 
 #include "ihm_format.h"
@@ -1941,7 +1946,6 @@ static bool read_bcif_mask(struct ihm_reader *reader,
   return true;
 }
 
-
 /* Read a single column from a BinaryCIF file */
 static bool read_bcif_column(struct ihm_reader *reader,
                              struct bcif_column *col,
@@ -2402,6 +2406,7 @@ static bool decode_bcif_data(struct bcif_data *d, struct bcif_encoding *enc,
   return true;
 }
 
+/* Map BinaryCIF columns to ihm_keywords */
 static bool check_bcif_columns(struct ihm_reader *reader,
                                struct bcif_category *cat,
                                struct ihm_category *ihm_cat,
@@ -2421,6 +2426,7 @@ static bool check_bcif_columns(struct ihm_reader *reader,
   return true;
 }
 
+/* Decode and check the column's data */
 static bool process_column_data(struct bcif_column *col,
                                 struct ihm_error **err)
 {
@@ -2436,6 +2442,7 @@ static bool process_column_data(struct bcif_column *col,
   return true;
 }
 
+/* Decode and check the column's mask, if any */
 static bool process_column_mask(struct bcif_column *col,
                                 struct ihm_error **err)
 {
@@ -2468,6 +2475,7 @@ static bool process_column_mask(struct bcif_column *col,
   return true;
 }
 
+/* Send the data for one category row to the callback */
 static bool process_bcif_row(struct ihm_reader *reader,
                              struct bcif_category *cat,
                              struct ihm_category *ihm_cat,
@@ -2509,7 +2517,7 @@ static bool process_bcif_row(struct ihm_reader *reader,
   return true;
 }
 
-
+/* Check a read-in category, and send out the data via callbacks */
 static bool process_bcif_category(struct ihm_reader *reader,
                                   struct bcif_category *cat,
                                   struct ihm_category *ihm_cat,

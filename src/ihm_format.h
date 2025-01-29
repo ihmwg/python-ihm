@@ -1,10 +1,15 @@
-/** \file ihm_format.h      Routines for handling mmCIF format files.
+/** \file ihm_format.h Routines for handling mmCIF or BinaryCIF format files.
  *
  *  The file is read sequentially. All values for desired keywords in
- *  desired categories are collected (other parts of the file are ignored)
- *  At the end of the file and each save frame a callback function for
- *  each category is called to process the data. In the case of mmCIF loops,
- *  this callback will be called multiple times, one for each entry in the loop.
+ *  desired categories are collected (other parts of the file are ignored).
+ *
+ *  For mmCIF, at the end of the file and each save frame a callback function
+ *  for each category is called to process the data. In the case of mmCIF
+ *  loops, this callback will be called multiple times, once for each entry
+ *  in the loop.
+ *
+ *  For BinaryCIF, the category callback will be called as each category
+ *  is encountered in the file, once per row.
  */
 
 #ifndef IHM_FORMAT_H
@@ -53,8 +58,8 @@ void ihm_error_free(struct ihm_error *err);
 void ihm_error_set(struct ihm_error **err, IHMErrorCode code,
                    const char *format, ...);
 
-/* A keyword in an mmCIF file. Holds a description of its format and any
-   value read from the file. */
+/* A keyword in an mmCIF or BinaryCIF file. Holds a description of its
+   format and any value read from the file. */
 struct ihm_keyword {
   char *name;
   /* Last value read from the file */
@@ -73,17 +78,17 @@ struct ihm_keyword {
 struct ihm_reader;
 struct ihm_category;
 
-/* Callback for mmCIF category data. Should set err on failure */
+/* Callback for mmCIF/BinaryCIF category data. Should set err on failure */
 typedef void (*ihm_category_callback)(struct ihm_reader *reader,
                                       void *data, struct ihm_error **err);
 
-/* Callback for unknown mmCIF categories. Should set err on failure */
+/* Callback for unknown mmCIF/BinaryCIF categories. Should set err on failure */
 typedef void (*ihm_unknown_category_callback)(struct ihm_reader *reader,
                                               const char *category, int linenum,
                                               void *data,
                                               struct ihm_error **err);
 
-/* Callback for unknown mmCIF keywords. Should set err on failure */
+/* Callback for unknown mmCIF/BinaryCIF keywords. Should set err on failure */
 typedef void (*ihm_unknown_keyword_callback)(struct ihm_reader *reader,
                                              const char *category,
                                              const char *keyword, int linenum,
@@ -174,7 +179,7 @@ struct ihm_reader *ihm_reader_new(struct ihm_file *fh, bool binary);
    underlying file descriptor or object that is wrapped by ihm_file. */
 void ihm_reader_free(struct ihm_reader *reader);
 
-/* Read a data block from an mmCIF file.
+/* Read a data block from an mmCIF or BinaryCIF file.
    *more_data is set true iff more data blocks are available after this one.
    Return false and set err on error. */
 bool ihm_read_file(struct ihm_reader *reader, bool *more_data,
