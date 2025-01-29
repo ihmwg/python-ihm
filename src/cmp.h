@@ -25,7 +25,14 @@ THE SOFTWARE.
 #ifndef CMP_H_INCLUDED
 #define CMP_H_INCLUDED
 
+#if defined(_MSC_VER) && _MSC_VER <= 1800
+typedef int bool;
+#define true 1
+#define false 0
+#else
 #include <stdbool.h>
+#endif
+
 #include <stddef.h>
 #include <stdint.h>
 

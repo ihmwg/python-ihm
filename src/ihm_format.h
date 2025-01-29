@@ -10,12 +10,19 @@
 #ifndef IHM_FORMAT_H
 #define IHM_FORMAT_H
 
-#include <stdbool.h> /* For bool */
 #include <stdlib.h> /* For size_t */
 #if defined(_MSC_VER)
 #include <BaseTsd.h>
 typedef SSIZE_T ssize_t;
+#if _MSC_VER > 1800
+#include <stdbool.h> /* For bool */
 #else
+typedef int bool;
+#define true 1
+#define false 0
+#endif
+#else
+#include <stdbool.h> /* For bool */
 #include <unistd.h> /* For ssize_t */
 #endif
 
