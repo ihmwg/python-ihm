@@ -29,12 +29,23 @@ THE SOFTWARE.
 typedef int bool;
 #define true 1
 #define false 0
+typedef unsigned char uint8_t;
+typedef signed char int8_t;
+typedef unsigned short uint16_t;
+typedef short int16_t;
+typedef unsigned int uint32_t;
+typedef int int32_t;
+typedef unsigned long long uint64_t;
+typedef long long int64_t;
+#define INT64_C(c)  c ## LL
+#define UINT64_C(c) c ## ULL
+
 #else
 #include <stdbool.h>
+#include <stdint.h>
 #endif
 
 #include <stddef.h>
-#include <stdint.h>
 
 struct cmp_ctx_s;
 

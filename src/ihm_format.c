@@ -12,7 +12,6 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
-#include <stdint.h>
 #if defined(_WIN32) || defined(_WIN64)
 # include <windows.h>
 # include <io.h>
