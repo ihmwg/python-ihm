@@ -2033,13 +2033,28 @@ static bool read_bcif_category(struct ihm_reader *reader,
 static bool handle_byte_array_size(struct bcif_data *d, size_t type_size,
                                    struct ihm_error **err)
 {
+  static const uint32_t ul = 1;
+
   if (d->size % type_size != 0) {
     ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
                   "ByteArray raw data size is not a multiple of the type size");
     return false;
   }
+
+  /* If we're on a bigendian platform, byteswap the array (ByteArray is
+     always little endian) */
+  if ((int)(*((unsigned char *)&ul)) == 0 && type_size > 1) {
+    size_t i, j, start;
+    for (i = 0, start = 0; i < d->size; ++i, start += type_size) {
+      for (j = 0; j < type_size / 2; ++j) {
+        char tmp = d->data.raw[start + j];
+	d->data.raw[start + j] = d->data.raw[start + type_size - j];
+	d->data.raw[start + type_size - j] = tmp;
+      }
+    }
+  }
+
   d->size /= type_size;
-  /* todo: handle bigendian */
   return true;
 }
 
