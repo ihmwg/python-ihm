@@ -116,7 +116,7 @@ class Block(list):
 
 
 if sys.version_info[0] == 2:
-    UNICODE_STRING_TYPE = unicode
+    UNICODE_STRING_TYPE = unicode  # noqa: F821
 else:
     UNICODE_STRING_TYPE = str
 
