@@ -461,8 +461,6 @@ class Tests(unittest.TestCase):
         self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
                           d, {'_foo': h})
 
-        self._read_bcif_raw(d, {'_foo': h})
-
     def test_omitted_unknown_not_in_file_explicit(self):
         """Test explicit handling of omitted/unknown/not in file data"""
         cat = Category(u'_foo',
