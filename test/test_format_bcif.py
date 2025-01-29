@@ -580,6 +580,31 @@ class Tests(unittest.TestCase):
         self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
                           d, {'_foo': h})
 
+    @unittest.skipIf(_format is None, "No C tokenizer")
+    def test_run_length_encoding_c(self):
+        """Test handling of various BinaryCIF RunLength encodings"""
+        def make_bcif(data, data_type):
+            c = {u'name': u'bar',
+                 u'data': {u'data': data,
+                           u'encoding':
+                           [{u'kind': u'RunLength'},
+                            {u'kind': u'ByteArray', u'type': data_type}]}}
+            return {u'dataBlocks': [{u'categories': [{u'name': u'_foo',
+                                                      u'columns': [c]}]}]}
+
+        # Test normal usage
+        d = make_bcif(data=b'\x05\x00\x00\x00\x03\x00\x00\x00',
+                      data_type=ihm.format_bcif._Int32)
+        h = GenericHandler()
+        self._read_bcif_raw(d, {'_foo': h})
+        self.assertEqual(h.data, [{'bar': '5'}] * 3)
+
+        # Bad input type
+        d = make_bcif(data=b'\x05\x03', data_type=ihm.format_bcif._Int8)
+        h = GenericHandler()
+        self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
+                          d, {'_foo': h})
+
     def test_omitted_unknown_not_in_file_explicit(self):
         """Test explicit handling of omitted/unknown/not in file data"""
         cat = Category(u'_foo',
