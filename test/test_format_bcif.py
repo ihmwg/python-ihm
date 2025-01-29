@@ -279,7 +279,7 @@ class Tests(unittest.TestCase):
         self.assertRaises(_format.FileFormatError, get_decoded,
                           ihm.format_bcif._Int32, b'\x00\x01\x01\x05',
                           enc=[{u'kind': u'ByteArray',
-                                u'type': ihm.format_bcif._Int32}]*2)
+                                u'type': ihm.format_bcif._Int32}] * 2)
 
         # type 4 (unsigned char)
         data = get_decoded(ihm.format_bcif._Uint8, b'\x00\xFF')
