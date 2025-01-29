@@ -2233,6 +2233,42 @@ static bool decode_bcif_fixed_point(struct bcif_data *d,
   return true;
 }
 
+/* Return true iff the data type is int32, or another integer that
+   can be promoted to that type */
+static bool require_bcif_data_is_int32(struct bcif_data *d)
+{
+  switch(d->type) {
+  case BCIF_DATA_INT8:
+  case BCIF_DATA_UINT8:
+  case BCIF_DATA_INT16:
+  case BCIF_DATA_UINT16:
+  case BCIF_DATA_INT32:
+    return true;
+  default:
+    return false;
+  }
+}
+
+/* Get the ith element of the data array. It must be of a type that can be
+   promoted to int32_t (see require_bcif_data_is_int32) */
+static int32_t get_int_data(struct bcif_data *d, int i)
+{
+  switch(d->type) {
+  case BCIF_DATA_INT8:
+    return d->data.int8[i];
+  case BCIF_DATA_UINT8:
+    return d->data.uint8[i];
+  case BCIF_DATA_INT16:
+    return d->data.int16[i];
+  case BCIF_DATA_UINT16:
+    return d->data.uint16[i];
+  case BCIF_DATA_INT32:
+    return d->data.int32[i];
+  default:
+    return 0;
+  }
+}
+
 /* Decode data using BinaryCIF StringArray encoding */
 static bool decode_bcif_string_array(struct bcif_data *d,
                                      struct bcif_encoding *enc,
@@ -2242,38 +2278,40 @@ static bool decode_bcif_string_array(struct bcif_data *d,
   int32_t stringsz;
   size_t i;
   int *starts, start;
-  if (d->type != BCIF_DATA_INT32) {
+  if (!require_bcif_data_is_int32(d)) {
     ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
-                  "StringArray not given signed 32-bit integers as input");
+                  "StringArray not given integers as input");
     return false;
   }
-  if (enc->offsets.type != BCIF_DATA_INT32) {
+  if (!require_bcif_data_is_int32(&enc->offsets)) {
     ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
-                  "StringArray not given signed 32-bit integers as offsets");
+                  "StringArray not given integers as offsets");
     return false;
   }
   /* Make sure offsets are in range */
   stringsz = strlen(enc->string_data);
   for (i = 0; i < enc->offsets.size; ++i) {
-    if (enc->offsets.data.int32[i] < 0
-        || enc->offsets.data.int32[i] > stringsz) {
+    if (get_int_data(&enc->offsets, i) < 0
+        || get_int_data(&enc->offsets, i) > stringsz) {
       ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
                     "StringArray offset %d out of range 0-%d",
-		    enc->offsets.data.int32[i], 0, stringsz);
+		    get_int_data(&enc->offsets, i), 0, stringsz);
       return false;
     }
   }
   /* Add nulls to string_data so we can point directly into it */
   stringsz = 0;
   for (i = 0; i < enc->offsets.size - 1; ++i) {
-    stringsz += 1 + enc->offsets.data.int32[i + 1] - enc->offsets.data.int32[i];
+    stringsz += 1 + get_int_data(&enc->offsets, i + 1)
+                - get_int_data(&enc->offsets, i);
   }
   newstring = (char *)ihm_malloc(stringsz);
   starts = (int *)ihm_malloc((enc->offsets.size - 1) * sizeof(int));
   start = 0;
   for (i = 0; i < enc->offsets.size - 1; ++i) {
-    stringsz = enc->offsets.data.int32[i + 1] - enc->offsets.data.int32[i];
-    memcpy(newstring + start, enc->string_data + enc->offsets.data.int32[i],
+    stringsz = get_int_data(&enc->offsets, i + 1)
+               - get_int_data(&enc->offsets, i);
+    memcpy(newstring + start, enc->string_data + get_int_data(&enc->offsets, i),
            stringsz);
     newstring[start + stringsz] = '\0';
     starts[i] = start;
@@ -2283,9 +2321,8 @@ static bool decode_bcif_string_array(struct bcif_data *d,
   enc->string_data = newstring;
   strarr = (char **)ihm_malloc(d->size * sizeof(char *));
   for (i = 0; i < d->size; ++i) {
-    int32_t strnum = d->data.int32[i];
     /* todo: make sure strnum in range */
-    strarr[i] = enc->string_data + starts[strnum];
+    strarr[i] = enc->string_data + starts[get_int_data(d, i)];
   }
   free(starts);
   bcif_data_free(d);
