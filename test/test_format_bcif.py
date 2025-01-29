@@ -99,12 +99,15 @@ class Category(object):
         self.name = name
         self.data = data
 
+    def _encode_rows(self, rows):
+        return _encode(rows)
+
     def get_bcif(self):
         nrows = 0
         cols = []
         for name, rows in self.data.items():
             nrows = len(rows)
-            data, mask = _encode(rows)
+            data, mask = self._encode_rows(rows)
             cols.append({u'mask': mask, u'name': name,
                          u'data': data})
         return {u'name': self.name,
@@ -231,6 +234,43 @@ class Tests(unittest.TestCase):
         data = d({u'type': ihm.format_bcif._Float64},
                  b'\x00\x00\x00\x00\x00\x00E@')
         self.assertAlmostEqual(list(data)[0], 42.0, delta=0.1)
+
+    @unittest.skipIf(_format is None, "No C tokenizer")
+    def test_byte_array_decoder_full_file(self):
+        """Test ByteArray decoder working on full BinaryCIF file"""
+        class MyCategory(Category):
+            def __init__(self, name, data, raw_data, data_type):
+                Category.__init__(self, name, data)
+                self.raw_data, self.data_type = raw_data, data_type
+
+            def _encode_rows(self, rows):
+                return {'data': self.raw_data,
+                        'encoding': [{u'kind': u'ByteArray',
+                                      u'type': self.data_type}]}, None
+
+        def get_decoded(data_type, raw_data):
+            cat = MyCategory(u'_exptl', {u'method': []}, raw_data, data_type)
+            h = GenericHandler()
+            self._read_bcif([Block([cat])], {'_exptl': h})
+            return [x[u'method'] for x in h.data]
+
+        # type 3 (signed int)
+        data = get_decoded(ihm.format_bcif._Int32, b'\x00\x01\x01\x05')
+        self.assertEqual(data, ['83951872'])
+
+        # type 4 (unsigned char)
+        data = get_decoded(ihm.format_bcif._Uint8, b'\x00\xFF')
+        self.assertEqual(data, ['0', '255'])
+
+        # type 33 (64-bit float)
+        data = get_decoded(ihm.format_bcif._Float64,
+                           b'\x00\x00\x00\x00\x00\x00E@')
+        self.assertIsInstance(data[0], str)
+        self.assertAlmostEqual(float(data[0]), 42.0, delta=0.1)
+
+        # unsupported type
+        self.assertRaises(_format.FileFormatError,
+                          get_decoded, ihm.format_bcif._Float32, b'\x00\x00(B')
 
     def test_integer_packing_decoder_signed(self):
         """Test IntegerPacking decoder with signed data"""
