@@ -1807,11 +1807,13 @@ static void bcif_category_free(struct bcif_category *cat)
 
 static bool read_bcif_encodings(struct ihm_reader *reader,
                                 struct bcif_encoding **first,
+                                bool allow_string_array,
                                 struct ihm_error **err);
 
 /* Read a single encoding from a BinaryCIF file */
 static bool read_bcif_encoding(struct ihm_reader *reader,
                                struct bcif_encoding *enc,
+                               bool allow_string_array,
                                struct ihm_error **err)
 {
   uint32_t map_size, i;
@@ -1822,6 +1824,12 @@ static bool read_bcif_encoding(struct ihm_reader *reader,
     if (strcmp(str, "kind") == 0) {
       if (!read_bcif_string(reader, &str, err)) return false;
       if (strcmp(str, "StringArray") == 0) {
+        if (!allow_string_array) {
+          ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
+                        "StringArray decoding cannot be used for data "
+                        "or offset encoding");
+          return false;
+	}
         enc->kind = BCIF_ENC_STRING_ARRAY;
       } else if (strcmp(str, "ByteArray") == 0) {
         enc->kind = BCIF_ENC_BYTE_ARRAY;
@@ -1835,13 +1843,13 @@ static bool read_bcif_encoding(struct ihm_reader *reader,
         enc->kind = BCIF_ENC_FIXED_POINT;
       }
     } else if (strcmp(str, "dataEncoding") == 0) {
-      /* todo: dataEncoding and offsetEncoding should not include StringArray
+      /* dataEncoding and offsetEncoding should not include StringArray
          encoding */
-      if (!read_bcif_encodings(reader,
-                               &enc->first_data_encoding, err)) return false;
+      if (!read_bcif_encodings(reader, &enc->first_data_encoding,
+                               false, err)) return false;
     } else if (strcmp(str, "offsetEncoding") == 0) {
-      if (!read_bcif_encodings(reader,
-                               &enc->first_offset_encoding, err)) return false;
+      if (!read_bcif_encodings(reader, &enc->first_offset_encoding,
+                               false, err)) return false;
     } else if (strcmp(str, "stringData") == 0) {
       if (!read_bcif_string_dup(reader, &enc->string_data, err)) return false;
     } else if (strcmp(str, "offsets") == 0) {
@@ -1865,13 +1873,14 @@ static bool read_bcif_encoding(struct ihm_reader *reader,
 /* Read all encoding information from a BinaryCIF file */
 static bool read_bcif_encodings(struct ihm_reader *reader,
                                 struct bcif_encoding **first,
+                                bool allow_string_array,
                                 struct ihm_error **err)
 {
   uint32_t array_size, i;
   if (!read_bcif_array(reader, &array_size, err)) return false;
   for (i = 0; i < array_size; ++i) {
     struct bcif_encoding *enc = bcif_encoding_new();
-    if (!read_bcif_encoding(reader, enc, err)) {
+    if (!read_bcif_encoding(reader, enc, allow_string_array, err)) {
       bcif_encoding_free(enc);
       return false;
     } else {
@@ -1898,7 +1907,8 @@ static bool read_bcif_data(struct ihm_reader *reader,
       if (!read_bcif_binary_dup(reader, &data, &data_size, err)) return false;
       bcif_data_assign_raw(&col->data, data, data_size);
     } else if (strcmp(str, "encoding") == 0) {
-      if (!read_bcif_encodings(reader, &col->first_encoding, err)) return false;
+      if (!read_bcif_encodings(reader, &col->first_encoding,
+                               true, err)) return false;
     } else {
       if (!skip_bcif_object_no_limit(reader, err)) return false;
     }
@@ -1917,7 +1927,7 @@ static bool read_bcif_mask(struct ihm_reader *reader,
     char *str;
     if (!read_bcif_string(reader, &str, err)) return false;
     if (strcmp(str, "encoding") == 0) {
-      if (!read_bcif_encodings(reader, &col->first_mask_encoding,
+      if (!read_bcif_encodings(reader, &col->first_mask_encoding, true,
                                err)) return false;
     } else if (strcmp(str, "data") == 0) {
       char *mask_data = NULL;
