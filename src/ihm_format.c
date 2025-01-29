@@ -2017,14 +2017,14 @@ static bool read_bcif_category(struct ihm_reader *reader,
 }
 
 /* Valid ByteArray data types */
-static const int32_t BYTE_ARRAY_INT8 = 1;
-static const int32_t BYTE_ARRAY_INT16 = 2;
-static const int32_t BYTE_ARRAY_INT32 = 3;
-static const int32_t BYTE_ARRAY_UINT8 = 4;
-static const int32_t BYTE_ARRAY_UINT16 = 5;
-static const int32_t BYTE_ARRAY_UINT32 = 6;
-static const int32_t BYTE_ARRAY_FLOAT = 32;
-static const int32_t BYTE_ARRAY_DOUBLE = 33;
+#define BYTE_ARRAY_INT8 1
+#define BYTE_ARRAY_INT16 2
+#define BYTE_ARRAY_INT32 3
+#define BYTE_ARRAY_UINT8 4
+#define BYTE_ARRAY_UINT16 5
+#define BYTE_ARRAY_UINT32 6
+#define BYTE_ARRAY_FLOAT 32
+#define BYTE_ARRAY_DOUBLE 33
 
 /* Make sure the input data size for ByteArray decoding is correct, and
    set the output size. */
