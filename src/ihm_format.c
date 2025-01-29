@@ -477,8 +477,7 @@ static void set_keyword_to_default(struct ihm_keyword *key)
 /* Set the value of a given keyword from the given string */
 static void set_value(struct ihm_reader *reader,
                       struct ihm_category *category,
-                      struct ihm_keyword *key, char *str,
-                      bool own_data, struct ihm_error **err)
+                      struct ihm_keyword *key, char *str, bool own_data)
 {
   /* If a key is duplicated, overwrite it with the new value */
   if (key->in_file && key->own_data) {
@@ -967,7 +966,7 @@ static void read_value(struct ihm_reader *reader,
     if (key) {
       struct ihm_token *val_token = get_token(reader, false, err);
       if (val_token && val_token->type == MMCIF_TOKEN_VALUE) {
-        set_value(reader, category, key, val_token->str, true, err);
+        set_value(reader, category, key, val_token->str, true);
       } else if (val_token && val_token->type == MMCIF_TOKEN_OMITTED) {
         set_omitted_value(key);
       } else if (val_token && val_token->type == MMCIF_TOKEN_UNKNOWN) {
@@ -1132,7 +1131,7 @@ static void read_loop_data(struct ihm_reader *reader,
         break;
       } else if (token && token->type == MMCIF_TOKEN_VALUE) {
         if (keywords[i]) {
-          set_value(reader, category, keywords[i], token->str, !oneline, err);
+          set_value(reader, category, keywords[i], token->str, !oneline);
         }
       } else if (token && token->type == MMCIF_TOKEN_OMITTED) {
         if (keywords[i]) {
@@ -2461,7 +2460,7 @@ static bool process_bcif_row(struct ihm_reader *reader,
         str = col->str;
         sprintf(str, "%d", col->data.data.int32[irow]);
       }
-      set_value(reader, ihm_cat, col->keyword, str, false, NULL);
+      set_value(reader, ihm_cat, col->keyword, str, false);
     }
   }
 
