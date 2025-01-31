@@ -447,6 +447,16 @@ class Tests(unittest.TestCase):
     def test_cif_official_pdb(self):
         """Test CIFParser when given an mmCIF in the official PDB database"""
         p = self._parse_cif(utils.get_input_file_name(TOPDIR, 'official.cif'))
+        self._check_parsed_official_pdb(p)
+
+    def test_binary_cif_official_pdb(self):
+        """Test BinaryCIFParser when given a BinaryCIF in the official PDB"""
+        fname = utils.get_input_file_name(TOPDIR, 'official.bcif')
+        parser = ihm.metadata.BinaryCIFParser()
+        p = parser.parse_file(fname)
+        self._check_parsed_official_pdb(p)
+
+    def _check_parsed_official_pdb(self, p):
         dataset = p['dataset']
         self.assertEqual(dataset.data_type, 'Experimental model')
         self.assertEqual(dataset.location.db_name, 'PDB')
