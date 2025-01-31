@@ -18,6 +18,11 @@ TOPDIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 utils.set_search_paths(TOPDIR)
 import ihm.metadata
 
+try:
+    from ihm import _format
+except ImportError:
+    _format = None
+
 
 class Tests(unittest.TestCase):
 
@@ -449,6 +454,7 @@ class Tests(unittest.TestCase):
         p = self._parse_cif(utils.get_input_file_name(TOPDIR, 'official.cif'))
         self._check_parsed_official_pdb(p)
 
+    @unittest.skipIf(_format is None, "No C tokenizer")
     def test_binary_cif_official_pdb(self):
         """Test BinaryCIFParser when given a BinaryCIF in the official PDB"""
         fname = utils.get_input_file_name(TOPDIR, 'official.bcif')
