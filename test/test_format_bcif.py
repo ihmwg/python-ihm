@@ -411,8 +411,8 @@ class Tests(unittest.TestCase):
         r.read_file()
 
     @unittest.skipIf(_format is None, "No C tokenizer")
-    def test_bad_header(self):
-        """Test handling of various bad BinaryCIF headers"""
+    def test_read_header_c(self):
+        """Test handling of various BinaryCIF headers"""
         # No header
         d = 42
         self.assertRaises(_format.FileFormatError, self._read_bcif_raw, d, {})
@@ -421,6 +421,15 @@ class Tests(unittest.TestCase):
         self.assertRaises(_format.FileFormatError, self._read_bcif_raw, d, {})
         # Data blocks not a list
         d = {u'dataBlocks': 42}
+        self.assertRaises(_format.FileFormatError, self._read_bcif_raw, d, {})
+        # Empty header
+        d = {}
+        self._read_bcif_raw(d, {})
+        # Unknown keys should be ignored
+        d = {u'unknown-key': None}
+        self._read_bcif_raw(d, {})
+        # Skipped object of bad type
+        d = {u'unknown-keyword': BAD_MSGPACK_TYPE}
         self.assertRaises(_format.FileFormatError, self._read_bcif_raw, d, {})
 
     @unittest.skipIf(_format is None, "No C tokenizer")
