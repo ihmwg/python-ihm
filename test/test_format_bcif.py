@@ -655,7 +655,7 @@ class Tests(unittest.TestCase):
                           d, {'_foo': h})
 
         # Normal usage; unknown keys should be ignored
-        d = make_bcif({u'kind': 'ByteArray',
+        d = make_bcif({u'kind': u'ByteArray',
                        u'type': ihm.format_bcif._Int32,
                        u'unknown-key': None})
         h = GenericHandler()
