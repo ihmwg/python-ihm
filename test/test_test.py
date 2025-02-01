@@ -6,7 +6,7 @@ import subprocess
 
 TOPDIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 utils.set_search_paths(TOPDIR)
-import ihm.test   # Test should also be importable
+import ihm.test  # noqa: F401   # Test should also be importable
 
 
 class Tests(unittest.TestCase):
