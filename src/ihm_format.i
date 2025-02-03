@@ -300,9 +300,9 @@ static void handle_category_data(struct ihm_reader *reader, void *data,
       Py_INCREF(val);
     } else {
 #if PY_VERSION_HEX < 0x03000000
-      val = PyString_FromString((*keys)->data);
+      val = PyString_FromString((*keys)->data.str);
 #else
-      val = PyUnicode_FromString((*keys)->data);
+      val = PyUnicode_FromString((*keys)->data.str);
 #endif
       if (!val) {
         ihm_error_set(err, IHM_ERROR_VALUE, "string creation failed");
@@ -384,10 +384,10 @@ static struct category_handler_data *do_add_handler(
     PyObject *o = PySequence_GetItem(keywords, i);
 #if PY_VERSION_HEX < 0x03000000
     if (PyString_Check(o)) {
-      hd->keywords[i] = ihm_keyword_new(category, PyString_AsString(o));
+      hd->keywords[i] = ihm_keyword_str_new(category, PyString_AsString(o));
 #else
     if (PyUnicode_Check(o)) {
-      hd->keywords[i] = ihm_keyword_new(category, PyUnicode_AsUTF8(o));
+      hd->keywords[i] = ihm_keyword_str_new(category, PyUnicode_AsUTF8(o));
 #endif
       Py_DECREF(o);
     } else {
@@ -496,7 +496,7 @@ static void handle_poly_seq_scheme_data(struct ihm_reader *reader,
   if (hd->keywords[0]->in_file && hd->keywords[5]->in_file &&
       !hd->keywords[0]->omitted && !hd->keywords[5]->omitted &&
       !hd->keywords[0]->unknown && !hd->keywords[5]->unknown &&
-      strcmp(hd->keywords[0]->data, hd->keywords[5]->data) != 0) {
+      strcmp(hd->keywords[0]->data.str, hd->keywords[5]->data.str) != 0) {
     handle_category_data(reader, data, err);
     return;
   }
@@ -514,9 +514,9 @@ static void handle_poly_seq_scheme_data(struct ihm_reader *reader,
      auth_seq_num (4th keyword) are identical integers, and
      pdb_ins_code (5th keyword) is blank or missing,
      nothing needs to be done */
-  seq_id = strtol(hd->keywords[1]->data, &seq_id_endptr, 10);
-  pdb_seq_num = strtol(hd->keywords[2]->data, &pdb_seq_num_endptr, 10);
-  auth_seq_num = strtol(hd->keywords[3]->data, &auth_seq_num_endptr, 10);
+  seq_id = strtol(hd->keywords[1]->data.str, &seq_id_endptr, 10);
+  pdb_seq_num = strtol(hd->keywords[2]->data.str, &pdb_seq_num_endptr, 10);
+  auth_seq_num = strtol(hd->keywords[3]->data.str, &auth_seq_num_endptr, 10);
   if (!*seq_id_endptr && !*pdb_seq_num_endptr && !*auth_seq_num_endptr
       && seq_id == pdb_seq_num && seq_id == auth_seq_num
       && (!hd->keywords[4]->in_file || hd->keywords[4]->omitted
