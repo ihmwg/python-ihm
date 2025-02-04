@@ -9,7 +9,6 @@
    and the `token reader example <https://github.com/ihmwg/python-ihm/blob/main/examples/token_reader.py>`_.
 """  # noqa: E501
 
-from __future__ import print_function
 import sys
 import textwrap
 import operator
