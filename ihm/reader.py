@@ -1062,12 +1062,13 @@ class _AuditAuthorHandler(Handler):
 class _AuditRevisionHistoryHandler(Handler):
     category = '_pdbx_audit_revision_history'
 
+    _int_keys = ['major_revision', 'minor_revision']
     def __call__(self, ordinal, data_content_type, major_revision,
                  minor_revision, revision_date):
         r = self.sysr.revisions.get_by_id(ordinal)
         r.data_content_type = data_content_type
-        r.major = self.get_int(major_revision)
-        r.minor = self.get_int(minor_revision)
+        r.major = major_revision
+        r.minor = minor_revision
         r.date = _get_iso_date(revision_date)
 
 
@@ -1307,26 +1308,28 @@ class _StructRefHandler(Handler):
 class _StructRefSeqHandler(Handler):
     category = '_struct_ref_seq'
 
+    _int_keys = ['db_align_beg', 'db_align_end', 'seq_align_beg',
+                 'seq_align_end']
     def __call__(self, align_id, ref_id, seq_align_beg, seq_align_end,
                  db_align_beg, db_align_end):
         ref = self.sysr.references.get_by_id(ref_id)
         align = self.sysr.alignments.get_by_id(align_id)
-        align.db_begin = self.get_int(db_align_beg)
-        align.db_end = self.get_int(db_align_end)
-        align.entity_begin = self.get_int(seq_align_beg)
-        align.entity_end = self.get_int(seq_align_end)
+        align.db_begin = db_align_beg
+        align.db_end = db_align_end
+        align.entity_begin = seq_align_beg
+        align.entity_end = seq_align_end
         ref.alignments.append(align)
 
 
 class _StructRefSeqDifHandler(Handler):
     category = '_struct_ref_seq_dif'
 
+    _int_keys = ['seq_num']
     def __call__(self, align_id, seq_num, db_mon_id, mon_id, details):
         align = self.sysr.alignments.get_by_id(align_id)
         db_monomer = self.sysr.chem_comps.get_by_id_or_none(db_mon_id)
         monomer = self.sysr.chem_comps.get_by_id_or_none(mon_id)
-        sd = ihm.reference.SeqDif(self.get_int(seq_num), db_monomer, monomer,
-                                  details)
+        sd = ihm.reference.SeqDif(seq_num, db_monomer, monomer, details)
         align.seq_dif.append(sd)
 
 
@@ -1400,9 +1403,9 @@ class _EntityPolyHandler(Handler):
 class _EntityPolySegmentHandler(Handler):
     category = '_ihm_entity_poly_segment'
 
+    _int_keys = ['seq_id_begin', 'seq_id_end']
     def __call__(self, id, seq_id_begin, seq_id_end):
-        self.sysr.ranges.set(id, self.get_int(seq_id_begin),
-                             self.get_int(seq_id_end))
+        self.sysr.ranges.set(id, seq_id_begin, seq_id_end)
 
 
 class _EntityNonPolyHandler(Handler):
@@ -1703,6 +1706,7 @@ class _ModelRepresentationDetailsHandler(Handler):
         super(_ModelRepresentationDetailsHandler, self).__init__(*args)
         self._read_args = []
 
+    _int_keys = ['model_object_count']
     def __call__(self, entity_asym_id, entity_poly_segment_id,
                  representation_id, starting_model_id, model_object_primitive,
                  model_granularity, model_object_count, model_mode,
@@ -1727,10 +1731,10 @@ class _ModelRepresentationDetailsHandler(Handler):
             primitive = self.get_lower(model_object_primitive)
             gran = self.get_lower(model_granularity)
             primitive = self.get_lower(model_object_primitive)
-            count = self.get_int(model_object_count)
             rigid = self._rigid_map[self.get_lower(model_mode)]
             segment = self._segment_factory[gran](
-                asym, rigid, primitive, count, smodel, description)
+                asym, rigid, primitive, model_object_count,
+                smodel, description)
             rep.append(segment)
 
 
@@ -1780,6 +1784,9 @@ class _StartingComparativeModelsHandler(Handler):
     category = '_ihm_starting_comparative_models'
     ignored_keywords = ['ordinal_id']
 
+    _int_keys = ['starting_model_seq_id_begin', 'starting_model_seq_id_end',
+                 'template_seq_id_begin', 'template_seq_id_end',
+                 'template_sequence_identity_denominator']
     def __call__(self, starting_model_id, template_dataset_list_id,
                  alignment_file_id, template_auth_asym_id,
                  starting_model_seq_id_begin, starting_model_seq_id_end,
@@ -1790,13 +1797,11 @@ class _StartingComparativeModelsHandler(Handler):
         dataset = self.sysr.datasets.get_by_id(template_dataset_list_id)
         aln = self.sysr.external_files.get_by_id_or_none(alignment_file_id)
         asym_id = template_auth_asym_id
-        seq_id_range = (self.get_int(starting_model_seq_id_begin),
-                        self.get_int(starting_model_seq_id_end))
-        template_seq_id_range = (self.get_int(template_seq_id_begin),
-                                 self.get_int(template_seq_id_end))
+        seq_id_range = (starting_model_seq_id_begin, starting_model_seq_id_end)
+        template_seq_id_range = (template_seq_id_begin, template_seq_id_end)
         identity = ihm.startmodel.SequenceIdentity(
             self.get_float(template_sequence_identity),
-            self.get_int(template_sequence_identity_denominator))
+            template_sequence_identity_denominator)
         t = ihm.startmodel.Template(
             dataset, asym_id, seq_id_range, template_seq_id_range,
             identity, aln)
@@ -1816,14 +1821,15 @@ class _ProtocolHandler(Handler):
 class _ProtocolDetailsHandler(Handler):
     category = '_ihm_modeling_protocol_details'
 
+    _int_keys = ['num_models_begin', 'num_models_end']
     def __call__(self, protocol_id, step_id, num_models_begin,
                  num_models_end, multi_scale_flag, multi_state_flag,
                  ordered_flag, ensemble_flag, struct_assembly_id,
                  dataset_group_id, software_id, script_file_id, step_name,
                  step_method, description):
         p = self.sysr.protocols.get_by_id(protocol_id)
-        nbegin = self.get_int(num_models_begin)
-        nend = self.get_int(num_models_end)
+        nbegin = num_models_begin
+        nend = num_models_end
         mscale = self.get_bool(multi_scale_flag)
         mstate = self.get_bool(multi_state_flag)
         ensemble = self.get_bool(ensemble_flag)
@@ -1859,6 +1865,7 @@ class _PostProcessHandler(Handler):
                              if issubclass(x[1], ihm.analysis.Step)
                              and x[1] is not ihm.analysis.Step)
 
+    _int_keys = ['num_models_begin', 'num_models_end']
     def __call__(self, protocol_id, analysis_id, type, id, num_models_begin,
                  num_models_end, struct_assembly_id, dataset_group_id,
                  software_id, script_file_id, feature, details):
@@ -1878,8 +1885,8 @@ class _PostProcessHandler(Handler):
             # to Python None - set it to explicit 'none' instead
             step.feature = 'none'
         else:
-            step.num_models_begin = self.get_int(num_models_begin)
-            step.num_models_end = self.get_int(num_models_end)
+            step.num_models_begin = num_models_begin
+            step.num_models_end = num_models_end
             step.assembly = self.sysr.assemblies.get_by_id_or_none(
                 struct_assembly_id)
             step.dataset_group = self.sysr.dataset_groups.get_by_id_or_none(
@@ -1985,6 +1992,7 @@ class _EnsembleHandler(Handler):
                      for x in inspect.getmembers(ihm.model, inspect.isclass)
                      if issubclass(x[1], ihm.model.Subsample))
 
+    _int_keys = ['num_ensemble_models', 'num_ensemble_models_deposited']
     def __call__(self, ensemble_id, model_group_id, post_process_id,
                  ensemble_file_id, num_ensemble_models,
                  ensemble_precision_value, ensemble_name,
@@ -1997,8 +2005,8 @@ class _EnsembleHandler(Handler):
         f = self.sysr.external_files.get_by_id_or_none(ensemble_file_id)
 
         ensemble.model_group = mg
-        ensemble.num_models = self.get_int(num_ensemble_models)
-        ensemble._num_deposited = self.get_int(num_ensemble_models_deposited)
+        ensemble.num_models = num_ensemble_models
+        ensemble._num_deposited = num_ensemble_models_deposited
         ensemble.precision = self.get_float(ensemble_precision_value)
         if sub_sampling_type:
             ensemble._sub_sampling_type = sub_sampling_type.lower()
@@ -2052,6 +2060,7 @@ class _NotModeledResidueRangeHandler(Handler):
 class _SubsampleHandler(Handler):
     category = '_ihm_ensemble_sub_sample'
 
+    _int_keys = ['num_models']
     def __call__(self, name, ensemble_id, num_models, model_group_id, file_id):
         ensemble = self.sysr.ensembles.get_by_id(ensemble_id)
         mg = self.sysr.model_groups.get_by_id_or_none(model_group_id)
@@ -2060,8 +2069,7 @@ class _SubsampleHandler(Handler):
         # We don't know the type yet (not until ensemble is read); this
         # will be corrected by EnsembleHandler.finalize()
         ss = ihm.model.Subsample(
-            name=name, num_models=self.get_int(num_models), model_group=mg,
-            file=f)
+            name=name, num_models=num_models, model_group=mg, file=f)
         ensemble.subsamples.append(ss)
 
 
@@ -2097,6 +2105,7 @@ class _DensityHandler(Handler):
 class _EM3DRestraintHandler(Handler):
     category = '_ihm_3dem_restraint'
 
+    _int_keys = ['number_of_gaussians']
     def __call__(self, dataset_list_id, struct_assembly_id,
                  fitting_method_citation_id, map_segment_flag, fitting_method,
                  number_of_gaussians, model_id, cross_correlation_coefficient,
@@ -2110,7 +2119,7 @@ class _EM3DRestraintHandler(Handler):
             fitting_method_citation_id)
         self.copy_if_present(r, locals(), keys=('fitting_method', 'details'))
         r.segment = self.get_bool(map_segment_flag)
-        r.number_of_gaussians = self.get_int(number_of_gaussians)
+        r.number_of_gaussians = number_of_gaussians
 
         model = self.sysr.models.get_by_id(model_id)
         ccc = self.get_float(cross_correlation_coefficient)
@@ -2120,18 +2129,19 @@ class _EM3DRestraintHandler(Handler):
 class _EM2DRestraintHandler(Handler):
     category = '_ihm_2dem_class_average_restraint'
 
+    _int_keys = ['number_raw_micrographs', 'number_of_projections']
     def __call__(self, id, dataset_list_id, number_raw_micrographs,
                  pixel_size_width, pixel_size_height, image_resolution,
                  image_segment_flag, number_of_projections,
                  struct_assembly_id, details):
         r = self.sysr.em2d_restraints.get_by_id(id)
         r.dataset = self.sysr.datasets.get_by_id(dataset_list_id)
-        r.number_raw_micrographs = self.get_int(number_raw_micrographs)
+        r.number_raw_micrographs = number_raw_micrographs
         r.pixel_size_width = self.get_float(pixel_size_width)
         r.pixel_size_height = self.get_float(pixel_size_height)
         r.image_resolution = self.get_float(image_resolution)
         r.segment = self.get_bool(image_segment_flag)
-        r.number_of_projections = self.get_int(number_of_projections)
+        r.number_of_projections = number_of_projections
         r.assembly = self.sysr.assemblies.get_by_id_or_none(
             struct_assembly_id)
         self.copy_if_present(r, locals(), keys=('details',))
@@ -2157,6 +2167,7 @@ class _EM2DFittingHandler(Handler):
 class _SASRestraintHandler(Handler):
     category = '_ihm_sas_restraint'
 
+    _int_keys = ['number_of_gaussians']
     def __call__(self, dataset_list_id, struct_assembly_id,
                  profile_segment_flag, fitting_atom_type, fitting_method,
                  details, fitting_state, radius_of_gyration,
@@ -2175,7 +2186,7 @@ class _SASRestraintHandler(Handler):
               else 'Single')
         r.multi_state = fs.lower() != 'single'
         r.radius_of_gyration = self.get_float(radius_of_gyration)
-        r.number_of_gaussians = self.get_int(number_of_gaussians)
+        r.number_of_gaussians = number_of_gaussians
 
         model = self.sysr.models.get_by_id(model_id)
         r.fits[model] = ihm.restraint.SASRestraintFit(
@@ -2227,12 +2238,13 @@ class _AtomSiteHandler(Handler):
             asym.auth_seq_id_map[seq_id] = (auth_seq_id, pdbx_pdb_ins_code)
         return m[auth]
 
+    _int_keys = ['label_seq_id']
     def __call__(self, pdbx_pdb_model_num, label_asym_id, b_iso_or_equiv,
                  label_seq_id, label_atom_id, type_symbol, cartn_x, cartn_y,
                  cartn_z, occupancy, group_pdb, auth_seq_id,
                  pdbx_pdb_ins_code, auth_asym_id, label_comp_id, label_alt_id):
         # seq_id can be None for non-polymers (HETATM)
-        seq_id = self.get_int(label_seq_id)
+        seq_id = label_seq_id
         # todo: handle fields other than those output by us
         model = self.sysr.models.get_by_id(pdbx_pdb_model_num)
         if label_asym_id is None:
@@ -2292,13 +2304,13 @@ class _AtomSiteHandler(Handler):
 class _StartingModelCoordHandler(Handler):
     category = '_ihm_starting_model_coord'
 
+    _int_keys = ['seq_id']
     def __call__(self, starting_model_id, group_pdb, type_symbol, atom_id,
                  asym_id, seq_id, cartn_x, cartn_y, cartn_z, b_iso_or_equiv):
         model = self.sysr.starting_models.get_by_id(starting_model_id)
         asym = self.sysr.asym_units.get_by_id(asym_id)
         biso = self.get_float(b_iso_or_equiv)
         # seq_id can be None for non-polymers (HETATM)
-        seq_id = self.get_int(seq_id)
         group = 'ATOM' if group_pdb is None else group_pdb
         a = ihm.model.Atom(
             asym_unit=asym, seq_id=seq_id, atom_id=atom_id,
@@ -2310,11 +2322,11 @@ class _StartingModelCoordHandler(Handler):
 class _StartingModelSeqDifHandler(Handler):
     category = '_ihm_starting_model_seq_dif'
 
+    _int_keys = ['db_seq_id', 'seq_id']
     def __call__(self, starting_model_id, db_seq_id, seq_id, db_comp_id,
                  details):
         model = self.sysr.starting_models.get_by_id(starting_model_id)
-        sd = ihm.startmodel.SeqDif(db_seq_id=self.get_int(db_seq_id),
-                                   seq_id=self.get_int(seq_id),
+        sd = ihm.startmodel.SeqDif(db_seq_id=db_seq_id, seq_id=seq_id,
                                    db_comp_id=db_comp_id,
                                    details=details)
         model.add_seq_dif(sd)
@@ -2468,12 +2480,12 @@ class _PredictedContactRestraintHandler(Handler):
 
     def _get_resatom(self, asym_id, seq_id, atom_id):
         asym = self.sysr.asym_units.get_by_id(asym_id)
-        seq_id = self.get_int(seq_id)
         resatom = asym.residue(seq_id)
         if atom_id:
             resatom = resatom.atom(atom_id)
         return resatom
 
+    _int_keys = ['seq_id_1', 'seq_id_2']
     def __call__(self, id, group_id, dataset_list_id, asym_id_1,
                  seq_id_1, rep_atom_1, asym_id_2, seq_id_2, rep_atom_2,
                  restraint_type, probability, distance_lower_limit,
@@ -2712,6 +2724,7 @@ class _NonPolySchemeHandler(Handler):
         super(_NonPolySchemeHandler, self).__init__(*args)
         self._scheme = {}
 
+    _int_keys = ['ndb_seq_num']
     def __call__(self, asym_id, entity_id, pdb_seq_num, mon_id, pdb_ins_code,
                  pdb_strand_id, ndb_seq_num, auth_seq_num):
         entity = self.sysr.entities.get_by_id(entity_id)
@@ -2731,7 +2744,6 @@ class _NonPolySchemeHandler(Handler):
             asym._strand_id = pdb_strand_id
         pdb_seq_num = self.get_int_or_string(pdb_seq_num)
         auth_seq_num = self.get_int_or_string(auth_seq_num)
-        ndb_seq_num = self.get_int(ndb_seq_num)
         # Make mapping from author-provided numbering (*pdb_seq_num*, not
         # auth_seq_num) to original and NDB numbering. We will use this at
         # finalize time to map internal ID ("seq_id") to auth, orig_auth,
@@ -2787,6 +2799,7 @@ class _BranchSchemeHandler(Handler):
         super(_BranchSchemeHandler, self).__init__(*args)
         self._scheme = {}
 
+    _int_keys = ['num']
     def __call__(self, asym_id, num, pdb_seq_num, auth_seq_num, pdb_asym_id,
                  pdb_ins_code):
         asym = self.sysr.asym_units.get_by_id(asym_id)
@@ -2794,7 +2807,6 @@ class _BranchSchemeHandler(Handler):
             asym._strand_id = pdb_asym_id
         pdb_seq_num = self.get_int_or_string(pdb_seq_num)
         auth_seq_num = self.get_int_or_string(auth_seq_num)
-        num = self.get_int(num)
         # Make mapping from author-provided numbering (*pdb_seq_num*, not
         # auth_seq_num) to original and "num" numbering. We will use this at
         # finalize time to map internal ID ("seq_id") to auth, orig_auth,
@@ -2885,15 +2897,14 @@ class _BranchDescriptorHandler(Handler):
 class _BranchLinkHandler(Handler):
     category = '_pdbx_entity_branch_link'
 
+    _int_keys = ['entity_branch_list_num_1', 'entity_branch_list_num_2']
     def __call__(self, entity_id, entity_branch_list_num_1, atom_id_1,
                  leaving_atom_id_1, entity_branch_list_num_2, atom_id_2,
                  leaving_atom_id_2, value_order, details):
         e = self.sysr.entities.get_by_id(entity_id)
-        num1 = self.get_int(entity_branch_list_num_1)
-        num2 = self.get_int(entity_branch_list_num_2)
-        lnk = ihm.BranchLink(num1=num1, atom_id1=atom_id_1,
+        lnk = ihm.BranchLink(num1=entity_branch_list_num_1, atom_id1=atom_id_1,
                              leaving_atom_id1=leaving_atom_id_1,
-                             num2=num2, atom_id2=atom_id_2,
+                             num2=entity_branch_list_num_2, atom_id2=atom_id_2,
                              leaving_atom_id2=leaving_atom_id_2,
                              order=value_order, details=details)
         e.branch_links.append(lnk)
@@ -3011,6 +3022,7 @@ class _CrossLinkRestraintHandler(Handler):
 class _CrossLinkPseudoSiteHandler(Handler):
     category = '_ihm_cross_link_pseudo_site'
 
+    _int_keys = ["cross_link_partner"]
     def __call__(self, id, restraint_id, cross_link_partner, pseudo_site_id,
                  model_id):
         xlps = self.sysr.cross_link_pseudo_sites.get_by_id(id)
@@ -3018,8 +3030,7 @@ class _CrossLinkPseudoSiteHandler(Handler):
         xlps.model = self.sysr.models.get_by_id_or_none(model_id)
 
         xl = self.sysr.cross_links.get_by_id(restraint_id)
-        partner = self.get_int(cross_link_partner)
-        if partner == 2:
+        if cross_link_partner == 2:
             if getattr(xl, 'pseudo2', None) is None:
                 xl.pseudo2 = []
             xl.pseudo2.append(xlps)
@@ -3304,13 +3315,14 @@ class _FLRInstrumentHandler(Handler):
 class _FLREntityAssemblyHandler(Handler):
     category = '_flr_entity_assembly'
 
+    _int_keys = ['num_copies']
     def __call__(self, ordinal_id, assembly_id, entity_id, num_copies):
         # Get the object or create the object
         a = self.sysr.flr_entity_assemblies.get_by_id(assembly_id)
         # Get the entity
         entity = self.sysr.entities.get_by_id(entity_id)
         # Add the entity to the entity assembly
-        a.add_entity(entity=entity, num_copies=self.get_int(num_copies))
+        a.add_entity(entity=entity, num_copies=num_copies)
 
 
 class _FLRSampleConditionHandler(Handler):
@@ -3326,13 +3338,14 @@ class _FLRSampleConditionHandler(Handler):
 class _FLRSampleHandler(Handler):
     category = '_flr_sample'
 
+    _int_keys = ['num_of_probes']
     def __call__(self, id, entity_assembly_id, num_of_probes,
                  sample_condition_id, sample_description, sample_details,
                  solvent_phase):
         sample = self.sysr.flr_samples.get_by_id(id)
         sample.entity_assembly \
             = self.sysr.flr_entity_assemblies.get_by_id(entity_assembly_id)
-        sample.num_of_probes = self.get_int(num_of_probes)
+        sample.num_of_probes = num_of_probes
         sample.condition = cond \
             = self.sysr.flr_sample_conditions.get_by_id(sample_condition_id)
         self.copy_if_present(sample, locals(), keys=('solvent_phase',),
@@ -3393,7 +3406,6 @@ class _FLRPolyProbePositionHandler(Handler):
         if asym is not None:
             asym.entity = entity
             asym.id = asym_id
-        seq_id = self.get_int(seq_id)
         resatom = entity.residue(seq_id)
         if asym is not None:
             resatom.asym = asym
@@ -3401,6 +3413,7 @@ class _FLRPolyProbePositionHandler(Handler):
             resatom = resatom.atom(atom_id)
         return resatom
 
+    _int_keys = ['seq_id']
     def __call__(self, id, entity_id, asym_id, seq_id, atom_id,
                  mutation_flag, modification_flag, auth_name):
         ppos = self.sysr.flr_poly_probe_positions.get_by_id(id)
@@ -3659,6 +3672,8 @@ class _FLRFretModelDistanceHandler(Handler):
 class _FLRFPSGlobalParameterHandler(Handler):
     category = '_flr_fps_global_parameter'
 
+    _int_keys = ['conversion_function_polynom_order', 'repetition',
+                 'av_search_nodes']
     def __call__(self, id, forster_radius_value,
                  conversion_function_polynom_order, repetition,
                  av_grid_rel, av_min_grid_a, av_allowed_sphere,
@@ -3668,13 +3683,12 @@ class _FLRFPSGlobalParameterHandler(Handler):
                  convergence_e, convergence_k, convergence_f, convergence_t):
         p = self.sysr.flr_fps_global_parameters.get_by_id(id)
         p.forster_radius = self.get_float(forster_radius_value)
-        p.conversion_function_polynom_order = self.get_int(
-            conversion_function_polynom_order)
-        p.repetition = self.get_int(repetition)
+        p.conversion_function_polynom_order = conversion_function_polynom_order
+        p.repetition = repetition
         p.av_grid_rel = self.get_float(av_grid_rel)
         p.av_min_grid_a = self.get_float(av_min_grid_a)
         p.av_allowed_sphere = self.get_float(av_allowed_sphere)
-        p.av_search_nodes = self.get_int(av_search_nodes)
+        p.av_search_nodes = av_search_nodes
         p.av_e_samples_k = self.get_float(av_e_samples_k)
         p.sim_viscosity_adjustment = self.get_float(sim_viscosity_adjustment)
         p.sim_dt_adjustment = self.get_float(sim_dt_adjustment)
@@ -3710,10 +3724,11 @@ class _FLRFPSModelingHandler(Handler):
 class _FLRFPSAVParameterHandler(Handler):
     category = '_flr_fps_av_parameter'
 
+    _int_keys = ['num_linker_atoms']
     def __call__(self, id, num_linker_atoms, linker_length, linker_width,
                  probe_radius_1, probe_radius_2, probe_radius_3):
         p = self.sysr.flr_fps_av_parameters.get_by_id(id)
-        p.num_linker_atoms = self.get_int(num_linker_atoms)
+        p.num_linker_atoms = num_linker_atoms
         p.linker_length = self.get_float(linker_length)
         p.linker_width = self.get_float(linker_width)
         p.probe_radius_1 = self.get_float(probe_radius_1)
@@ -3748,10 +3763,10 @@ class _FLRFPSMPPHandler(Handler):
 class _FLRFPSMPPAtomPositionHandler(Handler):
     category = '_flr_fps_mpp_atom_position'
 
+    _int_keys = ['seq_id']
     def __call__(self, id, group_id, seq_id, atom_id, asym_id, xcoord,
                  ycoord, zcoord):
         asym = self.sysr.asym_units.get_by_id(asym_id)
-        seq_id = self.get_int(seq_id)
 
         p = self.sysr.flr_fps_mpp_atom_positions.get_by_id(id)
         p.atom = asym.residue(seq_id).atom(atom_id)
