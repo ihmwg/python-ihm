@@ -1269,7 +1269,9 @@ class CifReader(_Reader, _CifTokenizer):
         for category, handler in self.category_handler.items():
             func = getattr(handler, '_add_c_handler', None) \
                 or _format.add_category_handler
-            func(self._c_format, category, handler._keys, handler)
+            func(self._c_format, category, handler._keys,
+                 frozenset(handler._int_keys), frozenset(handler._float_keys),
+                 handler)
         if self.unknown_category_handler is not None:
             _format.add_unknown_category_handler(self._c_format,
                                                  self.unknown_category_handler)

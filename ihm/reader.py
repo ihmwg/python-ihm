@@ -914,6 +914,9 @@ class Handler(object):
     #: which we don't use.
     ignored_keywords = []
 
+    _int_keys = frozenset()
+    _float_keys = frozenset()
+
     def __init__(self, sysr):
         #: Utility class to map IDs to Python objects.
         self.sysr = sysr
