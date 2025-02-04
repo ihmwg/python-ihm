@@ -9,7 +9,7 @@
 This is a Python package to assist in handling [mmCIF](https://mmcif.wwpdb.org/)
 and [BinaryCIF](https://github.com/molstar/BinaryCIF) files compliant with the
 [integrative/hybrid modeling (IHM)](https://mmcif.wwpdb.org/dictionaries/mmcif_ihm_ext.dic/Index/)
-extension. It works with Python 2.7 or Python 3.
+extension. It works with Python 3.6 or later.
 
 To handle non-integrative theoretical models (for example, homology models),
 see the [python-modelcif](https://github.com/ihmwg/python-modelcif) package
