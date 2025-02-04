@@ -1055,6 +1055,8 @@ class Tests(unittest.TestCase):
         h.unknown = 'UNK'
         h.not_in_file = 'NOT'
         h._keys = ('var1', 'var2')
+        h._int_keys = frozenset()
+        h._float_keys = frozenset()
         self._read_bcif([Block([cat])], {'_foo': h})
         self.assertEqual(h.data,
                          [{u'var1': u'test1', u'var2': u'NOT'},
