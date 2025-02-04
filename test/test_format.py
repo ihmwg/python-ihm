@@ -241,7 +241,17 @@ x
 
     def test_reader_base(self):
         """Test Reader base class"""
-        _ = ihm.format._Reader()  # noop
+        class _MockHandler(object):
+            def __call__(self, a, b):
+                pass
+
+        r = ihm.format._Reader()
+        m = _MockHandler()
+        r.category_handler = {'foo': m}
+        r._add_category_keys()
+        self.assertEqual(m._keys, ['a', 'b'])
+        self.assertEqual(m._int_keys, frozenset())
+        self.assertEqual(m._float_keys, frozenset())
 
     def _check_bad_cif(self, cif, real_file, category_handlers={}):
         """Ensure that the given bad cif results in a parser error"""

@@ -394,6 +394,10 @@ class _Reader(object):
             if not hasattr(h, '_keys'):
                 h._keys = [python_to_cif(x)
                            for x in getargspec(h.__call__)[0][1:]]
+            if not hasattr(h, '_int_keys'):
+                h._int_keys = frozenset()
+            if not hasattr(h, '_float_keys'):
+                h._float_keys = frozenset()
 
 
 class _CifTokenizer(object):
