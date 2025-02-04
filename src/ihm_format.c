@@ -299,7 +299,7 @@ static int mapping_compare(const void *a, const void *b)
 static void ihm_mapping_sort(struct ihm_mapping *m)
 {
   qsort(m->keyvalues->data, m->keyvalues->len, m->keyvalues->element_size,
-	mapping_compare);
+        mapping_compare);
 }
 
 /* Look up key in the mapping and return the corresponding value, or NULL
@@ -606,7 +606,7 @@ static void ihm_file_free(struct ihm_file *file)
 
 /* Read data from a file descriptor */
 static ssize_t fd_read_callback(char *buffer, size_t buffer_len, void *data,
-		                struct ihm_error **err)
+                                struct ihm_error **err)
 {
   int fd = POINTER_TO_INT(data);
   ssize_t readlen;
@@ -1886,7 +1886,7 @@ static bool read_bcif_encoding(struct ihm_reader *reader,
                         "StringArray decoding cannot be used for data "
                         "or offset encoding");
           return false;
-	}
+        }
         enc->kind = BCIF_ENC_STRING_ARRAY;
       } else if (strcmp(str, "ByteArray") == 0) {
         enc->kind = BCIF_ENC_BYTE_ARRAY;
@@ -2017,11 +2017,11 @@ static bool read_bcif_column(struct ihm_reader *reader,
       if (!read_bcif_string_dup(reader, &col->name, err)) return false;
       if (ihm_cat) {
         struct ihm_keyword *key;
-	key = (struct ihm_keyword *)ihm_mapping_lookup(
+        key = (struct ihm_keyword *)ihm_mapping_lookup(
                               ihm_cat->keyword_map, col->name);
-	if (!key) {
+        if (!key) {
           skip = true;
-	}
+        }
       }
     } else if (!skip && strcmp(str, "data") == 0) {
       if (!read_bcif_data(reader, col, err)) return false;
@@ -2114,8 +2114,8 @@ static bool handle_byte_array_size(struct bcif_data *d, size_t type_size,
     for (i = 0, start = 0; i < d->size; ++i, start += type_size) {
       for (j = 0; j < type_size / 2; ++j) {
         char tmp = d->data.raw[start + j];
-	d->data.raw[start + j] = d->data.raw[start + type_size - j];
-	d->data.raw[start + type_size - j] = tmp;
+        d->data.raw[start + j] = d->data.raw[start + type_size - j];
+        d->data.raw[start + type_size - j] = tmp;
       }
     }
   }
@@ -2377,7 +2377,7 @@ static bool decode_bcif_string_array(struct bcif_data *d,
         || get_int_data(&enc->offsets, i) > stringsz) {
       ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
                     "StringArray offset %d out of range 0-%d",
-		    get_int_data(&enc->offsets, i), 0, stringsz);
+                    get_int_data(&enc->offsets, i), 0, stringsz);
       return false;
     }
   }
@@ -2410,7 +2410,7 @@ static bool decode_bcif_string_array(struct bcif_data *d,
       free(starts);
       ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
                     "StringArray index %d out of range 0-%d",
-		    strnum, enc->offsets.size - 1);
+                    strnum, enc->offsets.size - 1);
       return false;
     }
     strarr[i] = enc->string_data + starts[strnum];
@@ -2695,7 +2695,7 @@ static bool process_bcif_category(struct ihm_reader *reader,
     } else if (col->data.size != n_rows) {
       ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
                     "Column size mismatch %d != %d in category %s",
-		    col->data.size, n_rows, cat->name);
+                    col->data.size, n_rows, cat->name);
       return false;
     }
   }
