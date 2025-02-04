@@ -1,10 +1,7 @@
 import utils
 import os
 import unittest
-try:
-    import urllib.request as urllib2
-except ImportError:
-    import urllib2
+import urllib.request
 
 TOPDIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 utils.set_search_paths(TOPDIR)
@@ -357,14 +354,14 @@ class Tests(unittest.TestCase):
             self.assertTrue(url.endswith('&id=29539637'))
             fname = utils.get_input_file_name(TOPDIR, json_fname)
             return open(fname)
-        # Need to mock out urllib2 so we don't hit the network (expensive)
-        # every time we test
+        # Need to mock out urllib.request so we don't hit the network
+        # (expensive) every time we test
         try:
-            orig_urlopen = urllib2.urlopen
-            urllib2.urlopen = mock_urlopen
+            orig_urlopen = urllib.request.urlopen
+            urllib.request.urlopen = mock_urlopen
             return ihm.Citation.from_pubmed_id(29539637, is_primary=is_primary)
         finally:
-            urllib2.urlopen = orig_urlopen
+            urllib.request.urlopen = orig_urlopen
 
     def test_citation_from_pubmed_id(self):
         """Test Citation.from_pubmed_id()"""
