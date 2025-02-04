@@ -263,6 +263,31 @@ x
         r.category_handler = {'foo': m}
         self.assertRaises(ValueError, r._add_category_keys)
 
+    def test_handler_annotations(self):
+        """Test Reader using Handler annotations"""
+        class _OKHandler:
+            def __call__(self, a: int, b: float, c):
+                pass
+
+        class _BadHandler:
+            def __call__(self, a: bool, b, c):
+                pass
+
+        # Test that handler _int_keys, _float_keys are filled in
+        r = ihm.format._Reader()
+        m = _OKHandler()
+        r.category_handler = {'foo': m}
+        r._add_category_keys()
+        self.assertEqual(m._keys, ['a', 'b', 'c'])
+        self.assertEqual(m._int_keys, frozenset(['a']))
+        self.assertEqual(m._float_keys, frozenset(['b']))
+
+        # Check handling of unsupported annotations
+        r = ihm.format._Reader()
+        m = _BadHandler()
+        r.category_handler = {'foo': m}
+        self.assertRaises(ValueError, r._add_category_keys)
+
     def _check_bad_cif(self, cif, real_file, category_handlers={}):
         """Ensure that the given bad cif results in a parser error"""
         if real_file:

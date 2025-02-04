@@ -371,13 +371,22 @@ class _Reader:
             else:
                 return field
         for h in self.category_handler.values():
+            s = inspect.getfullargspec(h.__call__)
             if not hasattr(h, '_keys'):
-                h._keys = [python_to_cif(x)
-                           for x in inspect.getfullargspec(h.__call__)[0][1:]]
+                h._keys = [python_to_cif(x) for x in s.args[1:]]
             if not hasattr(h, '_int_keys'):
-                h._int_keys = frozenset()
+                h._int_keys = frozenset(
+                    python_to_cif(k) for k, v in s.annotations.items()
+                    if v is int)
             if not hasattr(h, '_float_keys'):
-                h._float_keys = frozenset()
+                h._float_keys = frozenset(
+                    python_to_cif(k) for k, v in s.annotations.items()
+                    if v is float)
+            bad_keys = frozenset(k for k, v in s.annotations.items()
+                                 if v not in (int, float, str))
+            if bad_keys:
+                raise ValueError("For %s, bad annotations: %s"
+                                 % (h, ", ".join(bad_keys)))
             extra = frozenset(h._int_keys) - frozenset(h._keys)
             if extra:
                 raise ValueError("For %s, _int_keys not in _keys: %s"
