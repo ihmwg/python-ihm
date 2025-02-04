@@ -153,7 +153,7 @@ _struct.title 'test model'
 """)
         # Comments should be ignored in BinaryCIF output
         out = _get_dumper_bcif_output(dumper, system)
-        self.assertEqual(out[u'dataBlocks'], [])
+        self.assertEqual(out['dataBlocks'], [])
 
     def test_software(self):
         """Test SoftwareDumper"""

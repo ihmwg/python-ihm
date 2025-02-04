@@ -390,7 +390,7 @@ class _ByteArrayEncoder(_Encoder):
 
     def __call__(self, data):
         ba_type = _get_int_float_type(data)
-        encdict = {u'kind': u'ByteArray', u'type': ba_type}
+        encdict = {'kind': 'ByteArray', 'type': ba_type}
         fmt = self._struct_map[ba_type]
         # All data is encoded little-endian in bcif
         return struct.pack('<' + fmt * len(data), *data), encdict
@@ -404,8 +404,8 @@ class _DeltaEncoder(_Encoder):
         if len(data) <= 40:
             return data, None
         data_type = _get_int_float_type(data)
-        encdict = {u'kind': u'Delta', u'origin': data[0],
-                   u'srcType': data_type}
+        encdict = {'kind': 'Delta', 'origin': data[0],
+                   'srcType': data_type}
         encdata = [0] + [data[i] - data[i - 1] for i in range(1, len(data))]
         return encdata, encdict
 
@@ -418,8 +418,8 @@ class _RunLengthEncoder(_Encoder):
         if len(data) <= 40:
             return data, None
         data_type = _get_int_float_type(data)
-        encdict = {u'kind': u'RunLength',
-                   u'srcType': data_type, u'srcSize': len(data)}
+        encdict = {'kind': 'RunLength',
+                   'srcType': data_type, 'srcSize': len(data)}
         encdata = []
         val = None
         for d in data:
@@ -488,11 +488,11 @@ class _StringArrayMaskedEncoder(_MaskedEncoder):
         data_offsets, enc_offsets = _encode(offsets, self._int_encoders)
         data_indices, enc_indices = _encode(indices, self._int_encoders)
 
-        enc_dict = {u'kind': u'StringArray',
-                    u'dataEncoding': enc_indices,
-                    u'stringData': ''.join(sorted_substrs),
-                    u'offsetEncoding': enc_offsets,
-                    u'offsets': data_offsets}
+        enc_dict = {'kind': 'StringArray',
+                    'dataEncoding': enc_indices,
+                    'stringData': ''.join(sorted_substrs),
+                    'offsetEncoding': enc_offsets,
+                    'offsets': data_offsets}
         return data_indices, [enc_dict]
 
 
@@ -587,18 +587,18 @@ class BinaryCifWriter(ihm.format._Writer):
         encdata, encs = enc(data, mask)
         if mask:
             data_mask, enc_mask = _encode(mask, self._mask_encoders)
-            mask = {u'data': data_mask, u'encoding': enc_mask}
+            mask = {'data': data_mask, 'encoding': enc_mask}
         return mask, encdata, encs
 
     def _encode_column(self, name, data):
         mask, encdata, encs = self._encode_data(data)
-        return {u'name': name, u'mask': mask,
-                u'data': {u'data': encdata, u'encoding': encs}}
+        return {'name': name, 'mask': mask,
+                'data': {'data': encdata, 'encoding': encs}}
 
     def start_block(self, name):
         """See :meth:`ihm.format.CifWriter.start_block`."""
-        block = {u'header': name, u'categories': []}
-        self._categories = block[u'categories']
+        block = {'header': name, 'categories': []}
+        self._categories = block['categories']
         self._blocks.append(block)
 
     def end_block(self):
@@ -614,13 +614,13 @@ class BinaryCifWriter(ihm.format._Writer):
             if row_count == 0:
                 return
             cols.append(self._encode_column(k, v))
-        self._categories.append({u'name': category,
-                                 u'columns': cols, u'rowCount': row_count})
+        self._categories.append({'name': category,
+                                 'columns': cols, 'rowCount': row_count})
 
     def flush(self):
-        data = {u'version': ihm.__version__,
-                u'encoder': u'python-ihm library',
-                u'dataBlocks': self._blocks}
+        data = {'version': ihm.__version__,
+                'encoder': 'python-ihm library',
+                'dataBlocks': self._blocks}
         self._write_msgpack(data)
 
     def _write_msgpack(self, data):

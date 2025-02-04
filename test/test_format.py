@@ -774,9 +774,9 @@ x y
             def read(self, numbytes):
                 self.calls += 1
                 if self.calls == 1:
-                    return u"_exptl.method foo"
+                    return "_exptl.method foo"
                 else:
-                    return u""
+                    return ""
         h = GenericHandler()
         r = ihm.format.CifReader(MyFileLike(), {'_exptl': h})
         r.read_file()
