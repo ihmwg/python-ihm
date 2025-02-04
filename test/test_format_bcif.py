@@ -423,13 +423,19 @@ class Tests(unittest.TestCase):
         self._read_bcif([Block([cat])], {'_foo': h})
         self.assertEqual(h.data, [{u'intkey1': 42}])
 
-        # Cannot coerce float to int
+        # Float will be truncated to int
         cat = Category(u'_foo', {u'intkey1': [42.34]})
         h = GenericHandler()
-        self.assertRaises(ValueError, self._read_bcif,
-                          [Block([cat])], {'_foo': h})
+        self._read_bcif([Block([cat])], {'_foo': h})
+        self.assertEqual(h.data, [{u'intkey1': 42}])
 
-        # Cannot coerce string to int
+        # Can coerce an intlike string to int
+        cat = Category(u'_foo', {u'intkey1': ["42"]})
+        h = GenericHandler()
+        self._read_bcif([Block([cat])], {'_foo': h})
+        self.assertEqual(h.data, [{u'intkey1': 42}])
+
+        # Cannot coerce arbitrary string to int
         cat = Category(u'_foo', {u'intkey1': ["some string"]})
         h = GenericHandler()
         self.assertRaises(ValueError, self._read_bcif,
@@ -452,7 +458,15 @@ class Tests(unittest.TestCase):
         self.assertIsInstance(val, float)
         self.assertAlmostEqual(val, 42.0, delta=0.01)
 
-        # Cannot coerce string to float
+        # Can coerce a floatlike string to float
+        cat = Category(u'_foo', {u'floatkey1': ["42.340"]})
+        h = GenericHandler()
+        self._read_bcif([Block([cat])], {'_foo': h})
+        val = h.data[0][u'floatkey1']
+        self.assertIsInstance(val, float)
+        self.assertAlmostEqual(val, 42.34, delta=0.01)
+
+        # Cannot coerce arbitary string to float
         cat = Category(u'_foo', {u'floatkey1': ["some string"]})
         h = GenericHandler()
         self.assertRaises(ValueError, self._read_bcif,

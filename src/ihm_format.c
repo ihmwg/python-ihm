@@ -2557,7 +2557,7 @@ static void set_value_from_bcif_string(struct ihm_keyword *key, char *str,
 }
 
 static void set_value_from_bcif_double(struct ihm_keyword *key, double fval,
-                                       char *buffer, struct ihm_error **err)
+                                       char *buffer)
 {
   switch(key->type) {
   case IHM_STRING:
@@ -2567,9 +2567,9 @@ static void set_value_from_bcif_double(struct ihm_keyword *key, double fval,
     key->data.str = buffer;
     break;
   case IHM_INT:
-    /* todo: should we try to coerce float to int? */
-    ihm_error_set(err, IHM_ERROR_VALUE,
-                  "Cannot convert float %g to integer in file", fval);
+    /* Truncate float to int. This matches Python's behavior
+       of int(some_float) */
+    key->data.ival = (int)fval;
     break;
   case IHM_FLOAT:
     key->data.fval = fval;
@@ -2578,7 +2578,7 @@ static void set_value_from_bcif_double(struct ihm_keyword *key, double fval,
 }
 
 static void set_value_from_bcif_int(struct ihm_keyword *key, int32_t ival,
-                                    char *buffer, struct ihm_error **err)
+                                    char *buffer)
 {
   switch(key->type) {
   case IHM_STRING:
@@ -2616,14 +2616,14 @@ static void set_value_from_data(struct ihm_reader *reader,
     set_value_from_bcif_string(key, data->data.string[irow], err);
     break;
   case BCIF_DATA_DOUBLE:
-    set_value_from_bcif_double(key, data->data.float64[irow], buffer, err);
+    set_value_from_bcif_double(key, data->data.float64[irow], buffer);
     break;
   case BCIF_DATA_UINT8:
     /* promote to int32 */
-    set_value_from_bcif_int(key, data->data.uint8[irow], buffer, err);
+    set_value_from_bcif_int(key, data->data.uint8[irow], buffer);
     break;
   case BCIF_DATA_INT32:
-    set_value_from_bcif_int(key, data->data.int32[irow], buffer, err);
+    set_value_from_bcif_int(key, data->data.int32[irow], buffer);
     break;
   default:
     ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
