@@ -40,7 +40,9 @@ class GenericHandler(object):
     unknown = "?"
 
     _keys = ('method', 'foo', 'bar', 'baz', 'pdbx_keywords', 'var1',
-             'var2', 'var3')
+             'var2', 'var3', 'intkey1', 'intkey2', 'floatkey1', 'floatkey2')
+    _int_keys = frozenset(('intkey1', 'intkey2'))
+    _float_keys = frozenset(('floatkey1', 'floatkey2'))
 
     def __init__(self):
         self.data = []
@@ -51,6 +53,20 @@ class GenericHandler(object):
             if v is not None:
                 d[k] = v
         self.data.append(d)
+
+
+def _encode_int(rows):
+    d = {u'data': struct.pack('%db' % len(rows), *rows),
+         u'encoding': [{u'kind': u'ByteArray',
+                        u'type': ihm.format_bcif._Uint8}]}
+    return d, None
+
+
+def _encode_float(rows):
+    d = {u'data': struct.pack('<%dd' % len(rows), *rows),
+         u'encoding': [{u'kind': u'ByteArray',
+                        u'type': ihm.format_bcif._Float64}]}
+    return d, None
 
 
 def _encode(rows):
@@ -100,7 +116,12 @@ class Category(object):
         self.data = data
 
     def _encode_rows(self, rows):
-        return _encode(rows)
+        if len(rows) and isinstance(rows[0], int):
+            return _encode_int(rows)
+        elif len(rows) and isinstance(rows[0], float):
+            return _encode_float(rows)
+        else:
+            return _encode(rows)
 
     def get_bcif(self):
         nrows = 0
@@ -394,6 +415,48 @@ class Tests(unittest.TestCase):
             h = GenericHandler()
             self._read_bcif([Block([cat])], {'_exptl': h})
         self.assertEqual(h.data, [{u'method': u'foo'}])
+
+    def test_int_keys(self):
+        """Check handling of integer keywords"""
+        cat = Category(u'_foo', {u'intkey1': [42]})
+        h = GenericHandler()
+        self._read_bcif([Block([cat])], {'_foo': h})
+        self.assertEqual(h.data, [{u'intkey1': 42}])
+
+        # Cannot coerce float to int
+        cat = Category(u'_foo', {u'intkey1': [42.34]})
+        h = GenericHandler()
+        self.assertRaises(ValueError, self._read_bcif,
+                          [Block([cat])], {'_foo': h})
+
+        # Cannot coerce string to int
+        cat = Category(u'_foo', {u'intkey1': ["some string"]})
+        h = GenericHandler()
+        self.assertRaises(ValueError, self._read_bcif,
+                          [Block([cat])], {'_foo': h})
+
+    def test_float_keys(self):
+        """Check handling of floating-point keywords"""
+        cat = Category(u'_foo', {u'floatkey1': [42.340]})
+        h = GenericHandler()
+        self._read_bcif([Block([cat])], {'_foo': h})
+        val = h.data[0][u'floatkey1']
+        self.assertIsInstance(val, float)
+        self.assertAlmostEqual(val, 42.34, delta=0.01)
+
+        # int will be coerced to float
+        cat = Category(u'_foo', {u'floatkey1': [42]})
+        h = GenericHandler()
+        self._read_bcif([Block([cat])], {'_foo': h})
+        val = h.data[0][u'floatkey1']
+        self.assertIsInstance(val, float)
+        self.assertAlmostEqual(val, 42.0, delta=0.01)
+
+        # Cannot coerce string to float
+        cat = Category(u'_foo', {u'floatkey1': ["some string"]})
+        h = GenericHandler()
+        self.assertRaises(ValueError, self._read_bcif,
+                          [Block([cat])], {'_foo': h})
 
     def test_omitted_unknown(self):
         """Test handling of omitted/unknown data"""
