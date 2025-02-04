@@ -78,25 +78,6 @@ static ssize_t pyfile_text_read_callback(char *buffer, size_t buffer_len,
     return -1;
   }
 
-#if PY_VERSION_HEX < 0x03000000
-  if (PyString_Check(result)) {
-    if (PyString_AsStringAndSize(result, &read_str, &read_len) < 0) {
-      ihm_error_set(err, IHM_ERROR_VALUE, "string creation failed");
-      Py_DECREF(result);
-      return -1;
-    }
-  } else if (PyUnicode_Check(result)) {
-    if (!(bytes = PyUnicode_AsUTF8String(result))) {
-      ihm_error_set(err, IHM_ERROR_VALUE, "string to bytes failed");
-      Py_DECREF(result);
-      return -1;
-    }
-    if (PyBytes_AsStringAndSize(bytes, &read_str, &read_len) < 0) {
-      ihm_error_set(err, IHM_ERROR_VALUE, "string creation failed");
-      Py_DECREF(result);
-      return -1;
-    }
-#else
   if (PyUnicode_Check(result)) {
     /* This returns const char * on Python 3.7 or later */
     if (!(read_str = (char *)PyUnicode_AsUTF8AndSize(result, &read_len))) {
@@ -127,7 +108,6 @@ static ssize_t pyfile_text_read_callback(char *buffer, size_t buffer_len,
       Py_DECREF(result);
       return -1;
     }
-#endif
   } else {
     ihm_error_set(err, IHM_ERROR_VALUE, "read method should return a string");
     Py_DECREF(result);
@@ -137,17 +117,11 @@ static ssize_t pyfile_text_read_callback(char *buffer, size_t buffer_len,
   if (read_len > buffer_len) {
     ihm_error_set(err, IHM_ERROR_VALUE,
                   "Python read method returned too many bytes");
-#if PY_VERSION_HEX < 0x03000000
-    Py_XDECREF(bytes);
-#endif
     Py_DECREF(result);
     return -1;
   }
 
   memcpy(buffer, read_str, read_len);
-#if PY_VERSION_HEX < 0x03000000
-  Py_XDECREF(bytes);
-#endif
   Py_DECREF(result);
   return read_len;
 }
@@ -166,20 +140,11 @@ static ssize_t pyfile_binary_read_callback(char *buffer, size_t buffer_len,
     return -1;
   }
 
-#if PY_VERSION_HEX < 0x03000000
-  if (PyString_Check(result)) {
-    if (PyString_AsStringAndSize(result, &read_str, &read_len) < 0) {
-      ihm_error_set(err, IHM_ERROR_VALUE, "string creation failed");
-      Py_DECREF(result);
-      return -1;
-    }
-#else
   if (PyBytes_Check(result)) {
     if (PyBytes_AsStringAndSize(result, &read_str, &read_len) < 0) {
       ihm_error_set(err, IHM_ERROR_VALUE, "PyBytes_AsStringAndSize failed");
       return -1;
     }
-#endif
   } else {
     ihm_error_set(err, IHM_ERROR_VALUE, "read method should return bytes");
     Py_DECREF(result);
@@ -214,20 +179,7 @@ struct ihm_file *ihm_file_new_from_python(PyObject *pyfile, bool binary,
 {
   PyObject *read_method;
 
-#if !defined(_WIN32) && !defined(_WIN64) && PY_VERSION_HEX < 0x03000000
-  /* Use the file descriptor directly if the Python file is a real file,
-     except on Windows where we can't reliably tell if we and Python are
-     using the same C runtime (if we're not, we can't pass file descriptors),
-     or on Python 3 where the file descriptor may not be correct
-     (e.g. PyObject_AsFileDescriptor() returns a valid descriptor for a
-     file opened with gzip.open()) */
-  if (PyFile_Check(pyfile)) {
-    int fd = fileno(PyFile_AsFile(pyfile));
-    return ihm_file_new_from_fd(fd);
-  }
-#endif
-
-  /* Otherwise, look for a read() method and use that */
+  /* Look for a read() method and use that to read data */
   if (!(read_method = PyObject_GetAttrString(pyfile, "read"))) {
     ihm_error_set(err, IHM_ERROR_VALUE, "no read method");
     return NULL;
@@ -301,11 +253,7 @@ static void handle_category_data(struct ihm_reader *reader, void *data,
     } else {
       switch((*keys)->type) {
       case IHM_STRING:
-#if PY_VERSION_HEX < 0x03000000
-        val = PyString_FromString((*keys)->data.str);
-#else
         val = PyUnicode_FromString((*keys)->data.str);
-#endif
         if (!val) {
           ihm_error_set(err, IHM_ERROR_VALUE, "string creation failed");
           Py_DECREF(tuple);
@@ -402,13 +350,8 @@ static struct category_handler_data *do_add_handler(
   for (i = 0; i < seqlen; ++i) {
     const char *key_name;
     PyObject *o = PySequence_GetItem(keywords, i);
-#if PY_VERSION_HEX < 0x03000000
-    if (PyString_Check(o)) {
-      key_name = PyString_AsString(o);
-#else
     if (PyUnicode_Check(o)) {
       key_name = PyUnicode_AsUTF8(o);
-#endif
       if (PySet_Contains(int_keywords, o) == 1) {
         hd->keywords[i] = ihm_keyword_int_new(category, key_name);
       } else if (PySet_Contains(float_keywords, o) == 1) {
