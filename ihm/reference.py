@@ -1,7 +1,6 @@
 """Classes for providing extra information about an :class:`ihm.Entity`"""
 
 import urllib.request
-import sys
 
 
 class Reference:
@@ -85,12 +84,8 @@ class UniProtSequence(Sequence):
            :param str accession: The UniProt accession (e.g. P52891)
         """
         # urlopen returns bytes
-        if sys.version_info[0] >= 3:
-            def decode(t):
-                return t.decode('ascii')
-        else:
-            def decode(t):    # pragma: no cover
-                return t
+        def decode(t):
+            return t.decode('ascii')
         url = 'https://www.uniprot.org/uniprot/%s.fasta' % accession
         with urllib.request.urlopen(url) as fh:
             header = decode(fh.readline())

@@ -139,12 +139,6 @@ class Block(list):
     pass
 
 
-if sys.version_info[0] == 2:
-    UNICODE_STRING_TYPE = unicode  # noqa: F821
-else:
-    UNICODE_STRING_TYPE = str
-
-
 class _BadMsgPackType:
     pass
 
@@ -163,7 +157,7 @@ def _add_msgpack(d, fh):
         fh.write(struct.pack('>Bi', 0xdd, len(d)))
         for val in d:
             _add_msgpack(val, fh)
-    elif isinstance(d, UNICODE_STRING_TYPE):
+    elif isinstance(d, str):
         b = d.encode('utf8')
         fh.write(struct.pack('>Bi', 0xdb, len(b)))
         fh.write(b)
@@ -1259,18 +1253,6 @@ class Tests(unittest.TestCase):
         mask, typ = ihm.format_bcif._get_mask_and_type(data)
         self.assertEqual(mask, [0, 0, 0, 1, 2, 0])
         self.assertEqual(typ, int)
-
-    def test_mask_type_masked_long(self):
-        """Test get_mask_and_type with masked long data"""
-        if sys.version_info[0] < 3:
-            # long type is only in Python 2
-            # Use long(x) rather than xL since the latter will cause a syntax
-            # error in Python 3
-            data = [long(1), long(2), long(3),    # noqa: F821
-                    None, ihm.unknown, long(4)]   # noqa: F821
-            mask, typ = ihm.format_bcif._get_mask_and_type(data)
-            self.assertEqual(mask, [0, 0, 0, 1, 2, 0])
-            self.assertEqual(typ, int)
 
     def test_mask_type_masked_float(self):
         """Test get_mask_and_type with masked float data"""

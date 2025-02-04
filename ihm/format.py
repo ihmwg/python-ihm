@@ -9,7 +9,6 @@
    and the `token reader example <https://github.com/ihmwg/python-ihm/blob/main/examples/token_reader.py>`_.
 """  # noqa: E501
 
-import sys
 import textwrap
 import operator
 import ihm
@@ -398,16 +397,12 @@ class _CifTokenizer:
 
     # Read a line from the file. Treat it as ASCII (not Unicode)
     # but be tolerant of 8-bit characters by assuming latin-1 encoding
-    if sys.version_info[0] == 2:    # pragma: no cover
-        def _read_line(self):
-            return self.fh.readline()
-    else:
-        def _read_line(self):
-            line = self.fh.readline()
-            if isinstance(line, bytes):
-                return line.decode('latin-1')
-            else:
-                return line
+    def _read_line(self):
+        line = self.fh.readline()
+        if isinstance(line, bytes):
+            return line.decode('latin-1')
+        else:
+            return line
 
     def _read_multiline_token(self, first_line, ignore_multiline):
         """Read a semicolon-delimited (multiline) token"""

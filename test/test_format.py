@@ -7,10 +7,7 @@ try:
 except ImportError:
     numpy = None
 
-if sys.version_info[0] >= 3:
-    from io import StringIO
-else:
-    from io import BytesIO as StringIO
+from io import StringIO
 
 TOPDIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 utils.set_search_paths(TOPDIR)
@@ -212,8 +209,6 @@ x
         self.assertEqual(w._repr(0.00000123456), '1.23e-06')
         self.assertEqual(w._repr(False), 'NO')
         self.assertEqual(w._repr(True), 'YES')
-        if sys.version_info[0] == 2:
-            self.assertEqual(w._repr(long(4)), '4')    # noqa: F821
         # data_ should be quoted to distinguish from data blocks
         self.assertEqual(w._repr('data_foo'), "'data_foo'")
         self.assertEqual(w._repr('data_'), "'data_'")
