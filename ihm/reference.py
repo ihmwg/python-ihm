@@ -1,26 +1,6 @@
 """Classes for providing extra information about an :class:`ihm.Entity`"""
 
-# Handle different naming of urllib in Python 2/3
-try:
-    import urllib.request as urlreq
-except ImportError:    # pragma: no cover
-    import urllib2
-    import contextlib
-
-    class CompatRequest(object):
-        pass
-
-    # Python 2's urlopen is not a context manager, so wrap it
-    @contextlib.contextmanager
-    def urlopen(*args, **keys):
-        try:
-            fh = urllib2.urlopen(*args, **keys)
-            yield fh
-        finally:
-            fh.close()
-    # Provide Python-3-like urllib.request.urlopen
-    urlreq = CompatRequest()
-    urlreq.urlopen = urlopen
+import urllib.request
 import sys
 
 
@@ -112,7 +92,7 @@ class UniProtSequence(Sequence):
             def decode(t):    # pragma: no cover
                 return t
         url = 'https://www.uniprot.org/uniprot/%s.fasta' % accession
-        with urlreq.urlopen(url) as fh:
+        with urllib.request.urlopen(url) as fh:
             header = decode(fh.readline())
             spl = header.split('|')
             if len(spl) < 3 or spl[0] not in ('>sp', '>tr'):

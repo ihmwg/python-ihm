@@ -204,11 +204,6 @@ def _python_to_msgpack(d):
 
 
 class Tests(unittest.TestCase):
-    def test_decode_bytes(self):
-        """Test decode_bytes function"""
-        d = ihm.format_bcif._decode_bytes(u'foo')
-        self.assertEqual(d, 'foo')
-
     def test_decoder_base(self):
         """Test Decoder base class"""
         d = ihm.format_bcif._Decoder()

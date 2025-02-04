@@ -1,12 +1,9 @@
 """Classes to handle starting models."""
 
-try:
-    from enum import IntEnum
-except ImportError:    # pragma: no cover
-    IntEnum = object
+import enum
 
 
-class SequenceIdentityDenominator(IntEnum):
+class SequenceIdentityDenominator(enum.IntEnum):
     """The denominator used while calculating the sequence identity.
        One of these constants can be passed to :class:`SequenceIdentity`."""
 

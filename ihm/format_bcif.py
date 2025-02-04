@@ -30,24 +30,6 @@ _Uint32 = 6
 _Float32 = 32
 _Float64 = 33
 
-# msgpack data is UTF-8 strings; need to convert to/from Unicode in Python 2
-# All mmCIF data is ASCII
-if sys.version_info[0] >= 3:
-    def _decode_bytes(bs):
-        return bs
-
-    def _encode_str(s):
-        return s
-else:    # pragma: no cover
-    def _decode_bytes(bs):
-        if isinstance(bs, unicode):  # noqa: F821
-            return bs.encode('ascii', errors='replace')
-        else:
-            return bs
-
-    def _encode_str(s):
-        return s.decode('ascii', errors='replace')
-
 
 class _Decoder(object):
     """Base class for all decoders."""
@@ -70,7 +52,7 @@ class _StringArrayDecoder(_Decoder):
         offsets = list(_decode(enc['offsets'], enc['offsetEncoding']))
         indices = _decode(data, enc['dataEncoding'])
         substr = []
-        string_data = _decode_bytes(enc['stringData'])
+        string_data = enc['stringData']
         for i in range(0, len(offsets) - 1):
             substr.append(string_data[offsets[i]:offsets[i + 1]])
         # todo: return a listlike class instead?
@@ -231,7 +213,7 @@ class BinaryCifReader(ihm.format._Reader):
             self._file_blocks = self._read_msgpack()
         if len(self._file_blocks) > 0:
             for category in self._file_blocks[0]['categories']:
-                cat_name = _decode_bytes(category['name']).lower()
+                cat_name = category['name'].lower()
                 handler = self.category_handler.get(cat_name, None)
                 if handler:
                     self._handle_category(handler, category, cat_name)
@@ -282,7 +264,7 @@ class BinaryCifReader(ihm.format._Reader):
             key_index[key] = i
         column_indices = []
         for c in category['columns']:
-            key_name = _decode_bytes(c['name']).lower()
+            key_name = c['name'].lower()
             ki = key_index.get(key_name, None)
             if ki is not None:
                 column_indices.append(ki)
@@ -509,7 +491,7 @@ class _StringArrayMaskedEncoder(_MaskedEncoder):
 
         enc_dict = {u'kind': u'StringArray',
                     u'dataEncoding': enc_indices,
-                    u'stringData': _encode_str(''.join(sorted_substrs)),
+                    u'stringData': ''.join(sorted_substrs),
                     u'offsetEncoding': enc_offsets,
                     u'offsets': data_offsets}
         return data_indices, [enc_dict]
@@ -615,12 +597,12 @@ class BinaryCifWriter(ihm.format._Writer):
 
     def _encode_column(self, name, data):
         mask, encdata, encs = self._encode_data(data)
-        return {u'name': _encode_str(name), u'mask': mask,
+        return {u'name': name, u'mask': mask,
                 u'data': {u'data': encdata, u'encoding': encs}}
 
     def start_block(self, name):
         """See :meth:`ihm.format.CifWriter.start_block`."""
-        block = {u'header': _encode_str(name), u'categories': []}
+        block = {u'header': name, u'categories': []}
         self._categories = block[u'categories']
         self._blocks.append(block)
 
@@ -637,11 +619,11 @@ class BinaryCifWriter(ihm.format._Writer):
             if row_count == 0:
                 return
             cols.append(self._encode_column(k, v))
-        self._categories.append({u'name': _encode_str(category),
+        self._categories.append({u'name': category,
                                  u'columns': cols, u'rowCount': row_count})
 
     def flush(self):
-        data = {u'version': _encode_str(ihm.__version__),
+        data = {u'version': ihm.__version__,
                 u'encoder': u'python-ihm library',
                 u'dataBlocks': self._blocks}
         self._write_msgpack(data)

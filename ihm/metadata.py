@@ -27,16 +27,8 @@ import warnings
 import sys
 import re
 import collections
-
-# Handle different naming of urllib in Python 2/3
-try:
-    import urllib.request
-    import urllib.error
-except ImportError:    # pragma: no cover
-    class MockUrlLib(object):
-        pass
-    urllib = MockUrlLib()
-    urllib.request = urllib.error = __import__('urllib2')
+import urllib.request
+import urllib.error
 
 
 def _get_modeller(version, date):
@@ -188,15 +180,7 @@ class _ParsedEMDBLocation(location.EMDBLocation):
             return
         contents = json.load(response)
         info = contents['admin']
-        # JSON values are always Unicode, but on Python 2 we want non-Unicode
-        # strings, so convert to ASCII
-        if sys.version_info[0] < 3:    # pragma: no cover
-            self.__emdb_info = [
-                info['key_dates']['map_release'].encode('ascii'),
-                info['title'].encode('ascii')]
-        else:
-            self.__emdb_info = [info['key_dates']['map_release'],
-                                info['title']]
+        self.__emdb_info = [info['key_dates']['map_release'], info['title']]
 
     version = property(__get_version, __set_version)
     details = property(__get_details, __set_details)

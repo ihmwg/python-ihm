@@ -13,11 +13,7 @@ import itertools
 import numbers
 import re
 import sys
-# Handle different naming of urllib in Python 2/3
-try:
-    import urllib.request as urllib2
-except ImportError:    # pragma: no cover
-    import urllib2
+import urllib.request
 import json
 from . import util
 
@@ -33,8 +29,6 @@ class __UnknownValue(object):
 
     def __bool__(self):
         return False
-    # Python2 compatibility
-    __nonzero__ = __bool__
 
     # Needs to be hashable so that classes like Software (that might
     # use unknown values as attributes) are hashable
@@ -812,10 +806,10 @@ class Citation(object):
         def get_doi(ref):
             for art_id in ref['articleids']:
                 if art_id['idtype'] == 'doi':
-                    return enc(art_id['value'])
+                    return art_id['value']
 
         def get_page_range(ref):
-            rng = enc(ref['pages']).split('-')
+            rng = ref['pages'].split('-')
             if len(rng) == 2 and len(rng[1]) < len(rng[0]):
                 # map ranges like "2730-43" to 2730,2743 not 2730, 43
                 rng[1] = rng[0][:len(rng[0]) - len(rng[1])] + rng[1]
@@ -825,22 +819,14 @@ class Citation(object):
             if rng == '':
                 rng = None
             return rng
-        # JSON values are always Unicode, but on Python 2 we want non-Unicode
-        # strings, so convert to ASCII
-        if sys.version_info[0] < 3:    # pragma: no cover
-            def enc(s):
-                return s.encode('ascii')
-        else:
-            def enc(s):
-                return s
 
         url = ('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi'
                '?db=pubmed&retmode=json&rettype=abstract&id=%s' % pubmed_id)
-        fh = urllib2.urlopen(url)
+        fh = urllib.request.urlopen(url)
         j = json.load(fh)
         fh.close()
         ref = j['result'][str(pubmed_id)]
-        authors = [enc(x['name']) for x in ref['authors']
+        authors = [x['name'] for x in ref['authors']
                    if x['authtype'] == 'Author']
 
         # PubMed authors are usually of the form "Lastname AB" but PDB uses
@@ -852,11 +838,11 @@ class Citation(object):
                                                for initial in m.group(2))
         authors = [r.sub(auth_sub, auth) for auth in authors]
 
-        return cls(pmid=pubmed_id, title=enc(ref['title']),
-                   journal=enc(ref['source']),
-                   volume=enc(ref['volume']) or None,
+        return cls(pmid=pubmed_id, title=ref['title'],
+                   journal=ref['source'],
+                   volume=ref['volume'] or None,
                    page_range=get_page_range(ref),
-                   year=enc(ref['pubdate']).split()[0],
+                   year=ref['pubdate'].split()[0],
                    authors=authors, doi=get_doi(ref),
                    is_primary=is_primary)
 

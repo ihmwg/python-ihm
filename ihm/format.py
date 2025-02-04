@@ -14,27 +14,13 @@ import sys
 import textwrap
 import operator
 import ihm
-if sys.version_info[0] >= 3:
-    from io import StringIO
-else:
-    from io import BytesIO as StringIO
-# getargspec is deprecated in Python 3, but getfullargspec has a very
-# similar interface
-try:
-    from inspect import getfullargspec as getargspec
-except ImportError:    # pragma: no cover
-    from inspect import getargspec
+from io import StringIO
+import inspect
 import re
 try:
     from . import _format
 except ImportError:
     _format = None
-
-# Python 3 has no 'long' type, so use 'int' instead
-if sys.version_info[0] >= 3:
-    _long_type = int
-else:    # pragma: no cover
-    _long_type = long   # noqa: F821
 
 
 def _write_multiline(val, fh):
@@ -228,10 +214,6 @@ class CifWriter(_Writer):
                 return "%.3f" % obj
         elif isinstance(obj, bool):
             return self._boolmap[obj]
-        # Don't use repr(x) if type(x) == long since that adds an 'L' suffix,
-        # which isn't valid mmCIF syntax. _long_type = long only on Python 2.
-        elif isinstance(obj, _long_type):
-            return "%d" % obj
         elif isinstance(obj, str):
             return repr(obj)
         else:
@@ -393,7 +375,7 @@ class _Reader(object):
         for h in self.category_handler.values():
             if not hasattr(h, '_keys'):
                 h._keys = [python_to_cif(x)
-                           for x in getargspec(h.__call__)[0][1:]]
+                           for x in inspect.getfullargspec(h.__call__)[0][1:]]
             if not hasattr(h, '_int_keys'):
                 h._int_keys = frozenset()
             if not hasattr(h, '_float_keys'):
