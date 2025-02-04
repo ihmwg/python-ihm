@@ -30,7 +30,7 @@ def _write_multiline(val, fh):
     fh.write(";\n")
 
 
-class _LineWriter(object):
+class _LineWriter:
     def __init__(self, writer, line_len=80):
         self.writer = writer
         self.line_len = line_len
@@ -53,7 +53,7 @@ class _LineWriter(object):
         self.column += len(val)
 
 
-class _CifCategoryWriter(object):
+class _CifCategoryWriter:
     def __init__(self, writer, category):
         self.writer = writer
         self.category = category
@@ -68,7 +68,7 @@ class _CifCategoryWriter(object):
         pass
 
 
-class _CifLoopWriter(object):
+class _CifLoopWriter:
     def __init__(self, writer, category, keys, line_wrap=True):
         self._line_wrap = line_wrap
         self.writer = writer
@@ -98,7 +98,7 @@ class _CifLoopWriter(object):
             self.writer.fh.write("#\n")
 
 
-class _Writer(object):
+class _Writer:
     """Base class for all writers"""
 
     omitted = '.'
@@ -228,7 +228,7 @@ class CifParserError(Exception):
     pass
 
 
-class _Token(object):
+class _Token:
     """A token in an mmCIF file"""
     pass
 
@@ -359,7 +359,7 @@ class _SaveToken(_Token):
     pass
 
 
-class _Reader(object):
+class _Reader:
     """Base class for reading a file and extracting some or all of its data."""
 
     def _add_category_keys(self):
@@ -389,7 +389,7 @@ class _Reader(object):
                                  % (h, ", ".join(extra)))
 
 
-class _CifTokenizer(object):
+class _CifTokenizer:
     def __init__(self, fh):
         self.fh = fh
         self._tokens = []
@@ -561,7 +561,7 @@ class _PreservingCifTokenizer(_CifTokenizer):
         return end_pos
 
 
-class _CategoryTokenGroup(object):
+class _CategoryTokenGroup:
     """A group of tokens which set a single data item"""
     def __init__(self, vartoken, valtoken):
         self.vartoken, self.valtoken = vartoken, valtoken
@@ -581,7 +581,7 @@ class _CategoryTokenGroup(object):
     value = property(lambda self: self.valtoken.value, __set_value)
 
 
-class _LoopHeaderTokenGroup(object):
+class _LoopHeaderTokenGroup:
     """A group of tokens that form the start of a loop_ construct"""
     def __init__(self, looptoken, category, keywords, end_spacers):
         self._loop, self.category = looptoken, category
@@ -602,7 +602,7 @@ class _LoopHeaderTokenGroup(object):
         return "".join(x.as_mmcif() for x in all_tokens)
 
 
-class _LoopRowTokenGroup(object):
+class _LoopRowTokenGroup:
     """A group of tokens that represent one row in a loop_ construct"""
     def __init__(self, items):
         self.items = items
@@ -611,7 +611,7 @@ class _LoopRowTokenGroup(object):
         return "".join(x.as_mmcif() for x in self.items)
 
 
-class _SpacedToken(object):
+class _SpacedToken:
     """A token with zero or more leading whitespace or newline tokens"""
     def __init__(self, spacers, token):
         self.spacers, self.token = spacers, token
@@ -641,7 +641,7 @@ class _SpacedToken(object):
     value = property(__get_value, __set_value)
 
 
-class Filter(object):
+class Filter:
     """Base class for filters used by :meth:`CifTokenReader.read_file`.
 
        Typically, a subclass such as :class:`ChangeValueFilter` is used when

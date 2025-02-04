@@ -4,7 +4,7 @@ import urllib.request
 import sys
 
 
-class Reference(object):
+class Reference:
     """Base class for extra information about an :class:`ihm.Entity`.
 
        This class is not used directly; instead, use a subclass such as
@@ -104,7 +104,7 @@ class UniProtSequence(Sequence):
             return cls(code, accession, seq, details)
 
 
-class Alignment(object):
+class Alignment:
     """A sequence range that aligns between the database and the entity.
        This describes part of the sequence in the sequence database
        (:class:`Sequence`) and in the :class:`ihm.Entity`. The two ranges
@@ -137,7 +137,7 @@ class Alignment(object):
                 + tuple(s._signature() for s in self.seq_dif))
 
 
-class SeqDif(object):
+class SeqDif:
     """Annotate a sequence difference between a reference and entity sequence.
        See :class:`Alignment`.
 

@@ -23,7 +23,7 @@ except ImportError:
     _format = None
 
 
-class GenericHandler(object):
+class GenericHandler:
     """Capture mmCIF data as a simple list of dicts"""
     not_in_file = None
     omitted = None
@@ -53,7 +53,7 @@ class _TestFinalizeHandler(GenericHandler):
         _add_c_handler = _format._test_finalize_callback
 
 
-class StringWriter(object):
+class StringWriter:
     def __init__(self):
         self.fh = StringIO()
 
@@ -241,7 +241,7 @@ x
 
     def test_reader_base(self):
         """Test Reader base class"""
-        class _MockHandler(object):
+        class _MockHandler:
             def __call__(self, a, b):
                 pass
 
@@ -709,7 +709,7 @@ x y
         class MyError(Exception):
             pass
 
-        class MyFileLike(object):
+        class MyFileLike:
             def read(self, numbytes):
                 raise MyError("some error")
         fh = MyFileLike()
@@ -721,7 +721,7 @@ x y
     @unittest.skipIf(_format is None, "No C tokenizer")
     def test_python_read_not_string(self):
         """Test that read() returning an invalid type is handled"""
-        class MyFileLike(object):
+        class MyFileLike:
             def read(self, numbytes):
                 return 42
         fh = MyFileLike()
@@ -733,7 +733,7 @@ x y
     @unittest.skipIf(_format is None, "No C tokenizer")
     def test_python_read_too_long(self):
         """Test that read() returning too many bytes is handled"""
-        class MyFileLike(object):
+        class MyFileLike:
             def read(self, numbytes):
                 return " " * (numbytes * 4 + 10)
         fh = MyFileLike()
@@ -754,7 +754,7 @@ x y
     @unittest.skipIf(_format is None, "No C tokenizer")
     def test_python_read_bytes(self):
         """Test read() returning bytes (binary file)"""
-        class MyFileLike(object):
+        class MyFileLike:
             def __init__(self):
                 self.calls = 0
 
@@ -772,7 +772,7 @@ x y
     @unittest.skipIf(_format is None, "No C tokenizer")
     def test_python_read_unicode(self):
         """Test read() returning Unicode (text file)"""
-        class MyFileLike(object):
+        class MyFileLike:
             def __init__(self):
                 self.calls = 0
 
@@ -816,7 +816,7 @@ x y
 
     def test_unknown_category_handled(self):
         """Test that unknown categories are handled if requested"""
-        class CatHandler(object):
+        class CatHandler:
             def __init__(self):
                 self.warns = []
 
@@ -853,7 +853,7 @@ x y
 
     def test_unknown_keyword_handled(self):
         """Test that unknown keywords are handled if requested"""
-        class KeyHandler(object):
+        class KeyHandler:
             def __init__(self):
                 self.warns = []
 
@@ -879,7 +879,7 @@ x y
     @unittest.skipIf(_format is None, "No C tokenizer")
     def test_multiple_set_unknown_handler(self):
         """Test setting unknown handler multiple times"""
-        class Handler(object):
+        class Handler:
             def __call__(self):
                 pass
         uc = Handler()

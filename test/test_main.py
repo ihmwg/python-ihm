@@ -694,7 +694,7 @@ class Tests(unittest.TestCase):
 
     def test_all_models(self):
         """Test _all_models() method"""
-        class MockModel(object):
+        class MockModel:
             pass
         model1 = MockModel()
         model2 = MockModel()
@@ -709,7 +709,7 @@ class Tests(unittest.TestCase):
 
     def test_all_protocols(self):
         """Test _all_protocols() method"""
-        class MockObject(object):
+        class MockObject:
             pass
         model1 = MockObject()
         model2 = MockObject()
@@ -728,7 +728,7 @@ class Tests(unittest.TestCase):
 
     def test_all_representations(self):
         """Test _all_representations() method"""
-        class MockObject(object):
+        class MockObject:
             pass
         model1 = MockObject()
         model2 = MockObject()
@@ -747,7 +747,7 @@ class Tests(unittest.TestCase):
 
     def test_all_assemblies(self):
         """Test _all_assemblies() method"""
-        class MockObject(object):
+        class MockObject:
             pass
         model1 = MockObject()
         model2 = MockObject()
@@ -784,7 +784,7 @@ class Tests(unittest.TestCase):
 
     def test_all_citations(self):
         """Test _all_citations() method"""
-        class MockObject(object):
+        class MockObject:
             pass
 
         c1 = ihm.Citation(title='Test paper', journal='J Mol Biol',
@@ -825,7 +825,7 @@ class Tests(unittest.TestCase):
 
     def test_all_software(self):
         """Test _all_software() method"""
-        class MockObject(object):
+        class MockObject:
             pass
 
         s1 = ihm.Software(name='test', classification='test code',
@@ -869,7 +869,7 @@ class Tests(unittest.TestCase):
 
     def test_all_dataset_groups(self):
         """Test _all_dataset_groups() method"""
-        class MockObject(object):
+        class MockObject:
             pass
         dg1 = MockObject()
         dg2 = MockObject()
@@ -894,10 +894,10 @@ class Tests(unittest.TestCase):
 
     def test_all_locations(self):
         """Test _all_locations() method"""
-        class MockObject(object):
+        class MockObject:
             pass
 
-        class MockDataset(object):
+        class MockDataset:
             parents = []
         loc1 = MockObject()
         loc2 = MockObject()
@@ -963,10 +963,10 @@ class Tests(unittest.TestCase):
 
     def test_all_datasets(self):
         """Test _all_datasets() method"""
-        class MockObject(object):
+        class MockObject:
             pass
 
-        class MockDataset(object):
+        class MockDataset:
             parents = []
 
         s = ihm.System()
@@ -1008,7 +1008,7 @@ class Tests(unittest.TestCase):
 
     def test_all_starting_models(self):
         """Test _all_starting_models() method"""
-        class MockObject(object):
+        class MockObject:
             pass
 
         s = ihm.System()
@@ -1029,7 +1029,7 @@ class Tests(unittest.TestCase):
 
     def test_all_geometric_objects(self):
         """Test _all_geometric_objects() method"""
-        class MockObject(object):
+        class MockObject:
             pass
 
         geom1 = MockObject()
@@ -1051,7 +1051,7 @@ class Tests(unittest.TestCase):
 
     def test_all_features(self):
         """Test _all_features() method"""
-        class MockObject(object):
+        class MockObject:
             pass
 
         f1 = MockObject()
@@ -1072,7 +1072,7 @@ class Tests(unittest.TestCase):
 
     def test_all_pseudo_sites(self):
         """Test _all_pseudo_sites() method"""
-        class MockObject(object):
+        class MockObject:
             pass
 
         s1 = MockObject()
@@ -1107,7 +1107,7 @@ class Tests(unittest.TestCase):
 
     def test_all_chem_descriptors(self):
         """Test _all_chem_descriptors() method"""
-        class MockObject(object):
+        class MockObject:
             pass
 
         d1 = ihm.ChemDescriptor("d1")
@@ -1137,7 +1137,7 @@ class Tests(unittest.TestCase):
 
     def test_all_entity_ranges(self):
         """Test _all_entity_ranges() method"""
-        class MockObject(object):
+        class MockObject:
             pass
 
         s = ihm.System()
@@ -1174,7 +1174,7 @@ class Tests(unittest.TestCase):
 
     def test_all_multi_state_schemes(self):
         """Test _all_multi_state_schemes() method"""
-        class MockObject(object):
+        class MockObject:
             pass
 
         s = ihm.System()
@@ -1190,7 +1190,7 @@ class Tests(unittest.TestCase):
 
     def test_all_multi_state_scheme_connectivities(self):
         """Test _all_multi_state_scheme_connectivities() method"""
-        class MockObject(object):
+        class MockObject:
             pass
 
         s = ihm.System()
@@ -1217,7 +1217,7 @@ class Tests(unittest.TestCase):
 
     def test_all_kinetic_rates(self):
         """Test _all_kinetic_rates() method"""
-        class MockObject(object):
+        class MockObject:
             pass
 
         s = ihm.System()
@@ -1272,7 +1272,7 @@ class Tests(unittest.TestCase):
 
     def test_all_relaxation_times(self):
         """Test _all_relaxation_times() method"""
-        class MockObject(object):
+        class MockObject:
             pass
         s = ihm.System()
         # Multi-state schemes

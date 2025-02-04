@@ -143,7 +143,7 @@ class Tests(unittest.TestCase):
 
     def test_id_mapper(self):
         """Test IDMapper class"""
-        class MockObject(object):
+        class MockObject:
             def __init__(self, x, y):
                 self.x, self.y = x, y
 
@@ -158,7 +158,7 @@ class Tests(unittest.TestCase):
 
     def test_handler(self):
         """Test Handler base class"""
-        class MockObject(object):
+        class MockObject:
             pass
         o = MockObject()
         o.system = 'foo'
@@ -167,7 +167,7 @@ class Tests(unittest.TestCase):
 
     def test_handler_copy_if_present(self):
         """Test copy_if_present method"""
-        class MockObject(object):
+        class MockObject:
             pass
         # Keys = namedtuple('Keys', 'foo bar t test x')
         o = MockObject()

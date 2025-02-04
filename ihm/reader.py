@@ -84,7 +84,7 @@ def _get_iso_date(iso_date_str):
                          int(iso_date_str[8:10]))
 
 
-class IDMapper(object):
+class IDMapper:
     """Utility class to handle mapping from mmCIF IDs to Python objects.
 
        :param list system_list: The list in :class:`ihm.System` that keeps
@@ -197,7 +197,7 @@ class _ChemCompIDMapper(IDMapper):
             return newcls(*self._cls_args, **self._cls_keys)
 
 
-class RangeIDMapper(object):
+class RangeIDMapper:
     """Utility class to handle mapping from mmCIF IDs to
        :class:`ihm.AsymUnitRange` or :class:`ihm.EntityRange` objects."""
 
@@ -353,7 +353,7 @@ class _ReferenceIDMapper(IDMapper):
             return newcls(*(None,) * 3)
 
 
-class _FLRListAdapter(object):
+class _FLRListAdapter:
     """Take objects from IDMapper and place them in objects in FLRData."""
 
     def __init__(self, collection_dict, collection_list, flr_data):
@@ -386,7 +386,7 @@ class _FLRIDMapper(IDMapper):
         super(_FLRIDMapper, self).__init__(system_list, cls, *args, **keys)
 
 
-class _DatasetAssemblyIDMapper(object):
+class _DatasetAssemblyIDMapper:
     """Handle mapping from mmCIF dataset IDs to Python objects.
 
        This is similar to IDMapper but is intended for objects like restraints
@@ -418,7 +418,7 @@ class _DatasetAssemblyIDMapper(object):
         return r
 
 
-class _XLRestraintMapper(object):
+class _XLRestraintMapper:
     """Map entries to CrossLinkRestraint"""
 
     def __init__(self, system_list):
@@ -440,7 +440,7 @@ class _XLRestraintMapper(object):
         return self._seen_rsrs.values()
 
 
-class SystemReader(object):
+class SystemReader:
     """Utility class to track global information for a :class:`ihm.System`
        being read from a file, such as the mapping from IDs to objects
        (as :class:`IDMapper` objects). This can be used by :class:`Handler`
@@ -874,7 +874,7 @@ class SystemReader(object):
             e.sequence = tuple(e.sequence)
 
 
-class Handler(object):
+class Handler:
     """Base class for all handlers of mmCIF data.
        Each class handles a single category in the mmCIF or BinaryCIF file.
        To add a new handler (for example to handle a custom category)
@@ -1378,7 +1378,7 @@ class _EntityPolyHandler(Handler):
 
     def __call__(self, entity_id, type, pdbx_seq_one_letter_code,
                  pdbx_seq_one_letter_code_can):
-        class EntityInfo(object):
+        class EntityInfo:
             pass
         e = EntityInfo()
         e.one_letter = tuple(util._get_codes(pdbx_seq_one_letter_code))
@@ -3138,7 +3138,7 @@ class UnknownKeywordWarning(Warning):
     pass
 
 
-class _UnknownCategoryHandler(object):
+class _UnknownCategoryHandler:
     def __init__(self):
         self.reset()
 
@@ -3155,7 +3155,7 @@ class _UnknownCategoryHandler(object):
                       UnknownCategoryWarning, stacklevel=2)
 
 
-class _UnknownKeywordHandler(object):
+class _UnknownKeywordHandler:
     def add_category_handlers(self, handlers):
         self._ignored_keywords = dict((h.category,
                                        frozenset(h.ignored_keywords))
@@ -3931,7 +3931,7 @@ _flr_handlers = [_FLRChemDescriptorHandler, _FLRInstSettingHandler,
                  _FLRRelaxationTimeFretAnalysisConnectionHandler]
 
 
-class Variant(object):
+class Variant:
     """Utility class to select the type of file to read with :func:`read`."""
 
     #: Class to track global file information, e.g. :class:`SystemReader`

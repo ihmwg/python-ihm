@@ -30,7 +30,7 @@ _Float32 = 32
 _Float64 = 33
 
 
-class _Decoder(object):
+class _Decoder:
     """Base class for all decoders."""
 
     _kind = None  # Encoder kind (in BinaryCIF specification)
@@ -299,7 +299,7 @@ class BinaryCifReader(ihm.format._Reader):
         return d['dataBlocks']
 
 
-class _CategoryWriter(object):
+class _CategoryWriter:
     def __init__(self, writer, category):
         self.writer = writer
         self.category = category
@@ -317,7 +317,7 @@ class _CategoryWriter(object):
         self.writer._add_category(self.category, self._data)
 
 
-class _LoopWriter(object):
+class _LoopWriter:
     def __init__(self, writer, category, keys):
         self.writer = writer
         self.category = category
@@ -348,7 +348,7 @@ class EncodeError(Exception):
     pass
 
 
-class _Encoder(object):
+class _Encoder:
     """Base class for all encoders"""
     _kind = None  # Encoder kind (in BinaryCIF specification)
 
@@ -449,7 +449,7 @@ def _encode(data, encoders):
     return data, encdicts
 
 
-class _MaskedEncoder(object):
+class _MaskedEncoder:
     """Base class for all encoders that handle potentially masked data"""
 
     def __call__(self, data, mask):

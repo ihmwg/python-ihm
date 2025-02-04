@@ -81,7 +81,7 @@ def _handle_modeller_template(info, template_path_map, target_dataset,
                 alignment_file=alnfile))
 
 
-class Parser(object):
+class Parser:
     """Base class for all metadata parsers."""
 
     def parse_file(self, filename):
@@ -693,7 +693,7 @@ class _ModellerTemplateHandler(ihm.reader.Handler):
         self.m['modeller_templates'].append(t)
 
 
-class _ModelCifAlignment(object):
+class _ModelCifAlignment:
     """Store alignment information from a ModelCIF file"""
 
     def __init__(self):
@@ -705,21 +705,21 @@ class _ModelCifAlignment(object):
                                                           aln=self)
 
 
-class _TemplateRange(object):
+class _TemplateRange:
     """Store information about a template residue range from a ModelCIF file"""
     def __init__(self):
         self.seq_id_range = None
         self.template = None
 
 
-class _TargetRange(object):
+class _TargetRange:
     """Store information about a target residue range from a ModelCIF file"""
     def __init__(self):
         self.seq_id_range = None
         self.asym_id = None
 
 
-class _Template(object):
+class _Template:
     """Store template information from a ModelCIF file"""
 
     # Map ModelCIF ma_template_ref_db_details.db_name to IHMCIF equivalents
@@ -755,7 +755,7 @@ class _Template(object):
         return aln.target.asym_id if aln else self.target_asym_id, t
 
 
-class _SystemReader(object):
+class _SystemReader:
     """A minimal implementation, so we can use some of the Handlers
        in ihm.reader but get outputs in the results dict."""
     def __init__(self, m):
@@ -819,7 +819,7 @@ class _TemplatePolyMappingHandler(ihm.reader.Handler):
                           self.get_int(target_seq_id_end))
 
 
-class _SeqIDMapper(object):
+class _SeqIDMapper:
     """Map ModelCIF sequence identity to IHMCIF equivalent"""
 
     identity_map = {

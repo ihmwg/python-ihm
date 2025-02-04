@@ -19,7 +19,7 @@ except ImportError:
 # just return the data unchanged. We can use these to test the Python BinaryCIF
 # parser with Python objects rather than having to install msgpack and
 # generate real binary files
-class MockMsgPack(object):
+class MockMsgPack:
     @staticmethod
     def unpack(fh, raw=False):
         return fh
@@ -29,11 +29,11 @@ class MockMsgPack(object):
         fh.data = data
 
 
-class MockFh(object):
+class MockFh:
     pass
 
 
-class GenericHandler(object):
+class GenericHandler:
     """Capture BinaryCIF data as a simple list of dicts"""
     not_in_file = None
     omitted = None
@@ -110,7 +110,7 @@ def _encode(rows):
     return d, mask
 
 
-class Category(object):
+class Category:
     def __init__(self, name, data):
         self.name = name
         self.data = data
@@ -145,7 +145,7 @@ else:
     UNICODE_STRING_TYPE = str
 
 
-class _BadMsgPackType(object):
+class _BadMsgPackType:
     pass
 
 
@@ -1070,7 +1070,7 @@ class Tests(unittest.TestCase):
 
     def test_unknown_categories_handled(self):
         """Check that unknown categories are handled if requested"""
-        class CatHandler(object):
+        class CatHandler:
             def __init__(self):
                 self.warns = []
 
@@ -1095,7 +1095,7 @@ class Tests(unittest.TestCase):
 
     def test_unknown_keywords_handled(self):
         """Check that unknown keywords are handled if requested"""
-        class KeyHandler(object):
+        class KeyHandler:
             def __init__(self):
                 self.warns = []
 
@@ -1314,7 +1314,7 @@ class Tests(unittest.TestCase):
 
     def test_mask_type_bad_type(self):
         """Test get_mask_and_type with unknown type data"""
-        class MockObject(object):
+        class MockObject:
             pass
         data = [MockObject()]
         self.assertRaises(ValueError, ihm.format_bcif._get_mask_and_type, data)
