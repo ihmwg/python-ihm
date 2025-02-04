@@ -30,7 +30,9 @@ class GenericHandler(object):
     unknown = ihm.unknown
 
     _keys = ('method', 'foo', 'bar', 'baz', 'pdbx_keywords', 'var1',
-             'var2', 'var3')
+             'var2', 'var3', 'intkey1', 'intkey2', 'floatkey1', 'floatkey2')
+    _int_keys = frozenset(('intkey1', 'intkey2'))
+    _float_keys = frozenset(('floatkey1', 'floatkey2'))
 
     def __init__(self):
         self.data = []
@@ -427,7 +429,9 @@ save_
                 h.data,
                 [{'var1': 'NOT', 'var3': 'NOT', 'var2': 'NOT',
                   'pdbx_keywords': 'NOT', 'bar': '.1', 'foo': 'NOT',
-                  'method': 'NOT', 'baz': 'x'}])
+                  'method': 'NOT', 'baz': 'x',
+                  'intkey1': 'NOT', 'intkey2': 'NOT',
+                  'floatkey1': 'NOT', 'floatkey2': 'NOT'}])
 
             h = GenericHandler()
             h.not_in_file = 'NOT'
@@ -437,7 +441,9 @@ save_
                 h.data,
                 [{'var1': 'NOT', 'var3': 'NOT', 'var2': 'NOT',
                   'pdbx_keywords': 'NOT', 'bar': '.1', 'foo': 'NOT',
-                  'method': 'NOT', 'baz': 'x'}])
+                  'method': 'NOT', 'baz': 'x',
+                  'intkey1': 'NOT', 'intkey2': 'NOT',
+                  'floatkey1': 'NOT', 'floatkey2': 'NOT'}])
 
     def test_loop_linebreak(self):
         """Make sure that linebreaks are ignored in loop data"""
@@ -551,6 +557,47 @@ _atom_site.x
 _atom_site.y
 oneval
 """, real_file, {'_atom_site': h})
+
+    def test_int_keys(self):
+        """Check handling of integer keywords"""
+        for real_file in (True, False):
+            h = GenericHandler()
+            # intkey1, intkey2 should be returned as ints, not strings
+            self._read_cif("_foo.var1 42\n_foo.intkey1 42",
+                           real_file, {'_foo': h})
+            self.assertEqual(h.data, [{'var1': "42", 'intkey1': 42}])
+
+            # float cannot be coerced to int
+            self.assertRaises(ValueError, self._read_cif, "_foo.intkey1 42.34",
+                              real_file, {'_foo': h})
+
+            # string cannot be coerced to int
+            self.assertRaises(ValueError, self._read_cif, "_foo.intkey1 str",
+                              real_file, {'_foo': h})
+
+    def test_float_keys(self):
+        """Check handling of floating-point keywords"""
+        for real_file in (True, False):
+            h = GenericHandler()
+            # floatkey1, floatkey2 should be returned as floats, not strings
+            self._read_cif("_foo.floatkey1 42.340",
+                           real_file, {'_foo': h})
+            val = h.data[0]['floatkey1']
+            self.assertIsInstance(val, float)
+            self.assertAlmostEqual(val, 42.34, delta=0.01)
+
+            # int will be coerced to float
+            h = GenericHandler()
+            self._read_cif("_foo.floatkey1 42",
+                           real_file, {'_foo': h})
+            val = h.data[0]['floatkey1']
+            self.assertIsInstance(val, float)
+            self.assertAlmostEqual(val, 42.0, delta=0.01)
+
+            # string cannot be coerced to float
+            h = GenericHandler()
+            self.assertRaises(ValueError, self._read_cif, "_foo.floatkey1 str",
+                              real_file, {'_foo': h})
 
     def test_first_data_block(self):
         """Only information from the first data block should be read"""
