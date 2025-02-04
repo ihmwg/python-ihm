@@ -258,9 +258,20 @@ class BinaryCifReader(ihm.format._Reader):
         ret_ok, more_data = _format.ihm_read_file(self._c_format)
         return more_data
 
+    def _get_type_handler(self, category_handler, keyword):
+        """Return a function that converts keyword string into desired type"""
+        if keyword in category_handler._int_keys:
+            return int
+        elif keyword in category_handler._float_keys:
+            return float
+        else:
+            return str
+
     def _handle_category(self, handler, category, cat_name):
         """Extract data for the given category"""
         num_cols = len(handler._keys)
+        type_handlers = [self._get_type_handler(handler, k)
+                         for k in handler._keys]
         # Read all data for the category;
         # category_data[col][row]
         category_data = [None] * num_cols
@@ -275,7 +286,7 @@ class BinaryCifReader(ihm.format._Reader):
             ki = key_index.get(key_name, None)
             if ki is not None:
                 column_indices.append(ki)
-                r = self._read_column(c, handler)
+                r = self._read_column(c, handler, type_handlers[ki])
                 num_rows = len(r)
                 category_data[ki] = r
             elif self.unknown_keyword_handler is not None:
@@ -288,16 +299,17 @@ class BinaryCifReader(ihm.format._Reader):
                 row_data[i] = category_data[i][row]
             handler(*row_data)
 
-    def _read_column(self, column, handler):
+    def _read_column(self, column, handler, type_handler):
         """Read a single category column data"""
         data = _decode(column['data']['data'], column['data']['encoding'])
         # Handle 'unknown' values (mask==2) or 'omitted' (mask==1)
         if column['mask'] is not None:
             mask = _decode(column['mask']['data'],
                            column['mask']['encoding'])
-            data = [handler.unknown if m == 2 else handler.omitted if m == 1
-                    else d for d, m in zip(data, mask)]
-        return list(data)
+            return [handler.unknown if m == 2 else handler.omitted if m == 1
+                    else type_handler(d) for d, m in zip(data, mask)]
+        else:
+            return [type_handler(d) for d in data]
 
     def _read_msgpack(self):
         """Read the msgpack data from the file and return data blocks"""
