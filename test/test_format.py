@@ -245,6 +245,7 @@ x
             def __call__(self, a, b):
                 pass
 
+        # Test handler with no _int_keys, _float_keys
         r = ihm.format._Reader()
         m = _MockHandler()
         r.category_handler = {'foo': m}
@@ -252,6 +253,20 @@ x
         self.assertEqual(m._keys, ['a', 'b'])
         self.assertEqual(m._int_keys, frozenset())
         self.assertEqual(m._float_keys, frozenset())
+
+        # Test handler with typos in _int_keys
+        r = ihm.format._Reader()
+        m = _MockHandler()
+        m._int_keys = ['bar']
+        r.category_handler = {'foo': m}
+        self.assertRaises(ValueError, r._add_category_keys)
+
+        # Test handler with typos in _float_keys
+        r = ihm.format._Reader()
+        m = _MockHandler()
+        m._float_keys = ['bar']
+        r.category_handler = {'foo': m}
+        self.assertRaises(ValueError, r._add_category_keys)
 
     def _check_bad_cif(self, cif, real_file, category_handlers={}):
         """Ensure that the given bad cif results in a parser error"""

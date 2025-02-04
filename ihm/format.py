@@ -398,6 +398,14 @@ class _Reader(object):
                 h._int_keys = frozenset()
             if not hasattr(h, '_float_keys'):
                 h._float_keys = frozenset()
+            extra = frozenset(h._int_keys) - frozenset(h._keys)
+            if extra:
+                raise ValueError("For %s, _int_keys not in _keys: %s"
+                                 % (h, ", ".join(extra)))
+            extra = frozenset(h._float_keys) - frozenset(h._keys)
+            if extra:
+                raise ValueError("For %s, _float_keys not in _keys: %s"
+                                 % (h, ", ".join(extra)))
 
 
 class _CifTokenizer(object):
