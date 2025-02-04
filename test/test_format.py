@@ -575,6 +575,14 @@ oneval
             self.assertRaises(ValueError, self._read_cif, "_foo.intkey1 str",
                               real_file, {'_foo': h})
 
+    def test_int_keys_loop(self):
+        """Check handling of integer keywords in loop construct"""
+        for real_file in (True, False):
+            h = GenericHandler()
+            self._read_cif("loop_\n_foo.intkey1\n_foo.x\n_foo.bar\n"
+                           "42 xval barval", real_file, {'_foo': h})
+            self.assertEqual(h.data, [{'bar': 'barval', 'intkey1': 42}])
+
     def test_float_keys(self):
         """Check handling of floating-point keywords"""
         for real_file in (True, False):
@@ -598,6 +606,16 @@ oneval
             h = GenericHandler()
             self.assertRaises(ValueError, self._read_cif, "_foo.floatkey1 str",
                               real_file, {'_foo': h})
+
+    def test_float_keys_loop(self):
+        """Check handling of float keywords in loop construct"""
+        for real_file in (True, False):
+            h = GenericHandler()
+            self._read_cif("loop_\n_foo.x\n_foo.bar\n_foo.floatkey1\n"
+                           "xval barval 42.34", real_file, {'_foo': h})
+            val = h.data[0]['floatkey1']
+            self.assertIsInstance(val, float)
+            self.assertAlmostEqual(val, 42.34, delta=0.01)
 
     def test_first_data_block(self):
         """Only information from the first data block should be read"""
