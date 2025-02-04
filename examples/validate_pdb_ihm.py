@@ -7,7 +7,6 @@
 # https://github.com/ihmwg/python-modelcif/blob/main/examples/validate_modbase.py.
 
 import io
-import sys
 import ihm.reader
 import ihm.dictionary
 import urllib.request

@@ -24,7 +24,6 @@ import struct
 import json
 import string
 import warnings
-import sys
 import re
 import collections
 import urllib.request
