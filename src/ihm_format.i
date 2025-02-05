@@ -163,12 +163,57 @@ static ssize_t pyfile_binary_read_callback(char *buffer, size_t buffer_len,
   return read_len;
 }
 
+/* Read data from a Python filelike object directly into the buffer */
+static ssize_t pyfile_binary_readinto_callback(
+                    char *buffer, size_t buffer_len,
+                    void *data, struct ihm_error **err)
+{
+  PyObject *readinto_method = data;
+  PyObject *memview, *result;
+  Py_ssize_t read_len;
+
+  memview = PyMemoryView_FromMemory(buffer, buffer_len, PyBUF_WRITE);
+  result = PyObject_CallFunctionObjArgs(readinto_method, memview, NULL);
+  Py_DECREF(memview);
+
+  if (!result) {
+    ihm_error_set(err, IHM_ERROR_VALUE, "Python readinto failed");
+    return -1;
+  }
+
+  if (!PyLong_Check(result)) {
+    ihm_error_set(err, IHM_ERROR_VALUE, "Python readinto did not return int");
+    return -1;
+  }
+  if ((read_len = PyLong_AsSsize_t(result)) == -1 && PyErr_Occurred()) {
+    ihm_error_set(err, IHM_ERROR_VALUE, "Python readinto bad return");
+    return -1;
+  }
+
+  if (read_len > buffer_len) {
+    ihm_error_set(err, IHM_ERROR_VALUE,
+                  "Python readinto method returned too many bytes");
+    Py_DECREF(result);
+    return -1;
+  }
+
+  Py_DECREF(result);
+  return read_len;
+}
+
 static void pyfile_free(void *data)
 {
   PyObject *read_method = data;
   Py_DECREF(read_method);
 }
 
+static PyObject *get_optional_attr_str(PyObject *obj, const char *attr) {
+  PyObject *method = PyObject_GetAttrString(obj, attr);
+  if (!method) {
+    PyErr_Clear();
+  }
+  return method;
+}
 %}
 
 
@@ -178,18 +223,23 @@ struct ihm_file *ihm_file_new_from_python(PyObject *pyfile, bool binary,
                                           struct ihm_error **err)
 {
   PyObject *read_method;
+  ihm_file_read_callback read_callback;
 
-  /* Look for a read() method and use that to read data */
-  if (!(read_method = PyObject_GetAttrString(pyfile, "read"))) {
-    ihm_error_set(err, IHM_ERROR_VALUE, "no read method");
-    return NULL;
-  }
+  read_callback = binary ? pyfile_binary_read_callback
+                         : pyfile_text_read_callback;
 
-  if (binary) {
-    return ihm_file_new(pyfile_binary_read_callback, read_method, pyfile_free);
+  /* In binary mode, we can avoid a copy if the object supports readinto() */
+  if (binary && (read_method = get_optional_attr_str(pyfile, "readinto"))) {
+    read_callback = pyfile_binary_readinto_callback;
   } else {
-    return ihm_file_new(pyfile_text_read_callback, read_method, pyfile_free);
+    /* Look for a read() method and use that to read data */
+    if (!(read_method = PyObject_GetAttrString(pyfile, "read"))) {
+      ihm_error_set(err, IHM_ERROR_VALUE, "no read method");
+      return NULL;
+    }
   }
+
+  return ihm_file_new(read_callback, read_method, pyfile_free);
 }
 
 %}

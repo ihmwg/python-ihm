@@ -762,6 +762,51 @@ x y
         self.assertRaises(ValueError, _format.ihm_read_file, reader)
         _format.ihm_reader_free(reader)
 
+    @unittest.skipIf(_format is None, "No C tokenizer")
+    def test_python_readinto_exception(self):
+        """Test exception in readinto callback is handled"""
+        class MyError(Exception):
+            pass
+
+        class MyFileLike:
+            def readinto(self, buffer):
+                raise MyError("some error")
+        fh = MyFileLike()
+        f = _format.ihm_file_new_from_python(fh, True)
+        reader = _format.ihm_reader_new(f, True)
+        self.assertRaises(MyError, _format.ihm_read_file, reader)
+        _format.ihm_reader_free(reader)
+
+    @unittest.skipIf(_format is None, "No C tokenizer")
+    def test_python_readinto_not_length(self):
+        """Test that readinto() returning an invalid type is handled"""
+        class MyFileLike:
+            def readinto(self, buffer):
+                return "garbage"
+        fh = MyFileLike()
+        f = _format.ihm_file_new_from_python(fh, True)
+        reader = _format.ihm_reader_new(f, True)
+        # Should really be a ValueError, but CMP does not propagate IHM
+        # errors raised in read callback, so we'll get a CMP error instead
+        self.assertRaises(_format.FileFormatError, _format.ihm_read_file,
+                          reader)
+        _format.ihm_reader_free(reader)
+
+    @unittest.skipIf(_format is None, "No C tokenizer")
+    def test_python_readinto_too_long(self):
+        """Test that readinto() returning too many bytes is handled"""
+        class MyFileLike:
+            def readinto(self, buffer):
+                return len(buffer) + 10
+        fh = MyFileLike()
+        f = _format.ihm_file_new_from_python(fh, True)
+        reader = _format.ihm_reader_new(f, True)
+        # Should really be a ValueError, but CMP does not propagate IHM
+        # errors raised in read callback, so we'll get a CMP error instead
+        self.assertRaises(_format.FileFormatError, _format.ihm_read_file,
+                          reader)
+        _format.ihm_reader_free(reader)
+
     @unittest.skipIf(_format is None or sys.platform == 'win32',
                      "No C tokenizer, or Windows")
     def test_fd_read_failure(self):
