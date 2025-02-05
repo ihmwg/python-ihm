@@ -1377,6 +1377,7 @@ static bool ihm_file_read_bytes(struct ihm_file *fh, char **buf, size_t sz,
     ihm_string_set_size(fh->buffer, current_size + to_read);
     readlen = (*fh->read_callback)(
           fh->buffer->str + current_size, to_read, fh->data, err);
+    if (*err) return false;
     if (readlen < needed) {
       ihm_error_set(err, IHM_ERROR_IO, "Less data read than requested");
       return false;
