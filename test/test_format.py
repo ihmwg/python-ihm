@@ -763,6 +763,52 @@ x y
         _format.ihm_reader_free(reader)
 
     @unittest.skipIf(_format is None, "No C tokenizer")
+    def test_python_read_binary_exception(self):
+        """Test exception in binary read callback is handled"""
+        class MyError(Exception):
+            pass
+
+        class MyFileLike:
+            def read(self, numbytes):
+                raise MyError("some error")
+        fh = MyFileLike()
+        f = _format.ihm_file_new_from_python(fh, True)
+        reader = _format.ihm_reader_new(f, True)
+        self.assertRaises(MyError, _format.ihm_read_file, reader)
+        _format.ihm_reader_free(reader)
+
+    @unittest.skipIf(_format is None, "No C tokenizer")
+    def test_python_read_binary_not_string(self):
+        """Test that binary read() returning an invalid type is handled"""
+        class MyFileLike:
+            def read(self, numbytes):
+                return 42
+        fh = MyFileLike()
+        f = _format.ihm_file_new_from_python(fh, True)
+        reader = _format.ihm_reader_new(f, True)
+        # Should really be a ValueError, but CMP does not propagate IHM
+        # errors raised in read callback, so we'll get a CMP error instead
+        self.assertRaises(_format.FileFormatError, _format.ihm_read_file,
+                          reader)
+        _format.ihm_reader_free(reader)
+
+    @unittest.skipIf(_format is None, "No C tokenizer")
+    def test_python_read_binary_too_long(self):
+        """Test that binary read() returning too many bytes is handled"""
+        class MyFileLike:
+            def read(self, numbytes):
+                return " " * (numbytes + 10)
+        fh = MyFileLike()
+        f = _format.ihm_file_new_from_python(fh, True)
+        reader = _format.ihm_reader_new(f, True)
+        # Should really be a ValueError, but CMP does not propagate IHM
+        # errors raised in read callback, so we'll get a CMP error instead
+        self.assertRaises(_format.FileFormatError, _format.ihm_read_file,
+                          reader)
+        _format.ihm_reader_free(reader)
+
+
+    @unittest.skipIf(_format is None, "No C tokenizer")
     def test_python_readinto_exception(self):
         """Test exception in readinto callback is handled"""
         class MyError(Exception):
