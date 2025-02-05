@@ -807,7 +807,6 @@ x y
                           reader)
         _format.ihm_reader_free(reader)
 
-
     @unittest.skipIf(_format is None, "No C tokenizer")
     def test_python_readinto_exception(self):
         """Test exception in readinto callback is handled"""
