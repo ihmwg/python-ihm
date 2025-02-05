@@ -183,22 +183,23 @@ static ssize_t pyfile_binary_readinto_callback(
 
   if (!PyLong_Check(result)) {
     ihm_error_set(err, IHM_ERROR_VALUE, "Python readinto did not return int");
+    Py_DECREF(result);
     return -1;
   }
   if ((read_len = PyLong_AsSsize_t(result)) == -1 && PyErr_Occurred()) {
     ihm_error_set(err, IHM_ERROR_VALUE, "Python readinto bad return");
+    Py_DECREF(result);
     return -1;
   }
+  Py_DECREF(result);
 
   if (read_len > buffer_len) {
     ihm_error_set(err, IHM_ERROR_VALUE,
                   "Python readinto method returned too many bytes");
-    Py_DECREF(result);
     return -1;
+  } else {
+    return read_len;
   }
-
-  Py_DECREF(result);
-  return read_len;
 }
 
 static void pyfile_free(void *data)
