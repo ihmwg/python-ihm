@@ -1126,7 +1126,7 @@ static void call_category(struct ihm_reader *reader,
                           &force);
     }
     if (force) {
-      (*category->data_callback) (reader, category->data, err);
+      (*category->data_callback) (reader, reader->linenum, category->data, err);
     }
   }
   /* Clear out keyword values, ready for the next set of data */
@@ -1263,7 +1263,8 @@ static void finalize_category_foreach(void *key, void *value, void *user_data)
   struct category_foreach_data *d = (struct category_foreach_data *)user_data;
   struct ihm_category *category = (struct ihm_category *)value;
   if (!*(d->err) && category->finalize_callback) {
-    (*category->finalize_callback)(d->reader, category->data, d->err);
+    (*category->finalize_callback)(d->reader, d->reader->linenum,
+                                   category->data, d->err);
   }
 }
 
@@ -1282,7 +1283,8 @@ static void end_frame_category_foreach(void *key, void *value, void *user_data)
   struct category_foreach_data *d = (struct category_foreach_data *)user_data;
   struct ihm_category *category = (struct ihm_category *)value;
   if (!*(d->err) && category->end_frame_callback) {
-    (*category->end_frame_callback)(d->reader, category->data, d->err);
+    (*category->end_frame_callback)(d->reader, d->reader->linenum,
+                                    category->data, d->err);
   }
 }
 
@@ -2703,7 +2705,7 @@ static bool process_bcif_category(struct ihm_reader *reader,
     if (!process_bcif_row(reader, cat, ihm_cat, i, err)) return false;
   }
   if (ihm_cat->finalize_callback) {
-    (*ihm_cat->finalize_callback)(reader, ihm_cat->data, err);
+    (*ihm_cat->finalize_callback)(reader, reader->linenum, ihm_cat->data, err);
     if (*err) return false;
   }
   return true;

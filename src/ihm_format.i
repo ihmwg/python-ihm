@@ -224,8 +224,8 @@ static void category_handler_data_free(void *data)
 }
 
 /* Called for each category (or loop construct data line) with data */
-static void handle_category_data(struct ihm_reader *reader, void *data,
-                                 struct ihm_error **err)
+static void handle_category_data(struct ihm_reader *reader, int linenum,
+                                 void *data, struct ihm_error **err)
 {
   int i;
   struct category_handler_data *hd = data;
@@ -284,8 +284,8 @@ static void handle_category_data(struct ihm_reader *reader, void *data,
 }
 
 /* Called at the end of each save frame for each category */
-static void end_frame_category(struct ihm_reader *reader, void *data,
-                               struct ihm_error **err)
+static void end_frame_category(struct ihm_reader *reader, int linenum,
+                               void *data, struct ihm_error **err)
 {
   PyObject *ret;
   struct category_handler_data *hd = data;
@@ -454,7 +454,7 @@ void add_category_handler(struct ihm_reader *reader, char *name,
 
 %{
 /* Called for each _pdbx_poly_seq_scheme line */
-static void handle_poly_seq_scheme_data(struct ihm_reader *reader,
+static void handle_poly_seq_scheme_data(struct ihm_reader *reader, int linenum,
                                         void *data, struct ihm_error **err)
 {
   int i, seq_id, pdb_seq_num, auth_seq_num;
@@ -468,7 +468,7 @@ static void handle_poly_seq_scheme_data(struct ihm_reader *reader,
       !hd->keywords[0]->omitted && !hd->keywords[5]->omitted &&
       !hd->keywords[0]->unknown && !hd->keywords[5]->unknown &&
       strcmp(hd->keywords[0]->data.str, hd->keywords[5]->data.str) != 0) {
-    handle_category_data(reader, data, err);
+    handle_category_data(reader, linenum, data, err);
     return;
   }
 
@@ -476,7 +476,7 @@ static void handle_poly_seq_scheme_data(struct ihm_reader *reader,
     /* Call Python handler if any of asym_id, seq_id, pdb_seq_num,
        or auth_seq_num are missing */
     if (!(*keys)->in_file || (*keys)->omitted || (*keys)->unknown) {
-      handle_category_data(reader, data, err);
+      handle_category_data(reader, linenum, data, err);
       return;
     }
   }
@@ -495,7 +495,7 @@ static void handle_poly_seq_scheme_data(struct ihm_reader *reader,
     return;
   } else {
     /* Otherwise, call the normal handler */
-    handle_category_data(reader, data, err);
+    handle_category_data(reader, linenum, data, err);
   }
 }
 %}
