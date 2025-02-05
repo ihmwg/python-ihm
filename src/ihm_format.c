@@ -1344,6 +1344,7 @@ static bool read_mmcif_file(struct ihm_reader *reader, bool *more_data,
     finalize_all_categories(reader, err);
   }
   if (*err) {
+    *more_data = false;
     return false;
   } else {
     *more_data = (ndata > 1);
@@ -2755,6 +2756,7 @@ static bool read_bcif_block(struct ihm_reader *reader, struct ihm_error **err)
 static bool read_bcif_file(struct ihm_reader *reader, bool *more_data,
                            struct ihm_error **err)
 {
+  *more_data = false;
   sort_mappings(reader);
   if (reader->num_blocks_left == -1) {
     cmp_init(&reader->cmp, reader, bcif_cmp_read, bcif_cmp_skip, NULL);
