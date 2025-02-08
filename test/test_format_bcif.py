@@ -1054,14 +1054,17 @@ class Tests(unittest.TestCase):
                   'mask': None}
             return {'dataBlocks': [{'categories': [{'name': '_foo',
                                                     'columns': [c1]}]}]}
+
         class ReadError:
             """Filelike object that returns defined-size blocks from read,
                or errors out if empty"""
             def __init__(self, read_sz):
                 self.read_sz = read_sz
                 self.data = b''
+
             def write(self, b):
                 self.data += b
+
             def read(self, sz):
                 if not self.read_sz:
                     raise IndexError("foo")
