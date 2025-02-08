@@ -1114,6 +1114,9 @@ class Tests(unittest.TestCase):
         # Exception in read_binary (137=index of data's binary size)
         self.assertRaises(IndexError, run_test, [137])
 
+        # Exception in skip_no_limit
+        self.assertRaises(IndexError, run_test, [147], cat='_bar')
+
     def test_omitted_unknown_not_in_file_explicit(self):
         """Test explicit handling of omitted/unknown/not in file data"""
         cat = Category('_foo',
