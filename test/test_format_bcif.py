@@ -621,6 +621,12 @@ class Tests(unittest.TestCase):
         h = GenericHandler()
         self._read_bcif_raw(d, {'_foo': h})
 
+        # Mask of bad type
+        d = make_bcif("foo")
+        h = GenericHandler()
+        self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
+                          d, {'_foo': h})
+
         # Map keys not strings
         d = make_bcif({42: 50})
         h = GenericHandler()
