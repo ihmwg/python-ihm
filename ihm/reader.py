@@ -17,7 +17,6 @@ import ihm.cross_linkers
 import ihm.multi_state_scheme
 import ihm.flr
 import inspect
-import datetime
 import warnings
 import collections
 from . import util
@@ -73,15 +72,6 @@ def _get_matrix33(d, key):
         # Assume if one element is present, all are
         return [[float(d[key + "%d%d" % (i, j)]) for j in (1, 2, 3)]
                 for i in (1, 2, 3)]
-
-
-def _get_iso_date(iso_date_str):
-    """Get a datetime.date obj for a string in isoformat."""
-    if not iso_date_str:
-        return iso_date_str
-    return datetime.date(int(iso_date_str[0:4]),
-                         int(iso_date_str[5:7]),
-                         int(iso_date_str[8:10]))
 
 
 class IDMapper:
@@ -1065,7 +1055,7 @@ class _AuditRevisionHistoryHandler(Handler):
         r.data_content_type = data_content_type
         r.major = major_revision
         r.minor = minor_revision
-        r.date = _get_iso_date(revision_date)
+        r.date = util._get_iso_date(revision_date)
 
 
 class _AuditRevisionDetailsHandler(Handler):
@@ -1163,7 +1153,7 @@ class _DatabaseStatusHandler(Handler):
 
     def __call__(self, *args):
         # Just pass through all data items present in the file, as a dict
-        self.system._database_status = dict(
+        self.system.database_status._map = dict(
             (k, v) for (k, v) in zip(self._keys, args)
             if v != self.not_in_file)
 
