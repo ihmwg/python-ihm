@@ -457,7 +457,7 @@ class Tests(unittest.TestCase):
         self.assertIsInstance(val, float)
         self.assertAlmostEqual(val, 42.34, delta=0.01)
 
-        # Cannot coerce arbitary string to float
+        # Cannot coerce arbitrary string to float
         cat = Category('_foo', {'floatkey1': ["some string"]})
         h = GenericHandler()
         self.assertRaises(ValueError, self._read_bcif,
