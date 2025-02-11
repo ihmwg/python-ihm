@@ -86,7 +86,7 @@ class System:
         self.databases.extend(databases)
 
         #: Information about data processsing and entry status.
-        #: See :class:`DatabaseStatus`
+        #: See :class:`DatabaseStatus`.
         self.database_status = DatabaseStatus()
 
         #: List of plain text comments. These will be added to the top of
@@ -694,7 +694,7 @@ class DatabaseStatus:
         self._map = {}
 
     status_code = property(lambda self: self._map['status_code'],
-                           doc="The status of the entry, e.g. released")
+                           doc="The status of the entry, e.g. released.")
     deposit_site = property(lambda self: self._map['deposit_site'],
                             doc="The site where the file was deposited.")
     process_site = property(lambda self: self._map['process_site'],
