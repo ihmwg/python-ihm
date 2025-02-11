@@ -942,7 +942,7 @@ class Tests(unittest.TestCase):
                                                     'columns': [c]}]}]}
 
         # Test normal usage
-        d = make_bcif(data=b'\x05\x00\x00\x00\x03\x00\x00\x00',
+        d = make_bcif(data=struct.pack('<2i', 5, 3),
                       data_type=ihm.format_bcif._Int32)
         h = GenericHandler()
         self._read_bcif_raw(d, {'_foo': h})
@@ -950,6 +950,20 @@ class Tests(unittest.TestCase):
 
         # Bad input type
         d = make_bcif(data=b'\x05\x03', data_type=ihm.format_bcif._Int8)
+        h = GenericHandler()
+        self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
+                          d, {'_foo': h})
+
+        # Negative counts should be rejected
+        d = make_bcif(data=struct.pack('<2i', 5, -3),
+                      data_type=ihm.format_bcif._Int32)
+        h = GenericHandler()
+        self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
+                          d, {'_foo': h})
+
+        # Very large positive counts should be rejected
+        d = make_bcif(data=struct.pack('<2i', 5, int(1e8)),
+                      data_type=ihm.format_bcif._Int32)
         h = GenericHandler()
         self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
                           d, {'_foo': h})

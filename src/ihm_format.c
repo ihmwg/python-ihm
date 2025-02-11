@@ -2340,7 +2340,16 @@ static bool decode_bcif_run_length(struct bcif_data *d,
   }
   outsz = 0;
   for (i = 1; i < d->size; i += 2) {
-    outsz += d->data.int32[i];
+    int32_t ts = d->data.int32[i];
+    /* Try to catch invalid (or malicious) counts. Counts cannot be negative
+       and the largest count seen in a very large PDB structure (3j3q) is
+       about 2.4m, so we are unlikely to see counts of 40m in real systems */
+    if (ts < 0 || ts > 40000000) {
+      ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
+                    "Bad run length repeat count %d", ts);
+      return false;
+    }
+    outsz += ts;
   }
   assert(outsz > 0);
   outdata = (int32_t *)ihm_malloc(outsz * sizeof(int32_t));
