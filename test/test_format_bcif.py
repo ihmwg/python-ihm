@@ -882,14 +882,14 @@ class Tests(unittest.TestCase):
         self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
                           d, {'_foo': h})
 
-        # Indices must be in range
-        for data in (struct.pack('2b', 0, 40), struct.pack('b', -32)):
+        # Out-of-range indices return empty strings
+        for data in (struct.pack('b', 40), struct.pack('b', -32)):
             d = make_bcif(data=data, data_type=ihm.format_bcif._Int8,
                           offsets=b'\x00\x01\x03',
                           offsets_type=ihm.format_bcif._Uint8)
             h = GenericHandler()
-            self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
-                              d, {'_foo': h})
+            self._read_bcif_raw(d, {'_foo': h})
+            self.assertEqual(h.data, [{'bar': ''}])
 
     @unittest.skipIf(_format is None, "No C tokenizer")
     def test_fixed_point_encoding_c(self):

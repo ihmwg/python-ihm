@@ -2479,16 +2479,13 @@ static bool decode_bcif_string_array(struct bcif_data *d,
   strarr = (char **)ihm_malloc(d->size * sizeof(char *));
   for (i = 0; i < d->size; ++i) {
     int32_t strnum = get_int_data(d, i);
-    /* make sure strnum in range */
+    /* If strnum out of range, return a null string (this usually corresponds
+       to masked data) */
     if (strnum < 0 || (size_t)strnum >= enc->offsets.size) {
-      free(strarr);
-      free(starts);
-      ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
-                    "StringArray index %d out of range 0-%d",
-                    strnum, enc->offsets.size - 1);
-      return false;
+      strarr[i] = "";
+    } else {
+      strarr[i] = enc->string_data + starts[strnum];
     }
-    strarr[i] = enc->string_data + starts[strnum];
   }
   free(starts);
   bcif_data_free(d);
