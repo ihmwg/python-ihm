@@ -879,7 +879,8 @@ class Handler:
                def __call__(self, key1, key2: int, key3: float):
                    pass
 
-       will be called with arguments `"x", 42, 1.0` when given the mmCIF input::
+       will be called with arguments `"x", 42, 1.0` when given the
+       mmCIF input::
 
            _custom.key1 x
            _custom.key2 42
