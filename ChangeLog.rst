@@ -1,6 +1,6 @@
 2.0 - 2025-02-11
 ================
-  - python-ihm no longer supports Python 2; the latest supported version
+  - python-ihm no longer supports Python 2; the oldest supported version
     is now Python 3.6 (#161).
   - BinaryCIF files are now read in using a C-accelerated parser, which is
     faster and more memory efficient than the older Python parser (#160).
