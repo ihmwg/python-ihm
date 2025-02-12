@@ -2558,6 +2558,7 @@ static bool process_column_data(struct bcif_column *col,
   if (!decode_bcif_data(&col->data, col->first_encoding, err)) return false;
   if (col->data.type != BCIF_DATA_INT32
       && col->data.type != BCIF_DATA_UINT8
+      && col->data.type != BCIF_DATA_FLOAT
       && col->data.type != BCIF_DATA_DOUBLE
       && col->data.type != BCIF_DATA_STRING) {
     ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
@@ -2715,6 +2716,10 @@ static void set_value_from_data(struct ihm_reader *reader,
   switch(data->type) {
   case BCIF_DATA_STRING:
     set_value_from_bcif_string(key, data->data.string[irow], err);
+    break;
+  case BCIF_DATA_FLOAT:
+    /* promote to double */
+    set_value_from_bcif_double(key, data->data.float32[irow], buffer);
     break;
   case BCIF_DATA_DOUBLE:
     set_value_from_bcif_double(key, data->data.float64[irow], buffer);

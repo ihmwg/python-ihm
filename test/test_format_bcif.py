@@ -319,9 +319,15 @@ class Tests(unittest.TestCase):
         self.assertIsInstance(data[0], str)
         self.assertAlmostEqual(float(data[0]), 42.0, delta=0.1)
 
-        # unsupported type
+        # type 32 (32-bit float)
+        data = get_decoded(ihm.format_bcif._Float32, b'\x00\x00(B')
+        self.assertIsInstance(data[0], str)
+        self.assertAlmostEqual(float(data[0]), 42.0, delta=0.1)
+
+        # unsupported type (16-bit int)
         self.assertRaises(_format.FileFormatError,
-                          get_decoded, ihm.format_bcif._Float32, b'\x00\x00(B')
+                          get_decoded, ihm.format_bcif._Int16,
+                          struct.pack('<h', 5))
 
     def test_integer_packing_decoder_signed(self):
         """Test IntegerPacking decoder with signed data"""
