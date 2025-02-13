@@ -309,6 +309,10 @@ class Tests(unittest.TestCase):
                           enc=[{'kind': 'ByteArray',
                                 'type': ihm.format_bcif._Int32}] * 2)
 
+        # type 1 (signed char)
+        data = get_decoded(ihm.format_bcif._Int8, struct.pack('2b', -10, 100))
+        self.assertEqual(data, ['-10', '100'])
+
         # type 4 (unsigned char)
         data = get_decoded(ihm.format_bcif._Uint8, b'\x00\xFF')
         self.assertEqual(data, ['0', '255'])
