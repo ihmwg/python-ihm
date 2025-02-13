@@ -1,3 +1,7 @@
+2.1 - 2025-02-12
+================
+  - Minor fixes to the C-accelerated BinaryCIF parser.
+
 2.0 - 2025-02-11
 ================
   - python-ihm no longer supports Python 2; the oldest supported version
