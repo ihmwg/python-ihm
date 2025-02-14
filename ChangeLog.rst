@@ -1,3 +1,7 @@
+2.2 - 2025-02-13
+================
+  - The C-accelerated BinaryCIF parser now supports a wider range of data types.
+
 2.1 - 2025-02-12
 ================
   - Minor fixes to the C-accelerated BinaryCIF parser.
