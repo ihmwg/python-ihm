@@ -922,17 +922,22 @@ class Tests(unittest.TestCase):
                                                     'columns': [c]}]}]}
 
         # Test normal usage
-        d = make_bcif(data=b'\xcc\x00\x00\x00',
-                      data_type=ihm.format_bcif._Int32,
-                      factor=100)
-        h = GenericHandler()
-        self._read_bcif_raw(d, {'_foo': h})
-        bar = h.data[0]['bar']
-        self.assertIsInstance(bar, str)
-        self.assertAlmostEqual(float(bar), 2.04, delta=0.01)
+        for (data, data_type) in (
+                (struct.pack('b', 104), ihm.format_bcif._Int8),
+                (struct.pack('B', 104), ihm.format_bcif._Uint8),
+                (struct.pack('<h', 104), ihm.format_bcif._Int16),
+                (struct.pack('<H', 104), ihm.format_bcif._Uint16),
+                (struct.pack('<i', 104), ihm.format_bcif._Int32),
+                (struct.pack('<I', 104), ihm.format_bcif._Uint32)):
+            d = make_bcif(data=data, data_type=data_type, factor=100)
+            h = GenericHandler()
+            self._read_bcif_raw(d, {'_foo': h})
+            bar = h.data[0]['bar']
+            self.assertIsInstance(bar, str)
+            self.assertAlmostEqual(float(bar), 1.04, delta=0.01)
 
         # Bad factor type
-        d = make_bcif(data=b'\xcc\x00\x00\x00',
+        d = make_bcif(data=struct.pack('<i', 204),
                       data_type=ihm.format_bcif._Int32,
                       factor='bad factor')
         h = GenericHandler()
@@ -940,9 +945,8 @@ class Tests(unittest.TestCase):
                           d, {'_foo': h})
 
         # Bad input type
-        d = make_bcif(data=b'\xcc\x00',
-                      data_type=ihm.format_bcif._Int16,
-                      factor=100)
+        d = make_bcif(data=struct.pack('<f', 42.0),
+                      data_type=ihm.format_bcif._Float32, factor=100)
         h = GenericHandler()
         self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
                           d, {'_foo': h})

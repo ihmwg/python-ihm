@@ -2414,27 +2414,48 @@ static bool decode_bcif_run_length(struct bcif_data *d,
   return true;
 }
 
+#define DECODE_BCIF_FIXED_POINT(datapt)                                 \
+  {                                                                     \
+    size_t i;                                                           \
+    /* We ignore srcType and always output double (not float) */        \
+    double *outdata = (double *)ihm_malloc(d->size * sizeof(double));   \
+    for (i = 0; i < d->size; ++i) {                                     \
+      outdata[i] = (double)datapt[i] / enc->factor;                     \
+    }                                                                   \
+    bcif_data_free(d);                                                  \
+    d->type = BCIF_DATA_DOUBLE;                                         \
+    d->data.float64 = outdata;                                          \
+  }
+
 /* Decode data using BinaryCIF FixedPoint encoding */
 static bool decode_bcif_fixed_point(struct bcif_data *d,
                                     struct bcif_encoding *enc,
                                     struct ihm_error **err)
 {
-  size_t i;
-  double *outdata;
-  if (d->type != BCIF_DATA_INT32) {
+  switch (d->type) {
+  case BCIF_DATA_INT8:
+    DECODE_BCIF_FIXED_POINT(d->data.int8);
+    break;
+  case BCIF_DATA_UINT8:
+    DECODE_BCIF_FIXED_POINT(d->data.uint8);
+    break;
+  case BCIF_DATA_INT16:
+    DECODE_BCIF_FIXED_POINT(d->data.int16);
+    break;
+  case BCIF_DATA_UINT16:
+    DECODE_BCIF_FIXED_POINT(d->data.uint16);
+    break;
+  case BCIF_DATA_INT32:
+    DECODE_BCIF_FIXED_POINT(d->data.int32);
+    break;
+  case BCIF_DATA_UINT32:
+    DECODE_BCIF_FIXED_POINT(d->data.uint32);
+    break;
+  default:
     ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
-                  "FixedPoint not given signed 32-bit integers as input");
+                  "FixedPoint not given integers as input");
     return false;
   }
-
-  /* We ignore srcType and always output double (not float) */
-  outdata = (double *)ihm_malloc(d->size * sizeof(double));
-  for (i = 0; i < d->size; ++i) {
-    outdata[i] = (double)d->data.int32[i] / enc->factor;
-  }
-  bcif_data_free(d);
-  d->type = BCIF_DATA_DOUBLE;
-  d->data.float64 = outdata;
   return true;
 }
 
