@@ -2353,44 +2353,64 @@ static bool decode_bcif_delta(struct bcif_data *d,
   return true;
 }
 
+#define DECODE_BCIF_RUN_LENGTH(datapt, datatyp)                               \
+  {                                                                           \
+  size_t i, k;                                                                \
+  int32_t outsz, j, *outdata;                                                 \
+  outsz = 0;                                                                  \
+  for (i = 1; i < d->size; i += 2) {                                          \
+    int32_t ts = datapt[i];                                                   \
+    /* Try to catch invalid (or malicious) counts. Counts cannot be negative
+       and the largest count seen in a very large PDB structure (3j3q) is
+       about 2.4m, so we are unlikely to see counts of 40m in real systems */ \
+    if (ts < 0 || ts > 40000000) {                                            \
+      ihm_error_set(err, IHM_ERROR_FILE_FORMAT,                               \
+                    "Bad run length repeat count %d", ts);                    \
+      return false;                                                           \
+    }                                                                         \
+    outsz += ts;                                                              \
+  }                                                                           \
+  assert(outsz > 0);                                                          \
+  outdata = (int32_t *)ihm_malloc(outsz * sizeof(int32_t));                   \
+  for (i = 0, k = 0; i < d->size; i += 2) {                                   \
+    int32_t value = datapt[i];                                                \
+    int32_t n_repeats = datapt[i + 1];                                        \
+    for (j = 0; j < n_repeats; ++j) {                                         \
+      outdata[k++] = value;                                                   \
+    }                                                                         \
+  }                                                                           \
+  bcif_data_free(d);                                                          \
+  d->type = BCIF_DATA_INT32;                                                  \
+  d->size = outsz;                                                            \
+  d->data.int32 = outdata;                                                    \
+}
+
 /* Decode data using BinaryCIF RunLength encoding */
 static bool decode_bcif_run_length(struct bcif_data *d,
                                    struct bcif_encoding *enc,
                                    struct ihm_error **err)
 {
-  size_t i, k;
-  int32_t outsz, j, *outdata;
-  /* todo: handle srcType != int32 */
-  if (d->type != BCIF_DATA_INT32) {
+  switch (d->type) {
+  case BCIF_DATA_INT8:
+    DECODE_BCIF_RUN_LENGTH(d->data.int8, int8_t);
+    break;
+  case BCIF_DATA_UINT8:
+    DECODE_BCIF_RUN_LENGTH(d->data.uint8, uint8_t);
+    break;
+  case BCIF_DATA_INT16:
+    DECODE_BCIF_RUN_LENGTH(d->data.int16, int16_t);
+    break;
+  case BCIF_DATA_UINT16:
+    DECODE_BCIF_RUN_LENGTH(d->data.uint16, uint16_t);
+    break;
+  case BCIF_DATA_INT32:
+    DECODE_BCIF_RUN_LENGTH(d->data.int32, int32_t);
+    break;
+  default:
     ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
-                  "RunLength not given signed 32-bit integers as input");
+                  "RunLength not given integers as input");
     return false;
   }
-  outsz = 0;
-  for (i = 1; i < d->size; i += 2) {
-    int32_t ts = d->data.int32[i];
-    /* Try to catch invalid (or malicious) counts. Counts cannot be negative
-       and the largest count seen in a very large PDB structure (3j3q) is
-       about 2.4m, so we are unlikely to see counts of 40m in real systems */
-    if (ts < 0 || ts > 40000000) {
-      ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
-                    "Bad run length repeat count %d", ts);
-      return false;
-    }
-    outsz += ts;
-  }
-  assert(outsz > 0);
-  outdata = (int32_t *)ihm_malloc(outsz * sizeof(int32_t));
-  for (i = 0, k = 0; i < d->size; i += 2) {
-    int32_t value = d->data.int32[i];
-    int32_t n_repeats = d->data.int32[i + 1];
-    for (j = 0; j < n_repeats; ++j) {
-      outdata[k++] = value;
-    }
-  }
-  free(d->data.int32);
-  d->size = outsz;
-  d->data.int32 = outdata;
   return true;
 }
 

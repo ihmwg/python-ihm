@@ -959,15 +959,44 @@ class Tests(unittest.TestCase):
             return {'dataBlocks': [{'categories': [{'name': '_foo',
                                                     'columns': [c]}]}]}
 
-        # Test normal usage
+        # Test normal usage with signed 32-bit integer data
         d = make_bcif(data=struct.pack('<2i', 5, 3),
                       data_type=ihm.format_bcif._Int32)
         h = GenericHandler()
         self._read_bcif_raw(d, {'_foo': h})
         self.assertEqual(h.data, [{'bar': '5'}] * 3)
 
+        # Test normal usage with signed 8-bit integer data
+        d = make_bcif(data=struct.pack('2b', 5, 3),
+                      data_type=ihm.format_bcif._Int8)
+        h = GenericHandler()
+        self._read_bcif_raw(d, {'_foo': h})
+        self.assertEqual(h.data, [{'bar': '5'}] * 3)
+
+        # Test normal usage with unsigned 8-bit integer data
+        d = make_bcif(data=struct.pack('2B', 5, 3),
+                      data_type=ihm.format_bcif._Uint8)
+        h = GenericHandler()
+        self._read_bcif_raw(d, {'_foo': h})
+        self.assertEqual(h.data, [{'bar': '5'}] * 3)
+
+        # Test normal usage with signed 16-bit integer data
+        d = make_bcif(data=struct.pack('<2h', 5, 3),
+                      data_type=ihm.format_bcif._Int16)
+        h = GenericHandler()
+        self._read_bcif_raw(d, {'_foo': h})
+        self.assertEqual(h.data, [{'bar': '5'}] * 3)
+
+        # Test normal usage with unsigned 16-bit integer data
+        d = make_bcif(data=struct.pack('<2H', 5, 3),
+                      data_type=ihm.format_bcif._Uint16)
+        h = GenericHandler()
+        self._read_bcif_raw(d, {'_foo': h})
+        self.assertEqual(h.data, [{'bar': '5'}] * 3)
+
         # Bad input type
-        d = make_bcif(data=b'\x05\x03', data_type=ihm.format_bcif._Int8)
+        d = make_bcif(data=struct.pack('<f', 42.0),
+                      data_type=ihm.format_bcif._Float32)
         h = GenericHandler()
         self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
                           d, {'_foo': h})
