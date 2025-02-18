@@ -998,22 +998,50 @@ class Tests(unittest.TestCase):
             return {'dataBlocks': [{'categories': [{'name': '_foo',
                                                     'columns': [c]}]}]}
 
-        # Test normal usage
-        d = make_bcif(data=b'\x05\x00\x00\x00\x03\x00\x00\x00',
+        # Test normal usage, 32-bit signed int
+        d = make_bcif(data=struct.pack('<2i', 5, -2),
                       data_type=ihm.format_bcif._Int32, origin=50)
         h = GenericHandler()
         self._read_bcif_raw(d, {'_foo': h})
-        self.assertEqual(h.data, [{'bar': '55'}, {'bar': '58'}])
+        self.assertEqual(h.data, [{'bar': '55'}, {'bar': '53'}])
+
+        # Test normal usage, 8-bit signed int
+        d = make_bcif(data=struct.pack('2b', 5, -2),
+                      data_type=ihm.format_bcif._Int8, origin=50)
+        h = GenericHandler()
+        self._read_bcif_raw(d, {'_foo': h})
+        self.assertEqual(h.data, [{'bar': '55'}, {'bar': '53'}])
+
+        # Test normal usage, 8-bit unsigned int
+        d = make_bcif(data=struct.pack('2B', 5, 20),
+                      data_type=ihm.format_bcif._Uint8, origin=50)
+        h = GenericHandler()
+        self._read_bcif_raw(d, {'_foo': h})
+        self.assertEqual(h.data, [{'bar': '55'}, {'bar': '75'}])
+
+        # Test normal usage, 16-bit signed int
+        d = make_bcif(data=struct.pack('<2h', 5, -2),
+                      data_type=ihm.format_bcif._Int16, origin=50)
+        h = GenericHandler()
+        self._read_bcif_raw(d, {'_foo': h})
+        self.assertEqual(h.data, [{'bar': '55'}, {'bar': '53'}])
+
+        # Test normal usage, 16-bit unsigned int
+        d = make_bcif(data=struct.pack('<2H', 5, 20),
+                      data_type=ihm.format_bcif._Uint16, origin=50)
+        h = GenericHandler()
+        self._read_bcif_raw(d, {'_foo': h})
+        self.assertEqual(h.data, [{'bar': '55'}, {'bar': '75'}])
 
         # Bad input type
-        d = make_bcif(data=b'\x05\x03', data_type=ihm.format_bcif._Int8,
-                      origin=50)
+        d = make_bcif(data=struct.pack('<f', 42.0),
+                      data_type=ihm.format_bcif._Float32, origin=50)
         h = GenericHandler()
         self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
                           d, {'_foo': h})
 
         # Bad origin type
-        d = make_bcif(data=b'\x05\x00\x00\x00\x03\x00\x00\x00',
+        d = make_bcif(data=struct.pack('<2i', 5, 3),
                       data_type=ihm.format_bcif._Int32, origin='foo')
         h = GenericHandler()
         self.assertRaises(_format.FileFormatError, self._read_bcif_raw,

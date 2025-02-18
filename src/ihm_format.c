@@ -2304,23 +2304,51 @@ static bool decode_bcif_integer_packing(struct bcif_data *d,
   return true;
 }
 
+#define DECODE_BCIF_DELTA(datapt, outpt, datatyp) \
+  {                                        \
+    int32_t value;                         \
+    size_t i;                              \
+    value = enc->origin;                   \
+    for (i = 0; i < d->size; ++i) {        \
+      value += datapt[i];                  \
+      outpt[i] = value;                    \
+    }                                      \
+  }
+
+#define DECODE_BCIF_DELTA_PROMOTE(datapt, datatyp)                       \
+  {                                                                      \
+    int32_t *outdata = (int32_t *)ihm_malloc(d->size * sizeof(int32_t)); \
+    DECODE_BCIF_DELTA(datapt, outdata, datatyp)                          \
+    bcif_data_free(d);                                                   \
+    d->type = BCIF_DATA_INT32;                                           \
+    d->data.int32 = outdata;                                             \
+  }
+
 /* Decode data using BinaryCIF Delta encoding */
 static bool decode_bcif_delta(struct bcif_data *d,
                               struct bcif_encoding *enc,
                               struct ihm_error **err)
 {
-  int32_t value;
-  size_t i;
-  /* todo: handle srcType != int32 */
-  if (d->type != BCIF_DATA_INT32) {
+  switch (d->type) {
+  case BCIF_DATA_INT8:
+    DECODE_BCIF_DELTA_PROMOTE(d->data.int8, int8_t);
+    break;
+  case BCIF_DATA_UINT8:
+    DECODE_BCIF_DELTA_PROMOTE(d->data.uint8, uint8_t);
+    break;
+  case BCIF_DATA_INT16:
+    DECODE_BCIF_DELTA_PROMOTE(d->data.int16, int16_t);
+    break;
+  case BCIF_DATA_UINT16:
+    DECODE_BCIF_DELTA_PROMOTE(d->data.uint16, uint16_t);
+    break;
+  case BCIF_DATA_INT32:
+    DECODE_BCIF_DELTA(d->data.int32, d->data.int32, int32_t);
+    break;
+  default:
     ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
-                  "Delta not given signed 32-bit integers as input");
+                  "Delta not given integers as input");
     return false;
-  }
-  value = enc->origin;
-  for (i = 0; i < d->size; ++i) {
-    value += d->data.int32[i];
-    d->data.int32[i] = value;
   }
   return true;
 }
