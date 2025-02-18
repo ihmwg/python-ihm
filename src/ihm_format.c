@@ -2357,6 +2357,11 @@ static bool decode_bcif_delta(struct bcif_data *d,
   {                                                                           \
   size_t i, k;                                                                \
   int32_t outsz, j, *outdata;                                                 \
+  if (d->size % 2 != 0) {                                                     \
+    ihm_error_set(err, IHM_ERROR_FILE_FORMAT,                                 \
+                  "Run length data size (%d) is not even", d->size);          \
+    return false;                                                             \
+  }                                                                           \
   outsz = 0;                                                                  \
   for (i = 1; i < d->size; i += 2) {                                          \
     int32_t ts = datapt[i];                                                   \

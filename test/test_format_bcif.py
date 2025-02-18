@@ -998,6 +998,13 @@ class Tests(unittest.TestCase):
         self._read_bcif_raw(d, {'_foo': h})
         self.assertEqual(h.data, [{'bar': '5'}] * 3)
 
+        # Data size should be even
+        d = make_bcif(data=struct.pack('<3H', 5, 3, 8),
+                      data_type=ihm.format_bcif._Uint16)
+        h = GenericHandler()
+        self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
+                          d, {'_foo': h})
+
         # Bad input type
         d = make_bcif(data=struct.pack('<f', 42.0),
                       data_type=ihm.format_bcif._Float32)
