@@ -1296,7 +1296,8 @@ class Tests(unittest.TestCase):
                            'encoding':
                            [{'kind': 'IntegerPacking'},
                             {'kind': 'ByteArray',
-                             'type': ihm.format_bcif._Int8}]},
+                             'type': ihm.format_bcif._Int8,
+                             'min': 1.0}]},
                   'mask': None}
             return {'dataBlocks': [{'categories': [{'name': '_foo',
                                                     'columns': [c1]}]}]}
@@ -1348,6 +1349,9 @@ class Tests(unittest.TestCase):
 
         # Exception in read_bcif_exact_string (str=0xdb)
         self.assertRaises(IndexError, run_test, [], ind=0xdb)
+
+        # Exception in read_bcif_any_double (float=0xca)
+        self.assertRaises(IndexError, run_test, [], ind=0xca)
 
         # Exception in read_bcif_string_dup (107=index of column name's
         # string size)
