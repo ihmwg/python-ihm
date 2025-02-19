@@ -697,6 +697,12 @@ class Tests(unittest.TestCase):
         h = GenericHandler()
         self._read_bcif_raw(d, {'_foo': h})
 
+        # Error trying to read mask map (or nil)
+        d = make_bcif(BAD_MSGPACK_TYPE)
+        h = GenericHandler()
+        self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
+                          d, {'_foo': h})
+
         # Mask of bad type
         d = make_bcif("foo")
         h = GenericHandler()
@@ -1233,6 +1239,30 @@ class Tests(unittest.TestCase):
         # Bad input type
         d = make_bcif(data=struct.pack('<3f', 0.0, 1.0, 2.0),
                       data_type=ihm.format_bcif._Float32)
+        h = GenericHandler()
+        self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
+                          d, {'_foo': h})
+
+        # Error trying to read encoding min parameter
+        d = make_bcif(data=struct.pack('3b', 0, 1, 2),
+                      data_type=ihm.format_bcif._Int8,
+                      minval=BAD_MSGPACK_TYPE)
+        h = GenericHandler()
+        self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
+                          d, {'_foo': h})
+
+        # Error trying to read encoding max parameter
+        d = make_bcif(data=struct.pack('3b', 0, 1, 2),
+                      data_type=ihm.format_bcif._Int8,
+                      maxval=BAD_MSGPACK_TYPE)
+        h = GenericHandler()
+        self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
+                          d, {'_foo': h})
+
+        # Error trying to read encoding numsteps parameter
+        d = make_bcif(data=struct.pack('3b', 0, 1, 2),
+                      data_type=ihm.format_bcif._Int8,
+                      numsteps='foo')
         h = GenericHandler()
         self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
                           d, {'_foo': h})
