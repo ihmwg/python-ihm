@@ -168,6 +168,8 @@ def _add_msgpack(d, fh):
         fh.write(d)
     elif isinstance(d, int):
         fh.write(struct.pack('>Bi', 0xce, d))
+    elif isinstance(d, float):
+        fh.write(struct.pack('>Bf', 0xca, d))
     elif d is None:
         fh.write(b'\xc0')
     elif d is BAD_MSGPACK_TYPE:
@@ -397,6 +399,18 @@ class Tests(unittest.TestCase):
         self.assertAlmostEqual(data[0], 1.20, delta=0.01)
         self.assertAlmostEqual(data[1], 1.23, delta=0.01)
         self.assertAlmostEqual(data[2], 0.12, delta=0.01)
+
+    def test_interval_quantization_decoder(self):
+        """Test IntervalQuantization decoder"""
+        d = ihm.format_bcif._IntervalQuantizationDecoder()
+        self.assertEqual(d._kind, 'IntervalQuantization')
+
+        data = list(d({'min': 1.0, 'max': 2.0, 'numSteps': 3},
+                      [0, 1, 2]))
+        self.assertEqual(len(data), 3)
+        self.assertAlmostEqual(data[0], 1.0, delta=0.01)
+        self.assertAlmostEqual(data[1], 1.5, delta=0.01)
+        self.assertAlmostEqual(data[2], 2.0, delta=0.01)
 
     def test_decode(self):
         """Test _decode function"""
@@ -1132,6 +1146,61 @@ class Tests(unittest.TestCase):
         # Bad input type
         d = make_bcif(data=struct.pack('<f', 42.0),
                       data_type=ihm.format_bcif._Float32)
+        h = GenericHandler()
+        self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
+                          d, {'_foo': h})
+
+    @unittest.skipIf(_format is None, "No C tokenizer")
+    def test_interval_quantization_encoding_c(self):
+        """Test handling of various BinaryCIF IntervalQuantization encodings"""
+        def make_bcif(data, data_type, minval=1, maxval=2, numsteps=11):
+            c = {'name': 'bar',
+                 'data': {'data': data,
+                          'encoding':
+                          [{'kind': 'IntervalQuantization',
+                            'min': minval, 'max': maxval,
+                            'numSteps': numsteps},
+                           {'kind': 'ByteArray', 'type': data_type}]}}
+            return {'dataBlocks': [{'categories': [{'name': '_foo',
+                                                    'columns': [c]}]}]}
+
+        # Test normal usage
+        for (data, data_type) in (
+                (struct.pack('3b', 0, 1, 2), ihm.format_bcif._Int8),
+                (struct.pack('3B', 0, 1, 2), ihm.format_bcif._Uint8),
+                (struct.pack('<3h', 0, 1, 2), ihm.format_bcif._Int16),
+                (struct.pack('<3H', 0, 1, 2), ihm.format_bcif._Uint16),
+                (struct.pack('<3i', 0, 1, 2), ihm.format_bcif._Int32),
+                (struct.pack('<3I', 0, 1, 2), ihm.format_bcif._Uint32)):
+            d = make_bcif(data=data, data_type=data_type,
+                          minval=1.0, maxval=2.0, numsteps=3)
+            h = GenericHandler()
+            self._read_bcif_raw(d, {'_foo': h})
+            for got, want in zip((x['bar'] for x in h.data), [1.0, 1.5, 2.0]):
+                self.assertIsInstance(got, str)
+                self.assertAlmostEqual(float(got), want, delta=0.01)
+
+        # Min, max int (not float)
+        d = make_bcif(data=struct.pack('3b', 0, 1, 2),
+                      data_type=ihm.format_bcif._Int8,
+                      minval=1, maxval=2, numsteps=3)
+        h = GenericHandler()
+        self._read_bcif_raw(d, {'_foo': h})
+        for got, want in zip((x['bar'] for x in h.data), [1.0, 1.5, 2.0]):
+            self.assertIsInstance(got, str)
+            self.assertAlmostEqual(float(got), want, delta=0.01)
+
+        # Bad input type
+        d = make_bcif(data=struct.pack('<3f', 0.0, 1.0, 2.0),
+                      data_type=ihm.format_bcif._Float32)
+        h = GenericHandler()
+        self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
+                          d, {'_foo': h})
+
+        # Bad number of steps
+        d = make_bcif(data=struct.pack('3b', 0, 1, 2),
+                      data_type=ihm.format_bcif._Int8,
+                      numsteps=1)
         h = GenericHandler()
         self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
                           d, {'_foo': h})

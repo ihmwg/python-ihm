@@ -1506,6 +1506,53 @@ static bool read_bcif_map_or_nil(struct ihm_reader *reader, uint32_t *map_size,
   }
 }
 
+/* Read the next number (any kind of int or float) object from the BinaryCIF
+   file, and return it as a double.
+ */
+static bool read_bcif_any_double(struct ihm_reader *reader, double *value,
+                                 struct ihm_error **err)
+{
+  cmp_object_t obj;
+  if (!cmp_read_object(&reader->cmp, &obj)) {
+    if (!ihm_error_move(err, &reader->cmp_read_err)) {
+      ihm_error_set(err, IHM_ERROR_FILE_FORMAT, "%s",
+                    cmp_strerror(&reader->cmp));
+    }
+    return false;
+  }
+  switch(obj.type) {
+  case CMP_TYPE_POSITIVE_FIXNUM:
+  case CMP_TYPE_UINT8:
+    *value = obj.as.u8;
+    return true;
+  case CMP_TYPE_UINT16:
+    *value = obj.as.u16;
+    return true;
+  case CMP_TYPE_UINT32:
+    *value = obj.as.u32;
+    return true;
+  case CMP_TYPE_NEGATIVE_FIXNUM:
+  case CMP_TYPE_SINT8:
+    *value = obj.as.s8;
+    return true;
+  case CMP_TYPE_SINT16:
+    *value = obj.as.s16;
+    return true;
+  case CMP_TYPE_SINT32:
+    *value = obj.as.s32;
+    return true;
+  case CMP_TYPE_FLOAT:
+    *value = obj.as.flt;
+    return true;
+  case CMP_TYPE_DOUBLE:
+    *value = obj.as.dbl;
+    return true;
+  default:
+    ihm_error_set(err, IHM_ERROR_FILE_FORMAT, "Was expecting a number");
+    return false;
+  }
+}
+
 /* Read the next msgpack object from the BinaryCIF file; it must be an array.
    Return true on success and return the number of elements in the array;
    return false on error (and set err)
@@ -1785,7 +1832,8 @@ typedef enum {
   BCIF_ENC_INTEGER_PACKING,
   BCIF_ENC_DELTA,
   BCIF_ENC_RUN_LENGTH,
-  BCIF_ENC_FIXED_POINT
+  BCIF_ENC_FIXED_POINT,
+  BCIF_ENC_INTERVAL_QUANT
 } bcif_encoding_kind;
 
 /* An encoding used to compress raw data in BinaryCIF */
@@ -1796,6 +1844,12 @@ struct bcif_encoding {
   int32_t origin;
   /* Factor (for fixed point encoding) */
   int32_t factor;
+  /* Min value (for interval quantization encoding) */
+  double minval;
+  /* Max value (for interval quantization encoding) */
+  double maxval;
+  /* Number of steps (for interval quantization encoding) */
+  int32_t numsteps;
   /* ByteArray type */
   int32_t type;
   /* Encoding of StringArray data */
@@ -1846,6 +1900,9 @@ static struct bcif_encoding *bcif_encoding_new()
   enc->kind = BCIF_ENC_NONE;
   enc->origin = 0;
   enc->factor = 1;
+  enc->minval = 0.;
+  enc->maxval = 0.;
+  enc->numsteps = 1;
   enc->type = -1;
   enc->first_data_encoding = NULL;
   enc->first_offset_encoding = NULL;
@@ -1964,6 +2021,8 @@ static bool read_bcif_encoding(struct ihm_reader *reader,
         enc->kind = BCIF_ENC_RUN_LENGTH;
       } else if (strcmp(str, "FixedPoint") == 0) {
         enc->kind = BCIF_ENC_FIXED_POINT;
+      } else if (strcmp(str, "IntervalQuantization") == 0) {
+        enc->kind = BCIF_ENC_INTERVAL_QUANT;
       }
     } else if (strcmp(str, "dataEncoding") == 0) {
       /* dataEncoding and offsetEncoding should not include StringArray
@@ -1986,6 +2045,12 @@ static bool read_bcif_encoding(struct ihm_reader *reader,
       if (!read_bcif_int(reader, &enc->factor, err)) return false;
     } else if (strcmp(str, "type") == 0) {
       if (!read_bcif_int(reader, &enc->type, err)) return false;
+    } else if (strcmp(str, "min") == 0) {
+      if (!read_bcif_any_double(reader, &enc->minval, err)) return false;
+    } else if (strcmp(str, "max") == 0) {
+      if (!read_bcif_any_double(reader, &enc->maxval, err)) return false;
+    } else if (strcmp(str, "numSteps") == 0) {
+      if (!read_bcif_int(reader, &enc->numsteps, err)) return false;
     } else {
       if (!skip_bcif_object_no_limit(reader, err)) return false;
     }
@@ -2464,6 +2529,58 @@ static bool decode_bcif_fixed_point(struct bcif_data *d,
   return true;
 }
 
+#define DECODE_BCIF_INTERVAL_QUANT(datapt)                              \
+  {                                                                     \
+    size_t i;                                                           \
+    /* We ignore srcType and always output double (not float) */        \
+    double *outdata = (double *)ihm_malloc(d->size * sizeof(double));   \
+    double delta = (enc->maxval - enc->minval) / (enc->numsteps - 1);   \
+    for (i = 0; i < d->size; ++i) {                                     \
+      outdata[i] = enc->minval + delta * datapt[i];                     \
+    }                                                                   \
+    bcif_data_free(d);                                                  \
+    d->type = BCIF_DATA_DOUBLE;                                         \
+    d->data.float64 = outdata;                                          \
+  }
+
+/* Decode data using BinaryCIF IntervalQuantization encoding */
+static bool decode_bcif_interval_quant(struct bcif_data *d,
+                                       struct bcif_encoding *enc,
+                                       struct ihm_error **err)
+{
+  if (enc->numsteps < 2) {
+    ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
+                  "IntervalQuantization num_steps (%d) must be at least 2",
+                  enc->numsteps);
+    return false;
+  }
+  switch (d->type) {
+  case BCIF_DATA_INT8:
+    DECODE_BCIF_INTERVAL_QUANT(d->data.int8);
+    break;
+  case BCIF_DATA_UINT8:
+    DECODE_BCIF_INTERVAL_QUANT(d->data.uint8);
+    break;
+  case BCIF_DATA_INT16:
+    DECODE_BCIF_INTERVAL_QUANT(d->data.int16);
+    break;
+  case BCIF_DATA_UINT16:
+    DECODE_BCIF_INTERVAL_QUANT(d->data.uint16);
+    break;
+  case BCIF_DATA_INT32:
+    DECODE_BCIF_INTERVAL_QUANT(d->data.int32);
+    break;
+  case BCIF_DATA_UINT32:
+    DECODE_BCIF_INTERVAL_QUANT(d->data.uint32);
+    break;
+  default:
+    ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
+                  "IntervalQuantization not given integers as input");
+    return false;
+  }
+  return true;
+}
+
 /* Return true iff the data type is int32, or another integer that
    can be promoted to that type */
 static bool require_bcif_data_is_int32(struct bcif_data *d)
@@ -2588,6 +2705,9 @@ static bool decode_bcif_data(struct bcif_data *d, struct bcif_encoding *enc,
       break;
     case BCIF_ENC_FIXED_POINT:
       if (!decode_bcif_fixed_point(d, enc, err)) return false;
+      break;
+    case BCIF_ENC_INTERVAL_QUANT:
+      if (!decode_bcif_interval_quant(d, enc, err)) return false;
       break;
     case BCIF_ENC_STRING_ARRAY:
       if (!decode_bcif_data(&enc->offsets, enc->first_offset_encoding,
