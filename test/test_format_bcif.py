@@ -145,6 +145,11 @@ class _BadMsgPackType:
     pass
 
 
+class _RawMsgPack:
+    def __init__(self, val):
+        self._val = val
+
+
 BAD_MSGPACK_TYPE = _BadMsgPackType()
 
 
@@ -170,6 +175,8 @@ def _add_msgpack(d, fh):
         fh.write(struct.pack('>Bi', 0xce, d))
     elif isinstance(d, float):
         fh.write(struct.pack('>Bf', 0xca, d))
+    elif isinstance(d, _RawMsgPack):
+        fh.write(d._val)
     elif d is None:
         fh.write(b'\xc0')
     elif d is BAD_MSGPACK_TYPE:
@@ -1189,6 +1196,31 @@ class Tests(unittest.TestCase):
         for got, want in zip((x['bar'] for x in h.data), [1.0, 1.5, 2.0]):
             self.assertIsInstance(got, str)
             self.assertAlmostEqual(float(got), want, delta=0.01)
+
+        # min can be any msgpack int or float type
+        for raw, positive in (
+                (struct.pack('B', 100), True),             # positive fixint
+                (struct.pack('B', 0xe0 | 22), False),      # negative fixint
+                (struct.pack('2B', 0xcc, 100), True),      # uint8
+                (struct.pack('>BH', 0xcd, 100), True),     # uint16
+                (struct.pack('>BI', 0xce, 100), True),     # uint32
+                (struct.pack('Bb', 0xd0, 100), True),      # int8
+                (struct.pack('Bb', 0xd0, -10), False),
+                (struct.pack('>Bh', 0xd1, 100), True),     # int16
+                (struct.pack('>Bh', 0xd1, -10), False),
+                (struct.pack('>Bi', 0xd2, 100), True),     # int32
+                (struct.pack('>Bi', 0xd2, -10), False),
+                (struct.pack('>Bf', 0xca, 100.0), True),   # float32
+                (struct.pack('>Bd', 0xcb, 100.0), True)):  # float64
+            d = make_bcif(data=struct.pack('b', 0),
+                          data_type=ihm.format_bcif._Int8,
+                          minval=_RawMsgPack(raw), maxval=200, numsteps=3)
+            h = GenericHandler()
+            self._read_bcif_raw(d, {'_foo': h})
+            bar = h.data[0]['bar']
+            self.assertIsInstance(bar, str)
+            self.assertAlmostEqual(float(bar), 100.0 if positive else -10.0,
+                                   delta=0.01)
 
         # Bad input type
         d = make_bcif(data=struct.pack('<3f', 0.0, 1.0, 2.0),
