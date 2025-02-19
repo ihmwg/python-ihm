@@ -1222,6 +1222,14 @@ class Tests(unittest.TestCase):
             self.assertAlmostEqual(float(bar), 100.0 if positive else -10.0,
                                    delta=0.01)
 
+        # Bad number type
+        d = make_bcif(data=struct.pack('b', 0),
+                      data_type=ihm.format_bcif._Int8,
+                      minval='foo', maxval=200, numsteps=3)
+        h = GenericHandler()
+        self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
+                          d, {'_foo': h})
+
         # Bad input type
         d = make_bcif(data=struct.pack('<3f', 0.0, 1.0, 2.0),
                       data_type=ihm.format_bcif._Float32)
