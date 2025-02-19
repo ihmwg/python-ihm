@@ -1033,7 +1033,7 @@ class Tests(unittest.TestCase):
                           d, {'_foo': h})
 
         # Bad input type
-        d = make_bcif(data=struct.pack('<f', 42.0),
+        d = make_bcif(data=struct.pack('<2f', 42.0, 1.0),
                       data_type=ihm.format_bcif._Float32)
         h = GenericHandler()
         self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
