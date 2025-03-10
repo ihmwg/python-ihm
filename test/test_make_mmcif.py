@@ -90,6 +90,7 @@ class Tests(unittest.TestCase):
         m = s.state_groups[0][0][0][0]
         self.assertEqual(m.protocol.name, 'Modeling')
         self.assertEqual(m.assembly.name, 'Our complete assembly')
+        self.assertEqual(m.assembly.description, 'All our known components')
         chain_a, chain_b, = m.representation
         self.assertIsInstance(chain_a, ihm.representation.AtomicSegment)
         self.assertTrue(chain_a.rigid)
