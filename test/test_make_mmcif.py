@@ -99,6 +99,16 @@ class Tests(unittest.TestCase):
         self.assertEqual(s.title, 'Output from simple-docking example')
         os.unlink('output.cif')
 
+    def test_complete_assembly_order(self):
+        """Check that assembly order does not matter"""
+        incif = utils.get_input_file_name(TOPDIR, 'docking_order.cif')
+        subprocess.check_call([sys.executable, MAKE_MMCIF, incif])
+        with open('output.cif') as fh:
+            s, = ihm.reader.read(fh)
+        m = s.state_groups[0][0][0][0]
+        self.assertEqual(m.assembly.name, 'Our complete assembly')
+        self.assertEqual(m.assembly.description, 'All our known components')
+
     def test_add_polymers(self):
         """Check that make_mmcif combines polymer information"""
         # mini.cif contains two chains A, B
