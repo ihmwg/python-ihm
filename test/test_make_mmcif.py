@@ -237,7 +237,7 @@ class Tests(unittest.TestCase):
         with open(incif) as fh:
             s, = ihm.reader.read(fh)
         self.assertEqual([c.id for c in s.entities[0].sequence],
-                         ['ALA', 'HIS', 'HIE', 'HIP'])
+                         ['ALA', 'HIS', 'HIE', 'HIP', 'ALA'])
 
         subprocess.check_call([sys.executable, MAKE_MMCIF,
                                '--histidine', incif])
@@ -245,13 +245,16 @@ class Tests(unittest.TestCase):
             s, = ihm.reader.read(fh)
         # All histidines should now be HIS
         self.assertEqual([c.id for c in s.entities[0].sequence],
-                         ['ALA', 'HIS', 'HIS', 'HIS'])
-        # All atoms should now be ATOM not HETATM
+                         ['ALA', 'HIS', 'HIS', 'HIS', 'ALA'])
+        # All modified histidine atoms should now be ATOM not HETATM;
+        # the last atom in the last ALA residue (which was marked HETATM in
+        # the input) should still be HETATM.
         for state_group in s.state_groups:
             for state in state_group:
                 for model_group in state:
                     for model in model_group:
-                        self.assertFalse(any(x.het for x in model._atoms))
+                        self.assertEqual([x.het for x in model._atoms],
+                                         [False, False, False, False, True])
         os.unlink('output.cif')
 
 
