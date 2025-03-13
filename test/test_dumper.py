@@ -874,7 +874,7 @@ _struct_ref_seq_dif.details
         sd1 = ihm.reference.SeqDif(seq_id=2, db_monomer=lpep['G'],
                                    monomer=None, details='deletion')
         sd2 = ihm.reference.SeqDif(seq_id=3, db_monomer=lpep['C'],
-                                  monomer=None, details='insertion')
+                                   monomer=None, details='insertion')
         r = ihm.reference.UniProtSequence(
             db_code='NUP84_YEAST', accession='P52891', sequence='MEWPTYQT',
             details='test sequence')
