@@ -171,6 +171,11 @@ class ModelGroup(list):
         self.details = details
         super(ModelGroup, self).__init__(elements)
 
+    # Kind of ugly but needed so we can use ModelGroup as keys for
+    # the ihm.restraint.CrossLink.fits dict
+    def __hash__(self):
+        return hash(tuple(self))
+
 
 class State(list):
     """A set of model groups that constitute a single state of the system.

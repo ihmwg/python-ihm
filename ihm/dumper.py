@@ -2425,7 +2425,8 @@ class _CrossLinkDumper(Dumper):
         self.dump_list(system, writer)
         pseudo_xls = self.dump_restraint(system, writer)
         self.dump_pseudo_sites(system, writer, pseudo_xls)
-        self.dump_results(system, writer)
+        self.dump_result(system, writer)
+        self.dump_result_parameters(system, writer)
 
     def dump_list(self, system, writer):
         with writer.loop("_ihm_cross_link_list",
@@ -2506,7 +2507,36 @@ class _CrossLinkDumper(Dumper):
                          pseudo_site_id=p.site._id,
                          model_id=p.model._id if p.model else None)
 
-    def dump_results(self, system, writer):
+    def dump_result(self, system, writer):
+        with writer.loop("_ihm_cross_link_result",
+                         ["id", "restraint_id", "ensemble_id",
+                          "model_group_id", "num_models", "distance_threshold",
+                          "median_distance", "details"]) as lp:
+            ordinal = itertools.count(1)
+            for r in self._all_restraints(system):
+                for xl in r.cross_links:
+                    # all fits ordered by ID
+                    for g, fit in sorted(
+                            (it for it in xl.fits.items()
+                             if not isinstance(it[0], ihm.model.Model)),
+                            key=lambda i: i[0]._id):
+                        if isinstance(g, ihm.model.Ensemble):
+                            ens_id = g._id
+                            if g.model_group is None:
+                                mg_id = None
+                            else:
+                                mg_id = g.model_group._id
+                        else:
+                            mg_id = g._id
+                            ens_id = None
+                        lp.write(id=next(ordinal), restraint_id=xl._id,
+                                 model_group_id=mg_id, ensemble_id=ens_id,
+                                 num_models=fit.num_models,
+                                 distance_threshold=xl.distance.distance,
+                                 median_distance=fit.median_distance,
+                                 details=fit.details)
+
+    def dump_result_parameters(self, system, writer):
         with writer.loop("_ihm_cross_link_result_parameters",
                          ["id", "restraint_id", "model_id",
                           "psi", "sigma_1", "sigma_2"]) as lp:
@@ -2514,8 +2544,10 @@ class _CrossLinkDumper(Dumper):
             for r in self._all_restraints(system):
                 for xl in r.cross_links:
                     # all fits ordered by model ID
-                    for model, fit in sorted(xl.fits.items(),
-                                             key=lambda i: i[0]._id):
+                    for model, fit in sorted(
+                            (it for it in xl.fits.items()
+                             if isinstance(it[0], ihm.model.Model)),
+                            key=lambda i: i[0]._id):
                         lp.write(id=next(ordinal), restraint_id=xl._id,
                                  model_id=model._id, psi=fit.psi,
                                  sigma_1=fit.sigma1, sigma_2=fit.sigma2)

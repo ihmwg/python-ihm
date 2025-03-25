@@ -2999,6 +2999,21 @@ class _CrossLinkPseudoSiteHandler(Handler):
 
 
 class _CrossLinkResultHandler(Handler):
+    category = '_ihm_cross_link_result'
+
+    def __call__(self, restraint_id, ensemble_id, model_group_id,
+                 num_models: int, median_distance: float, details):
+        if ensemble_id:
+            g = self.sysr.ensembles.get_by_id(ensemble_id)
+        else:
+            g = self.sysr.model_groups.get_by_id(model_group_id)
+        xl = self.sysr.cross_links.get_by_id(restraint_id)
+        xl.fits[g] = ihm.restraint.CrossLinkGroupFit(
+            num_models=num_models, median_distance=median_distance,
+            details=details)
+
+
+class _CrossLinkResultParametersHandler(Handler):
     category = '_ihm_cross_link_result_parameters'
     ignored_keywords = ['ordinal_id']
 
@@ -3875,6 +3890,7 @@ class IHMVariant(Variant):
         _NonPolySchemeHandler, _BranchSchemeHandler, _EntityBranchListHandler,
         _BranchDescriptorHandler, _BranchLinkHandler, _CrossLinkListHandler,
         _CrossLinkRestraintHandler, _CrossLinkPseudoSiteHandler,
+        _CrossLinkResultParametersHandler,
         _CrossLinkResultHandler, _StartingModelSeqDifHandler,
         _OrderedModelHandler, _OrderedEnsembleHandler,
         _MultiStateSchemeHandler, _MultiStateSchemeConnectivityHandler,

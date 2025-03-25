@@ -3346,6 +3346,18 @@ _ihm_cross_link_result_parameters.sigma_1
 _ihm_cross_link_result_parameters.sigma_2
 1 1 201 0.100 4.200 2.100
 2 1 301 . . .
+#
+loop_
+_ihm_cross_link_result.id
+_ihm_cross_link_result.restraint_id
+_ihm_cross_link_result.ensemble_id
+_ihm_cross_link_result.model_group_id
+_ihm_cross_link_result.num_models
+_ihm_cross_link_result.distance_threshold
+_ihm_cross_link_result.median_distance
+_ihm_cross_link_result.details
+1 1 401 . 10 99.0 10.0 'details 1'
+2 1 . 501 20 99.0 20.0 .
 """
         # Order of categories shouldn't matter
         for text in (xl_list + xl_rsr + xl_fit, xl_fit + xl_rsr + xl_list):
@@ -3353,18 +3365,34 @@ _ihm_cross_link_result_parameters.sigma_2
             s, = ihm.reader.read(fh)
             r, = s.restraints
             xl, = r.cross_links
-            # Sort fits by model ID
+            # Sort fits by ID
             fits = sorted(xl.fits.items(), key=lambda x: x[0]._id)
-            self.assertEqual(len(fits), 2)
+            self.assertEqual(len(fits), 4)
+            self.assertIsInstance(fits[0][0], ihm.model.Model)
             self.assertEqual(fits[0][0]._id, '201')
             self.assertAlmostEqual(fits[0][1].psi, 0.100, delta=0.1)
             self.assertAlmostEqual(fits[0][1].sigma1, 4.200, delta=0.1)
             self.assertAlmostEqual(fits[0][1].sigma2, 2.100, delta=0.1)
 
             self.assertEqual(fits[1][0]._id, '301')
+            self.assertIsInstance(fits[1][0], ihm.model.Model)
             self.assertIsNone(fits[1][1].psi)
             self.assertIsNone(fits[1][1].sigma1)
             self.assertIsNone(fits[1][1].sigma2)
+
+            self.assertEqual(fits[2][0]._id, '401')
+            self.assertIsInstance(fits[2][0], ihm.model.Ensemble)
+            self.assertEqual(fits[2][1].num_models, 10)
+            self.assertAlmostEqual(fits[2][1].median_distance, 10.0,
+                                   delta=0.01)
+            self.assertEqual(fits[2][1].details, 'details 1')
+
+            self.assertEqual(fits[3][0]._id, '501')
+            self.assertIsInstance(fits[3][0], ihm.model.ModelGroup)
+            self.assertEqual(fits[3][1].num_models, 20)
+            self.assertAlmostEqual(fits[3][1].median_distance, 20.0,
+                                   delta=0.01)
+            self.assertIsNone(fits[3][1].details)
 
     def test_ordered_model_handler(self):
         """Test OrderedModelHandler"""

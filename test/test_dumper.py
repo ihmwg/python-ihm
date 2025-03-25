@@ -3445,10 +3445,28 @@ _ihm_2dem_class_average_fitting.tr_vector[3]
             restrain_all=True, pseudo2=[psxl, psxl2])
         r.cross_links.extend((xl1, xl2, xl3, xl4, xl5))
 
-        model = MockObject()
+        model = ihm.model.Model(assembly=None, protocol=None,
+                                representation=None)
         model._id = 201
         xl1.fits[model] = ihm.restraint.CrossLinkFit(psi=0.1, sigma1=4.2,
                                                      sigma2=2.1)
+
+        # Fit of a ModelGroup
+        model_group = ihm.model.ModelGroup([model])
+        model_group._id = 301
+        xl1.fits[model_group] = ihm.restraint.CrossLinkGroupFit(
+            num_models=40, median_distance=4.0, details='test fit')
+
+        # Fit of an Ensemble both with and without a ModelGroup
+        ens1 = ihm.model.Ensemble(model_group=model_group, num_models=10)
+        ens1._id = 401
+        xl1.fits[ens1] = ihm.restraint.CrossLinkGroupFit(
+            num_models=30, median_distance=3.0)
+
+        ens2 = ihm.model.Ensemble(model_group=None, num_models=20)
+        ens2._id = 501
+        xl1.fits[ens2] = ihm.restraint.CrossLinkGroupFit(
+            num_models=50, median_distance=9.0)
 
         ihm.dumper._EntityDumper().finalize(system)  # assign entity IDs
         ihm.dumper._StructAsymDumper().finalize(system)  # assign asym IDs
@@ -3518,6 +3536,20 @@ _ihm_cross_link_pseudo_site.model_id
 1 3 2 89 .
 2 4 2 89 99
 3 4 2 89 990
+#
+#
+loop_
+_ihm_cross_link_result.id
+_ihm_cross_link_result.restraint_id
+_ihm_cross_link_result.ensemble_id
+_ihm_cross_link_result.model_group_id
+_ihm_cross_link_result.num_models
+_ihm_cross_link_result.distance_threshold
+_ihm_cross_link_result.median_distance
+_ihm_cross_link_result.details
+1 1 . 301 40 25.000 4.000 'test fit'
+2 1 401 301 30 25.000 3.000 .
+3 1 501 . 50 25.000 9.000 .
 #
 #
 loop_
