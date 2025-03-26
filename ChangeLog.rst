@@ -1,3 +1,8 @@
+2.4 - 2025-03-25
+================
+  - Add support for fits of model groups or ensembles to cross-links
+    using the new :class:`ihm.restraint.CrossLinkGroupFit` class.
+
 2.3 - 2025-03-13
 ================
   - The C-accelerated BinaryCIF parser now supports interval quantization
