@@ -2805,6 +2805,21 @@ N
         # Should work though if checks are disabled
         _ = _get_dumper_output(dumper, system, check=False)
 
+    def test_model_dumper_assembly_asym_check(self):
+        """Test ModelDumper Assembly asym check"""
+        system, model, asym = self._make_test_model()
+
+        dumper = ihm.dumper._ModelDumper()
+        dumper.finalize(system)  # assign model/group IDs
+
+        # No atoms for assembly's asym
+        with self.assertRaises(ValueError) as cm:
+            _get_dumper_output(dumper, system)
+        self.assertIn("reference asym IDs that don't have coordinates",
+                      str(cm.exception))
+        # Should work though if checks are disabled
+        _ = _get_dumper_output(dumper, system, check=False)
+
     def test_model_dumper_water_atoms(self):
         """Test ModelDumper with water atoms"""
         system, model, asym = self._make_test_model(water=True)

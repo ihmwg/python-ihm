@@ -1797,6 +1797,46 @@ class _RangeChecker:
                              for x in self.repr_asym_ids[asym._id])))
 
 
+class _AssemblyChecker:
+    """Check that all Assembly asyms are in a Model"""
+    def __init__(self):
+        # Map from Assembly id to set of Asym ids
+        self._asmb_asyms = {}
+
+        # Map from Assembly id to set of all represented Asym ids (in models)
+        self._asmb_model_asyms = {}
+
+    def add_model_asyms(self, model, seen_asym_ids):
+        """Add a set of asym IDs seen in atoms or spheres in the model"""
+        asmb = model.assembly
+        # If this is the first time we've seen this assembly, get its
+        # declared set of asym IDs
+        if asmb._id not in self._asmb_asyms:
+            asyms = frozenset(x._id for x in asmb if hasattr(x, 'entity'))
+            self._asmb_asyms[asmb._id] = asyms
+        # Add asym IDs from model
+        if asmb._id not in self._asmb_model_asyms:
+            self._asmb_model_asyms[asmb._id] = set()
+        self._asmb_model_asyms[asmb._id] |= seen_asym_ids
+
+    def check(self):
+        """Make sure each Assembly only references asym IDs that are
+           represented by atoms or spheres in at least one Model, or
+           raise ValueError."""
+        def get_extra_asyms():
+            for asmb_id, asyms in self._asmb_asyms.items():
+                extra = asyms - self._asmb_model_asyms[asmb_id]
+                if extra:
+                    yield asmb_id, ", ".join(sorted(extra))
+
+        err = "; ".join("assembly ID %s, asym IDs %s" % extra
+                        for extra in get_extra_asyms())
+        if err:
+            raise ValueError(
+                "The following Assemblies reference asym IDs that don't "
+                "have coordinates in any Model: " + err)
+
+
 class _ModelDumperBase(Dumper):
 
     def finalize(self, system):
@@ -1826,10 +1866,20 @@ class _ModelDumperBase(Dumper):
            in atom_site. This table is needed by atom_site. Note that we
            output it *after* atom_site (otherwise we would need to iterate
            through all atoms in the system twice)."""
+        # Also check all assemblies, after dumping all atoms/spheres
+        if self._check:
+            self._assembly_checker.check()
         elements = [x for x in sorted(seen_types.keys()) if x is not None]
         with writer.loop("_atom_type", ["symbol"]) as lp:
             for element in elements:
                 lp.write(symbol=element)
+
+    def __get_assembly_checker(self):
+        if not hasattr(self, '_asmb_check'):
+            self._asmb_check = _AssemblyChecker()
+        return self._asmb_check
+
+    _assembly_checker = property(__get_assembly_checker)
 
     def dump_atoms(self, system, writer, add_ihm=True):
         seen_types = {}
@@ -1843,9 +1893,11 @@ class _ModelDumperBase(Dumper):
             it.append("ihm_model_id")
         with writer.loop("_atom_site", it) as lp:
             for group, model in system._all_models():
+                seen_asym_ids = set()
                 rngcheck = _RangeChecker(model, self._check)
                 for atom in model.get_atoms():
                     rngcheck(atom)
+                    seen_asym_ids.add(atom.asym_unit._id)
                     seq_id = 1 if atom.seq_id is None else atom.seq_id
                     label_seq_id = atom.seq_id
                     if not atom.asym_unit.entity.is_polymeric():
@@ -1871,6 +1923,7 @@ class _ModelDumperBase(Dumper):
                              occupancy=atom.occupancy,
                              pdbx_PDB_model_num=model._id,
                              ihm_model_id=model._id)
+                self._assembly_checker.add_model_asyms(model, seen_asym_ids)
         return seen_types
 
 
@@ -1919,8 +1972,10 @@ class _ModelDumper(_ModelDumperBase):
                           "model_id"]) as lp:
             for group, model in system._all_models():
                 rngcheck = _RangeChecker(model, self._check)
+                seen_asym_ids = set()
                 for sphere in model.get_spheres():
                     rngcheck(sphere)
+                    seen_asym_ids.add(sphere.asym_unit._id)
                     lp.write(id=next(ordinal),
                              entity_id=sphere.asym_unit.entity._id,
                              seq_id_begin=sphere.seq_id_range[0],
@@ -1929,6 +1984,7 @@ class _ModelDumper(_ModelDumperBase):
                              Cartn_x=sphere.x, Cartn_y=sphere.y,
                              Cartn_z=sphere.z, object_radius=sphere.radius,
                              rmsf=sphere.rmsf, model_id=model._id)
+                self._assembly_checker.add_model_asyms(model, seen_asym_ids)
 
 
 class _NotModeledResidueRangeDumper(Dumper):
