@@ -14,6 +14,9 @@ Requires: python3-msgpack
 %else
 BuildRequires: sed
 %endif
+%if 0%{?fedora} >= 42
+BuildRequires: python3-pytest
+%endif
 
 %description
 This is a Python package to assist in handling mmCIF and BinaryCIF files
@@ -30,7 +33,11 @@ sed -i -e "s/install_requires=\['msgpack'\]/#/" setup.py
 %{__python3} setup.py install --root=${RPM_BUILD_ROOT} --record=INSTALLED_FILES
 
 %check
+%if 0%{?fedora} >= 42
+%pytest ihm/test.py
+%else
 %{__python3} setup.py test
+%endif
 
 %files -f INSTALLED_FILES
 %defattr(-,root,root)
