@@ -25,8 +25,8 @@ class ChemCompAtomHandler:
 cca = ChemCompAtomHandler()
 for resname in sys.argv[1:]:
     with urllib.request.urlopen(
-                'http://ligand-expo.rcsb.org/reports/%s/%s/%s.cif'
-                % (resname[:1], resname, resname)) as fh:
+            'http://ligand-expo.rcsb.org/reports/%s/%s/%s.cif'
+            % (resname[:1], resname, resname)) as fh:
         c = ihm.format.CifReader(fh, category_handler={'_chem_comp_atom': cca})
         c.read_file()
 
