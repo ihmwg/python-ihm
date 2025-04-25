@@ -259,10 +259,16 @@ class Tests(unittest.TestCase):
 
     def test_check_non_canon_atom_standard(self):
         """Test check for non-canonical atom names, standard restypes"""
+        minicif = utils.get_input_file_name(TOPDIR, 'mini.cif')
         incif = utils.get_input_file_name(TOPDIR, 'non_canon_atom.cif')
 
         # Should work fine without check
         subprocess.check_call([sys.executable, MAKE_MMCIF, incif])
+        os.unlink('output.cif')
+
+        # Should also work fine for file with canonical atom names
+        subprocess.check_call([sys.executable, MAKE_MMCIF,
+                               "--check_atom_names=standard", minicif])
         os.unlink('output.cif')
 
         # Should fail with check enabled
