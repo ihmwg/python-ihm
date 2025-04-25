@@ -21,6 +21,87 @@ from . import location
 from . import restraint
 from . import geometry
 
+# All canonical atom names for each standard residue type, as per CCD.
+# This is generated using the util/get_ccd_atoms.py script.
+KNOWN_ATOM_NAMES = {
+    'A': {"C4'", "C2'", 'C2', "C1'", 'N7', 'H62', 'OP2', 'N3', 'C5', 'P',
+          "H5''", 'H2', "C5'", 'H61', "H3'", 'C4', 'N1', 'H8', "H1'", 'C8',
+          'N9', 'HOP3', 'OP1', "O4'", "H2'", "HO2'", 'OP3', "O3'", 'N6',
+          'HOP2', "O5'", "O2'", "HO3'", "H5'", "C3'", 'C6', "H4'"},
+    'ALA': {'H2', 'HB1', 'HB3', 'HB2', 'N', 'HXT', 'O', 'CB', 'C', 'HA', 'CA',
+            'H', 'OXT'},
+    'ARG': {'HB2', 'CG', 'NE', 'H', 'H2', 'HH22', 'N', 'HG2', 'CA', 'NH2',
+            'HH11', 'HG3', 'HH21', 'CZ', 'HB3', 'HXT', 'O', 'C', 'HD3', 'HH12',
+            'CB', 'NH1', 'CD', 'HA', 'HD2', 'HE', 'OXT'},
+    'ASN': {'H2', 'HB3', 'HD22', 'HB2', 'N', 'CG', 'O', 'CB', 'ND2', 'HXT',
+            'C', 'HA', 'HD21', 'CA', 'OD1', 'H', 'OXT'},
+    'ASP': {'H2', 'HB3', 'HB2', 'N', 'CG', 'O', 'CB', 'HXT', 'C', 'HA', 'OD2',
+            'CA', 'OD1', 'HD2', 'H', 'OXT'},
+    'C': {"C4'", "C2'", 'C2', 'O2', 'H42', 'H5', "C1'", 'OP2', 'N3', 'C5',
+          'P', "H5''", 'H41', 'H6', "C5'", "H3'", 'C4', 'N1', 'N4', "H1'",
+          'HOP3', 'OP1', "O4'", "H2'", "HO2'", 'OP3', "O3'", 'HOP2', "O5'",
+          "O2'", "HO3'", "H5'", "C3'", 'C6', "H4'"},
+    'CYS': {'H2', 'HB3', 'HB2', 'N', 'SG', 'O', 'CB', 'HXT', 'C', 'HA', 'HG',
+            'CA', 'H', 'OXT'},
+    'DA': {"C4'", "C2'", 'C2', "C1'", 'N7', 'H62', 'OP2', 'N3', 'C5', 'P',
+           "H5''", 'H2', "C5'", 'H61', "H3'", 'C4', 'N1', 'H8', "H1'", 'C8',
+           'N9', 'HOP3', 'OP1', "O4'", "H2'", 'OP3', "O3'", 'N6', 'HOP2',
+           "O5'", "H2''", "HO3'", "H5'", "C3'", 'C6', "H4'"},
+    'DC': {"C4'", "C2'", 'C2', 'O2', 'H42', 'H5', "C1'", 'OP2', 'N3', 'C5',
+           'P', "H5''", 'H41', 'H6', "C5'", "H3'", 'C4', 'N1', 'N4', "H1'",
+           'HOP3', 'OP1', "O4'", "H2'", 'OP3', "O3'", 'HOP2', "O5'", "H2''",
+           "HO3'", "H5'", "C3'", 'C6', "H4'"},
+    'DG': {"C4'", "C2'", 'C2', "C1'", 'N7', 'OP2', 'N3', 'C5', 'P', "H5''",
+           "C5'", 'O6', 'H1', "H3'", 'C4', 'N1', 'H8', "H1'", 'C8', 'N9',
+           'HOP3', 'OP1', "O4'", "H2'", 'OP3', "O3'", 'HOP2', "O5'", "H2''",
+           'H21', 'H22', "HO3'", "H5'", "C3'", 'N2', 'C6', "H4'"},
+    'DT': {"C4'", "C2'", 'C2', 'O2', 'O4', "C1'", 'OP2', 'N3', 'C5', 'P',
+           "H5''", 'H6', "C5'", "H3'", 'C4', 'N1', 'C7', "H1'", 'H73', 'HOP3',
+           'H3', 'OP1', "O4'", "H2'", 'OP3', "O3'", 'HOP2', "O5'", "H2''",
+           'H71', "HO3'", "H5'", "C3'", 'H72', 'C6', "H4'"},
+    'G': {"C4'", "C2'", 'C2', "C1'", 'N7', 'OP2', 'N3', 'C5', 'P', "H5''",
+          "C5'", 'O6', 'H1', "H3'", 'C4', 'N1', 'H8', "H1'", 'C8', 'N9',
+          'HOP3', 'OP1', "O4'", "H2'", "HO2'", 'OP3', "O3'", 'HOP2', "O5'",
+          "O2'", 'H21', 'H22', "HO3'", "H5'", "C3'", 'N2', 'C6', "H4'"},
+    'GLN': {'HB2', 'CG', 'H', 'H2', 'N', 'HG2', 'HE22', 'CA', 'HG3', 'HE21',
+            'HB3', 'HXT', 'O', 'NE2', 'C', 'OE1', 'CB', 'CD', 'HA', 'OXT'},
+    'GLU': {'HB2', 'CG', 'H', 'H2', 'N', 'HG2', 'CA', 'HG3', 'HB3', 'HXT',
+            'O', 'HE2', 'C', 'OE2', 'OE1', 'CB', 'CD', 'HA', 'OXT'},
+    'GLY': {'HA3', 'HXT', 'CA', 'O', 'HA2', 'H', 'N', 'C', 'H2', 'OXT'},
+    'HIS': {'HB2', 'CG', 'CE1', 'HE1', 'H', 'ND1', 'H2', 'N', 'CA', 'HD1',
+            'HB3', 'HXT', 'O', 'HE2', 'NE2', 'C', 'CD2', 'CB', 'HA', 'HD2',
+            'OXT'},
+    'ILE': {'HD11', 'CG1', 'H', 'HD12', 'H2', 'N', 'CA', 'HD13', 'HG13',
+            'HXT', 'O', 'HB', 'C', 'CD1', 'HG23', 'HG22', 'HG21', 'HG12',
+            'CB', 'CG2', 'HA', 'OXT'},
+    'LEU': {'HD11', 'HB2', 'HD22', 'CG', 'HD21', 'H', 'HD12', 'H2', 'N',
+            'HD23', 'CA', 'HD13', 'HB3', 'HXT', 'O', 'C', 'CD2', 'CD1', 'CB',
+            'HA', 'HG', 'OXT'},
+    'LYS': {'HB2', 'CG', 'CE', 'H', 'H2', 'N', 'HG2', 'HE3', 'CA', 'HG3',
+            'HB3', 'HXT', 'O', 'HE2', 'HZ1', 'HZ3', 'C', 'HD3', 'CB', 'CD',
+            'HA', 'HZ2', 'HD2', 'NZ', 'OXT'},
+    'MET': {'HB2', 'CG', 'HE1', 'CE', 'H', 'H2', 'N', 'HG2', 'HE3', 'CA',
+            'HG3', 'SD', 'HB3', 'HXT', 'O', 'HE2', 'C', 'CB', 'HA', 'OXT'},
+    'PHE': {'HB2', 'CG', 'CE1', 'HE1', 'H', 'H2', 'N', 'HZ', 'CA', 'HD1',
+            'CZ', 'HB3', 'HXT', 'O', 'HE2', 'C', 'CD2', 'CD1', 'CB', 'CE2',
+            'HA', 'HD2', 'OXT'},
+    'PRO': {'HB3', 'HB2', 'N', 'CG', 'O', 'CB', 'HG2', 'HXT', 'CD', 'C', 'HA',
+            'CA', 'HD2', 'H', 'HG3', 'HD3', 'OXT'},
+    'SER': {'H2', 'HB3', 'HB2', 'N', 'HXT', 'O', 'CB', 'C', 'HA', 'HG', 'CA',
+            'H', 'OG', 'OXT'},
+    'THR': {'H2', 'HXT', 'N', 'HG23', 'O', 'CB', 'CG2', 'OG1', 'HB', 'C',
+            'HA', 'CA', 'HG22', 'H', 'HG1', 'HG21', 'OXT'},
+    'TRP': {'HB2', 'CG', 'CE3', 'CZ3', 'HE1', 'H', 'H2', 'N', 'HE3', 'CA',
+            'CZ2', 'HD1', 'HB3', 'HXT', 'O', 'HZ3', 'C', 'CD2', 'CD1', 'NE1',
+            'CB', 'HH2', 'CE2', 'HA', 'CH2', 'HZ2', 'OXT'},
+    'U': {"C4'", "C2'", 'C2', 'O2', 'H5', 'O4', "C1'", 'OP2', 'N3', 'C5', 'P',
+          "H5''", 'H6', "C5'", "H3'", 'C4', 'N1', "H1'", 'HOP3', 'H3', 'OP1',
+          "O4'", "H2'", "HO2'", 'OP3', "O3'", 'HOP2', "O5'", "O2'", "HO3'",
+          "H5'", "C3'", 'C6', "H4'"},
+    'VAL': {'CG1', 'H', 'H2', 'N', 'CA', 'HG13', 'HXT', 'O', 'HB', 'C',
+            'HG23', 'HG22', 'HG21', 'HG12', 'CB', 'CG2', 'HA', 'OXT', 'HG11'}
+}
+
 
 def _is_subrange(rng1, rng2):
     """Return True iff rng1 is wholly inside rng2"""
@@ -1883,6 +1964,7 @@ class _ModelDumperBase(Dumper):
 
     def dump_atoms(self, system, writer, add_ihm=True):
         seen_types = {}
+        seen_atom_names = collections.defaultdict(set)
         ordinal = itertools.count(1)
         it = ["group_PDB", "id", "type_symbol", "label_atom_id",
               "label_alt_id", "label_comp_id", "label_seq_id", "auth_seq_id",
@@ -1904,6 +1986,7 @@ class _ModelDumperBase(Dumper):
                         label_seq_id = None
                     comp = atom.asym_unit.sequence[seq_id - 1]
                     seen_types[atom.type_symbol] = None
+                    seen_atom_names[comp.id].add(atom.atom_id)
                     auth_seq_id, ins = \
                         atom.asym_unit._get_auth_seq_id_ins_code(seq_id)
                     lp.write(id=next(ordinal),
@@ -1924,7 +2007,25 @@ class _ModelDumperBase(Dumper):
                              pdbx_PDB_model_num=model._id,
                              ihm_model_id=model._id)
                 self._assembly_checker.add_model_asyms(model, seen_asym_ids)
+        if self._check:
+            self._check_atom_names(seen_atom_names)
         return seen_types
+
+    def _check_atom_names(self, seen_atom_names):
+        """Check that only standard atom names are used for known
+           residue types"""
+        def _get_non_canon():
+            for restyp, atoms in seen_atom_names.items():
+                if restyp in KNOWN_ATOM_NAMES:
+                    non_canon_atoms = atoms - KNOWN_ATOM_NAMES[restyp]
+                    if non_canon_atoms:
+                        yield restyp, non_canon_atoms
+        non_canon = sorted(_get_non_canon(), key=operator.itemgetter(0))
+        if non_canon:
+            raise ValueError(
+                "Non-canonical atom names found in the following residues: "
+                + "; ".join("%s: %r" % (restyp, sorted(atoms))
+                            for (restyp, atoms) in non_canon))
 
 
 class _ModelDumper(_ModelDumperBase):
