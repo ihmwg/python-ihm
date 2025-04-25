@@ -5,10 +5,20 @@ _exptl.method 'model, MODELLER Version 9.24 2020/08/21 11:54:31'
 _modeller.version 9.24
 #
 loop_
+_entity.id
+_entity.type
+1 polymer
+2 non-polymer
+3 non-polymer
+#
+loop_
 _struct_asym.id
 _struct_asym.entity_id
 _struct_asym.details
 A 1 ?
+B 2 ?
+C 2 ?
+D 3 ?
 #
 loop_
 _entity_poly_seq.entity_id
@@ -17,7 +27,13 @@ _entity_poly_seq.mon_id
 1 1 VAL
 1 2 GLY
 1 3 GLN
-1 4 MSE
+#
+loop_
+_pdbx_entity_nonpoly.entity_id
+_pdbx_entity_nonpoly.name
+_pdbx_entity_nonpoly.comp_id
+2 ? ZN
+3 ? invalid-comp-name
 #
 loop_
 _atom_site.group_PDB
@@ -38,8 +54,10 @@ _atom_site.B_iso_or_equiv
 _atom_site.label_entity_id
 _atom_site.id
 _atom_site.pdbx_PDB_model_num
-ATOM C bad1 . VAL A A 1 2 ? 114.370 27.980 -26.088 1.000 143.490 1 1 1
-ATOM C bad2 . VAL A A 1 2 ? 114.370 27.980 -26.088 1.000 143.490 1 2 1
-ATOM C CA   . GLY A A 2 3 ? 111.506 26.368 -28.075 1.000 137.530 1 3 1
-ATOM C bad3 . GLN A A 3 4 ? 113.468 23.113 -28.639 1.000 128.420 1 4 1
-ATOM C ig1  . MSE A A 4 5 ? 113.808 21.534 -32.168 1.000 117.620 1 5 1
+ATOM   C  bad1 . VAL A A 1 2 ? 114.370 27.980 -26.088 1.000 143.490 1 1 1
+ATOM   C  bad2 . VAL A A 1 2 ? 114.370 27.980 -26.088 1.000 143.490 1 2 1
+ATOM   C  CA   . GLY A A 2 3 ? 111.506 26.368 -28.075 1.000 137.530 1 3 1
+ATOM   C  bad3 . GLN A A 3 4 ? 113.468 23.113 -28.639 1.000 128.420 1 4 1
+HETATM ZN ZN   . ZN  B A . 5 ? 113.808 21.534 -32.168 1.000 117.620 2 5 1
+HETATM ZN bad4 . ZN  C A . 6 ? 113.808 21.534 -32.168 1.000 117.620 2 6 1
+HETATM ZN ZN   . invalid-comp-name D A . 7 ? 113.808 21.534 -32.168 3.000 117.620 3 7 1

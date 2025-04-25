@@ -27,10 +27,13 @@ import ihm.dumper
 import ihm.model
 import ihm.protocol
 import ihm.util
+import ihm.format
+import urllib.request
 import os
 import argparse
 import collections
 import operator
+import warnings
 
 
 # All canonical atom names for each standard residue type, as per CCD.
@@ -148,7 +151,7 @@ def add_ihm_info(s, fix_histidines, check_atom_names):
                     if fix_histidines:
                         _fix_histidine_het_atoms(model, histidines)
                     if check_atom_names != 'no':
-                        _check_atom_names(model)
+                        _check_atom_names(model, check_atom_names == 'all')
     if fix_histidines:
         _fix_histidine_chem_comps(s, histidines)
     return s
@@ -165,18 +168,45 @@ def _fix_histidine_het_atoms(model, histidines):
             atom.het = False
 
 
-def _get_non_canon(seen_atom_names):
+class _ChemCompAtomHandler:
+    not_in_file = omitted = unknown = None
+
+    def __init__(self):
+        super().__init__()
+        self.atoms = collections.defaultdict(set)
+
+    def __call__(self, comp_id, atom_id):
+        self.atoms[comp_id].add(atom_id)
+
+
+def _get_non_std_restyp(restyp):
+    """Return CCD info for the given residue type"""
+    url_pattern = 'http://ligand-expo.rcsb.org/reports/%s/%s/%s.cif'
+    url = url_pattern % (restyp[:1], restyp, restyp)
+    cca = _ChemCompAtomHandler()
+    try:
+        with urllib.request.urlopen(url) as fh:
+            c = ihm.format.CifReader(fh,
+                                     category_handler={'_chem_comp_atom': cca})
+            c.read_file()
+    except urllib.error.URLError as exc:
+        warnings.warn(
+            "Component %s could not be found in CCD: %s" % (restyp, exc))
+    return cca.atoms
+
+
+def _get_non_canon(seen_atom_names, check_all):
     """Get all non-canonical atom names for each residue type"""
     for restyp, atoms in seen_atom_names.items():
-        # todo: if restyp not known, query Ligand Expo and parse the
-        # resulting mmCIF
+        if check_all and restyp not in KNOWN_ATOM_NAMES:
+            KNOWN_ATOM_NAMES.update(_get_non_std_restyp(restyp))
         if restyp in KNOWN_ATOM_NAMES:
             non_canon_atoms = atoms - KNOWN_ATOM_NAMES[restyp]
             if non_canon_atoms:
                 yield restyp, non_canon_atoms
 
 
-def _check_atom_names(model):
+def _check_atom_names(model, check_all):
     """Check that only standard atom names are used for known
        residue types"""
     seen_atom_names = collections.defaultdict(set)
@@ -184,7 +214,7 @@ def _check_atom_names(model):
         seq_id = 1 if atom.seq_id is None else atom.seq_id
         comp = atom.asym_unit.sequence[seq_id - 1]
         seen_atom_names[comp.id].add(atom.atom_id)
-    non_canon = sorted(_get_non_canon(seen_atom_names),
+    non_canon = sorted(_get_non_canon(seen_atom_names, check_all),
                        key=operator.itemgetter(0))
     if non_canon:
         raise ValueError(
@@ -370,11 +400,12 @@ def get_args():
     p.add_argument("--histidines", action='store_true', dest="fix_histidines",
                    help="Convert any non-standard histidine names (HIP, HID, "
                         "HIE, for different protonation states) to HIS")
-    p.add_argument('--check_atom_names', choices=['no', 'standard'],
+    p.add_argument('--check_atom_names', choices=['no', 'standard', 'all'],
                    dest="check_atom_names", default='no',
                    help="If 'standard', check for non-canonical atom names "
                         "in standard amino acid and nucleic acid chemical "
-                        "components")
+                        "components; if 'all', also check non-standard "
+                        "residue types by querying CCD (needs network access)")
     return p.parse_args()
 
 
