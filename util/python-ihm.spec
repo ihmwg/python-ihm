@@ -7,6 +7,7 @@ Summary:       Package for handling IHM mmCIF and BinaryCIF files
 Packager:      Ben Webb <ben@salilab.org>
 URL:           https://pypi.python.org/pypi/ihm
 Source:        ihm-%{version}.tar.gz
+Patch0:        ihm-force-c-ext.patch
 BuildRequires: python3-devel, python3-setuptools, gcc
 %if 0%{?rhel} != 7
 BuildRequires: python3-msgpack
@@ -25,6 +26,7 @@ with Python 3.6 or later.
 
 %prep
 %setup -n ihm-%{version}
+%patch -P 0 -p1
 %if 0%{?rhel} == 7
 sed -i -e "s/install_requires=\['msgpack'\]/#/" setup.py
 %endif
