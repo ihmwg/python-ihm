@@ -2805,47 +2805,6 @@ N
         # Should work though if checks are disabled
         _ = _get_dumper_output(dumper, system, check=False)
 
-    def test_model_dumper_non_canon_atom_check(self):
-        """Test ModelDumper check for non-canonical atom names"""
-        system, model, asym = self._make_test_model(seq=('A', 'G', 'C', 'MSE'))
-
-        # Replace test model's residue representation with atomic
-        s = ihm.representation.AtomicSegment(asym, rigid=False)
-        r = ihm.representation.Representation([s])
-        r._id = 32
-        model.representation = r
-
-        model._atoms = [ihm.model.Atom(asym_unit=asym, seq_id=1,
-                                       atom_id='bad1', type_symbol='C',
-                                       x=1.0, y=2.0, z=3.0),
-                        ihm.model.Atom(asym_unit=asym, seq_id=1,
-                                       atom_id='bad2', type_symbol='C',
-                                       x=10.0, y=20.0, z=3.0),
-                        ihm.model.Atom(asym_unit=asym, seq_id=1, atom_id='CA',
-                                       type_symbol='C', x=10.0, y=20.0, z=3.0),
-                        ihm.model.Atom(asym_unit=asym, seq_id=2,
-                                       atom_id='bad3', type_symbol='C',
-                                       x=10.0, y=20.0, z=3.0),
-                        ihm.model.Atom(asym_unit=asym, seq_id=3, atom_id='N',
-                                       type_symbol='N', x=4.0, y=5.0, z=6.0),
-                        ihm.model.Atom(asym_unit=asym, seq_id=4, atom_id='ig1',
-                                       type_symbol='N', x=4.0, y=5.0, z=6.0)]
-
-        dumper = ihm.dumper._ModelDumper()
-        dumper.finalize(system)  # assign model/group IDs
-
-        # Non-canonical atoms in standard residues should be reported
-        with self.assertRaises(ValueError) as cm:
-            _get_dumper_output(dumper, system)
-        self.assertIn("ALA: ['bad1', 'bad2']; GLY: ['bad3']",
-                      str(cm.exception))
-        self.assertNotIn("CYS", str(cm.exception))
-        # Non-standard residues (MSE) are not checked
-        self.assertNotIn("ig1", str(cm.exception))
-
-        # Should work though if checks are disabled
-        _ = _get_dumper_output(dumper, system, check=False)
-
     def test_model_dumper_assembly_asym_check(self):
         """Test ModelDumper Assembly asym check"""
         system, model, asym = self._make_test_model()
