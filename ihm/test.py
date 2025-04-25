@@ -1,8 +1,6 @@
 import ihm
 import ihm.dumper
 import ihm.reader
-# Make sure the C extension built correctly
-import ihm._format
 import os
 import unittest
 try:
