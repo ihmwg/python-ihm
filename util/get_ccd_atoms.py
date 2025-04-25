@@ -2,7 +2,7 @@
 
 """Get the set of canonical atom names for one or more residue types,
    by querying Ligand Expo. Used to populate the KNOWN_ATOM_NAMES variable
-   in dumper.py.
+   in make_mmcif.py.
 """
 
 import collections
