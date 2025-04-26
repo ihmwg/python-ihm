@@ -1,13 +1,13 @@
 diff --git a/setup.py b/setup.py
-index 6e96b27..c149947 100755
+index 5172433..d428f1d 100755
 --- a/setup.py
 +++ b/setup.py
-@@ -27,7 +27,7 @@ mod = [Extension("ihm._format",
-                  extra_compile_args=cargs,
-                  swig_opts=['-keyword', '-nodefaultctor',
-                             '-nodefaultdtor', '-noproxy'],
--                 optional=True)]
-+                 optional=False)]
+@@ -36,7 +36,7 @@ if build_ext:
+                      extra_compile_args=cargs,
+                      swig_opts=['-keyword', '-nodefaultctor',
+                                 '-nodefaultdtor', '-noproxy'],
+-                     optional=True)]
++                     optional=False)]
+ else:
+     mod = []
  
- with open("README.md", "r") as fh:
-     long_description = fh.read()
