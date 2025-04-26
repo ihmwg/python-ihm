@@ -9,6 +9,14 @@ import os
 
 VERSION = "2.4"
 
+copy_args = sys.argv[1:]
+
+# Allow building without the C extension
+build_ext = True
+if '--without-ext' in copy_args:
+    build_ext = False
+    copy_args.remove('--without-ext')
+
 if sys.platform == 'win32':
     # Our use of strdup, strerror should be safe - no need for the Windows
     # compiler to warn about it; we want to use the POSIX name for strdup too
@@ -16,25 +24,28 @@ if sys.platform == 'win32':
 else:
     cargs = []
 
-# Use pre-built SWIG wrappers for stable releases so that end users
-# don't need SWIG installed
-wrap = "src/ihm_format_wrap_%s.c" % VERSION
-if not os.path.exists(wrap):
-    wrap = "src/ihm_format.i"
-mod = [Extension("ihm._format",
-                 sources=["src/ihm_format.c", "src/cmp.c", wrap],
-                 include_dirs=['src'],
-                 extra_compile_args=cargs,
-                 swig_opts=['-keyword', '-nodefaultctor',
-                            '-nodefaultdtor', '-noproxy'],
-                 optional=True)]
+if build_ext:
+    # Use pre-built SWIG wrappers for stable releases so that end users
+    # don't need SWIG installed
+    wrap = "src/ihm_format_wrap_%s.c" % VERSION
+    if not os.path.exists(wrap):
+        wrap = "src/ihm_format.i"
+    mod = [Extension("ihm._format",
+                     sources=["src/ihm_format.c", "src/cmp.c", wrap],
+                     include_dirs=['src'],
+                     extra_compile_args=cargs,
+                     swig_opts=['-keyword', '-nodefaultctor',
+                                '-nodefaultdtor', '-noproxy'],
+                     optional=True)]
+else:
+    mod = []
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(name='ihm',
       version=VERSION,
-      script_args=sys.argv[1:],
+      script_args=copy_args,
       description='Package for handling IHM mmCIF and BinaryCIF files',
       long_description=long_description,
       long_description_content_type="text/markdown",
