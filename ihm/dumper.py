@@ -1811,13 +1811,13 @@ class _AssemblyChecker:
         asmb = model.assembly
         # If this is the first time we've seen this assembly, get its
         # declared set of asym IDs
-        if asmb._id not in self._asmb_asyms:
+        if id(asmb) not in self._asmb_asyms:
             asyms = frozenset(x._id for x in asmb if hasattr(x, 'entity'))
-            self._asmb_asyms[asmb._id] = asyms
+            self._asmb_asyms[id(asmb)] = asyms
         # Add asym IDs from model
-        if asmb._id not in self._asmb_model_asyms:
-            self._asmb_model_asyms[asmb._id] = set()
-        self._asmb_model_asyms[asmb._id] |= seen_asym_ids
+        if id(asmb) not in self._asmb_model_asyms:
+            self._asmb_model_asyms[id(asmb)] = set()
+        self._asmb_model_asyms[id(asmb)] |= seen_asym_ids
 
     def check(self):
         """Make sure each Assembly only references asym IDs that are
