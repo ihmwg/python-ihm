@@ -2817,6 +2817,7 @@ N
             _get_dumper_output(dumper, system)
         self.assertIn("reference asym IDs that don't have coordinates",
                       str(cm.exception))
+        self.assertIn("ID 99, asym IDs X", str(cm.exception))
         # Should work though if checks are disabled
         _ = _get_dumper_output(dumper, system, check=False)
 

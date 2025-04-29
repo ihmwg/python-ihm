@@ -1802,6 +1802,8 @@ class _AssemblyChecker:
     def __init__(self):
         # Map from Assembly id to set of Asym ids
         self._asmb_asyms = {}
+        # Map from Assembly id to Assembly object
+        self._asmb_from_id = {}
 
         # Map from Assembly id to set of all represented Asym ids (in models)
         self._asmb_model_asyms = {}
@@ -1812,6 +1814,7 @@ class _AssemblyChecker:
         # If this is the first time we've seen this assembly, get its
         # declared set of asym IDs
         if id(asmb) not in self._asmb_asyms:
+            self._asmb_from_id[id(asmb)] = asmb
             asyms = frozenset(x._id for x in asmb if hasattr(x, 'entity'))
             self._asmb_asyms[id(asmb)] = asyms
         # Add asym IDs from model
@@ -1827,9 +1830,12 @@ class _AssemblyChecker:
             for asmb_id, asyms in self._asmb_asyms.items():
                 extra = asyms - self._asmb_model_asyms[asmb_id]
                 if extra:
+                    asmb = self._asmb_from_id[asmb_id]
+                    asmb_id = ("ID %s" % asmb._id
+                               if hasattr(asmb, '_id') else asmb)
                     yield asmb_id, ", ".join(sorted(extra))
 
-        err = "; ".join("assembly ID %s, asym IDs %s" % extra
+        err = "; ".join("%s, asym IDs %s" % extra
                         for extra in get_extra_asyms())
         if err:
             raise ValueError(
