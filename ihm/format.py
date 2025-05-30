@@ -753,6 +753,42 @@ class ChangeValueFilter(Filter):
             return loop_filter
 
 
+class ChangeFuncValueFilter(Filter):
+    """Change any token that sets a data item to x to be f(x).
+
+       For example, this could be used to perform a search and replace on
+       a string, or match against a regex.
+
+       :param callable func: A function that is given the existing value
+              of the data item, the category name (e.g. ``_atom_site``),
+              and the keyword name (e.g. ``auth_seq_id``), and should return
+              the new value of the data item (perhaps unchanged).
+
+       See :class:`Filter` for a description of the ``target`` parameter.
+    """
+    def __init__(self, target, func):
+        super().__init__(target)
+        self.func = func
+
+    def filter_category(self, tok):
+        if self.match_token_keyword(tok):
+            tok.value = self.func(tok.value, tok.category, tok.keyword)
+        return tok
+
+    def get_loop_filter(self, tok):
+        if self.match_token_category(tok):
+            try:
+                keyword_index = tok.keyword_index(self.keyword)
+            except ValueError:
+                return
+
+            def loop_filter(t):
+                item = t.items[keyword_index]
+                item.value = self.func(item.value, tok.category, self.keyword)
+                return t
+            return loop_filter
+
+
 class RemoveItemFilter(Filter):
     """Remove any token from the file that sets the given data item.
 
