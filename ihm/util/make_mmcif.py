@@ -181,8 +181,9 @@ class _ChemCompAtomHandler:
 
 def _get_non_std_restyp(restyp):
     """Return CCD info for the given residue type"""
-    url_pattern = 'http://ligand-expo.rcsb.org/reports/%s/%s/%s.cif'
-    url = url_pattern % (restyp[:1], restyp, restyp)
+    url_top = 'https://files.rcsb.org'
+    url_pattern = url_top + '/pub/pdb/refdata/chem_comp/%s/%s/%s.cif'
+    url = url_pattern % (restyp[-1], restyp, restyp)
     cca = _ChemCompAtomHandler()
     try:
         with urllib.request.urlopen(url) as fh:
