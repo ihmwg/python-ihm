@@ -1042,7 +1042,7 @@ class SaccharideChemComp(ChemComp):
 
     def __init__(self, id, name=None, formula=None, ccd=None,
                  descriptors=None):
-        super(SaccharideChemComp, self).__init__(
+        super().__init__(
             id, id, id, name=name, formula=formula,
             ccd=ccd, descriptors=descriptors)
 
@@ -1104,7 +1104,7 @@ class NonPolymerChemComp(ChemComp):
 
     def __init__(self, id, code_canonical='X', name=None, formula=None,
                  ccd=None, descriptors=None):
-        super(NonPolymerChemComp, self).__init__(
+        super().__init__(
             id, id, code_canonical, name=name, formula=formula,
             ccd=ccd, descriptors=descriptors)
 
@@ -1113,8 +1113,7 @@ class WaterChemComp(NonPolymerChemComp):
     """The chemical component for crystal water.
     """
     def __init__(self):
-        super(WaterChemComp, self).__init__('HOH', name='WATER',
-                                            formula="H2 O")
+        super().__init__('HOH', name='WATER', formula="H2 O")
 
 
 class Alphabet:
@@ -1673,7 +1672,7 @@ class WaterAsymUnit(AsymUnit):
         if entity.type != 'water':
             raise TypeError(
                 "WaterAsymUnit can only be used for water entities")
-        super(WaterAsymUnit, self).__init__(
+        super().__init__(
             entity, details=details, auth_seq_id_map=auth_seq_id_map,
             id=id, strand_id=strand_id,
             orig_auth_seq_id_map=orig_auth_seq_id_map)
@@ -1716,7 +1715,7 @@ class Assembly(list):
     parent = None
 
     def __init__(self, elements=(), name=None, description=None):
-        super(Assembly, self).__init__(elements)
+        super().__init__(elements)
         self.name, self.description = name, description
 
 

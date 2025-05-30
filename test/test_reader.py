@@ -2073,7 +2073,7 @@ _ihm_sas_restraint.details
         """Test SphereObjSiteHandler"""
         class MyModel(ihm.model.Model):
             def add_sphere(self, sphere):
-                super(MyModel, self).add_sphere(sphere)
+                super().add_sphere(sphere)
                 self.sphere_count = len(self._spheres)
 
         fh = StringIO("""

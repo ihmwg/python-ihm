@@ -138,8 +138,7 @@ class _ParsedEMDBLocation(location.EMDBLocation):
        when they are requested (unless they are set to other values)."""
     def __init__(self, emdb):
         self.__emdb_info = None
-        super(_ParsedEMDBLocation, self).__init__(
-            db_code=emdb, version=None, details=None)
+        super().__init__(db_code=emdb, version=None, details=None)
         self.__emdb_info = None
 
     def __get_version(self):
@@ -862,7 +861,7 @@ class _ModBaseLocation(location.DatabaseLocation):
     """A model deposited in ModBase"""
     def __init__(self, db_code, version=None, details=None):
         # Use details to describe ModBase, ignoring the file title
-        super(_ModBaseLocation, self).__init__(
+        super().__init__(
             db_code, version=version,
             details="ModBase database of comparative protein structure models")
 
@@ -1004,7 +1003,7 @@ class CIFParser(_CIFParserBase):
                     file, if any (as :class:`ihm.location.WorkflowFileLocation`
                     objects).
         """
-        return super(CIFParser, self).parse_file(filename)
+        return super().parse_file(filename)
 
 
 class BinaryCIFParser(_CIFParserBase):

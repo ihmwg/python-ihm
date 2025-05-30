@@ -289,7 +289,7 @@ class _PreservingVariableToken(_VariableToken):
     __slots__ = ['category', 'keyword', 'orig_keyword']
 
     def __init__(self, val, linenum):
-        super(_PreservingVariableToken, self).__init__(val, linenum)
+        super().__init__(val, linenum)
         _, _, self.orig_keyword = val.partition('.')
 
     def as_mmcif(self):
@@ -731,7 +731,7 @@ class ChangeValueFilter(Filter):
        See :class:`Filter` for a description of the ``target`` parameter.
     """
     def __init__(self, target, old, new):
-        super(ChangeValueFilter, self).__init__(target)
+        super().__init__(target)
         self.old, self.new = old, new
 
     def filter_category(self, tok):
@@ -795,7 +795,7 @@ class ChangeKeywordFilter(Filter):
        See :class:`Filter` for a description of the ``target`` parameter.
     """
     def __init__(self, target, new):
-        super(ChangeKeywordFilter, self).__init__(target)
+        super().__init__(target)
         self.new = new
 
     def filter_category(self, tok):
@@ -887,7 +887,7 @@ class CifTokenReader(_PreservingCifTokenizer):
        :param file fh: Open handle to the mmCIF file
     """
     def __init__(self, fh):
-        super(CifTokenReader, self).__init__(fh)
+        super().__init__(fh)
 
     def read_file(self, filters=None):
         """Read the file and yield tokens and/or token groups. The exact type

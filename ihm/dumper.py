@@ -682,7 +682,7 @@ class _StructRefDumper(Dumper):
 
 class _EntityPolyDumper(Dumper):
     def __init__(self):
-        super(_EntityPolyDumper, self).__init__()
+        super().__init__()
 
         # Determine the type of the entire entity's sequence based on the
         # type(s) of all chemical components it contains
