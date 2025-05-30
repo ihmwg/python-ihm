@@ -1045,20 +1045,21 @@ class _AssemblyDumperBase(Dumper):
             a.sort(key=component_key)
 
         seen_assemblies = {}
-        # Assign IDs to all assemblies; duplicate assemblies get same ID
+        # Assign IDs to all assemblies; duplicate assemblies (same signature)
+        # get same ID
         self._assembly_by_id = []
         description_by_id = {}
         all_assemblies = list(system._all_assemblies())
         seen_assembly_ids = {}
         for a in all_assemblies:
-            # list isn't hashable but tuple is
-            hasha = tuple(a)
-            if hasha not in seen_assemblies:
+            # Assembly isn't hashable but its signature is
+            sig = a._signature()
+            if sig not in seen_assemblies:
                 self._assembly_by_id.append(a)
-                seen_assemblies[hasha] = a._id = len(self._assembly_by_id)
+                seen_assemblies[sig] = a._id = len(self._assembly_by_id)
                 description_by_id[a._id] = []
             else:
-                a._id = seen_assemblies[hasha]
+                a._id = seen_assemblies[sig]
             if a.description and id(a) not in seen_assembly_ids:
                 descs = description_by_id[a._id]
                 # Don't duplicate descriptions

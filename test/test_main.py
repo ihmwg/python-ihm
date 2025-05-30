@@ -610,6 +610,34 @@ class Tests(unittest.TestCase):
         self.assertEqual(a.name, 'foo')
         self.assertEqual(a.description, 'bar')
 
+    def test_assembly_signature(self):
+        """Test Assembly._signature method"""
+        e1 = ihm.Entity('AHCD')
+        a1 = ihm.AsymUnit(e1)
+        e2 = ihm.Entity('AHC')
+        a2 = ihm.AsymUnit(e2)
+        enonpol = ihm.Entity([ihm.NonPolymerChemComp('HEM')],
+                             description='heme')
+        anonpol = ihm.AsymUnit(enonpol)
+        asm = ihm.Assembly([a1, a2, anonpol], name='foo', description='bar')
+
+        # Component order, name, description do not affect signature
+        asm2 = ihm.Assembly([a2, a1, anonpol],
+                            name='other', description='other')
+        self.assertEqual(asm._signature(), asm2._signature())
+
+        # Different components, different signatures
+        asm2 = ihm.Assembly([a1, anonpol])
+        self.assertNotEqual(asm._signature(), asm2._signature())
+
+        # Different component ranges, different signatures
+        asm2 = ihm.Assembly([a1, a2(1, 2), anonpol])
+        self.assertNotEqual(asm._signature(), asm2._signature())
+
+        # Same signature if ranges completely overlap
+        asm2 = ihm.Assembly([a1, a2(1, 2), a2(3, 3), anonpol])
+        self.assertEqual(asm._signature(), asm2._signature())
+
     def test_remove_identical(self):
         """Test remove_identical function"""
         x = {}

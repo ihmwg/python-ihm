@@ -15,6 +15,7 @@ import re
 import sys
 import urllib.request
 import json
+import collections
 from . import util
 
 __version__ = '2.5'
@@ -1717,6 +1718,27 @@ class Assembly(list):
     def __init__(self, elements=(), name=None, description=None):
         super().__init__(elements)
         self.name, self.description = name, description
+
+    def _signature(self):
+        """Get a Python object that represents this Assembly. Notably, two
+           Assemblies that cover the part of the system (even if the
+           components are in a different order) will have the same signature.
+           Signatures are also hashable, unlike the Assembly itself."""
+        d = collections.defaultdict(list)
+        for a in self:
+            # a might be an AsymUnit or an AsymUnitRange
+            asym = a.asym if hasattr(a, 'asym') else a
+            d[asym].append(a.seq_id_range)
+        ret = []
+        # asyms might not have IDs yet, so just put them in a consistent order
+        for asym in sorted(d.keys(), key=lambda x: id(x)):
+            ranges = d[asym]
+            # Non-polymers have no ranges
+            if all(r == (None, None) for r in ranges):
+                ret.append((asym, None))
+            else:
+                ret.append((asym, tuple(util._combine_ranges(d[asym]))))
+        return tuple(ret)
 
 
 class ChemDescriptor:
