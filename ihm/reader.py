@@ -1094,6 +1094,20 @@ class _AuditRevisionItemHandler(Handler):
         r.items.append(item)
 
 
+class _DataUsageHandler(Handler):
+    category = '_pdbx_data_usage'
+
+    # Map type to corresponding subclass of ihm.DataUsage
+    _type_map = dict((x[1].type.lower(), x[1])
+                     for x in inspect.getmembers(ihm, inspect.isclass)
+                     if issubclass(x[1], ihm.DataUsage))
+
+    def __call__(self, type, name, details, url):
+        typ = type.lower() if type else 'other'
+        cls = self._type_map.get(typ, ihm.DataUsage)
+        self.system.data_usage.append(cls(details=details, name=name, url=url))
+
+
 class _GrantHandler(Handler):
     category = '_pdbx_audit_support'
 
@@ -3860,7 +3874,7 @@ class IHMVariant(Variant):
         _AuditAuthorHandler, _AuditRevisionHistoryHandler,
         _AuditRevisionDetailsHandler, _AuditRevisionGroupHandler,
         _AuditRevisionCategoryHandler, _AuditRevisionItemHandler,
-        _GrantHandler, _CitationAuthorHandler,
+        _DataUsageHandler, _GrantHandler, _CitationAuthorHandler,
         _ChemCompHandler, _ChemDescriptorHandler, _EntityHandler,
         _EntitySrcNatHandler, _EntitySrcGenHandler, _EntitySrcSynHandler,
         _StructRefHandler, _StructRefSeqHandler, _StructRefSeqDifHandler,

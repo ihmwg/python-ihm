@@ -288,6 +288,16 @@ class _AuditRevisionDumper(Dumper):
                              item=item)
 
 
+class _DataUsageDumper(Dumper):
+    def dump(self, system, writer):
+        ordinal = itertools.count(1)
+        with writer.loop("_pdbx_data_usage",
+                         ["id", "type", "details", "url", "name"]) as lp:
+            for d in system.data_usage:
+                lp.write(id=next(ordinal), type=d.type,
+                         details=d.details, url=d.url, name=d.name)
+
+
 class _GrantDumper(Dumper):
     def dump(self, system, writer):
         with writer.loop("_pdbx_audit_support",
@@ -3972,7 +3982,7 @@ class IHMVariant(Variant):
         _CollectionDumper, _StructDumper, _CommentDumper, _AuditConformDumper,
         _DatabaseDumper, _DatabaseStatusDumper, _CitationDumper,
         _SoftwareDumper, _AuditAuthorDumper, _AuditRevisionDumper,
-        _GrantDumper, _ChemCompDumper,
+        _DataUsageDumper, _GrantDumper, _ChemCompDumper,
         _ChemDescriptorDumper, _EntityDumper, _EntitySrcGenDumper,
         _EntitySrcNatDumper, _EntitySrcSynDumper, _StructRefDumper,
         _EntityPolyDumper, _EntityNonPolyDumper, _EntityPolySeqDumper,

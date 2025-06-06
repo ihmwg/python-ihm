@@ -347,6 +347,34 @@ _pdbx_audit_revision_item.item
             self.assertEqual(r.categories, ['cat1', 'cat2'])
             self.assertEqual(r.items, ['item1'])
 
+    def test_data_usage_handler(self):
+        """Test DataUsageHandler"""
+        cif = """
+loop_
+_pdbx_data_usage.id
+_pdbx_data_usage.type
+_pdbx_data_usage.details
+_pdbx_data_usage.url
+_pdbx_data_usage.name
+1 license 'some license' someurl somename
+2 disclaimer 'some disclaimer' . .
+3 "some other type" 'misc usage' . ."""
+        for fh in cif_file_handles(cif):
+            s, = ihm.reader.read(fh)
+            d1, d2, d3 = s.data_usage
+            self.assertIsInstance(d1, ihm.License)
+            self.assertEqual(d1.details, "some license")
+            self.assertEqual(d1.name, "somename")
+            self.assertEqual(d1.url, "someurl")
+
+            self.assertIsInstance(d2, ihm.Disclaimer)
+            self.assertEqual(d2.details, "some disclaimer")
+            self.assertIsNone(d2.name)
+            self.assertIsNone(d2.url)
+
+            self.assertEqual(d3.type, "other")
+            self.assertEqual(d3.details, "misc usage")
+
     def test_grant_handler(self):
         """Test GrantHandler"""
         cif = """

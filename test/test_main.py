@@ -1402,6 +1402,14 @@ class Tests(unittest.TestCase):
         self.assertEqual(lnk.order, 'sing')
         self.assertEqual(lnk.details, 'foo')
 
+    def test_data_usage(self):
+        """Test DataUsage classes"""
+        d = ihm.DataUsage("foo", name="fooname", url="foourl")
+        d = ihm.License("foo", name="fooname", url="foourl")
+        self.assertEqual(d.type, "license")
+        d = ihm.Disclaimer("foo", name="fooname", url="foourl")
+        self.assertEqual(d.type, "disclaimer")
+
 
 if __name__ == '__main__':
     unittest.main()

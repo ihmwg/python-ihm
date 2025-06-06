@@ -444,6 +444,30 @@ _pdbx_audit_revision_item.item
 #
 """)
 
+    def test_data_usage_dumper(self):
+        """Test DataUsageDumper"""
+        system = ihm.System()
+        system.data_usage.append(
+            ihm.License("some license", url="someurl", name="somename"))
+        system.data_usage.append(ihm.Disclaimer("some disclaimer"))
+        system.data_usage.append(ihm.DataUsage("misc usage"))
+
+        dumper = ihm.dumper._DataUsageDumper()
+        dumper.finalize(system)
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_pdbx_data_usage.id
+_pdbx_data_usage.type
+_pdbx_data_usage.details
+_pdbx_data_usage.url
+_pdbx_data_usage.name
+1 license 'some license' someurl somename
+2 disclaimer 'some disclaimer' . .
+3 other 'misc usage' . .
+#
+""")
+
     def test_grant(self):
         """Test GrantDumper"""
         system = ihm.System()

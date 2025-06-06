@@ -123,6 +123,9 @@ class System:
         #: Revision/update history. See :class:`Revision`.
         self.revisions = []
 
+        #: Information on usage of the data. See :class:`DataUsage`.
+        self.data_usage = []
+
         #: All orphaned chemical descriptors in the system.
         #: See :class:`ChemDescriptor`. This can be used to track descriptors
         #: that are not otherwise used - normally one is assigned to a
@@ -1830,6 +1833,35 @@ class BranchLink:
         self.leaving_atom_id1 = leaving_atom_id1
         self.leaving_atom_id2 = leaving_atom_id2
         self.order, self.details = order, details
+
+
+class DataUsage:
+    """Information on how the data in the file can be used.
+
+       Do not use this class itself, but one of its subclasses, either
+       :class:`License` or :class:`Disclaimer`. DataUsage objects are
+       stored in :data:`ihm.System.data_usage`.
+
+       :param str details: Information about the data usage.
+       :param str name: An optional well-known name for the usage.
+       :param str url: An optional URL providing more information.
+    """
+    type = 'other'
+
+    def __init__(self, details, name=None, url=None):
+        self.details, self.name, self.url = details, name, url
+
+
+class License(DataUsage):
+    """A license describing how the data in the file can be used.
+       See :class:`DataUsage` for more information."""
+    type = 'license'
+
+
+class Disclaimer(DataUsage):
+    """A disclaimer relating to usage of the data in the file.
+       See :class:`DataUsage` for more information."""
+    type = 'disclaimer'
 
 
 class Revision:
