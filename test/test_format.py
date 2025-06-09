@@ -1200,6 +1200,12 @@ x y
 data_foo_bar
 #
 _cat1.bar old
+_cat2.baz old2
+#
+#
+loop_
+_cat3.baz
+a b c
 #
 loop_
 _foo.bar
@@ -1219,6 +1225,12 @@ x y
 data_foo_bar
 #
 _cat1.bar OLD
+_cat2.baz old2
+#
+#
+loop_
+_cat3.baz
+a b c
 #
 loop_
 _foo.bar
