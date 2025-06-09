@@ -10,9 +10,9 @@
     mmCIF values by passing them through an arbitrary Python function.
   - Checks for non-canonical atom names no longer use Ligand Expo to obtain
     CCD info, as it is being retired (#169).
-  - :class:`ihm.parser.CIFParser` and :class:`ihm.parser.BinaryCIFParser`
+  - :class:`ihm.metadata.CIFParser` and :class:`ihm.metadata.BinaryCIFParser`
     now return the same ``entity_source`` mapping that
-    :class:`ihm.parser.PDBParser` does (#168).
+    :class:`ihm.metadata.PDBParser` does (#168).
 
 2.5 - 2025-04-25
 ================
