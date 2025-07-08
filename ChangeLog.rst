@@ -1,7 +1,7 @@
 2.7 - 2025-07-07
 ================
   - Representative models for :class:`ihm.model.ModelGroup` can now be
-    denoted using the :class:`ihm.model.ModelRepresentative` class.
+    denoted using the :class:`ihm.model.ModelRepresentative` class (#173).
   - Bugfix: fix reference counts of Python bool objects.
 
 2.6 - 2025-06-09
