@@ -4,7 +4,7 @@ Group:         Applications/Engineering
 Version:       2.7
 Release:       1%{?dist}
 Summary:       Package for handling IHM mmCIF and BinaryCIF files
-Packager:      Ben Webb <ben@salilab.org>
+Packager:      Ben Webb <benmwebb@gmail.com>
 URL:           https://pypi.python.org/pypi/ihm
 Source:        ihm-%{version}.tar.gz
 Patch0:        ihm-force-c-ext.patch
