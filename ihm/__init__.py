@@ -268,6 +268,27 @@ class System:
                 seen_models[model] = None
                 yield group, model
 
+    def get_representative_model(self):
+        """Get a single :class:`~model.ModelRepresentative` that best
+           represents the entire System. If no representatives have been
+           provided, the :class:`~model.Model` containing the most chains
+           is returned instead."""
+        repmodel = None
+        repmodel_chains = -1
+        for mg in self._all_model_groups():
+            if mg.representatives:
+                return mg.representatives[0]
+            for m in mg:
+                asyms = frozenset(id(rep.asym_unit)
+                                  for rep in m.representation)
+                if len(asyms) > repmodel_chains:
+                    repmodel_chains = len(asyms)
+                    repmodel = m
+        if repmodel is None:
+            raise ValueError("No models")
+        else:
+            return repmodel
+
     def update_locations_in_repositories(self, repos):
         """Update all :class:`~ihm.location.Location` objects in the system
            that lie within a checked-out :class:`~ihm.location.Repository`

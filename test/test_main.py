@@ -1410,6 +1410,39 @@ class Tests(unittest.TestCase):
         d = ihm.Disclaimer("foo", name="fooname", url="foourl")
         self.assertEqual(d.type, "disclaimer")
 
+    def test_get_representative_model(self):
+        """Test get_representative_model()"""
+        s = ihm.System()
+        # No models should raise an error
+        self.assertRaises(ValueError, s.get_representative_model)
+
+        e = ihm.Entity('AHC')
+        a1 = ihm.AsymUnit(e, 'foo')
+        a2 = ihm.AsymUnit(e, 'bar')
+        s.entities.append(e)
+        s.asym_units.extend((a1, a2))
+        s1 = ihm.representation.AtomicSegment(
+            a1, starting_model=None, rigid=True)
+        s2 = ihm.representation.AtomicSegment(
+            a2, starting_model=None, rigid=True)
+        m1 = ihm.model.Model(assembly=None, protocol=None,
+                             representation=[s1])
+        m2 = ihm.model.Model(assembly=None, protocol=None,
+                             representation=[s1, s2])
+        mg = ihm.model.ModelGroup((m1, m2))
+        state = ihm.model.State([mg])
+        s.state_groups.append(ihm.model.StateGroup([state]))
+
+        # m2 contains two chains to m1's one, so it should be selected
+        # by default
+        self.assertIs(s.get_representative_model(), m2)
+
+        # If we explicitly denote m1 as the representative, it should
+        # be returned instead
+        mr = ihm.model.ModelRepresentative(m1, "medoid")
+        mg.representatives.append(mr)
+        self.assertIs(s.get_representative_model(), mr)
+
 
 if __name__ == '__main__':
     unittest.main()
