@@ -271,7 +271,9 @@ class System:
     def get_representative_model(self):
         """Get a single :class:`~model.ModelRepresentative` that best
            represents the entire System. If no representatives have been
-           provided, the :class:`~model.Model` containing the most chains
+           provided, an auto-generated :class:`~model.ModelRepresentative`
+           (with ``selection_criteria`` of ``auto``), wrapping the
+           :class:`~model.Model` containing the most chains,
            is returned instead."""
         repmodel = None
         repmodel_chains = -1
@@ -287,7 +289,10 @@ class System:
         if repmodel is None:
             raise ValueError("No models")
         else:
-            return repmodel
+            import ihm.model
+            m = ihm.model.ModelRepresentative(repmodel, 'medoid')
+            m._selection_criteria = 'auto'
+            return m
 
     def update_locations_in_repositories(self, repos):
         """Update all :class:`~ihm.location.Location` objects in the system

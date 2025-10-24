@@ -1434,8 +1434,10 @@ class Tests(unittest.TestCase):
         s.state_groups.append(ihm.model.StateGroup([state]))
 
         # m2 contains two chains to m1's one, so it should be selected
-        # by default
-        self.assertIs(s.get_representative_model(), m2)
+        # by default (as an auto-generated model)
+        r = s.get_representative_model()
+        self.assertIs(r.model, m2)
+        self.assertEqual(r.selection_criteria, 'auto')
 
         # If we explicitly denote m1 as the representative, it should
         # be returned instead
