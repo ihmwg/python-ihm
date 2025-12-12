@@ -3091,8 +3091,8 @@ _ihm_localization_density_files.entity_poly_segment_id
         a1._id = 'X'
         system.entities.extend((e1, e2, e3))
         system.asym_units.append(a1)
-        rng1 = a1(1,2)
-        rng2 = a1(3,4)
+        rng1 = a1(1, 2)
+        rng2 = a1(3, 4)
 
         s1 = ihm.representation.ResidueSegment(
             rng1, starting_model=None,
