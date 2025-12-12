@@ -626,16 +626,17 @@ class System:
     def _all_entity_ranges(self):
         """Iterate over all Entity ranges in the system (these may be
            :class:`Entity`, :class:`AsymUnit`, :class:`EntityRange` or
-           :class:`AsymUnitRange` objects).
+           :class:`AsymUnitRange` objects) that will be given a unique ID.
            Note that we don't include self.entities or self.asym_units here,
            as we only want ranges that were actually used.
+           We also don't include ranges used in ResidueFeature, as that
+           explicitly states the range in the mmCIF table, not by reference to
+           ``ihm_entity_poly_segment``.
            Duplicates may be present."""
         return (itertools.chain(
             (sm.asym_unit for sm in self._all_starting_models()),
             (seg.asym_unit for seg in self._all_segments()),
             (comp for a in self._all_assemblies() for comp in a),
-            (comp for f in self._all_features()
-                for comp in f._all_entities_or_asyms()),
             (d.asym_unit for d in self._all_densities())))
 
     def _all_multi_state_schemes(self):

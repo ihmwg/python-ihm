@@ -11,6 +11,7 @@ import ihm.representation
 import ihm.model
 import ihm.source
 import ihm.flr
+import ihm.restraint
 import ihm.multi_state_scheme
 
 
@@ -1172,6 +1173,7 @@ class Tests(unittest.TestCase):
         s.asym_units.append(a1)
         e1rng = e1(1, 3)
         a1rng = a1(1, 2)
+        a1rng2 = a1(3, 4)
 
         sm1 = MockObject()
         sm1.asym_unit = e1rng
@@ -1183,6 +1185,10 @@ class Tests(unittest.TestCase):
         seg1.asym_unit = a1
         rep.append(seg1)
         s.orphan_representations.append(rep)
+
+        # Ranges listed in ResidueFeature should not be included
+        # in _all_entity_ranges()
+        s.orphan_features.append(ihm.restraint.ResidueFeature([a1rng2]))
 
         asmb1 = ihm.Assembly([e1, a1])
         s.orphan_assemblies.append(asmb1)
