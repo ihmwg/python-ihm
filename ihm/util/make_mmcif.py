@@ -154,6 +154,7 @@ def add_ihm_info(s, fix_histidines, check_atom_names):
                         _check_atom_names(model, check_atom_names == 'all')
     if fix_histidines:
         _fix_histidine_chem_comps(s, histidines)
+    _fix_empty_assemblies(s)
     return s
 
 
@@ -273,6 +274,20 @@ def _get_not_modeled_residues(model):
                                          end=assem.seq_id_range[1],
                                          start=assem.seq_id_range[0]):
             yield ihm.model.NotModeledResidueRange(asym, r[0], r[1])
+
+
+def _fix_empty_assemblies(s):
+    """If input file contains any assemblies with no asyms, replace with
+       the default "complete" assembly"""
+    for asmb in s.orphan_assemblies:
+        if len(asmb) == 0:
+            asmb[:] = s.asym_units
+            # Use any user-provided information for the default complete
+            # assembly too
+            if asmb.name:
+                s.complete_assembly.name = asmb.name
+            if asmb.description:
+                s.complete_assembly.description = asmb.description
 
 
 def add_ihm_info_one_system(fname, fix_histidines, check_atom_names):

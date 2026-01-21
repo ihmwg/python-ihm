@@ -311,6 +311,47 @@ class Tests(unittest.TestCase):
                       err)
         os.unlink('output.cif')
 
+    def test_empty_assembly_with_description(self):
+        """Test fix of empty assembly with name and description"""
+        incif = utils.get_input_file_name(TOPDIR, 'empty_assembly.cif')
+        subprocess.check_call([sys.executable, MAKE_MMCIF, incif])
+        with open('output.cif') as fh:
+            s, = ihm.reader.read(fh)
+        # Input file specifies an assembly containing no asyms, but with
+        # a name and description. On output it should be filled in with the
+        # "complete" assembly but keep the user-provided information.
+        self.assertEqual(len(s.orphan_assemblies), 1)
+        self.assertEqual(len(s.orphan_assemblies[0]), 1)
+        self.assertEqual(s.orphan_assemblies[0].name, 'User-provided name')
+        self.assertEqual(s.orphan_assemblies[0].description,
+                         'User-provided description')
+        os.unlink('output.cif')
+
+    def test_empty_assembly_no_description(self):
+        """Test fix of empty assembly without name or description"""
+        incif_orig = utils.get_input_file_name(TOPDIR, 'empty_assembly.cif')
+        incif_new = "empty_assembly_no_description.cif"
+        with open(incif_orig) as fh:
+            data = fh.read().replace(
+                "'User-provided name' 'User-provided description'", ". .")
+        with open(incif_new, 'w') as fh:
+            fh.write(data)
+
+        subprocess.check_call([sys.executable, MAKE_MMCIF, incif_new])
+        with open('output.cif') as fh:
+            s, = ihm.reader.read(fh)
+        # Input file specifies an assembly containing no asyms, name or
+        # description. On output it should be filled in with the
+        # "complete" assembly, including the auto-generated name
+        # and description.
+        self.assertEqual(len(s.orphan_assemblies), 1)
+        self.assertEqual(len(s.orphan_assemblies[0]), 1)
+        self.assertEqual(s.orphan_assemblies[0].name, 'Complete assembly')
+        self.assertEqual(s.orphan_assemblies[0].description,
+                         'All known components')
+        os.unlink(incif_new)
+        os.unlink('output.cif')
+
 
 if __name__ == '__main__':
     unittest.main()
