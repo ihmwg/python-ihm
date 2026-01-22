@@ -18,7 +18,7 @@ import json
 import collections
 from . import util
 
-__version__ = '2.8'
+__version__ = '2.9'
 
 
 class __UnknownValue:
