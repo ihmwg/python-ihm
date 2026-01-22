@@ -352,6 +352,39 @@ class Tests(unittest.TestCase):
         os.unlink(incif_new)
         os.unlink('output.cif')
 
+    def test_missing_chem_comp(self):
+        """Test fix of incomplete chem_comp table"""
+        incif = utils.get_input_file_name(TOPDIR, 'missing_chem_comp.cif')
+
+        # Use mock urllib so we don't hit the network during this test
+        env = os.environ.copy()
+        mockdir = os.path.join(TOPDIR, 'test', 'mock', 'non_canon_atom')
+        env['PYTHONPATH'] = mockdir + os.pathsep + env['PYTHONPATH']
+
+        r = subprocess.Popen([sys.executable, MAKE_MMCIF,
+                             "--fix_chem_comp", incif],
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
+                             universal_newlines=True, env=env)
+        out, err = r.communicate()
+        self.assertEqual(r.returncode, 0)
+        # Residues not in CCD should give a warning
+        self.assertIn("Component INVALID-CHEM-COMP could not be found in CCD",
+                      err)
+        # ALA should be left unchanged (already present in the input file);
+        # MG should be filled in with CCD info;
+        # ZN should be left unchanged (no chem_comp table in our mock CCD)
+        with open('output.cif') as fh:
+            contents = fh.readlines()
+        ind = contents.index('_chem_comp.formula_weight\n')
+        self.assertEqual(
+            contents[ind + 1:ind + 5],
+            ["ALA 'L-peptide linking' ALANINE 'C3 H7 N O2' 89.094\n",
+             "MG non-polymer 'MAGNESIUM ION' Mg 24.305\n",
+             'ZN other . . .\n',
+             'invalid-chem-comp other . . .\n'])
+        os.unlink('output.cif')
+
 
 if __name__ == '__main__':
     unittest.main()
