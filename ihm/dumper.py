@@ -676,13 +676,14 @@ class _StructRefDumper(Dumper):
         ordinal = itertools.count(1)
         with writer.loop(
                 "_struct_ref_seq_dif",
-                ["pdbx_ordinal", "align_id", "seq_num", "db_mon_id", "mon_id",
-                 "details"]) as lp:
+                ["pdbx_ordinal", "align_id", "db_mon_id",
+                 "pdbx_seq_db_seq_num", "mon_id", "seq_num", "details"]) as lp:
             for e, r in self._refs_by_id:
                 for a in r._get_alignments():
                     for sd in a.seq_dif:
                         lp.write(pdbx_ordinal=next(ordinal),
                                  align_id=a._id, seq_num=sd.seq_id,
+                                 pdbx_seq_db_seq_num=sd.db_seq_id,
                                  db_mon_id=sd.db_monomer.id
                                  if sd.db_monomer else ihm.unknown,
                                  mon_id=sd.monomer.id

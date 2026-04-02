@@ -1,6 +1,7 @@
 """Classes for providing extra information about an :class:`ihm.Entity`"""
 
 import urllib.request
+import ihm
 
 
 class Reference:
@@ -147,8 +148,11 @@ class SeqDif:
     def __init__(self, seq_id, db_monomer, monomer, details=None):
         self.seq_id, self.db_monomer = seq_id, db_monomer
         self.monomer, self.details = monomer, details
+        # Only used for deletions; not currently exposed in the base class
+        self.db_seq_id = ihm.unknown
 
     def _signature(self):
         # Don't ignore "details", as these distinguish insertions from
         # deletions
-        return (self.seq_id, self.db_monomer, self.monomer, self.details)
+        return (self.seq_id, self.db_seq_id, self.db_monomer, self.monomer,
+                self.details)

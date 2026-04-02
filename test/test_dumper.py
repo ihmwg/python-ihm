@@ -780,12 +780,76 @@ _struct_ref_seq.db_align_end
 loop_
 _struct_ref_seq_dif.pdbx_ordinal
 _struct_ref_seq_dif.align_id
-_struct_ref_seq_dif.seq_num
 _struct_ref_seq_dif.db_mon_id
+_struct_ref_seq_dif.pdbx_seq_db_seq_num
 _struct_ref_seq_dif.mon_id
+_struct_ref_seq_dif.seq_num
 _struct_ref_seq_dif.details
-1 1 2 TRP SER 'Test mutation'
-2 1 3 ? ? 'Test mutation'
+1 1 TRP ? SER 2 'Test mutation'
+2 1 ? ? ? 3 'Test mutation'
+#
+""")
+
+    def test_struct_ref_ins_del(self):
+        """Test StructRefDumper insertions and deletions"""
+        system = ihm.System()
+        lpep = ihm.LPeptideAlphabet()
+        sd1 = ihm.reference.SeqDif(seq_id=2, db_monomer=lpep['W'],
+                                   monomer=lpep['S'], details='Test mutation')
+        sd2 = ihm.reference.SeqDif(seq_id=ihm.unknown, db_monomer=lpep['P'],
+                                   monomer=ihm.unknown, details='deletion')
+        # db_seq_id not currently exposed in base class constructor
+        sd2.db_seq_id = 5
+        sd3 = ihm.reference.SeqDif(seq_id=4, db_monomer=ihm.unknown,
+                                   monomer=lpep['C'], details='insertion')
+        r1 = ihm.reference.UniProtSequence(
+            db_code='NUP84_YEAST', accession='P52891', sequence='MELWPTYQT',
+            details='test sequence')
+        r1.alignments.append(ihm.reference.Alignment(db_begin=3,
+                                                     seq_dif=[sd1, sd2, sd3]))
+        system.entities.append(ihm.Entity('LSTC', references=[r1]))
+
+        dumper = ihm.dumper._EntityDumper()
+        dumper.finalize(system)  # Assign entity IDs
+
+        dumper = ihm.dumper._StructRefDumper()
+        dumper.finalize(system)  # Assign IDs
+        out = _get_dumper_output(dumper, system)
+        self.maxDiff=None
+        self.assertEqual(out, """#
+loop_
+_struct_ref.id
+_struct_ref.entity_id
+_struct_ref.db_name
+_struct_ref.db_code
+_struct_ref.pdbx_db_accession
+_struct_ref.pdbx_align_begin
+_struct_ref.pdbx_seq_one_letter_code
+_struct_ref.details
+1 1 UNP NUP84_YEAST P52891 3 LWPTYQT 'test sequence'
+#
+#
+loop_
+_struct_ref_seq.align_id
+_struct_ref_seq.ref_id
+_struct_ref_seq.seq_align_beg
+_struct_ref_seq.seq_align_end
+_struct_ref_seq.db_align_beg
+_struct_ref_seq.db_align_end
+1 1 1 4 3 6
+#
+#
+loop_
+_struct_ref_seq_dif.pdbx_ordinal
+_struct_ref_seq_dif.align_id
+_struct_ref_seq_dif.db_mon_id
+_struct_ref_seq_dif.pdbx_seq_db_seq_num
+_struct_ref_seq_dif.mon_id
+_struct_ref_seq_dif.seq_num
+_struct_ref_seq_dif.details
+1 1 TRP ? SER 2 'Test mutation'
+2 1 PRO 5 ? ? deletion
+3 1 ? ? CYS 4 insertion
 #
 """)
 
