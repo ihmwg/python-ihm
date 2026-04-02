@@ -1324,6 +1324,10 @@ class _StructRefSeqHandler(Handler):
 class _StructRefSeqDifHandler(Handler):
     category = '_struct_ref_seq_dif'
 
+    # All 'details' that correspond to an insertion relative to the
+    # database sequence
+    insertion_types = frozenset(('insertion', 'expression tag'))
+
     def __call__(self, align_id, seq_num: int, pdbx_seq_db_seq_num: int,
                  db_mon_id, mon_id, details):
         align = self.sysr.alignments.get_by_id(align_id)
@@ -1332,6 +1336,13 @@ class _StructRefSeqDifHandler(Handler):
         sd = ihm.reference.SeqDif(seq_num, db_monomer, monomer, details)
         # db_seq_id isn't exposed in the base class constructor
         sd.db_seq_id = pdbx_seq_db_seq_num
+        # Set more appropriate type if possible
+        if details:
+            lowdet = details.lower()
+            if lowdet in self.insertion_types:
+                sd.__class__ = ihm.reference.InsertionSeqDif
+            elif lowdet == 'deletion':
+                sd.__class__ = ihm.reference.DeletionSeqDif
         align.seq_dif.append(sd)
 
 

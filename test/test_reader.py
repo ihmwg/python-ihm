@@ -846,9 +846,11 @@ _struct_ref_seq_dif.details
                 self.assertIsNone(sd2.monomer)
 
                 # Insertion
+                self.assertIsInstance(sd3, ihm.reference.InsertionSeqDif)
                 self.assertEqual(sd3.seq_id, 2)
                 self.assertEqual(sd3.db_seq_id, ihm.unknown)
                 # Deletion
+                self.assertIsInstance(sd4, ihm.reference.DeletionSeqDif)
                 self.assertEqual(sd4.seq_id, ihm.unknown)
                 self.assertEqual(sd4.db_seq_id, 10)
 

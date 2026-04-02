@@ -796,12 +796,8 @@ _struct_ref_seq_dif.details
         lpep = ihm.LPeptideAlphabet()
         sd1 = ihm.reference.SeqDif(seq_id=2, db_monomer=lpep['W'],
                                    monomer=lpep['S'], details='Test mutation')
-        sd2 = ihm.reference.SeqDif(seq_id=ihm.unknown, db_monomer=lpep['P'],
-                                   monomer=ihm.unknown, details='deletion')
-        # db_seq_id not currently exposed in base class constructor
-        sd2.db_seq_id = 5
-        sd3 = ihm.reference.SeqDif(seq_id=4, db_monomer=ihm.unknown,
-                                   monomer=lpep['C'], details='insertion')
+        sd2 = ihm.reference.DeletionSeqDif(db_seq_id=5, db_monomer=lpep['P'])
+        sd3 = ihm.reference.InsertionSeqDif(seq_id=4, monomer=lpep['C'])
         r1 = ihm.reference.UniProtSequence(
             db_code='NUP84_YEAST', accession='P52891', sequence='MELWPTYQT',
             details='test sequence')

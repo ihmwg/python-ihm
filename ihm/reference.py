@@ -134,7 +134,10 @@ class Alignment:
 
 class SeqDif:
     """Annotate a sequence difference between a reference and entity sequence.
-       See :class:`Alignment`.
+       This is generally used for simple mutations; for insertions or
+       deletions, use the :class:`InsertionSeqDif` or :class:`DeletionSeqDif`
+       subclasses instead.
+       See also :class:`Alignment`.
 
        :param int seq_id: The residue index in the entity sequence.
        :param db_monomer: The monomer type (as a :class:`~ihm.ChemComp` object)
@@ -156,3 +159,38 @@ class SeqDif:
         # deletions
         return (self.seq_id, self.db_seq_id, self.db_monomer, self.monomer,
                 self.details)
+
+
+class InsertionSeqDif(SeqDif):
+    """Annotate an insertion of a residue relative to the reference sequence.
+       This is used to describe a residue that is present in the entity
+       sequence but not in the reference, such as an expression tag.
+       See also :class:`SeqDif` and :class:`Alignment`.
+
+       :param int seq_id: The residue index in the entity sequence.
+       :param monomer: The monomer type (as a :class:`~ihm.ChemComp` object)
+              in the entity sequence.
+       :type monomer: :class:`ihm.ChemComp`
+       :param str details: Descriptive text for the sequence difference.
+    """
+    def __init__(self, seq_id, monomer, details='insertion'):
+        super().__init__(seq_id=seq_id, db_monomer=ihm.unknown,
+                         monomer=monomer, details=details)
+
+
+class DeletionSeqDif(SeqDif):
+    """Annotate a deletion of a residue from the reference sequence.
+       This is used to describe a residue that is present in the reference
+       sequence but not in the entity.
+       See also :class:`SeqDif` and :class:`Alignment`.
+
+       :param int db_seq_id: The residue index in the reference sequence.
+       :param db_monomer: The monomer type (as a :class:`~ihm.ChemComp` object)
+              in the reference sequence.
+       :type db_monomer: :class:`ihm.ChemComp`
+       :param str details: Descriptive text for the sequence difference.
+    """
+    def __init__(self, db_seq_id, db_monomer, details='deletion'):
+        super().__init__(seq_id=ihm.unknown, db_monomer=db_monomer,
+                         monomer=ihm.unknown, details=details)
+        self.db_seq_id = db_seq_id
