@@ -811,7 +811,6 @@ _struct_ref_seq_dif.details
         dumper = ihm.dumper._StructRefDumper()
         dumper.finalize(system)  # Assign IDs
         out = _get_dumper_output(dumper, system)
-        self.maxDiff=None
         self.assertEqual(out, """#
 loop_
 _struct_ref.id
