@@ -609,8 +609,8 @@ class _StructRefDumper(Dumper):
         check_rng(db_rng, fullrefseq, "db_begin,db_end", ref)
 
         matchlen = min(entity_rng[1] - entity_rng[0], db_rng[1] - db_rng[0])
-        entseq = entseq[entity_rng[0] - 1:entity_rng[0] + matchlen - 1]
-        refseq = fullrefseq[db_rng[0] - 1:db_rng[0] + matchlen - 1]
+        entseq = entseq[entity_rng[0] - 1:entity_rng[0] + matchlen]
+        refseq = fullrefseq[db_rng[0] - 1:db_rng[0] + matchlen]
 
         # Entity sequence is canonical so likely won't match any non-standard
         # residue (anything of length > 1), so just skip checks of these
