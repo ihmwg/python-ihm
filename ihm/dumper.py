@@ -552,24 +552,57 @@ class _StructRefDumper(Dumper):
             (code if len(code) == 1 else '(%s)' % code
              for code in fullrefseq[db_begin - 1:db_end]), 70))
 
-    def _check_seq_dif(self, entity, ref, align):
+    def _check_seq_dif(self, entity, refseq, align):
         """Check all SeqDif objects for the Entity sequence. Return the mutated
            sequence (to match the reference)."""
         entseq = [comp.code_canonical for comp in entity.sequence]
+        mutations = []
+        insertions = []
+        deletions = []
         for sd in align.seq_dif:
-            if sd.seq_id < 1 or sd.seq_id > len(entseq):
-                raise IndexError("SeqDif.seq_id for %s is %d, out of "
-                                 "range 1-%d"
-                                 % (entity, sd.seq_id, len(entseq)))
-            if (sd.monomer
-                    and sd.monomer.code_canonical != entseq[sd.seq_id - 1]):
-                raise ValueError("SeqDif.monomer one-letter code (%s) does "
-                                 "not match that in %s (%s at position %d)"
-                                 % (sd.monomer.code_canonical, entity,
-                                    entseq[sd.seq_id - 1], sd.seq_id))
+            if sd.monomer and not sd.db_monomer:
+                insertions.append(sd)
+            elif not sd.monomer and sd.db_monomer:
+                deletions.append(sd)
+            else:
+                mutations.append(sd)
+        for sd in insertions:
+            self._check_seq_dif_entity(entity, entseq, sd)
+        for sd in deletions:
+            self._check_seq_dif_reference(entity, refseq, sd)
+        for sd in mutations:
+            self._check_seq_dif_entity(entity, entseq, sd)
+            # todo: db_seq_id is often missing so we can't check reference
+            # info - unless we determine it automatically from seq_id
             if sd.db_monomer:
                 entseq[sd.seq_id - 1] = sd.db_monomer.code_canonical
         return entseq
+
+    def _check_seq_dif_entity(self, entity, entseq, sd):
+        """Make sure the entity information in a SeqDif record matches"""
+        if sd.seq_id < 1 or sd.seq_id > len(entseq):
+            raise IndexError("SeqDif.seq_id for %s is %d, out of "
+                             "range 1-%d"
+                             % (entity, sd.seq_id, len(entseq)))
+        if (sd.monomer
+                and sd.monomer.code_canonical != entseq[sd.seq_id - 1]):
+            raise ValueError("SeqDif.monomer one-letter code (%s) does "
+                             "not match that in %s (%s at position %d)"
+                             % (sd.monomer.code_canonical, entity,
+                                entseq[sd.seq_id - 1], sd.seq_id))
+
+    def _check_seq_dif_reference(self, entity, refseq, sd):
+        """Make sure the reference information in a SeqDif record matches"""
+        if sd.db_seq_id < 1 or sd.db_seq_id > len(refseq):
+            raise IndexError("SeqDif.db_seq_id for %s is %d, out of "
+                             "range 1-%d"
+                             % (entity, sd.db_seq_id, len(refseq)))
+        if (sd.db_monomer and len(refseq[sd.db_seq_id - 1]) == 1
+                and sd.db_monomer.code_canonical != refseq[sd.db_seq_id - 1]):
+            raise ValueError("SeqDif.db_monomer one-letter code (%s) does "
+                             "not match that in %s (%s at position %d)"
+                             % (sd.db_monomer.code_canonical, entity,
+                                refseq[sd.seq_id - 1], sd.db_seq_id))
 
     def _get_ranges(self, entity, fullrefseq, align):
         """Get the sequence ranges for an Entity and Reference"""
@@ -589,15 +622,10 @@ class _StructRefDumper(Dumper):
         if ref.sequence in (None, ihm.unknown):
             # We just have to trust the range if the ref sequence is blank
             return
-        # Our sanity-checking logic doesn't currently support insertions
-        # or deletions
-        if any(sd.details in ('insertion', 'deletion')
-               for sd in align.seq_dif):
-            return
-        entseq = self._check_seq_dif(entity, ref, align)
         # Reference sequence may contain non-standard residues, so parse them
         # out; e.g. "FLGHGGN(WP9)LHFVQLAS"
         fullrefseq = list(util._get_codes(ref.sequence))
+        entseq = self._check_seq_dif(entity, fullrefseq, align)
 
         def check_rng(rng, seq, rngstr, obj):
             if any(r < 1 or r > len(seq) for r in rng):
