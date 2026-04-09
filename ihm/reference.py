@@ -98,6 +98,18 @@ class UniProtSequence(Sequence):
             seq = decode(fh.read()).replace('\n', '')
             return cls(code, accession, seq, details)
 
+    def add_missing_sequence(self):
+        """Fill in any missing sequence information.
+           This is done by querying the UniProt web API, so requires network
+           access.
+        """
+        if not self.sequence:
+            acc = self.from_accession(self.accession)
+            self.sequence = acc.sequence
+            # If we are missing details too, use that from UniProt
+            if not self.details:
+                self.details = acc.details
+
 
 class Alignment:
     """A sequence range that aligns between the database and the entity.
