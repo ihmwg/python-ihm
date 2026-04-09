@@ -138,6 +138,13 @@ class Tests(unittest.TestCase):
             details='foo')
         self._mocked_uniprot_urlopen('P52891.fasta', r.add_missing_sequence)
         self.assertEqual(r.details, 'foo')
+        # If sequence already present, should not be overwritten
+        r = ihm.reference.UniProtSequence(
+            db_code='NUP84_YEAST', accession='testacc', sequence='MEL',
+            details='foo')
+        self._mocked_uniprot_urlopen('P52891.fasta', r.add_missing_sequence)
+        self.assertEqual(r.sequence, 'MEL')
+        self.assertEqual(r.details, 'foo')
 
 
 if __name__ == '__main__':
