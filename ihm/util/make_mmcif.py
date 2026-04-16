@@ -476,11 +476,11 @@ def get_args():
                         "residue types by querying CCD (needs network access)")
     p.add_argument("--fix_chem_comp", action='store_true',
                    dest="fix_chem_comp",
-                   help="Add any missing data to the chem_comp table by"
+                   help="Add any missing data to the chem_comp table by "
                         "querying CCD (needs network access)")
     p.add_argument("--fix_struct_ref", action='store_true',
                    dest="fix_struct_ref",
-                   help="Add any missing data to the struct_ref table by"
+                   help="Add any missing data to the struct_ref table by "
                         "querying UniProt (needs network access)")
     return p.parse_args()
 
