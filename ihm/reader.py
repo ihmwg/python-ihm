@@ -161,20 +161,35 @@ class _ChemCompIDMapper(IDMapper):
             self._standard_by_id.update((item[1].id, item[1])
                                         for item in alphabet._comps.items())
 
-    def get_by_id(self, objid, newcls=None):
+    def get_by_id(self, objid, newcls=None, add_to_list=True):
         # Don't modify class of standard residue types
         if objid in self._standard_by_id:
             obj = self._standard_by_id[objid]
             if objid not in self._obj_by_id:
                 self._obj_by_id[objid] = obj
-                self.system_list.append(obj)
+                if add_to_list:
+                    self.system_list.append(obj)
             return obj
         else:
             # Assign nonpolymer class based on the ID
             if newcls is ihm.NonPolymerChemComp or newcls is ihm.WaterChemComp:
                 newcls = (ihm.WaterChemComp if objid == 'HOH'
                           else ihm.NonPolymerChemComp)
-            return super().get_by_id(objid, newcls)
+            if add_to_list:
+                return super().get_by_id(objid, newcls)
+            else:
+                # Temporarily set system_list=None so that super class
+                # method does not add the new object
+                bkp = self.system_list
+                try:
+                    self.system_list = None
+                    return super().get_by_id(objid, newcls)
+                finally:
+                    self.system_list = bkp
+
+    def get_by_id_or_none(self, objid, newcls=None, add_to_list=True):
+        return (None if objid in (None, ihm.unknown)
+                else self.get_by_id(objid, newcls, add_to_list))
 
     def _make_new_object(self, newcls=None):
         if newcls is None:
@@ -1327,7 +1342,10 @@ class _StructRefSeqDifHandler(Handler):
     def __call__(self, align_id, seq_num: int, pdbx_seq_db_seq_num: int,
                  db_mon_id, mon_id, details):
         align = self.sysr.alignments.get_by_id(align_id)
-        db_monomer = self.sysr.chem_comps.get_by_id_or_none(db_mon_id)
+        # db_mon_id relates to the database, not our structure, so this
+        # component should *not* go in system._orphan_chem_comps
+        db_monomer = self.sysr.chem_comps.get_by_id_or_none(
+            db_mon_id, add_to_list=False)
         monomer = self.sysr.chem_comps.get_by_id_or_none(mon_id)
         sd = ihm.reference.SeqDif(seq_num, db_monomer, monomer, details)
         # db_seq_id isn't exposed in the base class constructor

@@ -809,7 +809,7 @@ _struct_ref_seq_dif.details
 1 1 2 ? TRP SER 'Test mutation'
 2 1 2 ? . . 'Test mutation'
 3 1 2 ? ? PRO insertion
-4 1 ? 10 CYS ? deletion
+4 1 ? 10 NONSTDRES ? deletion
 #
 """
         # Order of the categories shouldn't matter
@@ -819,6 +819,10 @@ _struct_ref_seq_dif.details
             for fh in cif_file_handles(cif):
                 s, = ihm.reader.read(fh)
                 e, = s.entities
+                # Only the seq_id.mon_id components should have been added,
+                # not db_mon_id
+                self.assertEqual(sorted(c.id for c in s._orphan_chem_comps),
+                                 ['PRO', 'SER'])
                 r1, r2, r3, r4 = e.references
                 self.assertIsInstance(r1, ihm.reference.UniProtSequence)
                 self.assertEqual(r1.db_name, 'UNP')
