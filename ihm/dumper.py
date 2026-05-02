@@ -2409,7 +2409,11 @@ class _FeatureDumper(Dumper):
                           "details"]) as lp:
             for f in self._features_by_id:
                 if self._check and f.type is ihm.unknown:
-                    raise ValueError("Invalid null feature %s" % f)
+                    raise ValueError(
+                        "Invalid null feature %s, ID %s. This is usually due "
+                        "to a missing feature-type-specific table such as "
+                        "ihm_poly_residue_feature or ihm_poly_atom_feature."
+                        % (f, f._id))
                 lp.write(feature_id=f._id, feature_type=f.type,
                          entity_type=f._get_entity_type(),
                          details=f.details)
