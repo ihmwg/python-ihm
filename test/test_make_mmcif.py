@@ -409,6 +409,16 @@ class Tests(unittest.TestCase):
             contents[ind + 1], '1 1 UNP Q90VU7_HV1 Q90VU7 26 AADG\n')
         os.unlink('output.cif')
 
+    def test_non_utf8_encoded(self):
+        """Test handling of files that are not UTF-8-encoded"""
+        incif = utils.get_input_file_name(TOPDIR, 'non_utf8_encoded.cif')
+        subprocess.check_call([sys.executable, MAKE_MMCIF, incif])
+        with open('output.cif') as fh:
+            s, = ihm.reader.read(fh)
+        self.assertEqual(s.title,
+                         'Test with non-utf8-encoded symbols such as Å')
+        os.unlink('output.cif')
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -340,12 +340,11 @@ def _fix_incomplete_struct_ref(s):
                 r.add_missing_sequence()
 
 
-def add_ihm_info_one_system(fname, fix_histidines, check_atom_names,
+def add_ihm_info_one_system(fh, fname, fix_histidines, check_atom_names,
                             fix_chem_comp, fix_struct_ref):
-    """Read mmCIF file `fname`, which must contain a single System, and
-       return it with any missing IHM data added."""
-    with open(fname) as fh:
-        systems = ihm.reader.read(fh)
+    """Read mmCIF file `fname` via handle `fh`, which must contain a single
+       System, and return it with any missing IHM data added."""
+    systems = ihm.reader.read(fh)
     if len(systems) != 1:
         raise ValueError("mmCIF file %s must contain exactly 1 data block "
                          "(%d found)" % (fname, len(systems)))
@@ -485,6 +484,22 @@ def get_args():
     return p.parse_args()
 
 
+def with_opened_file(fname, func, *args, **kwargs):
+    """Open the given file for reading (with the default encoding, usually
+       UTF-8) and pass the file handle to the provided function, plus any
+       extra positional or keyword arguments. Return the function's return
+       value. If this fails, try again with ISO-8859-1 encoding."""
+    try:
+        with open(fname) as fh:
+            return func(fh, *args, **kwargs)
+    except UnicodeDecodeError as exc:
+        warnings.warn(
+            "Could not read file %s with default encoding; "
+            "falling back to ISO-8859-1 or Latin-1 (%s)" % (fname, str(exc)))
+        with open(fname, encoding='iso-8859-1') as fh:
+            return func(fh, *args, **kwargs)
+
+
 def main():
     args = get_args()
 
@@ -493,22 +508,22 @@ def main():
         raise ValueError("Input and output are the same file")
 
     if args.add:
-        s = add_ihm_info_one_system(args.input, args.fix_histidines,
-                                    args.check_atom_names,
-                                    args.fix_chem_comp,
-                                    args.fix_struct_ref)
+        s = with_opened_file(
+            args.input, add_ihm_info_one_system,
+            args.input, args.fix_histidines, args.check_atom_names,
+            args.fix_chem_comp, args.fix_struct_ref)
         for other in args.add:
-            other_s = add_ihm_info_one_system(other, args.fix_histidines,
-                                              args.check_atom_names,
-                                              args.fix_chem_comp,
-                                              args.fix_struct_ref)
+            other_s = with_opened_file(
+                other, add_ihm_info_one_system,
+                other, args.fix_histidines, args.check_atom_names,
+                args.fix_chem_comp, args.fix_struct_ref)
             combine(s, other_s)
         with open(args.output, 'w') as fhout:
             ihm.dumper.write(
                 fhout, [s],
                 variant=ihm.dumper.IgnoreVariant(['_audit_conform']))
     else:
-        with open(args.input) as fh:
+        def process_file(fh):
             with open(args.output, 'w') as fhout:
                 ihm.dumper.write(
                     fhout, [add_ihm_info(s, args.fix_histidines,
@@ -517,6 +532,8 @@ def main():
                                          args.fix_struct_ref)
                             for s in ihm.reader.read(fh)],
                     variant=ihm.dumper.IgnoreVariant(['_audit_conform']))
+
+        with_opened_file(args.input, process_file)
 
 
 if __name__ == '__main__':
