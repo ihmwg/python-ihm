@@ -1312,6 +1312,7 @@ A 1 4 THR 4 6 THR THR A .
     def test_poly_seq_scheme_dumper_not_modeled(self):
         """Test PolySeqSchemeDumper with not-modeled residues"""
         system, m1, asym = self._make_test_model()
+        del asym.entity._id
         rr = ihm.model.NotModeledResidueRange(asym, 1, 2)
         m1.not_modeled_residue_ranges.append(rr)
 
@@ -1359,6 +1360,7 @@ A 1 4 THR 4 4 THR THR A .
         # Older model with no not_modeled_residue_ranges member (e.g.
         # older versions of python-modelcif)
         system, m1, asym = self._make_test_model()
+        del asym.entity._id
         del m1.not_modeled_residue_ranges
 
         mg = system.state_groups[0][0][0]

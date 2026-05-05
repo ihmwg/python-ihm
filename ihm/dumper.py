@@ -376,12 +376,12 @@ class _EntityDumper(Dumper):
         # Assign IDs and check for duplicates or empty entities
         seen = {}
         empty = []
-        for num, entity in enumerate(system.entities):
+        assign = util._EnumerateAssignIDs(system.entities)
+        for entity in assign.each_object():
             if self._check and entity in seen and len(entity.sequence) > 0:
                 raise ValueError("Duplicate entity %s found" % entity)
             if len(entity.sequence) == 0:
                 empty.append(entity)
-            entity._id = num + 1
             seen[entity] = None
         if empty:
             warnings.warn(

@@ -22,6 +22,91 @@ class _AsymIDs:
         return "".join(reversed(ids))
 
 
+class _AssignIDs:
+    """Base class for assigning unique IDs to a list of objects."""
+
+    def __init__(self, obj_list, attr='_id'):
+        self._obj_list = obj_list
+        self.attr = attr
+
+    def _iterate_objects(self):
+        if callable(self._obj_list):
+            yield from self._obj_list()
+        else:
+            yield from self._obj_list
+
+    def _get_existing_ids(self):
+        """Iterate through the list to look for any ID already set.
+           Preserve what we can."""
+        self.by_id = []
+        self._seen_objs = self._make_seen_obj_mapping()
+        seen_ids = set()
+        self._next_id = 1
+        for obj in self._iterate_objects():
+            if hasattr(obj, self.attr) and obj not in self._seen_objs:
+                obj_id = getattr(obj, self.attr)
+                # If different objects have the same IDs, renumber all but
+                # the first
+                if obj_id in seen_ids:
+                    delattr(obj, self.attr)
+                else:
+                    seen_ids.add(obj_id)
+                    # If objects have existing numeric IDs, make sure that any
+                    # auto-generated IDs for other objects don't clash by
+                    # starting the numbering after the largest existing ID.
+                    if isinstance(obj_id, int) or (isinstance(obj_id, str)
+                                                   and obj_id.isnumeric()):
+                        self._next_id = max(self._next_id, int(obj_id) + 1)
+                    self._seen_objs[obj] = obj_id
+                    self.by_id.append(obj)
+
+    def assign_all(self):
+        """Assign IDs to all objects. Return a list of all unique objects,
+           ordered by ID."""
+        for _ in self.each_object():
+            pass
+        return self.by_id
+
+    def each_object(self):
+        """Assign IDs for objects, yielding each object before the ID is
+           assigned. All unique objects are available at the end of iteration
+           in `self.by_id`."""
+        self._get_existing_ids()
+        for obj in self._iterate_objects():
+            yield obj
+            if obj not in self._seen_objs:
+                if not hasattr(obj, self.attr):
+                    self.by_id.append(obj)
+                    setattr(obj, self.attr, self._next_id)
+                    self._next_id += 1
+                self._seen_objs[obj] = getattr(obj, self.attr)
+            else:
+                setattr(obj, self.attr, self._seen_objs[obj])
+
+
+class _HashAssignIDs(_AssignIDs):
+    """Assign unique IDs to a list of objects. Objects that have the same
+       hash will be grouped together and assigned the same ID."""
+    def _make_seen_obj_mapping(self):
+        return {}
+
+
+class _EnumerateAssignIDs(_AssignIDs):
+    """Assign unique IDs to a list of objects. New IDs are assigned by
+       simple enumeration."""
+    def _make_seen_obj_mapping(self):
+        # For an enumeration, use a dummy mapping which always claims that
+        # the queried object is novel (not in the mapping)
+        class EnumerateMapping:
+            def __contains__(self, x):
+                return False
+
+            def __setitem__(self, key, val):
+                pass
+
+        return EnumerateMapping()
+
+
 def _remove_id(obj, attr='_id'):
     """Remove any unique ID from obj"""
     if hasattr(obj, attr):
