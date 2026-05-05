@@ -213,6 +213,14 @@ class Tests(unittest.TestCase):
         self.assertEqual(tuple(ihm.util._get_codes("TWC\nAA(FOO)T")),
                          ('T', 'W', 'C', 'A', 'A', 'FOO', 'T'))
 
+    def test_intlike(self):
+        """Test _intlike function"""
+        self.assertEqual(ihm.util._intlike(42), 42)
+        self.assertEqual(ihm.util._intlike(42.34), 42)
+        self.assertEqual(ihm.util._intlike("42"), 42)
+        self.assertEqual(ihm.util._intlike("42.34"), 0)
+        self.assertEqual(ihm.util._intlike("foo"), 0)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -1109,7 +1109,8 @@ class _AssemblyDumperBase(Dumper):
     def finalize(self, system):
         # Sort each assembly by entity id/asym id/range
         def component_key(comp):
-            return (comp.entity._id, comp._ordinal, comp.seq_id_range)
+            return (util._intlike(comp.entity._id), comp._ordinal,
+                    comp.seq_id_range)
         for a in system._all_assemblies():
             a.sort(key=component_key)
 

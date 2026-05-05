@@ -271,3 +271,11 @@ def _get_iso_date(iso_date_str):
     return datetime.date(int(iso_date_str[0:4]),
                          int(iso_date_str[5:7]),
                          int(iso_date_str[8:10]))
+
+
+def _intlike(obj):
+    """Return an int representation of obj, if available"""
+    try:
+        return int(obj)
+    except ValueError:
+        return 0
