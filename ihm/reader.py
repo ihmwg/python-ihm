@@ -16,6 +16,7 @@ import ihm.source
 import ihm.cross_linkers
 import ihm.multi_state_scheme
 import ihm.flr
+import numbers
 import inspect
 import warnings
 import collections
@@ -1830,6 +1831,20 @@ class _StartingComparativeModelsHandler(Handler):
             dataset, asym_id, seq_id_range, template_seq_id_range,
             identity, aln)
         m.templates.append(t)
+
+    def finalize(self):
+        # Convert template range from IHM to template numbering by
+        # subtracting the starting model offset
+        for m in self.system.orphan_starting_models:
+            if m.offset:
+                for t in m.templates:
+                    seq_id_begin = t.seq_id_range[0]
+                    if isinstance(seq_id_begin, numbers.Integral):
+                        seq_id_begin -= m.offset
+                    seq_id_end = t.seq_id_range[1]
+                    if isinstance(seq_id_end, numbers.Integral):
+                        seq_id_end -= m.offset
+                    t.seq_id_range = (seq_id_begin, seq_id_end)
 
 
 class _ProtocolHandler(Handler):

@@ -1443,6 +1443,17 @@ _ihm_starting_computational_models.script_file_id
         """Test StartingComparativeModelsHandler"""
         cif = """
 loop_
+_ihm_starting_model_details.starting_model_id
+_ihm_starting_model_details.entity_id
+_ihm_starting_model_details.asym_id
+_ihm_starting_model_details.starting_model_source
+_ihm_starting_model_details.starting_model_auth_asym_id
+_ihm_starting_model_details.starting_model_sequence_offset
+_ihm_starting_model_details.dataset_list_id
+1 4 H 'comparative model' L 0 .
+2 4 H 'comparative model' L 10 .
+#
+loop_
 _ihm_starting_comparative_models.id
 _ihm_starting_comparative_models.starting_model_id
 _ihm_starting_comparative_models.starting_model_auth_asym_id
@@ -1459,10 +1470,12 @@ _ihm_starting_comparative_models.alignment_file_id
 2 1 A 33 424 C 33 424 100.000 1 1 .
 3 1 A 33 424 C . ? 100.000 1 1 .
 4 1 A . . C . . . . 1 .
+5 2 A 33 424 C . ? 100.000 1 1 .
+6 2 A . . C . ? 100.000 1 1 .
 """
         for fh in cif_file_handles(cif):
             s, = ihm.reader.read(fh)
-            m1, = s.orphan_starting_models
+            m1, m2 = s.orphan_starting_models
             t1, t2, t3, t4 = m1.templates
             self.assertEqual(t1.dataset._id, '3')
             self.assertEqual(t1.asym_id, 'C')
@@ -1476,6 +1489,10 @@ _ihm_starting_comparative_models.alignment_file_id
             self.assertEqual(t3.template_seq_id_range, (None, ihm.unknown))
             self.assertEqual(t4.seq_id_range, (None, None))
             self.assertEqual(t4.template_seq_id_range, (None, None))
+            t1, t2 = m2.templates
+            # Starting model offset (10) should have been subtracted:
+            self.assertEqual(t1.seq_id_range, (23, 414))
+            self.assertEqual(t2.seq_id_range, (None, None))
 
     def test_protocol_handler(self):
         """Test ProtocolHandler"""
