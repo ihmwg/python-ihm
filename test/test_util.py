@@ -115,6 +115,25 @@ class Tests(unittest.TestCase):
         self.assertEqual([(obj.hashval, obj._id) for obj in c.assign_all()],
                          [(42, 1), (24, 2)])
 
+    def test_hash_assign_ids_class_hash_func(self):
+        """Test _HashAssignIDs class with custom hash_func"""
+        def hash_func(x):
+            # hash==42 and hash==142 should now compare equal
+            return x.hashval % 100
+
+        # Two identical objects: should get compressed to one ID
+        objs = [HashObj(42), HashObj(142)]
+        c = ihm.util._HashAssignIDs(objs, hash_func=hash_func)
+        self.assertEqual([(obj.hashval, obj._id) for obj in c.assign_all()],
+                         [(42, 1)])
+        self.assertEqual([obj._id for obj in objs], [1, 1])
+
+        # Two different objects: should get sequential IDs
+        c = ihm.util._HashAssignIDs([HashObj(42), HashObj(24)],
+                                    hash_func=hash_func)
+        self.assertEqual([(obj.hashval, obj._id) for obj in c.assign_all()],
+                         [(42, 1), (24, 2)])
+
     def test_enumerate_assign_ids_class(self):
         """Test _EnumerateAssignIDs class"""
         # Two identical objects: should get sequential IDs

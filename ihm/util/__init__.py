@@ -43,7 +43,8 @@ class _AssignIDs:
         seen_ids = set()
         self._next_id = 1
         for obj in self._iterate_objects():
-            if hasattr(obj, self.attr) and obj not in self._seen_objs:
+            objhash = self._make_hash(obj)
+            if hasattr(obj, self.attr) and objhash not in self._seen_objs:
                 obj_id = getattr(obj, self.attr)
                 # If different objects have the same IDs, renumber all but
                 # the first
@@ -57,7 +58,7 @@ class _AssignIDs:
                     if isinstance(obj_id, int) or (isinstance(obj_id, str)
                                                    and obj_id.isnumeric()):
                         self._next_id = max(self._next_id, int(obj_id) + 1)
-                    self._seen_objs[obj] = obj_id
+                    self._seen_objs[objhash] = obj_id
                     self.by_id.append(obj)
 
     def assign_all(self):
@@ -74,19 +75,32 @@ class _AssignIDs:
         self._get_existing_ids()
         for obj in self._iterate_objects():
             yield obj
-            if obj not in self._seen_objs:
+            objhash = self._make_hash(obj)
+            if objhash not in self._seen_objs:
                 if not hasattr(obj, self.attr):
                     self.by_id.append(obj)
                     setattr(obj, self.attr, self._next_id)
                     self._next_id += 1
-                self._seen_objs[obj] = getattr(obj, self.attr)
+                self._seen_objs[objhash] = getattr(obj, self.attr)
             else:
-                setattr(obj, self.attr, self._seen_objs[obj])
+                setattr(obj, self.attr, self._seen_objs[objhash])
+
+    def _make_hash(self, obj):
+        """Return a representation of obj for looking up in the seen_obj
+           mapping. By default, just return obj itself."""
+        return obj
 
 
 class _HashAssignIDs(_AssignIDs):
     """Assign unique IDs to a list of objects. Objects that have the same
        hash will be grouped together and assigned the same ID."""
+    def __init__(self, obj_list, attr='_id', hash_func=lambda x: x):
+        super().__init__(obj_list, attr)
+        self._hash_func = hash_func
+
+    def _make_hash(self, obj):
+        return self._hash_func(obj)
+
     def _make_seen_obj_mapping(self):
         return {}
 
