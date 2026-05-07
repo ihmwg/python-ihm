@@ -1266,44 +1266,27 @@ class _ExternalReferenceDumper(Dumper):
 
 class _DatasetDumper(Dumper):
     def finalize(self, system):
-        def _all_transforms(dataset):
-            for p in dataset.parents:
-                if isinstance(p, ihm.dataset.TransformedDataset):
-                    yield p.transform
-        seen_datasets = {}
-        seen_transforms = {}
+        def _all_transforms():
+            for d in system._all_datasets():
+                for p in d.parents:
+                    if isinstance(p, ihm.dataset.TransformedDataset):
+                        yield p.transform
+            yield from system._orphan_dataset_transforms
+
         # Assign IDs to all datasets and transforms
-        self._dataset_by_id = []
-        self._transform_by_id = []
-        for d in system._all_datasets():
-            for t in _all_transforms(d):
-                # Can't use default _id attribute here since a given transform
-                # may be used by both a dataset and a geometric object, and
-                # since they live in different tables they need different IDs
-                util._remove_id(t, attr='_dtid')
-            util._remove_id(d)
-        for t in system._orphan_dataset_transforms:
-            util._remove_id(t, attr='_dtid')
-        for d in system._all_datasets():
-            util._assign_id(d, seen_datasets, self._dataset_by_id)
-            for t in _all_transforms(d):
-                util._assign_id(t, seen_transforms, self._transform_by_id,
-                                attr='_dtid')
-        for t in system._orphan_dataset_transforms:
-            util._assign_id(t, seen_transforms, self._transform_by_id,
-                            attr='_dtid')
+        assign = util._HashAssignIDs(system._all_datasets)
+        self._dataset_by_id = assign.assign_all()
+        # Can't use default _id attribute here since a given transform
+        # may be used by both a dataset and a geometric object, and
+        # since they live in different tables they need different IDs
+        assign = util._HashAssignIDs(_all_transforms, attr='_dtid')
+        self._transform_by_id = assign.assign_all()
 
         # Assign IDs to all groups and remove duplicates
-        seen_group_ids = {}
-        self._dataset_group_by_id = []
-        for g in system._all_dataset_groups():
-            ids = tuple(sorted(d._id for d in g))
-            if ids not in seen_group_ids:
-                self._dataset_group_by_id.append(g)
-                g._id = len(self._dataset_group_by_id)
-                seen_group_ids[ids] = g
-            else:
-                g._id = seen_group_ids[ids]._id
+        assign = util._HashAssignIDs(
+            system._all_dataset_groups,
+            hash_func=lambda g: tuple(sorted(d._id for d in g)))
+        self._dataset_group_by_id = assign.assign_all()
 
     def dump(self, system, writer):
         with writer.loop("_ihm_dataset_list",
