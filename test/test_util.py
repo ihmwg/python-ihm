@@ -86,6 +86,16 @@ class Tests(unittest.TestCase):
         self.assertEqual([(obj.hashval, obj._id) for obj in c.assign_all()],
                          [(24, 42), (34, 43)])
 
+        # Existing IDs should come out sorted numerically if possible
+        c = ihm.util._HashAssignIDs([HashObj(34, id=99), HashObj(24, id=42),
+                                     HashObj(33, id=2), HashObj(36, id='foo'),
+                                     HashObj(37, id='bar'),
+                                     HashObj(38, id='44'),
+                                     HashObj(39, id='24')])
+        self.assertEqual([(obj.hashval, obj._id) for obj in c.assign_all()],
+                         [(36, 'foo'), (37, 'bar'), (33, 2), (39, '24'),
+                          (24, 42), (38, '44'), (34, 99)])
+
         # Non-numeric existing ID should be retained but not affect numbering
         # of other objects
         c = ihm.util._HashAssignIDs([HashObj(34), HashObj(24, id='foo')])

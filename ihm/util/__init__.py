@@ -61,6 +61,17 @@ class _AssignIDs:
                     self._seen_objs[objhash] = obj_id
                     self.by_id.append(obj)
 
+            # Sort existing entries by numeric ID if possible
+            def key_func(obj):
+                obj_id = getattr(obj, self.attr)
+                if isinstance(obj_id, int):
+                    return obj_id
+                elif isinstance(obj_id, str) and obj_id.isnumeric():
+                    return int(obj_id)
+                else:
+                    return 0
+            self.by_id.sort(key=key_func)
+
     def assign_all(self):
         """Assign IDs to all objects. Return a list of all unique objects,
            ordered by ID."""
