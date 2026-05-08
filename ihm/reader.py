@@ -879,6 +879,18 @@ class SystemReader:
         for e in self.system.entities:
             e.sequence = tuple(e.sequence)
 
+        # If the input file defines the complete assembly, transfer
+        # user-provided info to system.complete_assembly.
+        # (Assembly._signature() may hash Entities, so the sequence
+        # needs to be immutable first.)
+        self.system._make_complete_assembly()
+        complete_sig = self.system.complete_assembly._signature()
+
+        for a in self.system.orphan_assemblies:
+            if complete_sig is not None and a._signature() == complete_sig:
+                self.system.complete_assembly.name = a.name
+                self.system.complete_assembly.description = a.description
+
 
 class Handler:
     """Base class for all handlers of mmCIF data.
@@ -1488,21 +1500,10 @@ class _AssemblyDetailsHandler(Handler):
         for (a, obj, entity_poly_segment_id) in self._read_args:
             a.append(self.sysr.ranges.get(obj, entity_poly_segment_id))
 
-        self.system._make_complete_assembly()
-        # The order of components should not matter, so put in a consistent
-        # order so we can compare against other assemblies
-        complete = sorted(self.system.complete_assembly,
-                          key=lambda x: id(x))
-
         for a in self.system.orphan_assemblies:
             # Any EntityRange or AsymUnitRange which covers an entire entity,
             # replace with Entity or AsymUnit object
             a[:] = [self._handle_component(x) for x in a]
-            # If the input file defines the complete assembly, transfer
-            # user-provided info to system.complete_assembly
-            if sorted(a, key=lambda x: id(x)) == complete:
-                self.system.complete_assembly.name = a.name
-                self.system.complete_assembly.description = a.description
 
     def _handle_component(self, comp):
         if isinstance(comp, ihm.EntityRange) \
