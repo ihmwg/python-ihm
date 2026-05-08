@@ -1124,7 +1124,7 @@ class _AssemblyDumperBase(Dumper):
         for a in all_assemblies:
             # Assembly isn't hashable but its signature is
             sig = a._signature()
-            if sig not in seen_assemblies:
+            if sig is None or sig not in seen_assemblies:
                 self._assembly_by_id.append(a)
                 seen_assemblies[sig] = a._id = len(self._assembly_by_id)
                 description_by_id[a._id] = []
