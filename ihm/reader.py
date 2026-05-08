@@ -2243,14 +2243,15 @@ class _SphereObjSiteHandler(Handler):
     category = '_ihm_sphere_obj_site'
     ignored_keywords = ['ordinal_id']
 
-    def __call__(self, model_id, asym_id, rmsf: float, seq_id_begin,
-                 seq_id_end, cartn_x, cartn_y, cartn_z, object_radius):
+    def __call__(self, model_id, asym_id, rmsf: float, seq_id_begin: int,
+                 seq_id_end: int, cartn_x: float, cartn_y: float,
+                 cartn_z: float, object_radius: float):
         model = self.sysr.models.get_by_id(model_id)
         asym = self.sysr.asym_units.get_by_id(asym_id)
         s = ihm.model.Sphere(
-            asym_unit=asym, seq_id_range=(int(seq_id_begin), int(seq_id_end)),
-            x=float(cartn_x), y=float(cartn_y), z=float(cartn_z),
-            radius=float(object_radius), rmsf=rmsf)
+            asym_unit=asym, seq_id_range=(seq_id_begin, seq_id_end),
+            x=cartn_x, y=cartn_y, z=cartn_z,
+            radius=object_radius, rmsf=rmsf)
         model.add_sphere(s)
 
 
@@ -2388,15 +2389,13 @@ class _StartingModelSeqDifHandler(Handler):
 class _PolyResidueFeatureHandler(Handler):
     category = '_ihm_poly_residue_feature'
 
-    def __call__(self, feature_id, entity_id, asym_id, seq_id_begin,
-                 seq_id_end):
+    def __call__(self, feature_id, entity_id, asym_id, seq_id_begin: int,
+                 seq_id_end: int):
         f = self.sysr.features.get_by_id(
             feature_id, ihm.restraint.ResidueFeature)
         asym_or_entity = self._get_asym_or_entity(asym_id, entity_id)
-        r1 = int(seq_id_begin)
-        r2 = int(seq_id_end)
         # allow out-of-range ranges
-        f.ranges.append(asym_or_entity(r1, r2))
+        f.ranges.append(asym_or_entity(seq_id_begin, seq_id_end))
 
 
 class _FeatureListHandler(Handler):
