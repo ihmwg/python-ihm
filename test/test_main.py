@@ -645,6 +645,10 @@ class Tests(unittest.TestCase):
         asm2 = ihm.Assembly([a1, a2(1, 2), a2(3, 3), anonpol])
         self.assertEqual(asm._signature(), asm2._signature())
 
+        # Incomplete assembly has a signature of None
+        asm2 = ihm.Assembly([ihm.AsymUnit(None)])
+        self.assertIsNone(asm2._signature())
+
     def test_remove_identical(self):
         """Test remove_identical function"""
         x = {}

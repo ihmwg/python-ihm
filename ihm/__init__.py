@@ -1754,11 +1754,17 @@ class Assembly(list):
         """Get a Python object that represents this Assembly. Notably, two
            Assemblies that cover the part of the system (even if the
            components are in a different order) will have the same signature.
-           Signatures are also hashable, unlike the Assembly itself."""
+           Signatures are also hashable, unlike the Assembly itself.
+           If the signature cannot be calculated for some reason (generally,
+           an incomplete input file), None is returned."""
         d = collections.defaultdict(list)
         for a in self:
             # a might be an AsymUnit or an AsymUnitRange
             asym = a.asym if hasattr(a, 'asym') else a
+            # If the file is incomplete and we don't have Entity info,
+            # we won't be able to figure out the seq_id_range
+            if asym.entity is None:
+                return None
             d[asym].append(a.seq_id_range)
         ret = []
         # asyms might not have IDs yet, so just put them in a consistent order
