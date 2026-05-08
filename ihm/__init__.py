@@ -1763,7 +1763,7 @@ class Assembly(list):
             asym = a.asym if hasattr(a, 'asym') else a
             # If the file is incomplete and we don't have Entity info,
             # we won't be able to figure out the seq_id_range
-            if asym.entity is None:
+            if not isinstance(asym, Entity) and asym.entity is None:
                 return None
             d[asym].append(a.seq_id_range)
         ret = []
