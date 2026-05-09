@@ -1198,30 +1198,17 @@ class _ExternalReferenceDumper(Dumper):
     def finalize(self, system):
         # Keep only locations that don't point into databases (these are
         # handled elsewhere)
-        self._refs = [x for x in system._all_locations()
-                      if not isinstance(x, location.DatabaseLocation)]
-        # Assign IDs to all locations and repos (including the None repo, which
-        # is for local files)
-        seen_refs = {}
-        seen_repos = {}
-        self._ref_by_id = []
-        self._repo_by_id = []
+        refs = [x for x in system._all_locations()
+                if not isinstance(x, location.DatabaseLocation)]
         # Special dummy repo for repo=None (local files)
         self._local_files = self._LocalFiles(os.getcwd())
-        for r in self._refs:
-            util._remove_id(r)
-            if r.repo:
-                util._remove_id(r.repo)
-        for r in system._orphan_repos:
-            util._remove_id(r)
-        for r in self._refs:
-            # Assign a unique ID to the reference
-            util._assign_id(r, seen_refs, self._ref_by_id)
-            # Assign a unique ID to the repository
-            util._assign_id(r.repo or self._local_files,
-                            seen_repos, self._repo_by_id)
-        for r in system._orphan_repos:
-            util._assign_id(r, seen_repos, self._repo_by_id)
+        repos = [r.repo or self._local_files
+                 for r in refs] + system._orphan_repos
+        # Assign IDs to all locations and repos
+        assign = util._HashAssignIDs(refs)
+        self._ref_by_id = assign.assign_all()
+        assign = util._HashAssignIDs(repos)
+        self._repo_by_id = assign.assign_all()
 
     def dump(self, system, writer):
         self.dump_repos(writer)
