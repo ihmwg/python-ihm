@@ -2389,10 +2389,17 @@ class _StartingModelSeqDifHandler(Handler):
 class _PolyResidueFeatureHandler(Handler):
     category = '_ihm_poly_residue_feature'
 
+    _gran_map = {'by-residue': True, 'by-feature': False}
+
     def __call__(self, feature_id, entity_id, asym_id, seq_id_begin: int,
-                 seq_id_end: int):
+                 seq_id_end: int, interface_residue_flag: bool,
+                 residue_range_granularity, rep_atom):
         f = self.sysr.features.get_by_id(
             feature_id, ihm.restraint.ResidueFeature)
+        f.interface = interface_residue_flag
+        f.rep_atom = rep_atom
+        f.by_residue = self._gran_map.get(residue_range_granularity,
+                                          residue_range_granularity)
         asym_or_entity = self._get_asym_or_entity(asym_id, entity_id)
         # allow out-of-range ranges
         f.ranges.append(asym_or_entity(seq_id_begin, seq_id_end))

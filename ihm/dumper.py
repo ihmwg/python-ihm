@@ -2409,11 +2409,13 @@ class _FeatureDumper(Dumper):
         def _get_asym_id(x):
             return (x._id if isinstance(x, (ihm.AsymUnit, ihm.AsymUnitRange))
                     else None)
+        gran_map = {True: 'by-residue', False: 'by-feature'}
         ordinal = itertools.count(1)
         with writer.loop("_ihm_poly_residue_feature",
                          ["ordinal_id", "feature_id", "entity_id", "asym_id",
                           "seq_id_begin", "comp_id_begin", "seq_id_end",
-                          "comp_id_end"]) as lp:
+                          "comp_id_end", "interface_residue_flag",
+                          "residue_range_granularity", "rep_atom"]) as lp:
             for f in self._features_by_id:
                 if not isinstance(f, restraint.ResidueFeature):
                     continue
@@ -2427,7 +2429,11 @@ class _FeatureDumper(Dumper):
                              seq_id_begin=r.seq_id_range[0],
                              comp_id_begin=seq[r.seq_id_range[0] - 1].id,
                              seq_id_end=r.seq_id_range[1],
-                             comp_id_end=seq[r.seq_id_range[1] - 1].id)
+                             comp_id_end=seq[r.seq_id_range[1] - 1].id,
+                             interface_residue_flag=f.interface,
+                             residue_range_granularity=gran_map.get(
+                                 f.by_residue, f.by_residue),
+                             rep_atom=f.rep_atom)
 
     def dump_poly_atom(self, writer):
         ordinal = itertools.count(1)

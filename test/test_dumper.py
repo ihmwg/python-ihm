@@ -4028,15 +4028,21 @@ _ihm_geometric_object_plane.transformation_id
         f = ihm.restraint.PseudoSiteFeature(site=ps)
         system.orphan_features.append(f)
 
+        # Interface residue feature
+        f = ihm.restraint.ResidueFeature([a1], interface=True,
+                                         by_residue=True, rep_atom='CA')
+        system.orphan_features.append(f)
+
+
         ihm.dumper._EntityDumper().finalize(system)  # assign entity IDs
         ihm.dumper._StructAsymDumper().finalize(system)  # assign asym IDs
 
         dumper = ihm.dumper._FeatureDumper()
         dumper.finalize(system)  # assign IDs
-        self.assertEqual(len(dumper._features_by_id), 5)
+        self.assertEqual(len(dumper._features_by_id), 6)
         # Repeated calls to finalize should yield identical results
         dumper.finalize(system)
-        self.assertEqual(len(dumper._features_by_id), 5)
+        self.assertEqual(len(dumper._features_by_id), 6)
         out = _get_dumper_output(dumper, system)
         self.assertEqual(out, """#
 loop_
@@ -4049,6 +4055,7 @@ _ihm_feature_list.details
 3 atom non-polymer .
 4 ligand non-polymer .
 5 'pseudo site' other .
+6 'residue range' polymer .
 #
 #
 loop_
@@ -4060,10 +4067,14 @@ _ihm_poly_residue_feature.seq_id_begin
 _ihm_poly_residue_feature.comp_id_begin
 _ihm_poly_residue_feature.seq_id_end
 _ihm_poly_residue_feature.comp_id_end
-1 1 1 A 1 ALA 4 THR
-2 1 1 B 2 CYS 3 GLY
-3 1 1 . 1 ALA 4 THR
-4 1 1 . 2 CYS 3 GLY
+_ihm_poly_residue_feature.interface_residue_flag
+_ihm_poly_residue_feature.residue_range_granularity
+_ihm_poly_residue_feature.rep_atom
+1 1 1 A 1 ALA 4 THR . . .
+2 1 1 B 2 CYS 3 GLY . . .
+3 1 1 . 1 ALA 4 THR . . .
+4 1 1 . 2 CYS 3 GLY . . .
+5 6 1 A 1 ALA 4 THR YES by-residue CA
 #
 #
 loop_

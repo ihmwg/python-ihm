@@ -2604,8 +2604,12 @@ _ihm_poly_residue_feature.seq_id_begin
 _ihm_poly_residue_feature.comp_id_begin
 _ihm_poly_residue_feature.seq_id_end
 _ihm_poly_residue_feature.comp_id_end
-1 2 1 B 2 CYS 3 GLY
-2 2 1 . 2 CYS 3 GLY
+_ihm_poly_residue_feature.interface_residue_flag
+_ihm_poly_residue_feature.residue_range_granularity
+_ihm_poly_residue_feature.rep_atom
+1 2 1 B 2 CYS 3 GLY . . .
+2 2 1 . 2 CYS 3 GLY . . .
+3 6 1 B 2 CY3 3 GLY YES by-residue CA
 #
 loop_
 _ihm_non_poly_feature.ordinal_id
@@ -2644,6 +2648,7 @@ _ihm_feature_list.details
 3 atom non-polymer .
 4 atom non-polymer .
 5 'pseudo site' other .
+6 'residue range' polymer .
 #
 loop_
 _ihm_derived_distance_restraint.id
@@ -2661,14 +2666,14 @@ _ihm_derived_distance_restraint.dataset_list_id
 2 . 1 4 'upper bound' . 45.000 0.800 . ALL 98
 3 1 1 2 'lower and upper bound' 22.000 45.000 0.800 . ANY 99
 4 1 5 3 'harmonic' 35.000 35.000 0.800 . ALL .
-5 . 5 3 . ? ? ? . ALL .
+5 . 6 3 . ? ? ? . ALL .
 """
         # Test both ways to make sure features still work if they are
         # referenced by ID before their type is known
         for text in (feats + rsr, rsr + feats):
             fh = StringIO(text)
             s, = ihm.reader.read(fh)
-            self.assertEqual(len(s.orphan_features), 5)
+            self.assertEqual(len(s.orphan_features), 6)
             r1, r2, r3, r4, r5 = s.restraints
             rg1, = s.restraint_groups
             self.assertEqual([r for r in rg1], [r3, r4])
@@ -2685,6 +2690,9 @@ _ihm_derived_distance_restraint.dataset_list_id
             self.assertEqual(r1.feature1.details, 'test feature')
             self.assertIsInstance(r1.feature2,
                                   ihm.restraint.ResidueFeature)
+            self.assertIsNone(r1.feature2.rep_atom)
+            self.assertIsNone(r1.feature2.by_residue)
+            self.assertIsNone(r1.feature2.interface)
             self.assertEqual(len(r1.feature2.ranges), 2)
             self.assertEqual(r1.feature2.ranges[0].seq_id_range, (2, 3))
             self.assertIsInstance(r1.feature2.ranges[0], ihm.AsymUnitRange)
@@ -2722,6 +2730,11 @@ _ihm_derived_distance_restraint.dataset_list_id
             self.assertAlmostEqual(r4.feature1.site.z, 30.0, delta=0.1)
             self.assertAlmostEqual(r4.feature1.site.radius, 4.0, delta=0.1)
             self.assertEqual(r4.feature1.site.description, 'centroid')
+            self.assertIsInstance(r5.feature1,
+                                  ihm.restraint.ResidueFeature)
+            self.assertEqual(r5.feature1.rep_atom, 'CA')
+            self.assertTrue(r5.feature1.by_residue)
+            self.assertTrue(r5.feature1.interface)
 
     def test_hdx_restraint_handler(self):
         """Test HDXRestraintHandler"""

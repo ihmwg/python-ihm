@@ -640,6 +640,13 @@ class ResidueFeature(Feature):
               :class:`ihm.AsymUnit`, :class:`ihm.EntityRange`,
               :class:`ihm.Residue`, and/or :class:`ihm.Entity` objects.
        :param str details: Additional text describing this feature.
+       :param bool interface: If specified, indicates whether the feature is
+              an interface residue.
+       :param bool by_residue: If specified, indicates whether the residue
+              range is represented by invididual residues, rather than the
+              closest primitive object with the highest resolution.
+       :param str rep_atom: If by_residue is True, the atom used to represent
+              the residue in three dimensions (usually CA or CB).
     """
 
     # Type is 'residue' if each range selects a single residue, otherwise
@@ -651,12 +658,15 @@ class ResidueFeature(Feature):
         return 'residue'
     type = property(__get_type)
 
-    def __init__(self, ranges, details=None):
-        self.ranges, self.details = ranges, details
+    def __init__(self, ranges, details=None, interface=None,
+                 by_residue=None, rep_atom=None):
+        self.ranges, self.details, self.interface = ranges, details, interface
+        self.by_residue, self.rep_atom = by_residue, rep_atom
         _ = self._get_entity_type()
 
     def _signature(self):
-        return tuple(self.ranges)
+        return tuple(self.ranges) + (self.interface, self.by_residue,
+                                     self.rep_atom)
 
     def _all_entities_or_asyms(self):
         return self.ranges
