@@ -4033,7 +4033,6 @@ _ihm_geometric_object_plane.transformation_id
                                          by_residue=True, rep_atom='CA')
         system.orphan_features.append(f)
 
-
         ihm.dumper._EntityDumper().finalize(system)  # assign entity IDs
         ihm.dumper._StructAsymDumper().finalize(system)  # assign asym IDs
 
