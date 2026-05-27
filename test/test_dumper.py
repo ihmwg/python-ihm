@@ -1445,7 +1445,7 @@ foo bar 'more text'
 """)
 
     def test_struct_asym_dumper(self):
-        """Test StructAsymDumper"""
+        """Test StructAsymDumper with default fields"""
         system = ihm.System()
         e1 = ihm.Entity('ACGT')
         e2 = ihm.Entity('ACC')
@@ -1468,6 +1468,38 @@ Z 1 foo
 B 1 bar
 A 2 baz
 C 2 tmp
+#
+""")
+
+    def test_struct_asym_dumper_extensive(self):
+        """Test StructAsymDumper with more extensive set of fields"""
+        system = ihm.System()
+        e1 = ihm.Entity('ACGT')
+        e1._id = 1
+        system.entities.append(e1)
+        a1 = ihm.AsymUnit(e1, 'foo')
+        a2 = ihm.AsymUnit(e1, 'bar')
+        a2._pdbx_details = {'pdbx_PDB_id': 'A',
+                            'pdbx_blank_PDB_chainid_flag': 'N',
+                            'pdbx_order': '1',
+                            'pdbx_type': 'ATOMP'}
+        system.asym_units.extend((a1, a2))
+        dumper = ihm.dumper._StructAsymDumper()
+        dumper.finalize(system)  # assign IDs
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_struct_asym.id
+_struct_asym.entity_id
+_struct_asym.pdbx_PDB_id
+_struct_asym.pdbx_alt_id
+_struct_asym.pdbx_blank_PDB_chainid_flag
+_struct_asym.pdbx_type
+_struct_asym.pdbx_order
+_struct_asym.pdbx_modified
+_struct_asym.details
+A 1 . . . . . . foo
+B 1 A . N ATOMP 1 . bar
 #
 """)
 

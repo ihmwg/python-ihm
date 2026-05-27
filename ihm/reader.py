@@ -995,6 +995,15 @@ class Handler:
             if d is not None:
                 setattr(obj, val, d)
 
+    def preserve_optional_fields(self, data, keys):
+        """Read optional fields and return them as a dict. If no optional
+           fields were present, return None. This is intended to be used
+           to preserve little-used mmCIF fields that we don't support
+           directly, e.g. for make_mmcif."""
+        fields = {k: data[k] for k in keys}
+        if any(v is not None for v in fields.values()):
+            return fields
+
     system = property(lambda self: self.sysr.system,
                       doc="The :class:`ihm.System` object to read into")
 
@@ -1461,12 +1470,19 @@ class _EntityNonPolyHandler(Handler):
 class _StructAsymHandler(Handler):
     category = '_struct_asym'
 
-    def __call__(self, id, entity_id, details):
+    def __call__(self, id, entity_id, details, pdbx_PDB_id, pdbx_alt_id,
+                 pdbx_blank_PDB_chainid_flag, pdbx_type, pdbx_order,
+                 pdbx_modified):
         s = self.sysr.asym_units.get_by_id(id)
         # Keep this ID (like a user-assigned ID); don't reassign it on output
         s.id = id
         s.entity = self.sysr.entities.get_by_id(entity_id)
         self.copy_if_present(s, locals(), keys=('details',))
+        # Preserve less commonly-used struct_asym fields
+        s._pdbx_details = self.preserve_optional_fields(
+            locals(), keys=('pdbx_PDB_id', 'pdbx_alt_id',
+                            'pdbx_blank_PDB_chainid_flag', 'pdbx_type',
+                            'pdbx_order', 'pdbx_modified'))
 
 
 class _AssemblyHandler(Handler):

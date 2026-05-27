@@ -1102,11 +1102,22 @@ class _StructAsymDumper(Dumper):
             asym._ordinal = next(ordinal)
 
     def dump(self, system, writer):
-        with writer.loop("_struct_asym",
-                         ["id", "entity_id", "details"]) as lp:
-            for asym in system.asym_units:
-                lp.write(id=asym._id, entity_id=asym.entity._id,
-                         details=asym.details)
+        # If additional fields were read on input, preserve them on output
+        if any(asym._pdbx_details is not None for asym in system.asym_units):
+            with writer.loop("_struct_asym",
+                             ["id", "entity_id", "pdbx_PDB_id", "pdbx_alt_id",
+                              "pdbx_blank_PDB_chainid_flag", "pdbx_type",
+                              "pdbx_order", "pdbx_modified", "details"]) as lp:
+                for asym in system.asym_units:
+                    lp.write(id=asym._id, entity_id=asym.entity._id,
+                             details=asym.details,
+                             **(asym._pdbx_details or {}))
+        else:
+            with writer.loop("_struct_asym",
+                             ["id", "entity_id", "details"]) as lp:
+                for asym in system.asym_units:
+                    lp.write(id=asym._id, entity_id=asym.entity._id,
+                             details=asym.details)
 
 
 class _AssemblyDumperBase(Dumper):

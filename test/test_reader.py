@@ -883,9 +883,10 @@ _struct_ref_seq_dif.details
 loop_
 _struct_asym.id
 _struct_asym.entity_id
+_struct_asym.pdbx_blank_PDB_chainid_flag
 _struct_asym.details
-A 1 Nup84
-B 1 Nup85
+A 1 N Nup84
+B 1 . Nup85
 """
         for fh in cif_file_handles(cif):
             s, = ihm.reader.read(fh)
@@ -893,13 +894,19 @@ B 1 Nup85
             self.assertEqual(a1._id, 'A')
             self.assertEqual(a1.id, 'A')
             self.assertEqual(a1.entity._id, '1')
-
+            self.assertEqual(a1._pdbx_details,
+                             {'pdbx_PDB_id': None, 'pdbx_alt_id': None,
+                              'pdbx_blank_PDB_chainid_flag': 'N',
+                              'pdbx_modified': None, 'pdbx_order': None,
+                              'pdbx_type': None})
             self.assertEqual(a1.details, 'Nup84')
+
             self.assertEqual(a2.entity._id, '1')
             self.assertEqual(a2._id, 'B')
             self.assertEqual(a2.id, 'B')
             self.assertEqual(a2.details, 'Nup85')
             self.assertEqual(id(a1.entity), id(a2.entity))
+            self.assertIsNone(a2._pdbx_details)
 
     def test_assembly_handler(self):
         """Test AssemblyHandler"""

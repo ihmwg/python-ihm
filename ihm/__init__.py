@@ -1635,6 +1635,9 @@ class AsymUnit:
     """
 
     number_of_molecules = 1
+    # Used to preserve less commonly-used struct_asym fields if present
+    # in the input file
+    _pdbx_details = None
 
     def __init__(self, entity, details=None, auth_seq_id_map=0, id=None,
                  strand_id=None, orig_auth_seq_id_map=None):
