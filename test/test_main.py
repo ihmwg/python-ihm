@@ -388,6 +388,7 @@ class Tests(unittest.TestCase):
         self.assertFalse(c.is_primary)
         c = self._get_from_pubmed_id('pubmed_api.json', is_primary=True)
         self.assertTrue(c.is_primary)
+        self.assertEqual(c.journal_issn, '0028-0836')
 
     def test_citation_from_pubmed_id_one_page(self):
         """Test Citation.from_pubmed_id() with page rather than range"""

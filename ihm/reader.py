@@ -1052,7 +1052,8 @@ class _CitationHandler(Handler):
 
     def __call__(self, id, title, year, pdbx_database_id_pubmed,
                  journal_abbrev, journal_volume, pdbx_database_id_doi,
-                 page_first, page_last):
+                 page_first, page_last, journal_id_astm, journal_id_csd,
+                 journal_id_issn):
         s = self.sysr.citations.get_by_id(id)
         s.is_primary = (id == 'primary')
         self.copy_if_present(
@@ -1060,6 +1061,9 @@ class _CitationHandler(Handler):
             mapkeys={'pdbx_database_id_pubmed': 'pmid',
                      'journal_abbrev': 'journal',
                      'journal_volume': 'volume',
+                     'journal_id_astm': 'journal_astm',
+                     'journal_id_csd': 'journal_csd',
+                     'journal_id_issn': 'journal_issn',
                      'pdbx_database_id_doi': 'doi'})
         if page_first is not None:
             if page_last is not None:

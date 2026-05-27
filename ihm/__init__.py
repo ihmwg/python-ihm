@@ -838,14 +838,24 @@ class Citation:
               modeling itself (as opposed to a method or piece of software used
               in the protocol). Only one such publication is allowed, and it
               is assigned the ID "primary" in the mmCIF file.
+       :param str journal_astm: American Society for Testing and Materials
+              code assigned to the journal.
+       :param str journal_csd: Cambridge Structural Database code assigned to
+              the journal.
+       :param str journal_issn: International Standard Serial Number code
+              assigned to the journal.
     """
     def __init__(self, pmid, title, journal, volume, page_range, year, authors,
-                 doi, is_primary=False):
+                 doi, is_primary=False, journal_astm=None, journal_csd=None,
+                 journal_issn=None):
         self.title, self.journal, self.volume = title, journal, volume
         self.page_range, self.year = page_range, year
         self.pmid, self.doi = pmid, doi
         self.authors = authors if authors is not None else []
         self.is_primary = is_primary
+        self.journal_astm = journal_astm
+        self.journal_csd = journal_csd
+        self.journal_issn = journal_issn
 
     @classmethod
     def from_pubmed_id(cls, pubmed_id, is_primary=False):
@@ -899,7 +909,8 @@ class Citation:
                    page_range=get_page_range(ref),
                    year=ref['pubdate'].split()[0],
                    authors=authors, doi=get_doi(ref),
-                   is_primary=is_primary)
+                   is_primary=is_primary,
+                   journal_issn=ref.get('issn'))
 
 
 class ChemComp:

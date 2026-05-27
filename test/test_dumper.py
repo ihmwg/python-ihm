@@ -210,7 +210,8 @@ _software.citation_id
             authors=['Shi Y', 'Fernandez-Martinez J', 'Tjioe E', 'Pellarin R',
                      'Kim SJ', 'Williams R', 'Schneidman-Duhovny D', 'Sali A',
                      'Rout MP', 'Chait BT'],
-            doi='10.1074/mcp.M114.041673')
+            doi='10.1074/mcp.M114.041673',
+            journal_astm='ASTM_X', journal_csd='CSD_Y', journal_issn='ISSN_Z')
         system.citations.extend((c1, c1))  # duplicates should be removed
         dumper = ihm.dumper._CitationDumper()
         dumper.finalize(system)  # Assign IDs
@@ -224,6 +225,9 @@ _citation.journal_volume
 _citation.page_first
 _citation.page_last
 _citation.year
+_citation.journal_id_ASTM
+_citation.journal_id_CSD
+_citation.journal_id_ISSN
 _citation.pdbx_database_id_PubMed
 _citation.pdbx_database_id_DOI
 1
@@ -231,7 +235,8 @@ _citation.pdbx_database_id_DOI
 detailed architecture of a coatomer-related heptameric
 module from the nuclear pore complex.
 ;
-'Mol Cell Proteomics' 13 2927 2943 2014 25161197 10.1074/mcp.M114.041673
+'Mol Cell Proteomics' 13 2927 2943 2014 ASTM_X CSD_Y ISSN_Z 25161197
+10.1074/mcp.M114.041673
 #
 #
 loop_
@@ -278,10 +283,13 @@ _citation.journal_volume
 _citation.page_first
 _citation.page_last
 _citation.year
+_citation.journal_id_ASTM
+_citation.journal_id_CSD
+_citation.journal_id_ISSN
 _citation.pdbx_database_id_PubMed
 _citation.pdbx_database_id_DOI
-primary y2 z2 1 1 . 2015 x2 e
-2 y z 1 1 . 2014 x d
+primary y2 z2 1 1 . 2015 . . . x2 e
+2 y z 1 1 . 2014 . . . x d
 #
 """)
 

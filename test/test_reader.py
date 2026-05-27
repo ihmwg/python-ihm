@@ -406,11 +406,14 @@ _citation.journal_volume
 _citation.page_first
 _citation.page_last
 _citation.year
+_citation.journal_id_ASTM
+_citation.journal_id_CSD
+_citation.journal_id_ISSN
 _citation.pdbx_database_id_PubMed
 _citation.pdbx_database_id_DOI
-primary 'Mol Cell Proteomics' 9 2943 . 2014 1234 .
-3 'Mol Cell Proteomics' 9 2943 2946 2014 1234 1.2.3.4
-4 'Mol Cell Proteomics' 9 . . 2014 1234 1.2.3.4
+primary 'Mol Cell Proteomics' 9 2943 . 2014 ASTM_X CSD_Y ISSN_Z 1234 .
+3 'Mol Cell Proteomics' 9 2943 2946 2014 . . . 1234 1.2.3.4
+4 'Mol Cell Proteomics' 9 . . 2014 . . . 1234 1.2.3.4
 #
 #
 loop_
@@ -431,6 +434,9 @@ _citation_author.ordinal
             self.assertEqual(citation1.authors, [])
             self.assertEqual(citation1.pmid, '1234')
             self.assertIsNone(citation1.doi)
+            self.assertEqual(citation1.journal_astm, 'ASTM_X')
+            self.assertEqual(citation1.journal_csd, 'CSD_Y')
+            self.assertEqual(citation1.journal_issn, 'ISSN_Z')
 
             self.assertEqual(citation2._id, '3')
             self.assertFalse(citation2.is_primary)

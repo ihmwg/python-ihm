@@ -173,6 +173,8 @@ class _CitationDumper(Dumper):
         with writer.loop("_citation",
                          ["id", "title", "journal_abbrev", "journal_volume",
                           "page_first", "page_last", "year",
+                          "journal_id_ASTM", "journal_id_CSD",
+                          "journal_id_ISSN",
                           "pdbx_database_id_PubMed",
                           "pdbx_database_id_DOI"]) as lp:
             for c in citations:
@@ -185,7 +187,10 @@ class _CitationDumper(Dumper):
                          journal_volume=c.volume, page_first=page_first,
                          page_last=page_last, year=c.year,
                          pdbx_database_id_PubMed=c.pmid,
-                         pdbx_database_id_DOI=c.doi)
+                         pdbx_database_id_DOI=c.doi,
+                         journal_id_ASTM=c.journal_astm,
+                         journal_id_CSD=c.journal_csd,
+                         journal_id_ISSN=c.journal_issn)
 
     def dump_authors(self, citations, writer):
         with writer.loop("_citation_author",
