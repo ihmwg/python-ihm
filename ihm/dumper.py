@@ -155,9 +155,8 @@ class _CitationDumper(Dumper):
         for c in system._all_citations():
             (primaries if c.is_primary else non_primaries).append(c)
         # Put primary citations first in list
-        self._all_citations = primaries + non_primaries
-        for nc, c in enumerate(self._all_citations):
-            c._id = nc + 1
+        assign = util._EnumerateAssignIDs(primaries + non_primaries)
+        self._all_citations = assign.assign_all()
         if primaries:
             if len(primaries) > 1:
                 raise ValueError(
