@@ -1582,6 +1582,7 @@ class _ExtFileHandler(Handler):
         # Handle DOI that is itself a file
         if file_path is None:
             f.path = '.'
+        f._allow_duplicates = True
 
 
 class _DatasetListHandler(Handler):

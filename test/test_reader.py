@@ -1085,6 +1085,11 @@ _ihm_external_files.details
 
                 self.assertEqual(l5.content_type, 'Other')
                 self.assertEqual(l5.__class__, ihm.location.FileLocation)
+                self.assertTrue(l1._allow_duplicates)
+                self.assertTrue(l2._allow_duplicates)
+                self.assertTrue(l3._allow_duplicates)
+                self.assertTrue(l4._allow_duplicates)
+                self.assertTrue(l5._allow_duplicates)
 
     def test_dataset_list_handler(self):
         """Test DatasetListHandler"""
