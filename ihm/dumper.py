@@ -1439,8 +1439,8 @@ class _StartingModelRangeChecker:
 class _StartingModelDumper(Dumper):
     def finalize(self, system):
         # Assign IDs to starting models
-        for nm, m in enumerate(system._all_starting_models()):
-            m._id = nm + 1
+        assign = util._EnumerateAssignIDs(system._all_starting_models)
+        self._starting_models_by_id = assign.assign_all()
 
     def dump(self, system, writer):
         self.dump_details(system, writer)
@@ -1464,7 +1464,7 @@ class _StartingModelDumper(Dumper):
                  "starting_model_auth_asym_id",
                  "starting_model_sequence_offset",
                  "dataset_list_id", "description"]) as lp:
-            for sm in system._all_starting_models():
+            for sm in self._starting_models_by_id:
                 lp.write(
                     starting_model_id=sm._id,
                     entity_id=sm.asym_unit.entity._id,
@@ -1483,7 +1483,7 @@ class _StartingModelDumper(Dumper):
                 "_ihm_starting_computational_models",
                 ["starting_model_id", "software_id",
                  "script_file_id"]) as lp:
-            for sm in system._all_starting_models():
+            for sm in self._starting_models_by_id:
                 if sm.software or sm.script_file:
                     lp.write(starting_model_id=sm._id,
                              software_id=sm.software._id
@@ -1505,7 +1505,7 @@ class _StartingModelDumper(Dumper):
                  "template_dataset_list_id",
                  "alignment_file_id"]) as lp:
             ordinal = itertools.count(1)
-            for sm in system._all_starting_models():
+            for sm in self._starting_models_by_id:
                 for template in sm.templates:
                     self._dump_template(template, sm, lp, ordinal)
 
@@ -1545,7 +1545,7 @@ class _StartingModelDumper(Dumper):
                  "atom_id", "comp_id", "entity_id", "asym_id",
                  "seq_id", "Cartn_x", "Cartn_y", "Cartn_z", "B_iso_or_equiv",
                  "ordinal_id"]) as lp:
-            for model in system._all_starting_models():
+            for model in self._starting_models_by_id:
                 rngcheck = _StartingModelRangeChecker(model, self._check)
                 for natom, atom in enumerate(model.get_atoms()):
                     rngcheck(atom)
@@ -1572,7 +1572,7 @@ class _StartingModelDumper(Dumper):
                  "seq_id", "comp_id", "starting_model_id",
                  "db_asym_id", "db_seq_id", "db_comp_id",
                  "details"]) as lp:
-            for model in system._all_starting_models():
+            for model in self._starting_models_by_id:
                 for sd in model.get_seq_dif():
                     comp = model.asym_unit.entity.sequence[sd.seq_id - 1]
                     lp.write(

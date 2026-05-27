@@ -2241,6 +2241,7 @@ _ihm_starting_model_seq_dif.details
         dumper = ihm.dumper._EntityPolySegmentDumper()
         dumper.finalize(system)
         dumper = ihm.dumper._StartingModelDumper()
+        dumper.finalize(system)  # assign starting model IDs
         with self.assertRaises(IndexError) as cm:
             _get_dumper_output(dumper, system)
         self.assertIn('Starting model 5 atom seq_id (99) out of range (1-3)',
