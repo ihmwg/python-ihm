@@ -78,6 +78,10 @@ class System:
 
     structure_determination_methodology = "integrative"
 
+    # Used to preserve less commonly-used struct fields if present
+    # in the input file
+    _struct_pdbx_details = None
+
     def __init__(self, title=None, id='model', model_details=None,
                  databases=[]):
         self.id = id

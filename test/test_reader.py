@@ -180,12 +180,19 @@ class Tests(unittest.TestCase):
 _struct.entry_id eid
 _struct.title 'Test title'
 _struct.pdbx_model_details 'Test details'
+_struct.pdbx_CASP_flag  N
+_struct.pdbx_details    "PDBX details"
 """
         for fh in cif_file_handles(cif):
             s, = ihm.reader.read(fh)
             self.assertEqual(s.id, 'eid')
             self.assertEqual(s.title, 'Test title')
             self.assertEqual(s.model_details, 'Test details')
+            self.assertEqual(s._struct_pdbx_details,
+                             {'pdbx_CASP_flag': 'N',
+                              'pdbx_details': 'PDBX details',
+                              'pdbx_descriptor': None,
+                              'pdbx_model_type_details': None})
 
     def test_multiple_systems(self):
         """Test multiple systems from data blocks"""

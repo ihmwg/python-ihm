@@ -1020,10 +1020,17 @@ class _CollectionHandler(Handler):
 class _StructHandler(Handler):
     category = '_struct'
 
-    def __call__(self, title, entry_id, pdbx_model_details):
+    def __call__(self, title, entry_id, pdbx_model_details,
+                 pdbx_casp_flag, pdbx_descriptor, pdbx_details,
+                 pdbx_model_type_details):
         self.copy_if_present(self.system, locals(), keys=('title',),
                              mapkeys={'entry_id': 'id',
                                       'pdbx_model_details': 'model_details'})
+        # Preserve less commonly-used struct fields
+        self.system._struct_pdbx_details = self.preserve_optional_fields(
+            locals(), keys=('pdbx_descriptor', 'pdbx_details',
+                            'pdbx_model_type_details'),
+            mapkeys={'pdbx_casp_flag': 'pdbx_CASP_flag'})
 
 
 class _AuditConformHandler(Handler):

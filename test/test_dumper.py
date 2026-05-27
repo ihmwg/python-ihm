@@ -142,6 +142,21 @@ _struct.pdbx_structure_determination_methodology integrative
 _struct.title 'test model'
 """)
 
+    def test_struct_dumper_extensive(self):
+        """Test StructDumper with more extensive set of fields"""
+        system = ihm.System(title='test model', model_details="test details")
+        system._struct_pdbx_details = {'pdbx_details': 'foo',
+                                       'pdbx_CASP_flag': 'N'}
+        dumper = ihm.dumper._StructDumper()
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """_struct.entry_id model
+_struct.pdbx_CASP_flag N
+_struct.pdbx_details foo
+_struct.pdbx_model_details 'test details'
+_struct.pdbx_structure_determination_methodology integrative
+_struct.title 'test model'
+""")
+
     def test_comment_dumper(self):
         """Test CommentDumper"""
         system = ihm.System()
