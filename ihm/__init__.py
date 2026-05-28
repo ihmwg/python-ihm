@@ -717,8 +717,8 @@ class System:
                     "of Restraints. Due to limitations of the underlying "
                     "dictionary, all objects in a RestraintGroup must be of "
                     "the same type, and only certain types (currently only "
-                    "DerivedDistanceRestraint or PredictedContactRestraint) "
-                    "can be grouped." % g)
+                    "DerivedDistanceRestraint, PredictedContactRestraint "
+                    "or HydroxylRadicalRestraint) can be grouped." % g)
 
 
 class DatabaseStatus:

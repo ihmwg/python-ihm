@@ -4468,6 +4468,60 @@ _ihm_predicted_contact_restraint.software_id
 #
 """)
 
+    def test_hydroxy_radical_restraint_dumper(self):
+        """Test HydroxylRadicalRestraintDumper"""
+        class MockObject:
+            pass
+        system = ihm.System()
+        e1 = ihm.Entity('AHC')
+        a1 = ihm.AsymUnit(e1)
+        system.entities.append(e1)
+        system.asym_units.append(a1)
+
+        dataset = MockObject()
+        dataset._id = 97
+        software = MockObject()
+        software._id = 34
+
+        r1 = ihm.restraint.HydroxylRadicalRestraint(
+            dataset=dataset, residue=a1.residue(1), predicted_sasa=0.1,
+            software=software)
+        r2 = ihm.restraint.HydroxylRadicalRestraint(
+            dataset=dataset, residue=a1.residue(2), predicted_sasa=0.2,
+            rate=0.3, rate_error=0.03, log_pf=0.1, log_pf_error=0.01)
+        r3 = ihm.restraint.HydroxylRadicalRestraint(
+            dataset=dataset, residue=a1.residue(3), predicted_sasa=0.3)
+        rg = ihm.restraint.RestraintGroup((r2, r3))
+        system.restraints.extend((r1, r2))  # r2 is in restraints and groups
+        system.restraint_groups.append(rg)
+
+        ihm.dumper._EntityDumper().finalize(system)  # assign entity IDs
+        ihm.dumper._StructAsymDumper().finalize(system)  # assign asym IDs
+        dumper = ihm.dumper._HydroxylRadicalRestraintDumper()
+        dumper.finalize(system)  # assign IDs
+
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_ihm_hydroxyl_radical_fp_restraint.id
+_ihm_hydroxyl_radical_fp_restraint.group_id
+_ihm_hydroxyl_radical_fp_restraint.entity_id
+_ihm_hydroxyl_radical_fp_restraint.asym_id
+_ihm_hydroxyl_radical_fp_restraint.comp_id
+_ihm_hydroxyl_radical_fp_restraint.seq_id
+_ihm_hydroxyl_radical_fp_restraint.fp_rate
+_ihm_hydroxyl_radical_fp_restraint.fp_rate_error
+_ihm_hydroxyl_radical_fp_restraint.log_pf
+_ihm_hydroxyl_radical_fp_restraint.log_pf_error
+_ihm_hydroxyl_radical_fp_restraint.predicted_sasa
+_ihm_hydroxyl_radical_fp_restraint.dataset_list_id
+_ihm_hydroxyl_radical_fp_restraint.software_id
+1 . 1 A ALA 1 . . . . 0.100 97 34
+2 1 1 A HIS 2 0.300 0.030 0.100 0.010 0.200 97 .
+3 1 1 A CYS 3 . . . . 0.300 97 .
+#
+""")
+
     def test_multi_state_scheme_dumper(self):
         """ Test MultiStateScheme dumper"""
         class MockObject:

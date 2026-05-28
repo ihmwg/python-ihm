@@ -2845,6 +2845,33 @@ class _PredictedContactRestraintDumper(Dumper):
                          software_id=r.software._id if r.software else None)
 
 
+class _HydroxylRadicalRestraintDumper(Dumper):
+    def finalize(self, system):
+        (self._restraints_by_id,
+         self._group_for_id) = _finalize_restraints_and_groups(
+            system, restraint.HydroxylRadicalRestraint)
+
+    def dump(self, system, writer):
+        with writer.loop("_ihm_hydroxyl_radical_fp_restraint",
+                         ["id", "group_id", "entity_id", "asym_id", "comp_id",
+                          "seq_id", "fp_rate", "fp_rate_error", "log_pf",
+                          "log_pf_error", "predicted_sasa", "dataset_list_id",
+                          "software_id"]) as lp:
+            for r in self._restraints_by_id:
+                e = r.residue.asym.entity
+                comp = e.sequence[r.residue.seq_id - 1].id
+                lp.write(id=r._id,
+                         group_id=self._group_for_id.get(r._id, None),
+                         entity_id=r.residue.asym.entity._id,
+                         asym_id=r.residue.asym._id,
+                         comp_id=comp, seq_id=r.residue.seq_id,
+                         fp_rate=r.rate, fp_rate_error=r.rate_error,
+                         log_pf=r.log_pf, log_pf_error=r.log_pf_error,
+                         predicted_sasa=r.predicted_sasa,
+                         dataset_list_id=r.dataset._id if r.dataset else None,
+                         software_id=r.software._id if r.software else None)
+
+
 class _EM3DDumper(Dumper):
     def _all_restraints(self, system):
         return [r for r in system._all_restraints()
@@ -4065,7 +4092,7 @@ class IHMVariant(Variant):
         _ProtocolDumper, _PostProcessDumper, _PseudoSiteDumper,
         _GeometricObjectDumper, _FeatureDumper, _CrossLinkDumper,
         _GeometricRestraintDumper, _DerivedDistanceRestraintDumper,
-        _HDXRestraintDumper,
+        _HDXRestraintDumper, _HydroxylRadicalRestraintDumper,
         _PredictedContactRestraintDumper, _EM3DDumper, _EM2DDumper, _SASDumper,
         _ModelDumper, _ModelRepresentativeDumper,
         _NotModeledResidueRangeDumper,

@@ -3813,6 +3813,51 @@ _ihm_predicted_contact_restraint.software_id
         self.assertAlmostEqual(r3.distance.distance, 14.000, delta=0.1)
         self.assertIsNone(r3.software)
 
+    def test_hydroxy_radical_restraint_handler(self):
+        """Test HydroxylRadicalRestraintHandler"""
+        fh = StringIO("""
+loop_
+_ihm_hydroxyl_radical_fp_restraint.id
+_ihm_hydroxyl_radical_fp_restraint.group_id
+_ihm_hydroxyl_radical_fp_restraint.entity_id
+_ihm_hydroxyl_radical_fp_restraint.asym_id
+_ihm_hydroxyl_radical_fp_restraint.comp_id
+_ihm_hydroxyl_radical_fp_restraint.seq_id
+_ihm_hydroxyl_radical_fp_restraint.fp_rate
+_ihm_hydroxyl_radical_fp_restraint.fp_rate_error
+_ihm_hydroxyl_radical_fp_restraint.log_pf
+_ihm_hydroxyl_radical_fp_restraint.log_pf_error
+_ihm_hydroxyl_radical_fp_restraint.predicted_sasa
+_ihm_hydroxyl_radical_fp_restraint.dataset_list_id
+_ihm_hydroxyl_radical_fp_restraint.software_id
+1 . 1 A ALA 1 . . . . 0.100 97 34
+2 1 1 A HIS 2 0.300 0.030 0.100 0.010 0.200 97 .
+3 1 1 A CYS 3 . . . . 0.300 97 .
+""")
+        s, = ihm.reader.read(fh)
+        r1, r2, r3 = s.restraints
+        rg1, = s.restraint_groups
+        self.assertEqual([r for r in rg1], [r2, r3])
+        self.assertEqual(r1.dataset._id, '97')
+        self.assertIsInstance(r1.residue, ihm.Residue)
+        self.assertEqual(r1.residue.seq_id, 1)
+        self.assertEqual(r1.residue.asym._id, 'A')
+        self.assertAlmostEqual(r1.predicted_sasa, 0.100, delta=0.01)
+        self.assertIsNone(r1.rate)
+        self.assertIsNone(r1.rate_error)
+        self.assertIsNone(r1.log_pf)
+        self.assertIsNone(r1.log_pf_error)
+        self.assertEqual(r1.software._id, '34')
+
+        self.assertAlmostEqual(r2.predicted_sasa, 0.200, delta=0.01)
+        self.assertAlmostEqual(r2.rate, 0.300, delta=0.01)
+        self.assertAlmostEqual(r2.rate_error, 0.030, delta=0.01)
+        self.assertAlmostEqual(r2.log_pf, 0.100, delta=0.01)
+        self.assertAlmostEqual(r2.log_pf_error, 0.010, delta=0.01)
+        self.assertIsNone(r2.software)
+
+        self.assertAlmostEqual(r3.predicted_sasa, 0.300, delta=0.01)
+
     def get_starting_model_coord(self):
         return """
 loop_

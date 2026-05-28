@@ -42,8 +42,9 @@ class RestraintGroup(list):
        Note that due to limitations of the underlying dictionary, only
        certain combinations of restraints can be placed in groups.
        In particular, all objects in a group must be of the same type, and
-       only certain types (currently only :class:`DerivedDistanceRestraint`
-       and :class:`PredictedContactRestraint`) can be grouped.
+       only certain types (currently only :class:`DerivedDistanceRestraint`,
+       :class:`PredictedContactRestraint` and
+       :class:`HydroxylRadicalRestraint`) can be grouped.
 
        Empty groups can be created, but will be ignored on output as the
        dictionary does not support them.
@@ -901,3 +902,35 @@ class HDXRestraint(Restraint):
         self.protection_factor = protection_factor
         self.details = details
     _all_features = property(lambda self: (self.feature,))
+
+
+class HydroxylRadicalRestraint(Restraint):
+    """Hydroxyl radical footprinting restraint on a residue.
+
+       :param dataset: Reference to the data from which the restraint is
+              derived.
+       :type dataset: :class:`~ihm.dataset.Dataset`
+       :param residue: The residue to restrain.
+       :type residue: :class:`ihm.Residue`
+       :param float predicted_sasa: The predicted solvent accessible
+              surface area.
+       :param float rate: The footprinting rate.
+       :param float rate_error: The error in the footprinting rate.
+       :param float log_pf: Log (base 10) of the protection factor.
+       :param float log_pf_error: The error in the base 10 log of the
+              protection factor.
+       :param software: The software used to obtain the restraint.
+       :type software: :class:`~ihm.Software`
+    """
+
+    assembly = None  # no struct_assembly_id for hydroxyl radical restraints
+
+    def __init__(self, dataset, residue, predicted_sasa, rate=None,
+                 rate_error=None, log_pf=None, log_pf_error=None,
+                 software=None):
+        self.dataset = dataset
+        self.residue = residue
+        self.predicted_sasa = predicted_sasa
+        self.rate, self.rate_error = rate, rate_error
+        self.log_pf, self.log_pf_error = log_pf, log_pf_error
+        self.software = software

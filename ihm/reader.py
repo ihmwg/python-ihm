@@ -605,6 +605,12 @@ class SystemReader:
             self.system.restraints, ihm.restraint.PredictedContactRestraint,
             *(None,) * 5)
 
+        #: Mapping from ID to :class:`ihm.restraint.HydroxylRadicalRestraint`
+        #: objects
+        self.hydro_rad_restraints = IDMapper(
+            self.system.restraints, ihm.restraint.HydroxylRadicalRestraint,
+            *(None,) * 3)
+
         #: Mapping from ID to :class:`ihm.restraint.RestraintGroup` of
         #: :class:`ihm.restraint.DerivedDistanceRestraint` objects
         self.dist_restraint_groups = IDMapper(
@@ -613,6 +619,11 @@ class SystemReader:
         #: Mapping from ID to :class:`ihm.restraint.RestraintGroup` of
         #: :class:`ihm.restraint.PredictedContactRestraint` objects
         self.pred_cont_restraint_groups = IDMapper(
+            self.system.restraint_groups, ihm.restraint.RestraintGroup)
+
+        #: Mapping from ID to :class:`ihm.restraint.RestraintGroup` of
+        #: :class:`ihm.restraint.HydroxylRadicalRestraint` objects
+        self.hydro_rad_restraint_groups = IDMapper(
             self.system.restraint_groups, ihm.restraint.RestraintGroup)
 
         #: Mapping from ID to :class:`ihm.geometry.GeometricObject` objects
@@ -2588,6 +2599,27 @@ class _PredictedContactRestraintHandler(Handler):
         r.software = self.sysr.software.get_by_id_or_none(software_id)
 
 
+class _HydroxylRadicalRestraintHandler(Handler):
+    category = '_ihm_hydroxyl_radical_fp_restraint'
+
+    def __call__(self, id, group_id, dataset_list_id, asym_id,
+                 seq_id: int, predicted_sasa: float,
+                 fp_rate: float, fp_rate_error: float,
+                 log_pf: float, log_pf_error: float,
+                 software_id):
+        r = self.sysr.hydro_rad_restraints.get_by_id(id)
+        if group_id is not None:
+            rg = self.sysr.hydro_rad_restraint_groups.get_by_id(group_id)
+            rg.append(r)
+        r.dataset = self.sysr.datasets.get_by_id_or_none(dataset_list_id)
+        asym = self.sysr.asym_units.get_by_id(asym_id)
+        r.residue = asym.residue(seq_id)
+        r.predicted_sasa = predicted_sasa
+        r.rate, r.rate_error = fp_rate, fp_rate_error
+        r.log_pf, r.log_pf_error = log_pf, log_pf_error
+        r.software = self.sysr.software.get_by_id_or_none(software_id)
+
+
 class _CenterHandler(Handler):
     category = '_ihm_geometric_object_center'
 
@@ -4005,6 +4037,7 @@ class IHMVariant(Variant):
         _NonPolyFeatureHandler, _PseudoSiteFeatureHandler, _PseudoSiteHandler,
         _DerivedDistanceRestraintHandler, _HDXRestraintHandler,
         _PredictedContactRestraintHandler,
+        _HydroxylRadicalRestraintHandler,
         _CenterHandler, _TransformationHandler, _GeometricObjectHandler,
         _SphereHandler, _TorusHandler, _HalfTorusHandler, _AxisHandler,
         _PlaneHandler, _GeometricRestraintHandler, _PolySeqSchemeHandler,
