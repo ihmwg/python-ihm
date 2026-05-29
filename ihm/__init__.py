@@ -347,8 +347,7 @@ class System:
            Duplicates may be present."""
         def _all_restraints_in_groups():
             for rg in self.restraint_groups:
-                for r in rg:
-                    yield r
+                yield from rg
         return itertools.chain(self.restraints, _all_restraints_in_groups())
 
     def _all_chem_descriptors(self):
@@ -407,8 +406,7 @@ class System:
 
     def _all_segments(self):
         for representation in self._all_representations():
-            for segment in representation:
-                yield segment
+            yield from representation
 
     def _all_starting_models(self):
         """Iterate over all StartingModels in the system.
@@ -430,14 +428,12 @@ class System:
 
     def _all_protocol_steps(self):
         for protocol in self._all_protocols():
-            for step in protocol.steps:
-                yield step
+            yield from protocol.steps
 
     def _all_analysis_steps(self):
         for protocol in self._all_protocols():
             for analysis in protocol.analyses:
-                for step in analysis.steps:
-                    yield step
+                yield from analysis.steps
 
     def _all_assemblies(self):
         """Iterate over all Assemblies in the system.
@@ -477,16 +473,14 @@ class System:
     def _all_templates(self):
         """Iterate over all Templates in the system."""
         for startmodel in self._all_starting_models():
-            for template in startmodel.templates:
-                yield template
+            yield from startmodel.templates
 
     def _all_datasets_except_parents(self):
         """Iterate over all Datasets except those referenced only
            as the parent of another Dataset. Duplicates may be present."""
         def _all_datasets_in_groups():
             for dg in self._all_dataset_groups():
-                for d in dg:
-                    yield d
+                yield from dg
         return itertools.chain(
             self.orphan_datasets,
             _all_datasets_in_groups(),
@@ -508,17 +502,14 @@ class System:
                     pd = p.dataset
                 else:
                     pd = p
-                for alld in _all_datasets_and_parents(pd):
-                    yield alld
+                yield from _all_datasets_and_parents(pd)
             yield d
         for d in self._all_datasets_except_parents():
-            for alld in _all_datasets_and_parents(d):
-                yield alld
+            yield from _all_datasets_and_parents(d)
 
     def _all_densities(self):
         for ensemble in self.ensembles:
-            for density in ensemble.densities:
-                yield density
+            yield from ensemble.densities
 
     def _all_locations(self):
         """Iterate over all Locations in the system.
@@ -644,14 +635,12 @@ class System:
             (d.asym_unit for d in self._all_densities())))
 
     def _all_multi_state_schemes(self):
-        for mss in self.multi_state_schemes:
-            yield mss
+        yield from self.multi_state_schemes
 
     def _all_multi_state_scheme_connectivities(self):
         """Iterate over all multi-state scheme connectivities"""
         for mss in self.multi_state_schemes:
-            for mssc in mss.get_connectivities():
-                yield mssc
+            yield from mss.get_connectivities()
 
     def _all_kinetic_rates(self):
         """Iterate over all kinetic rates within multi-state schemes"""
