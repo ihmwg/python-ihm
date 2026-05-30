@@ -3014,6 +3014,38 @@ class _SASDumper(Dumper):
                              details=r.details)
 
 
+class _EPRDumper(Dumper):
+    def _all_restraints(self, system):
+        return [r for r in system._all_restraints()
+                if isinstance(r, restraint.EPRRestraint)]
+
+    def dump(self, system, writer):
+        ordinal = itertools.count(1)
+        with writer.loop("_ihm_epr_restraint",
+                         ["ordinal_id", "dataset_list_id", "model_id",
+                          "fitting_particle_type", "fitting_method",
+                          "fitting_method_citation_id", "fitting_state",
+                          "fitting_software_id", "chi_value",
+                          "details"]) as lp:
+            for r in self._all_restraints(system):
+                citation_id = (r.fitting_method_citation._id
+                               if r.fitting_method_citation else None)
+                software_id = r.software._id if r.software else None
+                # all fits ordered by model ID
+                for model, fit in sorted(r.fits.items(),
+                                         key=lambda i: i[0]._id):
+                    lp.write(ordinal_id=next(ordinal),
+                             dataset_list_id=r.dataset._id,
+                             fitting_particle_type=r.fitting_particle_type,
+                             fitting_method=r.fitting_method,
+                             fitting_state='Multiple' if r.multi_state
+                             else 'Single',
+                             fitting_method_citation_id=citation_id,
+                             fitting_software_id=software_id,
+                             model_id=model._id, chi_value=fit.chi_value,
+                             details=r.details)
+
+
 def _assign_all_ids(all_objs_func):
     """Given a function that returns a list of all objects, assign IDs and
        return a list of objects sorted by ID"""
@@ -4184,12 +4216,13 @@ class IHMVariant(Variant):
         _GeometricRestraintDumper, _DerivedDistanceRestraintDumper,
         _HDXRestraintDumper, _HydroxylRadicalRestraintDumper,
         _PredictedContactRestraintDumper, _EM3DDumper, _EM2DDumper, _SASDumper,
+        _ProbeDumper, _EPRDumper,
         _ModelDumper, _ModelRepresentativeDumper,
         _NotModeledResidueRangeDumper,
         _EnsembleDumper, _DensityDumper, _MultiStateDumper,
         _OrderedDumper,
         _MultiStateSchemeDumper, _MultiStateSchemeConnectivityDumper,
-        _RelaxationTimeDumper, _KineticRateDumper, _ProbeDumper]
+        _RelaxationTimeDumper, _KineticRateDumper]
 
     def get_dumpers(self):
         return [d() for d in self._dumpers + _flr_dumpers]

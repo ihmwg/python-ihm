@@ -129,3 +129,9 @@ The :mod:`ihm.restraint` Python module
 
 .. autoclass:: LigandProbe
    :members:
+
+.. autoclass:: EPRRestraint
+   :members:
+
+.. autoclass:: EPRRestraintFit
+   :members:

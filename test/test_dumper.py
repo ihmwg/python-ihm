@@ -3586,6 +3586,55 @@ _ihm_sas_restraint.details
 #
 """)
 
+    def test_epr_restraint_dumper(self):
+        """Test EPRRestraintDumper"""
+        class MockObject:
+            pass
+        system = ihm.System()
+
+        dataset = MockObject()
+        dataset._id = 97
+        citation = MockObject()
+        citation._id = 99
+        software = MockObject()
+        software._id = 42
+        r = ihm.restraint.EPRRestraint(
+            dataset=dataset, fitting_particle_type='unpaired electron',
+            fitting_method='fitmeth', fitting_method_citation=citation,
+            multi_state=False, software=software,
+            details='EPR restraint')
+        m = ihm.model.Model(assembly='foo', protocol='bar',
+                            representation='baz')
+        m._id = 42
+        m2 = ihm.model.Model(assembly='foo', protocol='bar',
+                             representation='baz')
+        m2._id = 44
+        system.restraints.extend((r, MockObject()))
+
+        r.fits[m] = ihm.restraint.EPRRestraintFit(0.20)
+        r.fits[m2] = ihm.restraint.EPRRestraintFit()
+
+        dumper = ihm.dumper._EPRDumper()
+        dumper.finalize(system)  # assign IDs
+
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_ihm_epr_restraint.ordinal_id
+_ihm_epr_restraint.dataset_list_id
+_ihm_epr_restraint.model_id
+_ihm_epr_restraint.fitting_particle_type
+_ihm_epr_restraint.fitting_method
+_ihm_epr_restraint.fitting_method_citation_id
+_ihm_epr_restraint.fitting_state
+_ihm_epr_restraint.fitting_software_id
+_ihm_epr_restraint.chi_value
+_ihm_epr_restraint.details
+1 97 42 'unpaired electron' fitmeth 99 Single 42 0.200 'EPR restraint'
+2 97 44 'unpaired electron' fitmeth 99 Single 42 . 'EPR restraint'
+#
+""")
+
     def test_em2d_restraint_dumper(self):
         """Test EM2DRestraintDumper"""
         class MockObject:

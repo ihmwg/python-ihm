@@ -580,6 +580,11 @@ class SystemReader:
             self.system.restraints, self.datasets,
             ihm.restraint.SASRestraint, None)
 
+        #: Mapping from ID to :class:`ihm.restraint.EPRRestraint` objects
+        self.epr_restraints = _DatasetAssemblyIDMapper(
+            self.system.restraints, self.datasets,
+            ihm.restraint.EPRRestraint)
+
         #: Mapping from ID to :class:`ihm.restraint.Feature` objects
         self.features = _FeatureIDMapper(self.system.orphan_features,
                                          ihm.restraint.Feature)
@@ -2296,6 +2301,29 @@ class _SASRestraintHandler(Handler):
 
         model = self.sysr.models.get_by_id(model_id)
         r.fits[model] = ihm.restraint.SASRestraintFit(chi_value=chi_value)
+
+
+class _EPRRestraintHandler(Handler):
+    category = '_ihm_epr_restraint'
+
+    def __call__(self, dataset_list_id, model_id, fitting_particle_type,
+                 fitting_method, fitting_method_citation_id,
+                 fitting_state, fitting_software_id, chi_value: float,
+                 details):
+        # EPR restraints don't have their own IDs - they use the dataset ID
+        r = self.sysr.epr_restraints.get_by_dataset(dataset_list_id, None)
+        r.fitting_method_citation = self.sysr.citations.get_by_id_or_none(
+            fitting_method_citation_id)
+        r.software = self.sysr.software.get_by_id_or_none(fitting_software_id)
+        self.copy_if_present(
+            r, locals(),
+            keys=('fitting_particle_type', 'fitting_method', 'details'))
+        fs = (fitting_state if fitting_state not in (None, ihm.unknown)
+              else 'Single')
+        r.multi_state = fs.lower() != 'single'
+
+        model = self.sysr.models.get_by_id(model_id)
+        r.fits[model] = ihm.restraint.EPRRestraintFit(chi_value=chi_value)
 
 
 class _SphereObjSiteHandler(Handler):
@@ -4125,7 +4153,7 @@ class IHMVariant(Variant):
         _NonPolyFeatureHandler, _PseudoSiteFeatureHandler, _PseudoSiteHandler,
         _DerivedDistanceRestraintHandler, _HDXRestraintHandler,
         _PredictedContactRestraintHandler,
-        _HydroxylRadicalRestraintHandler,
+        _HydroxylRadicalRestraintHandler, _EPRRestraintHandler,
         _CenterHandler, _TransformationHandler, _GeometricObjectHandler,
         _SphereHandler, _TorusHandler, _HalfTorusHandler, _AxisHandler,
         _PlaneHandler, _GeometricRestraintHandler, _PolySeqSchemeHandler,

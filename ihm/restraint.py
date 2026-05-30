@@ -1005,6 +1005,8 @@ class Probe:
     """Base class for all probes, e.g. as used in EPR experiments.
        Use a subclass, such as :class:`ConjugateProbe` or :class:`LigandProbe`.
 
+       See also :class:`EPRRestraint`.
+
        These objects should be added to :attr:`ihm.System.probes`.
     """
     pass
@@ -1056,3 +1058,55 @@ class LigandProbe(Probe):
     def __init__(self, probe_type, entity, dataset, details=None):
         self.probe_type, self.entity = probe_type, entity
         self.dataset, self.details = dataset, details
+
+
+class EPRRestraint(Restraint):
+    """Restrain part of the system to match electron paramagnetic resonance
+       (EPR) data.
+
+       See also :class:`Probe`.
+
+       :param dataset: Reference to the EPR data.
+       :type dataset: :class:`~ihm.dataset.Dataset`
+       :param str fitting_particle_type: The type of particle fit to
+              the EPR data.
+       :param str fitting_method: The method used to fit the model
+              to the EPR data.
+       :param fitting_method_citation: The publication describing the fitting
+              method.
+       :type fitting_method_citation: :class:`~ihm.Citation`
+       :param bool multi_state: Whether multiple state fitting was done.
+       :param software: The software used to perform the fitting.
+       :type software: :class:`~ihm.Software`
+       :param str details: Additional details regarding the fitting.
+    """
+
+    assembly = None  # no struct_assembly_id for EPR restraints
+
+    def __init__(self, dataset, fitting_particle_type=None,
+                 fitting_method=None, fitting_method_citation=None,
+                 multi_state=None, software=None, details=None):
+        self.dataset = dataset
+        self.fitting_particle_type = fitting_particle_type
+        self.fitting_method = fitting_method
+        self.fitting_method_citation = fitting_method_citation
+        self.multi_state = multi_state
+        self.software, self.details = software, details
+
+        #: Information about the fit of each model to this restraint's data.
+        #: This is a Python dict where keys are :class:`~ihm.model.Model`
+        #: objects and values are :class:`EPRRestraintFit` objects.
+        self.fits = {}
+
+
+class EPRRestraintFit:
+    """Information on the fit of a model to an :class:`EPRRestraint`.
+       See :attr:`EPRRestaint.fits`.
+
+       :param float chi_value: The chi value resulting from fitting
+              the model to the EPR data.
+    """
+    __slots__ = ["chi_value"]  # Reduce memory usage
+
+    def __init__(self, chi_value=None):
+        self.chi_value = chi_value

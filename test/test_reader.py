@@ -2186,6 +2186,41 @@ _ihm_sas_restraint.details
         # restraint object
         self.assertEqual(r3.details, 'different dataset')
 
+    def test_epr_restraint_handler(self):
+        """Test EPRRestraintHandler"""
+        fh = StringIO("""
+loop_
+_ihm_epr_restraint.ordinal_id
+_ihm_epr_restraint.dataset_list_id
+_ihm_epr_restraint.model_id
+_ihm_epr_restraint.fitting_particle_type
+_ihm_epr_restraint.fitting_method
+_ihm_epr_restraint.fitting_method_citation_id
+_ihm_epr_restraint.fitting_state
+_ihm_epr_restraint.fitting_software_id
+_ihm_epr_restraint.chi_value
+_ihm_epr_restraint.details
+1 27 8 'unpaired election' fitmeth 3 Single 1 0.1 details
+2 28 8 'unpaired election' fitmeth 3 Single 1 0.2 'different dataset'
+""")
+        s, = ihm.reader.read(fh)
+        r1, r2 = s.restraints
+        self.assertEqual(r1.dataset._id, '27')
+        self.assertEqual(r1.fitting_particle_type, 'unpaired election')
+        self.assertEqual(r1.fitting_method, 'fitmeth')
+        self.assertEqual(r1.fitting_method_citation._id, '3')
+        self.assertEqual(r1.multi_state, False)
+        self.assertEqual(r1.software._id, '1')
+        fit, = list(r1.fits.items())
+        self.assertEqual(fit[0]._id, '8')
+        self.assertAlmostEqual(fit[1].chi_value, 0.10, delta=0.01)
+        # r2 acts on different dataset, so should be
+        # a distinct restraint object
+        self.assertEqual(r2.details, 'different dataset')
+        fit, = list(r2.fits.items())
+        self.assertEqual(fit[0]._id, '8')
+        self.assertAlmostEqual(fit[1].chi_value, 0.20, delta=0.01)
+
     def test_sphere_obj_site_handler(self):
         """Test SphereObjSiteHandler"""
         class MyModel(ihm.model.Model):
