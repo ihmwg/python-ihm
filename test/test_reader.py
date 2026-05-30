@@ -5809,7 +5809,7 @@ _ihm_poly_probe_position.modification_flag
 _ihm_poly_probe_position.mut_res_chem_comp_id
 _ihm_poly_probe_position.mod_res_chem_comp_descriptor_id
 _ihm_poly_probe_position.description
-1 1 ? LYS 340 yes no CYS ? desc1  
+1 1 ? LYS 340 yes no CYS ? desc1
 2 1 ? VAL 354 no yes . 1 desc2
 """
         for fh in cif_file_handles(cif):
