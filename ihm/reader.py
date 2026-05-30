@@ -707,6 +707,23 @@ class SystemReader:
             ihm.multi_state_scheme.RelaxationTime,
             *(None,) * 2)
 
+        #: Mapping from ID to :class:`ihm.restraint.ProbeType` objects
+        self.probe_types = IDMapper(self.system._orphan_probe_types,
+                                    ihm.restraint.ProbeType, *(None,) * 4)
+
+        #: Mapping from ID to :class:`ihm.restraint.ProbePosition` objects
+        self.probe_positions = IDMapper(
+            self.system._orphan_probe_positions,
+            ihm.restraint.ProbePosition, *(None,) * 3)
+
+        #: Mapping from ID to :class:`ihm.restraint.ConjugateProbe` objects
+        self.conjugate_probes = IDMapper(
+            self.system.probes, ihm.restraint.ConjugateProbe, *(None,) * 3)
+
+        #: Mapping from ID to :class:`ihm.restraint.LigandProbe` objects
+        self.ligand_probes = IDMapper(
+            self.system.probes, ihm.restraint.LigandProbe, *(None,) * 3)
+
         # FLR part
 
         #: Mapping from ID to :class:`ihm.flr.FLRData` objects
@@ -3382,6 +3399,77 @@ class _RelaxationTimeMultiStateSchemeHandler(Handler):
                 mss.add_relaxation_time(r)
 
 
+class _ProbeListHandler(Handler):
+    category = '_ihm_probe_list'
+    
+    _origin_map = {'intrinsic': True, 'extrinsic': False}
+    _link_map = {'covalent': True, 'ligand': False}
+
+    def __call__(self, probe_id, probe_name, reactive_probe_flag: bool,
+                 reactive_probe_name, probe_origin, probe_link_type,
+                 probe_chem_comp_descriptor_id,
+                 reactive_probe_chem_comp_descriptor_id):
+        p = self.sysr.probe_types.get_by_id(probe_id)
+        p.name = probe_name
+        origin = self.get_lower(probe_origin)
+        p.intrinsic = self._origin_map.get(origin, origin)
+        link_type = self.get_lower(probe_link_type)
+        p.covalent = self._link_map.get(link_type, link_type)
+        p.descriptor = self.sysr.chem_descriptors.get_by_id_or_none(
+            probe_chem_comp_descriptor_id)
+        p.reactive = reactive_probe_flag
+        p.reactive_descriptor = self.sysr.chem_descriptors.get_by_id_or_none(
+            reactive_probe_chem_comp_descriptor_id)
+        p.reactive_name = reactive_probe_name
+
+
+class _ProbePositionHandler(Handler):
+    category = '_ihm_poly_probe_position'
+    
+    def __call__(self, id, entity_id, seq_id: int, mutation_flag: bool,
+                 mut_res_chem_comp_id, modification_flag: bool,
+                 mod_res_chem_comp_descriptor_id, description):
+        pp = self.sysr.probe_positions.get_by_id(id)
+        entity = self.sysr.entities.get_by_id(entity_id)
+        pp.residue = entity.residue(seq_id)
+        pp.mutated = mutation_flag
+        pp.mutated_chem_comp = self.sysr.chem_comps.get_by_id_or_none(
+            mut_res_chem_comp_id)
+        pp.modified = modification_flag
+        pp.modified_descriptor = self.sysr.chem_descriptors.get_by_id_or_none(
+            mod_res_chem_comp_descriptor_id)
+        pp.description = description
+
+
+class _ProbeConjugateHandler(Handler):
+    category = '_ihm_poly_probe_conjugate'
+    
+    def __call__(self, id, probe_id, position_id, chem_comp_descriptor_id,
+                 ambiguous_stoichiometry_flag: bool,
+                 probe_stoichiometry: float, details, dataset_list_id):
+        p = self.sysr.conjugate_probes.get_by_id(id)
+        p.probe_type = self.sysr.probe_types.get_by_id(probe_id)
+        p.position = self.sysr.probe_positions.get_by_id(position_id)
+        p.descriptor = self.sysr.chem_descriptors.get_by_id_or_none(
+            chem_comp_descriptor_id)
+        p.ambiguous_stoichiometry = ambiguous_stoichiometry_flag
+        p.probe_stoichiometry = probe_stoichiometry
+        p.details = details
+        p.dataset = self.sysr.datasets.get_by_id_or_none(dataset_list_id)
+
+
+class _LigandProbeHandler(Handler):
+    category = '_ihm_ligand_probe'
+    
+    def __call__(self, probe_id, entity_id, details, dataset_list_id):
+        # At most one ligand probe per type, so it reuses probe_id
+        p = self.sysr.ligand_probes.get_by_id(probe_id)
+        p.probe_type = self.sysr.probe_types.get_by_id(probe_id)
+        p.entity = self.sysr.entities.get_by_id(entity_id)
+        p.details = details
+        p.dataset = self.sysr.datasets.get_by_id_or_none(dataset_list_id)
+
+
 # FLR part
 # Note: This Handler is only here, because the category is officially
 # still in the flr dictionary.
@@ -4049,7 +4137,9 @@ class IHMVariant(Variant):
         _OrderedModelHandler, _OrderedEnsembleHandler,
         _MultiStateSchemeHandler, _MultiStateSchemeConnectivityHandler,
         _KineticRateHandler,
-        _RelaxationTimeHandler, _RelaxationTimeMultiStateSchemeHandler
+        _RelaxationTimeHandler, _RelaxationTimeMultiStateSchemeHandler,
+        _ProbeListHandler, _ProbePositionHandler, _ProbeConjugateHandler,
+        _LigandProbeHandler
     ]
 
     def get_handlers(self, sysr):

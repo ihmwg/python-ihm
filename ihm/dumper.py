@@ -3216,6 +3216,96 @@ class _KineticRateDumper(Dumper):
                             external_file_id=external_file_id)
 
 
+class _ProbeDumper(Dumper):
+    def finalize(self, system):
+        assign = util._HashAssignIDs(system._all_probe_types)
+        self._probe_types_by_id = assign.assign_all()
+        assign = util._HashAssignIDs(system._all_probe_positions)
+        self._positions_by_id = assign.assign_all()
+        assign = util._EnumerateAssignIDs(
+            [p for p in system.probes
+             if isinstance(p, ihm.restraint.ConjugateProbe)])
+        self._conjugate_probes_by_id = assign.assign_all()
+        assign = util._EnumerateAssignIDs(
+            [p for p in system.probes
+             if isinstance(p, ihm.restraint.LigandProbe)])
+        self._ligand_probes_by_id = assign.assign_all()
+
+    def dump(self, system, writer):
+        self.dump_probe_list(system, writer)
+        self.dump_probe_positions(system, writer)
+        self.dump_conjugate_probes(system, writer)
+        self.dump_ligand_probes(system, writer)
+
+    def dump_probe_list(self, system, writer):
+        with writer.loop('_ihm_probe_list',
+                         ['probe_id', 'probe_name', 'probe_origin',
+                          'probe_link_type', 'probe_chem_comp_descriptor_id',
+                          'reactive_probe_flag', 'reactive_probe_name',
+                          'reactive_probe_chem_comp_descriptor_id']) as lp:
+            for p in self._probe_types_by_id:
+                desc = p.descriptor._id if p.descriptor else p.descriptor
+                r_desc = (p.reactive_descriptor._id
+                          if p.reactive_descriptor else None)
+                lp.write(probe_id=p._id, probe_name=p.name,
+                         probe_origin=p._probe_origin,
+                         probe_link_type=p._probe_link_type,
+                         probe_chem_comp_descriptor_id=desc,
+                         reactive_probe_flag=p.reactive,
+                         reactive_probe_name=p.reactive_name,
+                         reactive_probe_chem_comp_descriptor_id=r_desc)
+
+    def dump_probe_positions(self, system, writer):
+        with writer.loop('_ihm_poly_probe_position',
+                         ['id', 'entity_id', 'entity_description', 'comp_id',
+                          'seq_id', 'mutation_flag', 'modification_flag',
+                          'mut_res_chem_comp_id',
+                          'mod_res_chem_comp_descriptor_id',
+                          'description']) as lp:
+            for p in self._positions_by_id:
+                e = p.residue.entity
+                comp = e.sequence[p.residue.seq_id - 1].id
+                mut_res_cc = (p.mutated_chem_comp.id
+                              if p.mutated_chem_comp else None)
+                mod_res_desc = (p.modified_descriptor._id
+                                if p.modified_descriptor else None)
+                lp.write(id=p._id, entity_id=p.residue.entity._id,
+                         entity_description=p.residue.entity.description,
+                         comp_id=comp, seq_id=p.residue.seq_id,
+                         mutation_flag=p.mutated,
+                         mut_res_chem_comp_id=mut_res_cc,
+                         modification_flag=p.modified,
+                         mod_res_chem_comp_descriptor_id=mod_res_desc,
+                         description=p.description)
+
+    def dump_conjugate_probes(self, system, writer):
+        with writer.loop('_ihm_poly_probe_conjugate',
+                         ['id', 'probe_id', 'position_id',
+                          'chem_comp_descriptor_id',
+                          'ambiguous_stoichiometry_flag',
+                          'probe_stoichiometry', 'details',
+                          'dataset_list_id']) as lp:
+            for p in self._conjugate_probes_by_id:
+                desc = p.descriptor._id if p.descriptor else None
+                ambig = p.ambiguous_stoichiometry
+                lp.write(id=p._id, probe_id=p.probe_type._id,
+                         position_id=p.position._id,
+                         chem_comp_descriptor_id=desc,
+                         ambiguous_stoichiometry_flag=ambig,
+                         probe_stoichiometry=p.probe_stoichiometry,
+                         dataset_list_id=p.dataset._id if p.dataset else None,
+                         details=p.details)
+
+    def dump_ligand_probes(self, system, writer):
+        with writer.loop('_ihm_ligand_probe',
+                         ['probe_id', 'entity_id', 'dataset_list_id',
+                          'details']) as lp:
+            for p in self._ligand_probes_by_id:
+                lp.write(probe_id=p._id, entity_id=p.entity._id,
+                         dataset_list_id=p.dataset._id if p.dataset else None,
+                         details=p.details)
+
+
 class _FLRExperimentDumper(Dumper):
     def finalize(self, system):
         def all_experiments():
@@ -4099,7 +4189,7 @@ class IHMVariant(Variant):
         _EnsembleDumper, _DensityDumper, _MultiStateDumper,
         _OrderedDumper,
         _MultiStateSchemeDumper, _MultiStateSchemeConnectivityDumper,
-        _RelaxationTimeDumper, _KineticRateDumper]
+        _RelaxationTimeDumper, _KineticRateDumper, _ProbeDumper]
 
     def get_dumpers(self):
         return [d() for d in self._dumpers + _flr_dumpers]

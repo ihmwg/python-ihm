@@ -114,3 +114,18 @@ The :mod:`ihm.restraint` Python module
 
 .. autoclass:: HydroxylRadicalRestraint
    :members:
+
+.. autoclass:: ProbeType
+   :members:
+
+.. autoclass:: ProbePosition
+   :members:
+
+.. autoclass:: Probe
+   :members:
+
+.. autoclass:: ConjugateProbe
+   :members:
+
+.. autoclass:: LigandProbe
+   :members:

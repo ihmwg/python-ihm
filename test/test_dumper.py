@@ -6241,6 +6241,108 @@ _pdbx_database_status.recvd_initial_deposition_date 1993-06-29
 _pdbx_database_status.sg_entry .
 _pdbx_database_status.status_code REL""")
 
+    def test_probe_dumper(self):
+        """Test ProbeDumper"""
+        class MockObject:
+            pass
+        system = ihm.System()
+        e = ihm.Entity('AHC')
+        e._id = 42
+        system.entities.append(e)
+        dataset = MockObject()
+        dataset._id = 99
+        desc = MockObject()
+        desc._id = 66
+
+        covpt1 = ihm.restraint.ProbeType(name='COV1', intrinsic=False,
+                                         covalent=True, reactive=True,
+                                         reactive_name='REACT',
+                                         reactive_descriptor=desc,
+                                         descriptor=None)
+        covpt2 = ihm.restraint.ProbeType(name='COV2', intrinsic=False,
+                                         covalent=True, descriptor=desc,
+                                         reactive=None)
+        ligpt = ihm.restraint.ProbeType(name='LIG', intrinsic=True,
+                                        covalent=False, reactive=None,
+                                        descriptor=None)
+        ligprobe = ihm.restraint.LigandProbe(ligpt, entity=e, dataset=dataset,
+                                             details='test ligand probe')
+        system.probes.append(ligprobe)
+
+        alpha = ihm.LPeptideAlphabet()
+        pos1 = ihm.restraint.ProbePosition(
+            residue=e.residue(2), mutated=True, modified=False,
+            mutated_chem_comp=alpha['C'],
+            description='mutated position')
+        covprobe1 = ihm.restraint.ConjugateProbe(
+            covpt1, position=pos1, dataset=dataset, descriptor=desc,
+            ambiguous_stoichiometry=False, probe_stoichiometry=1.0,
+            details='test conjugate probe')
+        system.probes.append(covprobe1)
+
+        pos2 = ihm.restraint.ProbePosition(
+            residue=e.residue(3), mutated=False, modified=True,
+            modified_descriptor=desc,
+            description='modified position')
+        covprobe2 = ihm.restraint.ConjugateProbe(
+            covpt2, position=pos2, dataset=None)
+        system.probes.append(covprobe2)
+
+        dumper = ihm.dumper._ProbeDumper()
+        dumper.finalize(system)  # assign IDs
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_ihm_probe_list.probe_id
+_ihm_probe_list.probe_name
+_ihm_probe_list.probe_origin
+_ihm_probe_list.probe_link_type
+_ihm_probe_list.probe_chem_comp_descriptor_id
+_ihm_probe_list.reactive_probe_flag
+_ihm_probe_list.reactive_probe_name
+_ihm_probe_list.reactive_probe_chem_comp_descriptor_id
+1 LIG intrinsic ligand . . . .
+2 COV1 extrinsic covalent . YES REACT 66
+3 COV2 extrinsic covalent 66 . . .
+#
+#
+loop_
+_ihm_poly_probe_position.id
+_ihm_poly_probe_position.entity_id
+_ihm_poly_probe_position.entity_description
+_ihm_poly_probe_position.comp_id
+_ihm_poly_probe_position.seq_id
+_ihm_poly_probe_position.mutation_flag
+_ihm_poly_probe_position.modification_flag
+_ihm_poly_probe_position.mut_res_chem_comp_id
+_ihm_poly_probe_position.mod_res_chem_comp_descriptor_id
+_ihm_poly_probe_position.description
+1 42 . HIS 2 YES NO CYS . 'mutated position'
+2 42 . CYS 3 NO YES . 66 'modified position'
+#
+#
+loop_
+_ihm_poly_probe_conjugate.id
+_ihm_poly_probe_conjugate.probe_id
+_ihm_poly_probe_conjugate.position_id
+_ihm_poly_probe_conjugate.chem_comp_descriptor_id
+_ihm_poly_probe_conjugate.ambiguous_stoichiometry_flag
+_ihm_poly_probe_conjugate.probe_stoichiometry
+_ihm_poly_probe_conjugate.details
+_ihm_poly_probe_conjugate.dataset_list_id
+1 2 1 66 NO 1.000 'test conjugate probe' 99
+2 3 2 . . . . .
+#
+#
+loop_
+_ihm_ligand_probe.probe_id
+_ihm_ligand_probe.entity_id
+_ihm_ligand_probe.dataset_list_id
+_ihm_ligand_probe.details
+1 42 99 'test ligand probe'
+#
+""")
+
 
 if __name__ == '__main__':
     unittest.main()

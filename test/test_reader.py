@@ -5728,6 +5728,124 @@ B 99 bar
         self.assertEqual(s.asym_units[0].id, 'A')
         self.assertIs(s.asym_units[0].entity, e)
 
+    def test_probe_list_handler(self):
+        """Test _ProbeListHandler"""
+        cif = """
+loop_
+_ihm_probe_list.probe_id
+_ihm_probe_list.probe_name
+_ihm_probe_list.probe_origin
+_ihm_probe_list.probe_link_type
+_ihm_probe_list.probe_chem_comp_descriptor_id
+_ihm_probe_list.reactive_probe_flag
+_ihm_probe_list.reactive_probe_name
+_ihm_probe_list.reactive_probe_chem_comp_descriptor_id
+1 MTSL extrinsic covalent 1 ? ? ?
+2 PROBE2 intrinsic ligand . YES RPROBE2 2
+"""
+        for fh in cif_file_handles(cif):
+            s, = ihm.reader.read(fh)
+            p1, p2 = s._orphan_probe_types
+            self.assertEqual(p1.name, "MTSL")
+            self.assertFalse(p1.intrinsic)
+            self.assertTrue(p1.covalent)
+            self.assertEqual(p1.descriptor._id, '1')
+            self.assertIs(p1.reactive, ihm.unknown)
+
+            self.assertEqual(p2.name, "PROBE2")
+            self.assertTrue(p2.intrinsic)
+            self.assertFalse(p2.covalent)
+            self.assertIsNone(p2.descriptor)
+            self.assertTrue(p2.reactive)
+            self.assertEqual(p2.reactive_name, "RPROBE2")
+            self.assertEqual(p2.reactive_descriptor._id, '2')
+
+    def test_probe_position_handler(self):
+        """Test _ProbePositionHandler"""
+        cif = """
+loop_
+_ihm_poly_probe_position.id
+_ihm_poly_probe_position.entity_id
+_ihm_poly_probe_position.entity_description
+_ihm_poly_probe_position.comp_id
+_ihm_poly_probe_position.seq_id
+_ihm_poly_probe_position.mutation_flag
+_ihm_poly_probe_position.modification_flag
+_ihm_poly_probe_position.mut_res_chem_comp_id
+_ihm_poly_probe_position.mod_res_chem_comp_descriptor_id
+_ihm_poly_probe_position.description
+1 1 ? LYS 340 yes no CYS ? desc1  
+2 1 ? VAL 354 no yes . 1 desc2
+"""
+        for fh in cif_file_handles(cif):
+            s, = ihm.reader.read(fh)
+            p1, p2 = s._orphan_probe_positions
+            self.assertEqual(p1.residue.seq_id, 340)
+            self.assertTrue(p1.mutated)
+            self.assertEqual(p1.mutated_chem_comp.id, 'CYS')
+            self.assertFalse(p1.modified)
+            self.assertEqual(p1.description, "desc1")
+
+            self.assertEqual(p2.residue.seq_id, 354)
+            self.assertFalse(p2.mutated)
+            self.assertTrue(p2.modified)
+            self.assertEqual(p2.modified_descriptor._id, '1')
+            self.assertEqual(p2.description, "desc2")
+
+    def test_probe_conjugate_handler(self):
+        """Test _ProbeConjugateHandler"""
+        cif = """
+loop_
+_ihm_poly_probe_conjugate.id
+_ihm_poly_probe_conjugate.probe_id
+_ihm_poly_probe_conjugate.position_id
+_ihm_poly_probe_conjugate.chem_comp_descriptor_id
+_ihm_poly_probe_conjugate.ambiguous_stoichiometry_flag
+_ihm_poly_probe_conjugate.probe_stoichiometry
+_ihm_poly_probe_conjugate.details
+_ihm_poly_probe_conjugate.dataset_list_id
+1 2 3 4 YES 2.0 details 5
+2 2 3 . ? ? details2 .
+"""
+        for fh in cif_file_handles(cif):
+            s, = ihm.reader.read(fh)
+            p1, p2 = s.probes
+            self.assertEqual(p1.probe_type._id, '2')
+            self.assertEqual(p1.position._id, '3')
+            self.assertEqual(p1.descriptor._id, '4')
+            self.assertEqual(p1.dataset._id, '5')
+            self.assertTrue(p1.ambiguous_stoichiometry)
+            self.assertAlmostEqual(p1.probe_stoichiometry, 2.0, delta=0.01)
+            self.assertEqual(p1.details, 'details')
+
+            self.assertIsNone(p2.descriptor)
+            self.assertIsNone(p2.dataset)
+            self.assertEqual(p2.ambiguous_stoichiometry, ihm.unknown)
+            self.assertEqual(p2.probe_stoichiometry, ihm.unknown)
+            self.assertEqual(p2.details, 'details2')
+
+    def test_ligand_probe_handler(self):
+        """Test _LigandProbeHandler"""
+        cif = """
+loop_
+_ihm_ligand_probe.probe_id
+_ihm_ligand_probe.entity_id
+_ihm_ligand_probe.dataset_list_id
+_ihm_ligand_probe.details
+1 3 4 details
+2 3 . .
+"""
+        for fh in cif_file_handles(cif):
+            s, = ihm.reader.read(fh)
+            p1, p2 = s.probes
+            self.assertEqual(p1.probe_type._id, '1')
+            self.assertEqual(p1.entity._id, '3')
+            self.assertEqual(p1.dataset._id, '4')
+            self.assertEqual(p1.details, 'details')
+
+            self.assertIsNone(p2.dataset)
+            self.assertIsNone(p2.details)
+
 
 if __name__ == '__main__':
     unittest.main()

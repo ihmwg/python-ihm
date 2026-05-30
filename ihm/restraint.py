@@ -934,3 +934,125 @@ class HydroxylRadicalRestraint(Restraint):
         self.rate, self.rate_error = rate, rate_error
         self.log_pf, self.log_pf_error = log_pf, log_pf_error
         self.software = software
+
+
+class ProbeType:
+    """Information about the chemistry of a probe, e.g. as used in an
+       EPR experiment.
+
+       These objects are used in :class:`ConjugateProbe` or in
+       :class:`LigandProbe`.
+
+       :param str name: Author-provided name for the probe.
+       :param bool intrinsic: True if the probe is an intrinsic part of the
+              biomolecule, False if it has been synthentically introduced.
+       :param bool covalent: True if the probe is covalently linked to a
+              particular residue in the polymeric macromolecule, or False
+              for non-covalently-linked (ligand) probes.
+       :param bool reactive: True iff the probe has a reactive form.
+       :param str reactive_name: Author-provided name for the reactive probe.
+       :param reactive_descriptor: The chemical descriptor of the reactive
+              probe, if available and applicable.
+       :type reactive_descriptor: :class:`ihm.ChemDescriptor`
+       :param descriptor: The chemical descriptor of the probe, if available.
+       :type descriptor: :class:`ihm.ChemDescriptor`
+    """
+    def __init__(self, name, intrinsic, covalent, reactive, reactive_name=None,
+                 reactive_descriptor=None, descriptor=None):
+        self.name, self.intrinsic = name, intrinsic
+        self.covalent, self.descriptor = covalent, descriptor
+        self.reactive = reactive
+        self.reactive_name = reactive_name
+        self.reactive_descriptor = reactive_descriptor
+
+    _probe_origin_map = {True: 'intrinsic', False: 'extrinsic'}
+    _probe_link_map = {True: 'covalent', False: 'ligand'}
+
+    _probe_origin = property(
+        lambda s: s._probe_origin_map.get(s.intrinsic, s.intrinsic))
+
+    _probe_link_type = property(
+        lambda s: s._probe_link_map.get(s.covalent, s.covalent))
+
+
+class ProbePosition:
+    """A specific residue position where probes are covalently attached.
+
+       See also :class:`ConjugateProbe`.
+
+       :param residue: The residue where the probes are attached.
+       :type residue: :class:`ihm.Residue`
+       :param bool mutated: True iff the residue is mutated.
+       :param bool modified: True iff the residue is chemically modified.
+       :param mutated_chem_comp: The chemical component of the mutated residue,
+              if available and applicable.
+       :type mutated_chem_comp: :class:`ihm.ChemComp`
+       :param modified_descriptor: The chemical descriptor of the
+              modified residue, if available and applicable.
+       :type descriptor: :class:`ihm.ChemDescriptor`
+       :param str description: Additional information about the position.
+    """
+    def __init__(self, residue, mutated, modified, mutated_chem_comp=None,
+                 modified_descriptor=None, description=None):
+        self.residue = residue
+        self.mutated, self.modified = mutated, modified
+        self.mutated_chem_comp = mutated_chem_comp
+        self.modified_descriptor = modified_descriptor
+        self.description = description
+
+
+class Probe:
+    """Base class for all probes, e.g. as used in EPR experiments.
+       Use a subclass, such as :class:`ConjugateProbe` or :class:`LigandProbe`.
+
+       These objects should be added to :attr:`ihm.System.probes`.
+    """
+    pass
+
+
+class ConjugateProbe(Probe):
+    """Details of a probe that is covalently attached to a residue.
+
+       These objects should be added to :attr:`ihm.System.probes`.
+
+       :param probe_type: Information about the probe's chemistry.
+       :type probe_type: :class:`ProbeType`
+       :param position: Identifies where the probe is attached.
+       :type position: :class:`ProbePosition`
+       :param dataset: The experimental dataset corresponding to the probe.
+       :type dataset: :class:`~ihm.dataset.Dataset`
+       :param descriptor: The chemical descriptor of the polymeric residue
+              conjugate with the probe.
+       :type descriptor: :class:`ihm.ChemDescriptor`
+       :param bool ambiguous_stoichiometry: Whether there is ambiguity
+              regarding the stoichiometry of the labeled site.
+       :param float probe_stoichiometry: The stoichiometry of the probe
+              labeling site, if known.
+       :param str details: Additional details regarding the conjugate.
+    """
+    def __init__(self, probe_type, position, dataset, descriptor=None,
+                 ambiguous_stoichiometry=None, probe_stoichiometry=None,
+                 details=None):
+        self.probe_type, self.position = probe_type, position
+        self.dataset, self.descriptor = dataset, descriptor
+        self.ambiguous_stoichiometry = ambiguous_stoichiometry
+        self.probe_stoichiometry = probe_stoichiometry
+        self.details = details
+
+
+class LigandProbe(Probe):
+    """Details of a probe that is a non-polymeric entity (ligand).
+
+       These objects should be added to :attr:`ihm.System.probes`.
+
+       :param probe_type: Information about the probe's chemistry.
+       :type probe_type: :class:`ProbeType`
+       :param entity: The entity of the ligand.
+       :type entity: :class:`ihm.Entity`
+       :param dataset: The experimental dataset corresponding to the probe.
+       :type dataset: :class:`~ihm.dataset.Dataset`
+       :param str details: Additional details regarding the probe.
+    """
+    def __init__(self, probe_type, entity, dataset, details=None):
+        self.probe_type, self.entity = probe_type, entity
+        self.dataset, self.details = dataset, details

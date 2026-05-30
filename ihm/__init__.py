@@ -214,6 +214,10 @@ class System:
         #: See :class:`~ihm.model.StateGroup`.
         self.state_groups = []
 
+        #: All probes, e.g. for EPR restraints.
+        #: See :class:`ihm.restraint.Probe`.
+        self.probes = []
+
         #: All orphaned geometric objects.
         #: This can be used to keep track of all objects that are not
         #: otherwise used - normally an object is assigned to a
@@ -249,6 +253,8 @@ class System:
         self._orphan_relaxation_times = []
         self._orphan_repos = []
         self._orphan_chem_comps = []
+        self._orphan_probe_positions = []
+        self._orphan_probe_types = []
 
     _database_status = property(lambda self: self.database_status._map)
 
@@ -687,6 +693,19 @@ class System:
                 continue
             seen_relaxation_times.append(rt)
             yield rt
+
+    def _all_probe_types(self):
+        """Iterate over all probe types"""
+        for p in self.probes:
+            yield p.probe_type
+        yield from self._orphan_probe_types
+
+    def _all_probe_positions(self):
+        """Iterate over all probe positions"""
+        for p in self.probes:
+            if hasattr(p, 'position'):
+                yield p.position
+        yield from self._orphan_probe_positions
 
     def _before_write(self):
         """Do any setup necessary before writing out to a file"""
