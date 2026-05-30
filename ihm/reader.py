@@ -3429,7 +3429,7 @@ class _RelaxationTimeMultiStateSchemeHandler(Handler):
 
 class _ProbeListHandler(Handler):
     category = '_ihm_probe_list'
-    
+
     _origin_map = {'intrinsic': True, 'extrinsic': False}
     _link_map = {'covalent': True, 'ligand': False}
 
@@ -3453,7 +3453,7 @@ class _ProbeListHandler(Handler):
 
 class _ProbePositionHandler(Handler):
     category = '_ihm_poly_probe_position'
-    
+
     def __call__(self, id, entity_id, seq_id: int, mutation_flag: bool,
                  mut_res_chem_comp_id, modification_flag: bool,
                  mod_res_chem_comp_descriptor_id, description):
@@ -3471,7 +3471,7 @@ class _ProbePositionHandler(Handler):
 
 class _ProbeConjugateHandler(Handler):
     category = '_ihm_poly_probe_conjugate'
-    
+
     def __call__(self, id, probe_id, position_id, chem_comp_descriptor_id,
                  ambiguous_stoichiometry_flag: bool,
                  probe_stoichiometry: float, details, dataset_list_id):
@@ -3488,7 +3488,7 @@ class _ProbeConjugateHandler(Handler):
 
 class _LigandProbeHandler(Handler):
     category = '_ihm_ligand_probe'
-    
+
     def __call__(self, probe_id, entity_id, details, dataset_list_id):
         # At most one ligand probe per type, so it reuses probe_id
         p = self.sysr.ligand_probes.get_by_id(probe_id)
