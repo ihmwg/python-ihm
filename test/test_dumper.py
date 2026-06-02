@@ -541,9 +541,9 @@ _entity.pdbx_description
 _entity.formula_weight
 _entity.pdbx_number_of_molecules
 _entity.details
-1 polymer man foo 366.413 1 .
-2 polymer nat baz 499.516 1 .
-3 polymer syn bar 378.362 2 .
+1 polymer man foo 330.383 1 .
+2 polymer nat baz 445.471 1 .
+3 polymer syn bar 342.332 2 .
 4 water nat . 18.015 10 .
 #
 """)

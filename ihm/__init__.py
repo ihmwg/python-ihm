@@ -974,6 +974,9 @@ class ChemComp:
 
     type = 'other'
 
+    # The mass lost when this chemical component forms a polymer bond
+    _bond_leaving_mass = 0.0
+
     _element_mass = {'H': 1.008, 'C': 12.011, 'N': 14.007, 'O': 15.999,
                      'P': 30.974, 'S': 32.060, 'Se': 78.971, 'Fe': 55.845,
                      'Ac': 227.028, 'Ag': 107.868, 'Al': 26.982, 'Ar': 39.948,
@@ -1051,6 +1054,9 @@ class PeptideChemComp(ChemComp):
        instead (except for glycine) to specify chirality.
        See :class:`ChemComp` for a description of the parameters."""
     type = 'peptide linking'
+
+    # H2O is lost when the peptide bond is formed
+    _bond_leaving_mass = 18.015
 
 
 class LPeptideChemComp(PeptideChemComp):
@@ -1465,6 +1471,7 @@ class Entity:
 
     def __get_weight(self):
         weight = 0.
+        first = True
         for s in self.sequence:
             w = s.formula_weight
             # If any component's weight is unknown, the total is too
@@ -1472,6 +1479,9 @@ class Entity:
                 weight += w
             else:
                 return None
+            if not first:
+                weight -= s._bond_leaving_mass
+            first = False
         return weight
     formula_weight = property(
         __get_weight,
