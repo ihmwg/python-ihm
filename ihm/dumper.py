@@ -2386,6 +2386,7 @@ class _FeatureDumper(Dumper):
     def dump(self, system, writer):
         self.dump_list(writer)
         self.dump_poly_residue(writer)
+        self.dump_interface_residue(writer)
         self.dump_poly_atom(writer)
         self.dump_non_poly(writer)
         self.dump_pseudo_site(writer)
@@ -2433,10 +2434,33 @@ class _FeatureDumper(Dumper):
                              comp_id_begin=seq[r.seq_id_range[0] - 1].id,
                              seq_id_end=r.seq_id_range[1],
                              comp_id_end=seq[r.seq_id_range[1] - 1].id,
-                             interface_residue_flag=f.interface,
+                             interface_residue_flag=f._interface,
                              residue_range_granularity=gran_map.get(
                                  f.by_residue, f.by_residue),
                              rep_atom=f.rep_atom)
+
+    def dump_interface_residue(self, writer):
+        ordinal = itertools.count(1)
+        with writer.loop("_ihm_interface_residue_feature",
+                         ["ordinal_id", "feature_id",
+                          "binding_partner_entity_id",
+                          "binding_partner_asym_id",
+                          "dataset_list_id", "details"]) as lp:
+            for f in self._features_by_id:
+                if not isinstance(f, restraint.InterfaceResidueFeature):
+                    continue
+                d_id = f.dataset._id if f.dataset else None
+                for p in f.binding_partners:
+                    if isinstance(p, ihm.Entity):
+                        asym_id = None
+                        e_id = p._id
+                    else:
+                        asym_id = p._id
+                        e_id = p.entity._id
+                    lp.write(ordinal_id=next(ordinal), feature_id=f._id,
+                             binding_partner_entity_id=e_id,
+                             binding_partner_asym_id=asym_id,
+                             dataset_list_id=d_id, details=f.details)
 
     def dump_poly_atom(self, writer):
         ordinal = itertools.count(1)

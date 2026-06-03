@@ -82,6 +82,9 @@ The :mod:`ihm.restraint` Python module
 .. autoclass:: ResidueFeature
    :members:
 
+.. autoclass:: InterfaceResidueFeature
+   :members:
+
 .. autoclass:: AtomFeature
    :members:
 

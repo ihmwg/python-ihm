@@ -612,7 +612,8 @@ class Feature:
     """Base class for selecting parts of the system that a restraint acts on.
        This class should not be used itself; instead,
        see :class:`ResidueFeature`, :class:`AtomFeature`,
-       :class:`NonPolyFeature`, and :class:`PseudoSiteFeature`.
+       :class:`NonPolyFeature`, :class:`InterfaceResidueFeature`,
+       and :class:`PseudoSiteFeature`.
 
        Features are typically assigned to one or more
        :class:`~ihm.restraint.GeometricRestraint` or
@@ -641,14 +642,14 @@ class ResidueFeature(Feature):
               :class:`ihm.AsymUnit`, :class:`ihm.EntityRange`,
               :class:`ihm.Residue`, and/or :class:`ihm.Entity` objects.
        :param str details: Additional text describing this feature.
-       :param bool interface: If specified, indicates whether the feature is
-              an interface residue.
        :param bool by_residue: If specified, indicates whether the residue
               range is represented by invididual residues, rather than the
               closest primitive object with the highest resolution.
        :param str rep_atom: If by_residue is True, the atom used to represent
               the residue in three dimensions (usually CA or CB).
     """
+
+    _interface = False
 
     # Type is 'residue' if each range selects a single residue, otherwise
     # it is 'residue range'
@@ -659,15 +660,13 @@ class ResidueFeature(Feature):
         return 'residue'
     type = property(__get_type)
 
-    def __init__(self, ranges, details=None, interface=None,
-                 by_residue=None, rep_atom=None):
-        self.ranges, self.details, self.interface = ranges, details, interface
+    def __init__(self, ranges, details=None, by_residue=None, rep_atom=None):
+        self.ranges, self.details = ranges, details
         self.by_residue, self.rep_atom = by_residue, rep_atom
         _ = self._get_entity_type()
 
     def _signature(self):
-        return tuple(self.ranges) + (self.interface, self.by_residue,
-                                     self.rep_atom)
+        return tuple(self.ranges) + (self.by_residue, self.rep_atom)
 
     def _all_entities_or_asyms(self):
         return self.ranges
@@ -681,6 +680,34 @@ class ResidueFeature(Feature):
             raise ValueError("%s cannot select non-polymeric entities" % self)
         else:
             return _get_entity(self.ranges[0]).type if self.ranges else None
+
+
+class InterfaceResidueFeature(ResidueFeature):
+    """Selection of one or residues from the system that are identified to
+       be at the binding site.
+
+       :param binding_partners: The binding partners at the interface. Each
+              partner can be an :class:`ihm.AsymUnit` if the specific chain is
+              known, or :class:`ihm.Entity` otherwise.
+       :type binding_partner: list of :class:`ihm.Entity`
+             or :class:`ihm.AsymUnit`
+       :param dataset: Reference to the data from which the interface
+              residue is determined.
+       :type dataset: :class:`~ihm.dataset.Dataset`
+
+       See :class:`ResidueFeature` for a description of the other parameters.
+    """
+
+    _interface = True
+
+    def __init__(self, ranges, binding_partners, dataset, details=None,
+                 by_residue=None, rep_atom=None):
+        super().__init__(ranges=ranges, details=details,
+                         by_residue=by_residue, rep_atom=rep_atom)
+        self.binding_partners, self.dataset = binding_partners, dataset
+
+    def _signature(self):
+        return super()._signature() + tuple(self.binding_partners)
 
 
 class AtomFeature(Feature):

@@ -2667,8 +2667,8 @@ _ihm_poly_residue_feature.comp_id_end
 _ihm_poly_residue_feature.interface_residue_flag
 _ihm_poly_residue_feature.residue_range_granularity
 _ihm_poly_residue_feature.rep_atom
-1 2 1 B 2 CYS 3 GLY . . .
-2 2 1 . 2 CYS 3 GLY . . .
+1 2 1 B 2 CYS 3 GLY NO . .
+2 2 1 . 2 CYS 3 GLY NO . .
 3 6 1 B 2 CY3 3 GLY YES by-residue CA
 #
 loop_
@@ -2696,6 +2696,18 @@ loop_
 _ihm_pseudo_site_feature.feature_id
 _ihm_pseudo_site_feature.pseudo_site_id
 5 55
+"""
+        interface_feats = """
+loop_
+_ihm_interface_residue_feature.ordinal_id
+_ihm_interface_residue_feature.feature_id
+_ihm_interface_residue_feature.binding_partner_entity_id
+_ihm_interface_residue_feature.binding_partner_asym_id
+_ihm_interface_residue_feature.dataset_list_id
+_ihm_interface_residue_feature.details
+1 6 98 . 42 foo
+2 6 99 C 42 foo
+#
 """
         rsr = """
 loop_
@@ -2729,8 +2741,11 @@ _ihm_derived_distance_restraint.dataset_list_id
 5 . 6 3 . ? ? ? . ALL .
 """
         # Test both ways to make sure features still work if they are
-        # referenced by ID before their type is known
-        for text in (feats + rsr, rsr + feats):
+        # referenced by ID before their type is known, or if ResidueFeature
+        # is seen before or after InterfaceResidueFeature
+        for text in (feats + interface_feats + rsr,
+                     interface_feats + feats + rsr,
+                     rsr + feats + interface_feats):
             fh = StringIO(text)
             s, = ihm.reader.read(fh)
             self.assertEqual(len(s.orphan_features), 6)
@@ -2752,7 +2767,6 @@ _ihm_derived_distance_restraint.dataset_list_id
                                   ihm.restraint.ResidueFeature)
             self.assertIsNone(r1.feature2.rep_atom)
             self.assertIsNone(r1.feature2.by_residue)
-            self.assertIsNone(r1.feature2.interface)
             self.assertEqual(len(r1.feature2.ranges), 2)
             self.assertEqual(r1.feature2.ranges[0].seq_id_range, (2, 3))
             self.assertIsInstance(r1.feature2.ranges[0], ihm.AsymUnitRange)
@@ -2791,10 +2805,18 @@ _ihm_derived_distance_restraint.dataset_list_id
             self.assertAlmostEqual(r4.feature1.site.radius, 4.0, delta=0.1)
             self.assertEqual(r4.feature1.site.description, 'centroid')
             self.assertIsInstance(r5.feature1,
-                                  ihm.restraint.ResidueFeature)
+                                  ihm.restraint.InterfaceResidueFeature)
             self.assertEqual(r5.feature1.rep_atom, 'CA')
             self.assertTrue(r5.feature1.by_residue)
-            self.assertTrue(r5.feature1.interface)
+            self.assertEqual(r5.feature1.dataset._id, '42')
+            self.assertEqual(r5.feature1.details, 'foo')
+            self.assertEqual(len(r5.feature1.binding_partners), 2)
+            self.assertIsInstance(r5.feature1.binding_partners[0],
+                                  ihm.Entity)
+            self.assertEqual(r5.feature1.binding_partners[0]._id, '98')
+            self.assertIsInstance(r5.feature1.binding_partners[1],
+                                  ihm.AsymUnit)
+            self.assertEqual(r5.feature1.binding_partners[1]._id, 'C')
 
     def test_hdx_restraint_handler(self):
         """Test HDXRestraintHandler"""

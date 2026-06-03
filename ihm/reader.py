@@ -270,16 +270,30 @@ class _FeatureIDMapper(IDMapper):
         elif newcls is ihm.restraint.PseudoSiteFeature:
             # Pseudo site constructor needs "site" argument
             return newcls(None)
+        elif newcls is ihm.restraint.InterfaceResidueFeature:
+            # constructor needs ranges, binding_partners and dataset argument
+            return newcls([], [], None)
         else:
             # Make subclass (takes one ranges/atoms argument)
             return newcls([])
 
     def _update_old_object(self, obj, newcls=None):
+        # Don't downgrade an InterfaceResidue to a Residue
+        if (newcls is ihm.restraint.ResidueFeature
+                and obj.__class__ is ihm.restraint.InterfaceResidueFeature):
+            return
         super()._update_old_object(obj, newcls)
         # Add missing members if the base class was originally instantianted
         if (newcls is ihm.restraint.ResidueFeature
                 and not hasattr(obj, 'ranges')):
             obj.ranges = []
+        elif newcls is ihm.restraint.InterfaceResidueFeature:
+            if not hasattr(obj, 'ranges'):
+                obj.ranges = []
+            if not hasattr(obj, 'binding_partners'):
+                obj.binding_partners = []
+            if not hasattr(obj, 'dataset'):
+                obj.dataset = []
         elif (newcls is ihm.restraint.AtomFeature
               and not hasattr(obj, 'atoms')):
             obj.atoms = []
@@ -2479,17 +2493,29 @@ class _PolyResidueFeatureHandler(Handler):
     _gran_map = {'by-residue': True, 'by-feature': False}
 
     def __call__(self, feature_id, entity_id, asym_id, seq_id_begin: int,
-                 seq_id_end: int, interface_residue_flag: bool,
-                 residue_range_granularity, rep_atom):
+                 seq_id_end: int, residue_range_granularity, rep_atom):
         f = self.sysr.features.get_by_id(
             feature_id, ihm.restraint.ResidueFeature)
-        f.interface = interface_residue_flag
         f.rep_atom = rep_atom
         f.by_residue = self._gran_map.get(residue_range_granularity,
                                           residue_range_granularity)
         asym_or_entity = self._get_asym_or_entity(asym_id, entity_id)
         # allow out-of-range ranges
         f.ranges.append(asym_or_entity(seq_id_begin, seq_id_end))
+
+
+class _InterfaceResidueFeatureHandler(Handler):
+    category = '_ihm_interface_residue_feature'
+
+    def __call__(self, feature_id, binding_partner_entity_id,
+                 binding_partner_asym_id, dataset_list_id, details):
+        f = self.sysr.features.get_by_id(
+            feature_id, ihm.restraint.InterfaceResidueFeature)
+        asym_or_entity = self._get_asym_or_entity(binding_partner_asym_id,
+                                                  binding_partner_entity_id)
+        f.dataset = self.sysr.datasets.get_by_id_or_none(dataset_list_id)
+        f.details = details or f.details
+        f.binding_partners.append(asym_or_entity)
 
 
 class _FeatureListHandler(Handler):
@@ -4150,6 +4176,7 @@ class IHMVariant(Variant):
         _EM2DRestraintHandler, _EM2DFittingHandler, _SASRestraintHandler,
         _SphereObjSiteHandler, _AtomSiteHandler, _FeatureListHandler,
         _PolyResidueFeatureHandler, _PolyAtomFeatureHandler,
+        _InterfaceResidueFeatureHandler,
         _NonPolyFeatureHandler, _PseudoSiteFeatureHandler, _PseudoSiteHandler,
         _DerivedDistanceRestraintHandler, _HDXRestraintHandler,
         _PredictedContactRestraintHandler,

@@ -4082,6 +4082,8 @@ _ihm_geometric_object_plane.transformation_id
 
     def test_feature_dumper(self):
         """Test FeatureDumper"""
+        class MockObject:
+            pass
         system = ihm.System()
         e1 = ihm.Entity('ACGT')
         e2 = ihm.Entity([ihm.NonPolymerChemComp('HEM')])
@@ -4134,8 +4136,11 @@ _ihm_geometric_object_plane.transformation_id
         system.orphan_features.append(f)
 
         # Interface residue feature
-        f = ihm.restraint.ResidueFeature([a1], interface=True,
-                                         by_residue=True, rep_atom='CA')
+        dataset = MockObject()
+        dataset._id = 42
+        f = ihm.restraint.InterfaceResidueFeature(
+            [a1], binding_partners=[a1, e2], dataset=dataset,
+            by_residue=True, rep_atom='CA', details='foo')
         system.orphan_features.append(f)
 
         ihm.dumper._EntityDumper().finalize(system)  # assign entity IDs
@@ -4159,7 +4164,7 @@ _ihm_feature_list.details
 3 atom non-polymer .
 4 ligand non-polymer .
 5 'pseudo site' other .
-6 'residue range' polymer .
+6 'residue range' polymer foo
 #
 #
 loop_
@@ -4174,11 +4179,22 @@ _ihm_poly_residue_feature.comp_id_end
 _ihm_poly_residue_feature.interface_residue_flag
 _ihm_poly_residue_feature.residue_range_granularity
 _ihm_poly_residue_feature.rep_atom
-1 1 1 A 1 ALA 4 THR . . .
-2 1 1 B 2 CYS 3 GLY . . .
-3 1 1 . 1 ALA 4 THR . . .
-4 1 1 . 2 CYS 3 GLY . . .
+1 1 1 A 1 ALA 4 THR NO . .
+2 1 1 B 2 CYS 3 GLY NO . .
+3 1 1 . 1 ALA 4 THR NO . .
+4 1 1 . 2 CYS 3 GLY NO . .
 5 6 1 A 1 ALA 4 THR YES by-residue CA
+#
+#
+loop_
+_ihm_interface_residue_feature.ordinal_id
+_ihm_interface_residue_feature.feature_id
+_ihm_interface_residue_feature.binding_partner_entity_id
+_ihm_interface_residue_feature.binding_partner_asym_id
+_ihm_interface_residue_feature.dataset_list_id
+_ihm_interface_residue_feature.details
+1 6 1 A 42 foo
+2 6 2 . 42 foo
 #
 #
 loop_
