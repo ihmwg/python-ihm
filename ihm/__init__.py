@@ -977,6 +977,9 @@ class ChemComp:
     # The mass lost when this chemical component forms a polymer bond
     _bond_leaving_mass = 0.0
 
+    # The mass lost when this component is the first in a sequence
+    _first_leaving_mass = 0.0
+
     _element_mass = {'H': 1.008, 'C': 12.011, 'N': 14.007, 'O': 15.999,
                      'P': 30.974, 'S': 32.060, 'Se': 78.971, 'Fe': 55.845,
                      'Ac': 227.028, 'Ag': 107.868, 'Al': 26.982, 'Ar': 39.948,
@@ -1076,11 +1079,21 @@ class DNAChemComp(ChemComp):
        See :class:`ChemComp` for a description of the parameters."""
     type = 'DNA linking'
 
+    # H2O is lost when the phosphodiester bond is formed, and the first
+    # component loses its phosphate
+    _bond_leaving_mass = 18.015
+    _first_leaving_mass = 62.972
+
 
 class RNAChemComp(ChemComp):
     """A single RNA component.
        See :class:`ChemComp` for a description of the parameters."""
     type = 'RNA linking'
+
+    # H2O is lost when the phosphodiester bond is formed, and the first
+    # component loses its phosphate
+    _bond_leaving_mass = 18.015
+    _first_leaving_mass = 62.972
 
 
 class SaccharideChemComp(ChemComp):
@@ -1479,7 +1492,9 @@ class Entity:
                 weight += w
             else:
                 return None
-            if not first:
+            if first:
+                weight -= s._first_leaving_mass
+            else:
                 weight -= s._bond_leaving_mass
             first = False
         return weight

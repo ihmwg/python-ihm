@@ -247,6 +247,10 @@ class Tests(unittest.TestCase):
         """Test Entity.formula_weight"""
         e1 = ihm.Entity('AHCD')
         self.assertAlmostEqual(e1.formula_weight, 445.471, delta=0.1)
+        e1 = ihm.Entity('ACGA', alphabet=ihm.RNAAlphabet)
+        self.assertAlmostEqual(e1.formula_weight, 1263.852, delta=0.1)
+        e1 = ihm.Entity(('DA', 'DC'), alphabet=ihm.DNAAlphabet)
+        self.assertAlmostEqual(e1.formula_weight, 557.437, delta=0.1)
         # Entity containing a component with unknown weight
         heme = ihm.Entity([ihm.NonPolymerChemComp('HEM')])
         self.assertIsNone(heme.formula_weight)
