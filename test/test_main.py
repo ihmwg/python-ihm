@@ -57,8 +57,8 @@ class Tests(unittest.TestCase):
         cc = ihm.ChemComp('X', 'X', 'X', formula=None)
         self.assertIsNone(cc.formula_weight)
         # Bad formula
-        self.assertRaises(ValueError, ihm.ChemComp,
-                          'X', 'X', 'X', formula='C90H')
+        cc = ihm.ChemComp('X', 'X', 'X', formula='C90H')
+        self.assertRaises(ValueError, lambda x: x.formula_weight, cc)
         # Formula with unknown element
         cc = ihm.ChemComp('X', 'X', 'X', formula='C5 Es')
         self.assertIsNone(cc.formula_weight)

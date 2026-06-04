@@ -1013,10 +1013,9 @@ class ChemComp:
         self.code, self.code_canonical, self.name = code, code_canonical, name
         self.formula = formula
         self.ccd, self.descriptors = ccd, descriptors
-        auto_weight = self._get_weight()
-        if formula_weight is None:
-            self.formula_weight = auto_weight
-        else:
+        self._formula_weight = None
+        if formula_weight is not None:
+            auto_weight = self.__get_weight()
             if (auto_weight is not None
                     and abs(auto_weight - formula_weight) > 5.0):
                 warnings.warn("User-specified weight (%f) differs from the "
@@ -1030,7 +1029,10 @@ class ChemComp:
                 % (self.__class__.__module__, self.__class__.__name__,
                    self.id))
 
-    def _get_weight(self):
+    def __get_weight(self):
+        # Use user-provided value if available
+        if self._formula_weight:
+            return self._formula_weight
         # Calculate weight from formula
         if self.formula in (None, unknown):
             return
@@ -1052,6 +1054,12 @@ class ChemComp:
                 # Element 'X' is used for GLX/ASX and has zero weight
                 return None
         return weight
+
+    def __set_weight(self, weight):
+        self._formula_weight = weight
+
+    formula_weight = property(
+        __get_weight, __set_weight, doc="Formula weight (dalton).")
 
     # Equal if all identifiers are the same
     def __eq__(self, other):

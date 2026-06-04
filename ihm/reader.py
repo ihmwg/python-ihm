@@ -1284,11 +1284,8 @@ class _ChemCompHandler(Handler):
         typ = 'other' if type is None else type.lower()
         s = self.sysr.chem_comps.get_by_id(
             id, self.type_map.get(typ, ihm.ChemComp))
-        self.copy_if_present(s, locals(), keys=('name', 'formula'))
-        if formula_weight:
-            s.formula_weight = formula_weight
-        elif formula:
-            s.formula_weight = s._get_weight()
+        self.copy_if_present(s, locals(), keys=('name', 'formula',
+                                                'formula_weight'))
 
 
 class _ChemDescriptorHandler(Handler):
