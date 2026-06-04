@@ -4095,6 +4095,7 @@ _ihm_geometric_object_plane.transformation_id
 
         f = ihm.restraint.ResidueFeature([a1, a2(2, 3), e1, e1(2, 3)],
                                          details='test feature')
+        self.assertEqual(len(f._all_entities_or_asyms()), 4)
         system.orphan_features.append(f)
 
         # Duplicate feature, should be pruned from output
@@ -4120,6 +4121,7 @@ _ihm_geometric_object_plane.transformation_id
                            a3.residue(1).atom('FE')])
         # Nonpolymeric feature
         f = ihm.restraint.NonPolyFeature([a3, e2])
+        self.assertEqual(len(f._all_entities_or_asyms()), 2)
         system.orphan_features.append(f)
         # Cannot make a NonPolyFeature that includes a polymer 'residue'
         self.assertRaises(ValueError, ihm.restraint.NonPolyFeature, [a1, a3])
