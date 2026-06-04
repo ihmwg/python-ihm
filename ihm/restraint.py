@@ -44,7 +44,7 @@ class RestraintGroup(list):
        In particular, all objects in a group must be of the same type, and
        only certain types (currently only :class:`DerivedDistanceRestraint`,
        :class:`PredictedContactRestraint` and
-       :class:`HydroxylRadicalRestraint`) can be grouped.
+       :class:`HydroxylRadicalFPRestraint`) can be grouped.
 
        Empty groups can be created, but will be ignored on output as the
        dictionary does not support them.
@@ -931,7 +931,7 @@ class HDXRestraint(Restraint):
     _all_features = property(lambda self: (self.feature,))
 
 
-class HydroxylRadicalRestraint(Restraint):
+class HydroxylRadicalFPRestraint(Restraint):
     """Hydroxyl radical footprinting restraint on a residue.
 
        :param dataset: Reference to the data from which the restraint is

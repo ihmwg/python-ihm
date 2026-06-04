@@ -624,10 +624,10 @@ class SystemReader:
             self.system.restraints, ihm.restraint.PredictedContactRestraint,
             *(None,) * 5)
 
-        #: Mapping from ID to :class:`ihm.restraint.HydroxylRadicalRestraint`
+        #: Mapping from ID to :class:`ihm.restraint.HydroxylRadicalFPRestraint`
         #: objects
         self.hydro_rad_restraints = IDMapper(
-            self.system.restraints, ihm.restraint.HydroxylRadicalRestraint,
+            self.system.restraints, ihm.restraint.HydroxylRadicalFPRestraint,
             *(None,) * 3)
 
         #: Mapping from ID to :class:`ihm.restraint.RestraintGroup` of
@@ -641,7 +641,7 @@ class SystemReader:
             self.system.restraint_groups, ihm.restraint.RestraintGroup)
 
         #: Mapping from ID to :class:`ihm.restraint.RestraintGroup` of
-        #: :class:`ihm.restraint.HydroxylRadicalRestraint` objects
+        #: :class:`ihm.restraint.HydroxylRadicalFPRestraint` objects
         self.hydro_rad_restraint_groups = IDMapper(
             self.system.restraint_groups, ihm.restraint.RestraintGroup)
 

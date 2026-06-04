@@ -4550,13 +4550,13 @@ _ihm_predicted_contact_restraint.software_id
         software = MockObject()
         software._id = 34
 
-        r1 = ihm.restraint.HydroxylRadicalRestraint(
+        r1 = ihm.restraint.HydroxylRadicalFPRestraint(
             dataset=dataset, residue=a1.residue(1), predicted_sasa=0.1,
             software=software)
-        r2 = ihm.restraint.HydroxylRadicalRestraint(
+        r2 = ihm.restraint.HydroxylRadicalFPRestraint(
             dataset=dataset, residue=a1.residue(2), predicted_sasa=0.2,
             rate=0.3, rate_error=0.03, log_pf=0.1, log_pf_error=0.01)
-        r3 = ihm.restraint.HydroxylRadicalRestraint(
+        r3 = ihm.restraint.HydroxylRadicalFPRestraint(
             dataset=dataset, residue=a1.residue(3), predicted_sasa=0.3)
         rg = ihm.restraint.RestraintGroup((r2, r3))
         system.restraints.extend((r1, r2))  # r2 is in restraints and groups

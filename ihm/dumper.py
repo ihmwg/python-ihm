@@ -2873,7 +2873,7 @@ class _HydroxylRadicalRestraintDumper(Dumper):
     def finalize(self, system):
         (self._restraints_by_id,
          self._group_for_id) = _finalize_restraints_and_groups(
-            system, restraint.HydroxylRadicalRestraint)
+            system, restraint.HydroxylRadicalFPRestraint)
 
     def dump(self, system, writer):
         with writer.loop("_ihm_hydroxyl_radical_fp_restraint",

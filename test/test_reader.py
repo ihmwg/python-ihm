@@ -3872,7 +3872,7 @@ _ihm_predicted_contact_restraint.software_id
         self.assertIsNone(r3.software)
 
     def test_hydroxy_radical_restraint_handler(self):
-        """Test HydroxylRadicalRestraintHandler"""
+        """Test HydroxylRadicalFPRestraintHandler"""
         fh = StringIO("""
 loop_
 _ihm_hydroxyl_radical_fp_restraint.id
