@@ -1432,11 +1432,10 @@ class _StructRefSeqDifHandler(Handler):
         # db_seq_id isn't exposed in the base class constructor
         sd.db_seq_id = pdbx_seq_db_seq_num
         # Set more appropriate type if possible
-        if details:
-            if monomer and not db_monomer:
-                sd.__class__ = ihm.reference.InsertionSeqDif
-            elif db_monomer and not monomer:
-                sd.__class__ = ihm.reference.DeletionSeqDif
+        if monomer and not db_monomer:
+            sd.__class__ = ihm.reference.InsertionSeqDif
+        elif db_monomer and not monomer:
+            sd.__class__ = ihm.reference.DeletionSeqDif
         align.seq_dif.append(sd)
 
 
