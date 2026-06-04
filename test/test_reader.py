@@ -2745,6 +2745,7 @@ _ihm_derived_distance_restraint.dataset_list_id
         # is seen before or after InterfaceResidueFeature
         for text in (feats + interface_feats + rsr,
                      interface_feats + feats + rsr,
+                     rsr + interface_feats + feats,
                      rsr + feats + interface_feats):
             fh = StringIO(text)
             s, = ihm.reader.read(fh)
