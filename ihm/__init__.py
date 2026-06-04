@@ -1239,34 +1239,37 @@ class LPeptideAlphabet(Alphabet):
        modified residues are also included (e.g. MSE). For these their full
        name rather than a one-letter code is used.
     """
+    # Weights taken from e.g.
+    # https://files.rcsb.org/pub/pdb/refdata/chem_comp/Y/GLY/GLY.cif
     _comps = dict([code, LPeptideChemComp(id, code, code, name,
-                                          formula)]
-                  for code, id, name, formula in [
-                  ('A', 'ALA', 'ALANINE', 'C3 H7 N O2'),
-                  ('C', 'CYS', 'CYSTEINE', 'C3 H7 N O2 S'),
-                  ('D', 'ASP', 'ASPARTIC ACID', 'C4 H7 N O4'),
-                  ('E', 'GLU', 'GLUTAMIC ACID', 'C5 H9 N O4'),
-                  ('F', 'PHE', 'PHENYLALANINE', 'C9 H11 N O2'),
-                  ('H', 'HIS', 'HISTIDINE', 'C6 H10 N3 O2 1'),
-                  ('I', 'ILE', 'ISOLEUCINE', 'C6 H13 N O2'),
-                  ('K', 'LYS', 'LYSINE', 'C6 H15 N2 O2 1'),
-                  ('L', 'LEU', 'LEUCINE', 'C6 H13 N O2'),
-                  ('M', 'MET', 'METHIONINE', 'C5 H11 N O2 S'),
-                  ('N', 'ASN', 'ASPARAGINE', 'C4 H8 N2 O3'),
-                  ('P', 'PRO', 'PROLINE', 'C5 H9 N O2'),
-                  ('Q', 'GLN', 'GLUTAMINE', 'C5 H10 N2 O3'),
-                  ('R', 'ARG', 'ARGININE', 'C6 H15 N4 O2 1'),
-                  ('S', 'SER', 'SERINE', 'C3 H7 N O3'),
-                  ('T', 'THR', 'THREONINE', 'C4 H9 N O3'),
-                  ('V', 'VAL', 'VALINE', 'C5 H11 N O2'),
-                  ('W', 'TRP', 'TRYPTOPHAN', 'C11 H12 N2 O2'),
-                  ('Y', 'TYR', 'TYROSINE', 'C9 H11 N O3'),
-                  ('B', 'ASX', 'ASP/ASN AMBIGUOUS', 'C4 H6 N O2 X2'),
-                  ('Z', 'GLX', 'GLU/GLN AMBIGUOUS', 'C5 H8 N O2 X2'),
-                  ('O', 'PYL', 'PYRROLYSINE', 'C12 H21 N3 O3'),
-                  ('U', 'SEC', 'SELENOCYSTEINE', 'C3 H7 N O2 Se')])
+                                          formula, formula_weight=weight)]
+                  for code, id, name, formula, weight in [
+                  ('A', 'ALA', 'ALANINE', 'C3 H7 N O2', 89.093),
+                  ('C', 'CYS', 'CYSTEINE', 'C3 H7 N O2 S', 121.158),
+                  ('D', 'ASP', 'ASPARTIC ACID', 'C4 H7 N O4', 133.103),
+                  ('E', 'GLU', 'GLUTAMIC ACID', 'C5 H9 N O4', 147.129),
+                  ('F', 'PHE', 'PHENYLALANINE', 'C9 H11 N O2', 165.189),
+                  ('H', 'HIS', 'HISTIDINE', 'C6 H10 N3 O2 1', 156.165),
+                  ('I', 'ILE', 'ISOLEUCINE', 'C6 H13 N O2', 131.173),
+                  ('K', 'LYS', 'LYSINE', 'C6 H15 N2 O2 1', 147.195),
+                  ('L', 'LEU', 'LEUCINE', 'C6 H13 N O2', 131.173),
+                  ('M', 'MET', 'METHIONINE', 'C5 H11 N O2 S', 149.211),
+                  ('N', 'ASN', 'ASPARAGINE', 'C4 H8 N2 O3', 132.118),
+                  ('P', 'PRO', 'PROLINE', 'C5 H9 N O2', 115.130),
+                  ('Q', 'GLN', 'GLUTAMINE', 'C5 H10 N2 O3', 146.144),
+                  ('R', 'ARG', 'ARGININE', 'C6 H15 N4 O2 1', 175.209),
+                  ('S', 'SER', 'SERINE', 'C3 H7 N O3', 105.093),
+                  ('T', 'THR', 'THREONINE', 'C4 H9 N O3', 119.119),
+                  ('V', 'VAL', 'VALINE', 'C5 H11 N O2', 117.146),
+                  ('W', 'TRP', 'TRYPTOPHAN', 'C11 H12 N2 O2', 204.225),
+                  ('Y', 'TYR', 'TYROSINE', 'C9 H11 N O3', 181.189),
+                  ('B', 'ASX', 'ASP/ASN AMBIGUOUS', 'C4 H6 N O2 X2', 100.096),
+                  ('Z', 'GLX', 'GLU/GLN AMBIGUOUS', 'C5 H8 N O2 X2', 114.123),
+                  ('O', 'PYL', 'PYRROLYSINE', 'C12 H21 N3 O3', 255.313),
+                  ('U', 'SEC', 'SELENOCYSTEINE', 'C3 H7 N O2 Se', 168.053)])
     _comps['G'] = PeptideChemComp('GLY', 'G', 'G', name='GLYCINE',
-                                  formula="C2 H5 N O2")
+                                  formula="C2 H5 N O2",
+                                  formula_weight=75.067)
 
     # common non-standard L-amino acids
     _comps.update([id, LPeptideChemComp(id, id, canon, name, formula)]
