@@ -1441,6 +1441,9 @@ class Entity:
        :param references: Information about this entity stored in external
               databases (for example the sequence in UniProt)
        :type references: sequence of :class:`ihm.reference.Reference` objects
+       :param float formula_weight: The weight of the entire entity in Daltons.
+              If not specified, it is calculated automatically from the
+              weights of the constituent chemical components.
 
        The sequence for an entity can be specified explicitly as a list of
        chemical components, or (more usually) as a list or string of codes,
@@ -1504,6 +1507,9 @@ class Entity:
     src_method = property(__get_src_method, __set_src_method)
 
     def __get_weight(self):
+        # Use user-provided value if available
+        if self._formula_weight:
+            return self._formula_weight
         weight = 0.
         first = True
         for s in self.sequence:
@@ -1519,13 +1525,16 @@ class Entity:
                 weight -= s._bond_leaving_mass
             first = False
         return weight
+
+    def __set_weight(self, weight):
+        self._formula_weight = weight
+
     formula_weight = property(
-        __get_weight,
-        doc="Formula weight (dalton). This is calculated automatically "
-            "from that of the chemical components.")
+        __get_weight, __set_weight, doc="Formula weight (dalton).")
 
     def __init__(self, sequence, alphabet=LPeptideAlphabet,
-                 description=None, details=None, source=None, references=[]):
+                 description=None, details=None, source=None, references=[],
+                 formula_weight=None):
         def get_chem_comp(s):
             if isinstance(s, ChemComp):
                 return s
@@ -1536,6 +1545,7 @@ class Entity:
         self.source = source
         self.references = []
         self.references.extend(references)
+        self.formula_weight = formula_weight
 
         #: String descriptors of branched chemical structure.
         #: These generally only make sense for oligosaccharide entities,

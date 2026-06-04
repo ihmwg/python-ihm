@@ -264,6 +264,9 @@ class Tests(unittest.TestCase):
         # Entity containing a component with unknown weight
         heme = ihm.Entity([ihm.NonPolymerChemComp('HEM')])
         self.assertIsNone(heme.formula_weight)
+        # Entity with user-provided weight
+        e1 = ihm.Entity('AHCD', formula_weight=999.000)
+        self.assertAlmostEqual(e1.formula_weight, 999.000, delta=0.1)
 
     def test_entity_type(self):
         """Test Entity.type"""

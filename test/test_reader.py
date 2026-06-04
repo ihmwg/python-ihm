@@ -647,6 +647,7 @@ _entity.details
             e1, e2, e3, e4, e5 = s.entities
             self.assertEqual(e1.description, 'Nup84')
             self.assertTrue(e1._force_polymer)
+            self.assertAlmostEqual(e1.formula_weight, 100.0, delta=0.01)
             self.assertEqual(
                 e1.number_of_molecules, '2')  # todo: coerce to int
             self.assertEqual(e1.source.src_method, 'nat')

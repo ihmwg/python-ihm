@@ -1312,11 +1312,11 @@ class _EntityHandler(Handler):
             if issubclass(x[1], ihm.source.Source)
             and x[1] is not ihm.source.Source)
 
-    def __call__(self, id, details, type, src_method, formula_weight,
+    def __call__(self, id, details, type, src_method, formula_weight: float,
                  pdbx_description, pdbx_number_of_molecules):
         s = self.sysr.entities.get_by_id(id)
         self.copy_if_present(
-            s, locals(), keys=('details',),
+            s, locals(), keys=('details', 'formula_weight'),
             mapkeys={'pdbx_description': 'description',
                      'pdbx_number_of_molecules': 'number_of_molecules'})
         if src_method:
