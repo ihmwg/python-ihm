@@ -16,6 +16,7 @@ import sys
 import urllib.request
 import json
 import collections
+import warnings
 from . import util
 
 __version__ = '2.10'
@@ -964,6 +965,9 @@ class ChemComp:
        :param list descriptors: When ``ccd`` is "local", this can be one or
               more descriptor objects that describe the chemistry. python-ihm
               does not define any, but python-modelcif does.
+       :param float formula_weight: The weight of the component in Daltons.
+              If not specified, it is calculated automatically from the
+              chemical formula and known atomic masses.
 
        For example, glycine would have
        ``id='GLY', code='G', code_canonical='G'`` while selenomethionine would
@@ -1004,18 +1008,29 @@ class ChemComp:
                      'Yb': 173.045, 'Zn': 65.38, 'Zr': 91.224}
 
     def __init__(self, id, code, code_canonical, name=None, formula=None,
-                 ccd=None, descriptors=None):
+                 ccd=None, descriptors=None, formula_weight=None):
         self.id = id
         self.code, self.code_canonical, self.name = code, code_canonical, name
         self.formula = formula
         self.ccd, self.descriptors = ccd, descriptors
+        auto_weight = self._get_weight()
+        if formula_weight is None:
+            self.formula_weight = auto_weight
+        else:
+            if (auto_weight is not None
+                    and abs(auto_weight - formula_weight) > 5.0):
+                warnings.warn("User-specified weight (%f) differs from the "
+                              "weight calculated from the chemical formula "
+                              "(%f); using user-specified weight."
+                              % (formula_weight, auto_weight))
+            self.formula_weight = formula_weight
 
     def __str__(self):
         return ('<%s.%s(%s)>'
                 % (self.__class__.__module__, self.__class__.__name__,
                    self.id))
 
-    def __get_weight(self):
+    def _get_weight(self):
         # Calculate weight from formula
         if self.formula in (None, unknown):
             return
@@ -1037,11 +1052,6 @@ class ChemComp:
                 # Element 'X' is used for GLX/ASX and has zero weight
                 return None
         return weight
-
-    formula_weight = property(
-        __get_weight,
-        doc="Formula weight (dalton). This is calculated automatically from "
-            "the chemical formula and known atomic masses.")
 
     # Equal if all identifiers are the same
     def __eq__(self, other):

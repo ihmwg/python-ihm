@@ -1280,11 +1280,15 @@ class _ChemCompHandler(Handler):
                              for x in inspect.getmembers(ihm, inspect.isclass)
                              if issubclass(x[1], ihm.ChemComp))
 
-    def __call__(self, type, id, name, formula):
+    def __call__(self, type, id, name, formula, formula_weight: float):
         typ = 'other' if type is None else type.lower()
         s = self.sysr.chem_comps.get_by_id(
             id, self.type_map.get(typ, ihm.ChemComp))
         self.copy_if_present(s, locals(), keys=('name', 'formula'))
+        if formula_weight:
+            s.formula_weight = formula_weight
+        elif formula:
+            s.formula_weight = s._get_weight()
 
 
 class _ChemDescriptorHandler(Handler):

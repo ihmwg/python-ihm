@@ -1,6 +1,7 @@
 import utils
 import os
 import unittest
+import warnings
 import urllib.request
 
 TOPDIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -56,8 +57,8 @@ class Tests(unittest.TestCase):
         cc = ihm.ChemComp('X', 'X', 'X', formula=None)
         self.assertIsNone(cc.formula_weight)
         # Bad formula
-        cc = ihm.ChemComp('X', 'X', 'X', formula='C90H')
-        self.assertRaises(ValueError, lambda x: x.formula_weight, cc)
+        self.assertRaises(ValueError, ihm.ChemComp,
+                          'X', 'X', 'X', formula='C90H')
         # Formula with unknown element
         cc = ihm.ChemComp('X', 'X', 'X', formula='C5 Es')
         self.assertIsNone(cc.formula_weight)
@@ -70,6 +71,15 @@ class Tests(unittest.TestCase):
         # Formula with known elements and formal charge
         cc = ihm.ChemComp('X', 'X', 'X', formula='C6 H12 P 1')
         self.assertAlmostEqual(cc.formula_weight, 115.136, delta=0.01)
+        # User-specified weight
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            cc = ihm.ChemComp('X', 'X', 'X', formula='C6 H12 P 1',
+                              formula_weight=999.00)
+        self.assertEqual(len(w), 1)
+        self.assertIn("differs from the weight calculated from the "
+                      "chemical formula", str(w[0].message))
+        self.assertAlmostEqual(cc.formula_weight, 999.000, delta=0.01)
 
     def test_peptide_chem_comp(self):
         """Test PeptideChemComp class"""

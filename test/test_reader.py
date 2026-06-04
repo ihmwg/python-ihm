@@ -468,9 +468,13 @@ _chem_comp.id
 _chem_comp.type
 _chem_comp.name
 _chem_comp.formula
-MET 'L-peptide linking' . .
-CYS 'D-peptide linking' CYSTEINE .
-MYTYPE 'D-PEPTIDE LINKING' 'MY CUSTOM COMPONENT' 'C6 H12'
+_chem_comp.formula_weight
+MET 'L-peptide linking' . . .
+CYS 'D-peptide linking' CYSTEINE . .
+MYTYPE 'D-PEPTIDE LINKING' 'MY CUSTOM COMPONENT' 'C6 H12' .
+TYP_NOMASS 'L-peptide linking' 'type with no mass' 'C3 H7 N O2 S' .
+TYP_WITHMASS 'L-peptide linking' 'type with mass' 'C3 H7 N O2 S' 120.000
+TYP_NOFORM 'L-peptide linking' 'type with no formula' . .
 """
         entity_poly_cat = """
 loop_
@@ -482,6 +486,9 @@ _entity_poly_seq.hetero
 1 4 MYTYPE .
 1 5 CYS .
 1 2 MET .
+1 6 TYP_NOMASS .
+1 7 TYP_WITHMASS .
+1 8 TYP_NOFORM .
 """
         cif1 = chem_comp_cat + entity_poly_cat
         cif2 = entity_poly_cat + chem_comp_cat
@@ -491,7 +498,7 @@ _entity_poly_seq.hetero
                 s, = ihm.reader.read(fh)
                 e1, = s.entities
                 s = e1.sequence
-                self.assertEqual(len(s), 5)
+                self.assertEqual(len(s), 8)
                 lpeptide = ihm.LPeptideAlphabet()
                 self.assertEqual(id(s[0]), id(lpeptide['M']))
                 self.assertEqual(id(s[1]), id(lpeptide['M']))
@@ -506,6 +513,17 @@ _entity_poly_seq.hetero
                 # Class of standard type shouldn't be changed
                 self.assertEqual(s[4].type, 'L-peptide linking')
                 self.assertEqual(s[4].__class__, ihm.LPeptideChemComp)
+                # Types with or without formula, mass
+                self.assertEqual(s[5].id, 'TYP_NOMASS')
+                self.assertEqual(s[5].formula, 'C3 H7 N O2 S')
+                # Weight calculated from formula
+                self.assertAlmostEqual(s[5].formula_weight, 121.154, delta=0.1)
+                self.assertEqual(s[6].id, 'TYP_WITHMASS')
+                # Weight read from mmCIF file
+                self.assertAlmostEqual(s[6].formula_weight, 120.000, delta=0.1)
+                self.assertEqual(s[7].id, 'TYP_NOFORM')
+                # No formula or weight given
+                self.assertIsNone(s[7].formula_weight)
 
     def test_entity_poly_handler(self):
         """Test EntityPolyHandler"""
