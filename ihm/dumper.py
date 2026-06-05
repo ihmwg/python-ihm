@@ -116,7 +116,7 @@ class _StructDumper(Dumper):
             lp.write(title=system.title, entry_id=system.id,
                      pdbx_structure_determination_methodology=mth,
                      pdbx_model_details=system.model_details,
-                     **(system._struct_pdbx_details or {}))
+                     **(getattr(system, '_struct_pdbx_details', None) or {}))
 
 
 class _CommentDumper(Dumper):

@@ -157,6 +157,25 @@ _struct.pdbx_structure_determination_methodology integrative
 _struct.title 'test model'
 """)
 
+    def test_struct_dumper_no_pdbx_details(self):
+        """Test StructDumper with no pdbx_details data"""
+        # System class in python-modelcif may not provide _struct_pdbx_details
+        # field
+        class MySystem:
+            structure_determination_methodology = "integrative"
+            title = 'test model'
+            id = 'foo'
+            model_details = 'test details'
+
+        system = MySystem()
+        dumper = ihm.dumper._StructDumper()
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """_struct.entry_id foo
+_struct.pdbx_model_details 'test details'
+_struct.pdbx_structure_determination_methodology integrative
+_struct.title 'test model'
+""")
+
     def test_comment_dumper(self):
         """Test CommentDumper"""
         system = ihm.System()
