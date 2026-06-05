@@ -643,7 +643,7 @@ class ResidueFeature(Feature):
               :class:`ihm.Residue`, and/or :class:`ihm.Entity` objects.
        :param str details: Additional text describing this feature.
        :param bool by_residue: If specified, indicates whether the residue
-              range is represented by invididual residues, rather than the
+              range is represented by individual residues, rather than the
               closest primitive object with the highest resolution.
        :param str rep_atom: If by_residue is True, the atom used to represent
               the residue in three dimensions (usually CA or CB).
