@@ -1312,27 +1312,33 @@ class DPeptideAlphabet(Alphabet):
 class RNAAlphabet(Alphabet):
     """A mapping from one-letter nucleic acid codes (e.g. A) to
        RNA (as :class:`RNAChemComp` objects)."""
-    _comps = dict([id, RNAChemComp(id, id, id, name, formula)]
-                  for id, name, formula in [
-                  ('A', "ADENOSINE-5'-MONOPHOSPHATE", 'C10 H14 N5 O7 P'),
-                  ('C', "CYTIDINE-5'-MONOPHOSPHATE", 'C9 H14 N3 O8 P'),
-                  ('G', "GUANOSINE-5'-MONOPHOSPHATE", 'C10 H14 N5 O8 P'),
-                  ('U', "URIDINE-5'-MONOPHOSPHATE", 'C9 H13 N2 O9 P')])
+    _comps = dict([id, RNAChemComp(id, id, id, name, formula,
+                                   formula_weight=weight)]
+                  for id, name, formula, weight in [
+                  ('A', "ADENOSINE-5'-MONOPHOSPHATE", 'C10 H14 N5 O7 P',
+                   347.221),
+                  ('C', "CYTIDINE-5'-MONOPHOSPHATE", 'C9 H14 N3 O8 P',
+                   323.197),
+                  ('G', "GUANOSINE-5'-MONOPHOSPHATE", 'C10 H14 N5 O8 P',
+                   363.221),
+                  ('U', "URIDINE-5'-MONOPHOSPHATE", 'C9 H13 N2 O9 P',
+                   324.181)])
 
 
 class DNAAlphabet(Alphabet):
     """A mapping from two-letter nucleic acid codes (e.g. DA) to
        DNA (as :class:`DNAChemComp` objects)."""
-    _comps = dict([code, DNAChemComp(code, code, canon, name, formula)]
-                  for code, canon, name, formula in [
+    _comps = dict([code, DNAChemComp(code, code, canon, name, formula,
+                                     formula_weight=weight)]
+                  for code, canon, name, formula, weight in [
                       ('DA', 'A', "2'-DEOXYADENOSINE-5'-MONOPHOSPHATE",
-                       'C10 H14 N5 O6 P'),
+                       'C10 H14 N5 O6 P', 331.222),
                       ('DC', 'C', "2'-DEOXYCYTIDINE-5'-MONOPHOSPHATE",
-                       'C9 H14 N3 O7 P'),
+                       'C9 H14 N3 O7 P', 307.197),
                       ('DG', 'G', "2'-DEOXYGUANOSINE-5'-MONOPHOSPHATE",
-                       'C10 H14 N5 O7 P'),
+                       'C10 H14 N5 O7 P', 347.221),
                       ('DT', 'T', "THYMIDINE-5'-MONOPHOSPHATE",
-                       'C10 H15 N2 O8 P')])
+                       'C10 H15 N2 O8 P', 322.208)])
 
 
 class EntityRange:
