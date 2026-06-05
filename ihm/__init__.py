@@ -19,7 +19,7 @@ import collections
 import warnings
 from . import util
 
-__version__ = '2.10'
+__version__ = '2.11'
 
 
 class __UnknownValue:
