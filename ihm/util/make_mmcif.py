@@ -305,8 +305,9 @@ class _ChemCompHandler:
     """Read the _chem_comp table from a CCD entry"""
     not_in_file = omitted = unknown = None
 
-    def __call__(self, name, type, formula):
+    def __call__(self, name, type, formula, formula_weight: float):
         self.name, self.type, self.formula = name, type, formula
+        self.formula_weight = formula_weight
 
 
 def _fix_incomplete_chem_comps(s):
@@ -329,6 +330,7 @@ def _fix_chem_comp(cc, typmap):
     if hasattr(h, 'name') and h.name is not None:
         cc.name = h.name
         cc.formula = h.formula
+        cc.formula_weight = h.formula_weight
         cc.__class__ = typmap.get(h.type.lower(), ihm.ChemComp)
 
 

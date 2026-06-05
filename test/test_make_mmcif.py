@@ -377,10 +377,12 @@ class Tests(unittest.TestCase):
         with open('output.cif') as fh:
             contents = fh.readlines()
         ind = contents.index('_chem_comp.formula_weight\n')
+        # Note that the mass for MG in our mock CCD is deliberately wrong
+        # (26, not 24) to ensure that we use it instead of the element mass
         self.assertEqual(
             contents[ind + 1:ind + 5],
             ["ALA 'L-peptide linking' ALANINE 'C3 H7 N O2' 89.094\n",
-             "MG non-polymer 'MAGNESIUM ION' Mg 24.305\n",
+             "MG non-polymer 'MAGNESIUM ION' Mg 26.305\n",
              'ZN other . . .\n',
              'invalid-chem-comp other . . .\n'])
         os.unlink('output.cif')
