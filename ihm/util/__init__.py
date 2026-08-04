@@ -303,7 +303,9 @@ def _combine_id_ranges(id_ranges):
                 # look at it again later
                 elif start2 <= new_end:
                     new_end = start2 - 1
-                # Otherwise, no overlap
+                # Otherwise, no overlap (and no further ranges will overlap)
+                else:
+                    break
             yield start, new_end, ",".join("%s" % d for d in sorted(ids))
             yield_end = new_end
             start = new_end + 1
