@@ -2,7 +2,7 @@
 =================
   - Add support for the latest IHMCIF dictionary, which now includes
     information on heterogeneous composition in the
-    ``_pdbx_poly_seq_scheme.ihm_model_id_list`` data item.
+    ``_pdbx_poly_seq_scheme.ihm_model_id_list`` data item (#198).
   - An explicit crosslinker type of "Other" is now preserved on output
     rather than being replaced by the name of the chemical descriptor (#195).
   - All stock citations in the :mod:`ihm.citations` module now include
