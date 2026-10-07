@@ -1289,7 +1289,7 @@ _entity_poly_seq.hetero
         system.asym_units.append(ihm.AsymUnit(e5, 'heme'))
         ihm.dumper._EntityDumper().finalize(system)
         ihm.dumper._StructAsymDumper().finalize(system)
-        dumper = ihm.dumper._PolySeqSchemeDumper()
+        dumper = ihm.dumper._IHMPolySeqSchemeDumper()
         out = _get_dumper_output(dumper, system)
         self.assertEqual(out, """#
 loop_
@@ -1329,7 +1329,7 @@ D 4 2 DC 1 1 DC DC X B .
         system.asym_units.append(a1)
         ihm.dumper._EntityDumper().finalize(system)
         ihm.dumper._StructAsymDumper().finalize(system)
-        dumper = ihm.dumper._PolySeqSchemeDumper()
+        dumper = ihm.dumper._IHMPolySeqSchemeDumper()
         out = _get_dumper_output(dumper, system)
         # If auth_seq_num is ?, so should pdb_mon_id and auth_mon_id;
         # see, e.g. PDB ID 8qb4
@@ -1380,7 +1380,7 @@ A 1 4 THR 4 6 THR THR A . .
 
         ihm.dumper._EntityDumper().finalize(system)
         ihm.dumper._StructAsymDumper().finalize(system)
-        dumper = ihm.dumper._PolySeqSchemeDumper()
+        dumper = ihm.dumper._IHMPolySeqSchemeDumper()
         out = _get_dumper_output(dumper, system)
         # Only residue 2 is not-modeled in all three Models
         self.assertEqual(out, """#
@@ -1417,7 +1417,7 @@ A 1 4 THR 4 4 THR THR A . 1,3
 
         ihm.dumper._EntityDumper().finalize(system)
         ihm.dumper._StructAsymDumper().finalize(system)
-        dumper = ihm.dumper._PolySeqSchemeDumper()
+        dumper = ihm.dumper._IHMPolySeqSchemeDumper()
         out = _get_dumper_output(dumper, system)
         # all residues are modeled
         self.assertEqual(out, """#

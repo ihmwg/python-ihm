@@ -919,11 +919,14 @@ class _EntityBranchDumper(Dumper):
 
 class _PolySeqSchemeDumper(Dumper):
     """Output the _pdbx_poly_seq_scheme table.
-       This is needed because it is a parent category of atom_site."""
+       This is needed because it is a parent category of atom_site.
+       This class only outputs PDBx data items (and is also used outside
+       of python-ihm, such as in python-modelcif). For IHMCIF output,
+       use _IHMPolySeqSchemeDumper instead."""
     _keywords = ["asym_id", "entity_id", "seq_id", "mon_id",
                  "pdb_seq_num", "auth_seq_num", "pdb_mon_id",
                  "auth_mon_id", "pdb_strand_id",
-                 "pdb_ins_code", "ihm_model_id_list"]
+                 "pdb_ins_code"]
 
     def dump(self, system, writer):
         with writer.loop("_pdbx_poly_seq_scheme", self._keywords) as lp:
@@ -989,6 +992,11 @@ class _PolySeqSchemeDumper(Dumper):
             return [(1, len(asym.entity.sequence), True, None)]
         return util._pred_id_ranges(util._combine_id_ranges(_all_modeled),
                                     len(asym.entity.sequence))
+
+
+class _IHMPolySeqSchemeDumper(_PolySeqSchemeDumper):
+    """Output the _pdbx_poly_seq_scheme table."""
+    _keywords = _PolySeqSchemeDumper._keywords + ["ihm_model_id_list"]
 
 
 class _NonPolySchemeDumper(Dumper):
@@ -4252,7 +4260,7 @@ class IHMVariant(Variant):
         _EntitySrcNatDumper, _EntitySrcSynDumper, _StructRefDumper,
         _EntityPolyDumper, _EntityNonPolyDumper, _EntityPolySeqDumper,
         _EntityPolySegmentDumper, _EntityBranchListDumper, _EntityBranchDumper,
-        _StructAsymDumper, _PolySeqSchemeDumper,
+        _StructAsymDumper, _IHMPolySeqSchemeDumper,
         _NonPolySchemeDumper, _BranchSchemeDumper, _BranchDescriptorDumper,
         _BranchLinkDumper, _AssemblyDumper, _ExternalReferenceDumper,
         _DatasetDumper, _ModelRepresentationDumper, _StartingModelDumper,
