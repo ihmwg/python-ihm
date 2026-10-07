@@ -1303,17 +1303,18 @@ _pdbx_poly_seq_scheme.pdb_mon_id
 _pdbx_poly_seq_scheme.auth_mon_id
 _pdbx_poly_seq_scheme.pdb_strand_id
 _pdbx_poly_seq_scheme.pdb_ins_code
-A 1 1 ALA 1 1 ALA ALA A .
-A 1 2 CYS 2 2 CYS CYS A .
-A 1 3 GLY 3 3 GLY GLY A .
-A 1 4 THR 4 4 THR THR A .
-B 2 1 ALA 6 6 ALA ALA B .
-B 2 2 CYS 7 7 CYS CYS B .
-B 2 3 CYS 8 8 CYS CYS B .
-C 3 1 A 1 1 A A C .
-C 3 2 C 2 2 C C C .
-D 4 1 DA 1 1 DA DA X A
-D 4 2 DC 1 1 DC DC X B
+_pdbx_poly_seq_scheme.ihm_model_id_list
+A 1 1 ALA 1 1 ALA ALA A . .
+A 1 2 CYS 2 2 CYS CYS A . .
+A 1 3 GLY 3 3 GLY GLY A . .
+A 1 4 THR 4 4 THR THR A . .
+B 2 1 ALA 6 6 ALA ALA B . .
+B 2 2 CYS 7 7 CYS CYS B . .
+B 2 3 CYS 8 8 CYS CYS B . .
+C 3 1 A 1 1 A A C . .
+C 3 2 C 2 2 C C C . .
+D 4 1 DA 1 1 DA DA X A .
+D 4 2 DC 1 1 DC DC X B .
 #
 """)
 
@@ -1344,16 +1345,18 @@ _pdbx_poly_seq_scheme.pdb_mon_id
 _pdbx_poly_seq_scheme.auth_mon_id
 _pdbx_poly_seq_scheme.pdb_strand_id
 _pdbx_poly_seq_scheme.pdb_ins_code
-A 1 1 ALA 1 3 ALA ALA A .
-A 1 2 CYS 2 4 CYS CYS A .
-A 1 3 GLY 3 ? ? ? A .
-A 1 4 THR 4 6 THR THR A .
+_pdbx_poly_seq_scheme.ihm_model_id_list
+A 1 1 ALA 1 3 ALA ALA A . .
+A 1 2 CYS 2 4 CYS CYS A . .
+A 1 3 GLY 3 ? ? ? A . .
+A 1 4 THR 4 6 THR THR A . .
 #
 """)
 
     def test_poly_seq_scheme_dumper_not_modeled(self):
         """Test PolySeqSchemeDumper with not-modeled residues"""
         system, m1, asym = self._make_test_model()
+        m1._id = 1
         del asym.entity._id
         rr = ihm.model.NotModeledResidueRange(asym, 1, 2)
         m1.not_modeled_residue_ranges.append(rr)
@@ -1361,12 +1364,14 @@ A 1 4 THR 4 6 THR THR A .
         m2 = ihm.model.Model(assembly=m1.assembly, protocol=m1.protocol,
                              representation=m1.representation,
                              name='2nd test model')
+        m2._id = 2
         rr = ihm.model.NotModeledResidueRange(asym, 2, 4)
         m2.not_modeled_residue_ranges.append(rr)
 
         m3 = ihm.model.Model(assembly=m1.assembly, protocol=m1.protocol,
                              representation=m1.representation,
                              name='3rd test model')
+        m3._id = 3
         rr = ihm.model.NotModeledResidueRange(asym, 2, 3)
         m3.not_modeled_residue_ranges.append(rr)
 
@@ -1390,10 +1395,11 @@ _pdbx_poly_seq_scheme.pdb_mon_id
 _pdbx_poly_seq_scheme.auth_mon_id
 _pdbx_poly_seq_scheme.pdb_strand_id
 _pdbx_poly_seq_scheme.pdb_ins_code
-A 1 1 ALA 1 1 ALA ALA A .
-A 1 2 CYS 2 ? ? ? A .
-A 1 3 GLY 3 3 GLY GLY A .
-A 1 4 THR 4 4 THR THR A .
+_pdbx_poly_seq_scheme.ihm_model_id_list
+A 1 1 ALA 1 1 ALA ALA A . 2,3
+A 1 2 CYS 2 ? ? ? A . .
+A 1 3 GLY 3 3 GLY GLY A . 1
+A 1 4 THR 4 4 THR THR A . 1,3
 #
 """)
 
@@ -1404,6 +1410,7 @@ A 1 4 THR 4 4 THR THR A .
         system, m1, asym = self._make_test_model()
         del asym.entity._id
         del m1.not_modeled_residue_ranges
+        m1._id = 1
 
         mg = system.state_groups[0][0][0]
         mg.append(m1)
@@ -1425,10 +1432,11 @@ _pdbx_poly_seq_scheme.pdb_mon_id
 _pdbx_poly_seq_scheme.auth_mon_id
 _pdbx_poly_seq_scheme.pdb_strand_id
 _pdbx_poly_seq_scheme.pdb_ins_code
-A 1 1 ALA 1 1 ALA ALA A .
-A 1 2 CYS 2 2 CYS CYS A .
-A 1 3 GLY 3 3 GLY GLY A .
-A 1 4 THR 4 4 THR THR A .
+_pdbx_poly_seq_scheme.ihm_model_id_list
+A 1 1 ALA 1 1 ALA ALA A . 1
+A 1 2 CYS 2 2 CYS CYS A . 1
+A 1 3 GLY 3 3 GLY GLY A . 1
+A 1 4 THR 4 4 THR THR A . 1
 #
 """)
 
