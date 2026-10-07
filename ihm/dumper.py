@@ -920,12 +920,13 @@ class _EntityBranchDumper(Dumper):
 class _PolySeqSchemeDumper(Dumper):
     """Output the _pdbx_poly_seq_scheme table.
        This is needed because it is a parent category of atom_site."""
+    _keywords = ["asym_id", "entity_id", "seq_id", "mon_id",
+                 "pdb_seq_num", "auth_seq_num", "pdb_mon_id",
+                 "auth_mon_id", "pdb_strand_id",
+                 "pdb_ins_code", "ihm_model_id_list"]
+
     def dump(self, system, writer):
-        with writer.loop("_pdbx_poly_seq_scheme",
-                         ["asym_id", "entity_id", "seq_id", "mon_id",
-                          "pdb_seq_num", "auth_seq_num", "pdb_mon_id",
-                          "auth_mon_id", "pdb_strand_id",
-                          "pdb_ins_code", "ihm_model_id_list"]) as lp:
+        with writer.loop("_pdbx_poly_seq_scheme", self._keywords) as lp:
             for asym in system.asym_units:
                 entity = asym.entity
                 if not entity.is_polymeric():
