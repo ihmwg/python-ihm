@@ -605,6 +605,17 @@ _entity.details
 #
 """)
 
+    def test_entity_duplicate_unknown(self):
+        """Test EntityDumper with duplicate unknown-sequence entities"""
+        system = ihm.System()
+        system.entities.append(ihm.Entity(['UNK'] * 3, description='heavy'))
+        system.entities.append(ihm.Entity(['UNK'] * 3, description='light'))
+        dumper = ihm.dumper._EntityDumper()
+        # All-UNK sequences say nothing about identity, so are not duplicates
+        dumper.finalize(system)
+        self.assertEqual(system.entities[0]._id, 1)
+        self.assertEqual(system.entities[1]._id, 2)
+
     def test_entity_empty(self):
         """Test EntityDumper with empty entity"""
         system = ihm.System()

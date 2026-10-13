@@ -1585,18 +1585,25 @@ class Entity:
         """Get a :class:`Residue` at the given sequence position"""
         return Residue(entity=self, seq_id=seq_id)
 
+    def _is_unknown(self):
+        """Return True iff the sequence consists solely of unknown (UNK)
+           residues, so that it says nothing about the entity's identity"""
+        return (len(self.sequence) > 0
+                and all(s.id == 'UNK' for s in self.sequence))
+
     # Entities are considered identical if they have the same sequence,
-    # unless they are branched
+    # unless they are branched or their sequence is unknown
     def __eq__(self, other):
         if not isinstance(other, Entity):
             return False
-        if self.is_branched() or other.is_branched():
+        if (self.is_branched() or other.is_branched()
+                or self._is_unknown() or other._is_unknown()):
             return self is other
         else:
             return self.sequence == other.sequence
 
     def __hash__(self):
-        if self.is_branched():
+        if self.is_branched() or self._is_unknown():
             return hash(id(self))
         else:
             return hash(self.sequence)
