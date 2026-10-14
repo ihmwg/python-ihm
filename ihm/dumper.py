@@ -713,14 +713,15 @@ class _StructRefDumper(Dumper):
         with writer.loop(
                 "_struct_ref",
                 ["id", "entity_id", "db_name", "db_code", "pdbx_db_accession",
-                 "pdbx_align_begin", "pdbx_seq_one_letter_code",
-                 "details"]) as lp:
+                 "pdbx_db_isoform", "pdbx_align_begin",
+                 "pdbx_seq_one_letter_code", "details"]) as lp:
             for e, r in self._refs_by_id:
                 if self._check:
                     self._check_reference_sequence(e, r)
                 db_begin = min(a.db_begin for a in r._get_alignments())
                 lp.write(id=r._id, entity_id=e._id, db_name=r.db_name,
                          db_code=r.db_code, pdbx_db_accession=r.accession,
+                         pdbx_db_isoform=r.isoform,
                          pdbx_align_begin=db_begin, details=r.details,
                          pdbx_seq_one_letter_code=self._get_sequence(r))
         self.dump_seq(system, writer)

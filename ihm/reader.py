@@ -1387,7 +1387,7 @@ class _StructRefHandler(Handler):
             and x[1] is not ihm.reference.Sequence)
 
     def __call__(self, id, entity_id, db_name, db_code, pdbx_db_accession,
-                 pdbx_seq_one_letter_code, details):
+                 pdbx_db_isoform, pdbx_seq_one_letter_code, details):
         # todo: handle things that aren't sequences
         e = self.sysr.entities.get_by_id(entity_id)
         typ = self.type_map.get(db_name.lower())
@@ -1399,6 +1399,7 @@ class _StructRefHandler(Handler):
         self.copy_if_present(
             ref, locals(), keys=('db_name', 'db_code', 'details'),
             mapkeys={'pdbx_db_accession': 'accession',
+                     'pdbx_db_isoform': 'isoform',
                      'pdbx_seq_one_letter_code': '_partial_sequence'})
         e.references.append(ref)
 

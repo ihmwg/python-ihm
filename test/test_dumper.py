@@ -752,7 +752,7 @@ _entity_src_gen.pdbx_host_org_strain
                                                      seq_dif=[sd, sd2]))
         r2 = ihm.reference.UniProtSequence(
             db_code='testcode', accession='testacc', sequence='MELSPTYQT',
-            details='test2')
+            details='test2', isoform='testacc-2')
         r2.alignments.append(ihm.reference.Alignment(
             db_begin=4, db_end=5, entity_begin=2, entity_end=3))
         r2.alignments.append(ihm.reference.Alignment(
@@ -803,15 +803,16 @@ _struct_ref.entity_id
 _struct_ref.db_name
 _struct_ref.db_code
 _struct_ref.pdbx_db_accession
+_struct_ref.pdbx_db_isoform
 _struct_ref.pdbx_align_begin
 _struct_ref.pdbx_seq_one_letter_code
 _struct_ref.details
-1 1 UNP NUP84_YEAST P52891 3 LWPTYQT 'test sequence'
-2 1 UNP testcode testacc 4 SPTYQT test2
-3 1 UNP testcode2 testacc2 4 . .
-4 1 UNP testcode3 testacc3 4 ? .
-5 2 UNP testcode2 testacc2 4 . .
-6 3 UNP testcode4 testacc4 5 LS(BAR)TW .
+1 1 UNP NUP84_YEAST P52891 . 3 LWPTYQT 'test sequence'
+2 1 UNP testcode testacc testacc-2 4 SPTYQT test2
+3 1 UNP testcode2 testacc2 . 4 . .
+4 1 UNP testcode3 testacc3 . 4 ? .
+5 2 UNP testcode2 testacc2 . 4 . .
+6 3 UNP testcode4 testacc4 . 5 LS(BAR)TW .
 #
 #
 loop_
@@ -871,10 +872,11 @@ _struct_ref.entity_id
 _struct_ref.db_name
 _struct_ref.db_code
 _struct_ref.pdbx_db_accession
+_struct_ref.pdbx_db_isoform
 _struct_ref.pdbx_align_begin
 _struct_ref.pdbx_seq_one_letter_code
 _struct_ref.details
-1 1 UNP NUP84_YEAST P52891 3 LWPTYQT 'test sequence'
+1 1 UNP NUP84_YEAST P52891 . 3 LWPTYQT 'test sequence'
 #
 #
 loop_
@@ -1074,10 +1076,11 @@ _struct_ref.entity_id
 _struct_ref.db_name
 _struct_ref.db_code
 _struct_ref.pdbx_db_accession
+_struct_ref.pdbx_db_isoform
 _struct_ref.pdbx_align_begin
 _struct_ref.pdbx_seq_one_letter_code
 _struct_ref.details
-1 1 UNP NUP84_YEAST P52891 1 MEWPTYQT 'test sequence'
+1 1 UNP NUP84_YEAST P52891 . 1 MEWPTYQT 'test sequence'
 #
 #
 loop_
