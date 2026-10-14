@@ -1874,6 +1874,18 @@ _ihm_external_files.details
         self.assertEqual(em3d._id, 2)
         self.assertEqual(len(dump._dataset_by_id), 2)
 
+    def test_dataset_dumper_duplicates_no_location(self):
+        """DatasetDumper keeps distinct datasets that have no location"""
+        system = ihm.System()
+        ds1 = ihm.dataset.Dataset(None, details='first publication')
+        ds2 = ihm.dataset.Dataset(None, details='second publication')
+        dump = ihm.dumper._DatasetDumper()
+        system.orphan_datasets.extend((ds1, ds2, ds1))
+        dump.finalize(system)  # Assign IDs
+        self.assertEqual(ds1._id, 1)
+        self.assertEqual(ds2._id, 2)
+        self.assertEqual(len(dump._dataset_by_id), 2)
+
     def test_dataset_dumper_allow_duplicates(self):
         """DatasetDumper is OK with duplicates if allow_duplicates=True"""
         system = ihm.System()
