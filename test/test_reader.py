@@ -816,17 +816,18 @@ _struct_ref.entity_id
 _struct_ref.db_name
 _struct_ref.db_code
 _struct_ref.pdbx_db_accession
+_struct_ref.pdbx_db_isoform
 _struct_ref.pdbx_align_begin
 _struct_ref.pdbx_seq_one_letter_code
 _struct_ref.details
-1 1 UNP NUP84_YEAST P52891 3
+1 1 UNP NUP84_YEAST P52891 P52891-2 3
 ;LSP
 TYQT
 ;
 'test sequence'
-2 1 MyDatabase testcode testacc 1 MEL 'other sequence'
-3 1 MyDatabase testcode2 testacc2 1 . 'other sequence'
-4 1 MyDatabase testcode3 testacc3 1 ? 'other sequence'
+2 1 MyDatabase testcode testacc . 1 MEL 'other sequence'
+3 1 MyDatabase testcode2 testacc2 . 1 . 'other sequence'
+4 1 MyDatabase testcode3 testacc3 . 1 ? 'other sequence'
 #
 #
 loop_
@@ -870,6 +871,8 @@ _struct_ref_seq_dif.details
                 self.assertEqual(r1.db_name, 'UNP')
                 self.assertEqual(r1.db_code, 'NUP84_YEAST')
                 self.assertEqual(r1.accession, 'P52891')
+                self.assertEqual(r1.isoform, 'P52891-2')
+                self.assertIsNone(r2.isoform)
                 self.assertEqual(r1.sequence, '--LSPTYQT')
                 self.assertEqual(r1.details, 'test sequence')
                 self.assertIsNone(r3.sequence)
