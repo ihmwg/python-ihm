@@ -2820,7 +2820,10 @@ class _DerivedDistanceRestraintDumper(Dumper):
         with writer.loop("_ihm_derived_distance_restraint",
                          ["id", "group_id", "feature_id_1", "feature_id_2",
                           "restraint_type", "distance_lower_limit",
-                          "distance_upper_limit", "probability", "mic_value",
+                          "distance_upper_limit", "distance_lower_limit_esd",
+                          "distance_upper_limit_esd",
+                          "distance_threshold_mean", "distance_threshold_esd",
+                          "probability", "mic_value",
                           "random_exclusion_fraction",
                           "group_conditionality", "dataset_list_id"]) as lp:
             for r in self._restraints_by_id:
@@ -2830,6 +2833,14 @@ class _DerivedDistanceRestraintDumper(Dumper):
                          restraint_type=r.distance.restraint_type,
                          distance_lower_limit=r.distance.distance_lower_limit,
                          distance_upper_limit=r.distance.distance_upper_limit,
+                         distance_lower_limit_esd=(
+                             r.distance.distance_lower_limit_esd),
+                         distance_upper_limit_esd=(
+                             r.distance.distance_upper_limit_esd),
+                         distance_threshold_mean=(
+                             r.distance.distance_threshold_mean),
+                         distance_threshold_esd=(
+                             r.distance.distance_threshold_esd),
                          probability=r.probability, mic_value=r.mic_value,
                          random_exclusion_fraction=r.random_exclusion_fraction,
                          group_conditionality=condmap[r.restrain_all],

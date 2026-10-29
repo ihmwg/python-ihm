@@ -4426,8 +4426,9 @@ _ihm_geometric_object_distance_restraint.dataset_list_id
         dataset = MockObject()
         dataset._id = 97
 
-        dist = ihm.restraint.LowerBoundDistanceRestraint(25.0)
+        dist = ihm.restraint.LowerBoundDistanceRestraint(25.0, esd=1.5)
         unkdist = ihm.restraint.DistanceRestraint()
+        harmdist = ihm.restraint.HarmonicDistanceRestraint(6.4, esd=0.5)
         r1 = ihm.restraint.DerivedDistanceRestraint(
             dataset=dataset, feature1=feat1, feature2=feat2, distance=dist,
             probability=0.8)
@@ -4437,8 +4438,12 @@ _ihm_geometric_object_distance_restraint.dataset_list_id
         r3 = ihm.restraint.DerivedDistanceRestraint(
             dataset=dataset, feature1=feat1, feature2=feat2, distance=unkdist,
             probability=0.6, mic_value=0.4, random_exclusion_fraction=0.3)
+        r4 = ihm.restraint.DerivedDistanceRestraint(
+            dataset=dataset, feature1=feat1, feature2=feat2,
+            distance=harmdist)
         rg = ihm.restraint.RestraintGroup((r2, r3))
-        system.restraints.extend((r1, r2))  # r2 is in restraints and groups
+        # r2 is in restraints and groups
+        system.restraints.extend((r1, r2, r4))
         system.restraint_groups.append(rg)
 
         dumper = ihm.dumper._DerivedDistanceRestraintDumper()
@@ -4454,14 +4459,19 @@ _ihm_derived_distance_restraint.feature_id_2
 _ihm_derived_distance_restraint.restraint_type
 _ihm_derived_distance_restraint.distance_lower_limit
 _ihm_derived_distance_restraint.distance_upper_limit
+_ihm_derived_distance_restraint.distance_lower_limit_esd
+_ihm_derived_distance_restraint.distance_upper_limit_esd
+_ihm_derived_distance_restraint.distance_threshold_mean
+_ihm_derived_distance_restraint.distance_threshold_esd
 _ihm_derived_distance_restraint.probability
 _ihm_derived_distance_restraint.mic_value
 _ihm_derived_distance_restraint.random_exclusion_fraction
 _ihm_derived_distance_restraint.group_conditionality
 _ihm_derived_distance_restraint.dataset_list_id
-1 . 44 84 'lower bound' 25.000 . 0.800 . . . 97
-2 1 44 84 'lower bound' 25.000 . 0.400 . . . 97
-3 1 44 84 . . . 0.600 0.400 0.300 . 97
+1 . 44 84 'lower bound' 25.000 . 1.500 . . . 0.800 . . . 97
+2 1 44 84 'lower bound' 25.000 . 1.500 . . . 0.400 . . . 97
+3 . 44 84 harmonic 6.400 6.400 . . 6.400 0.500 . . . . 97
+4 1 44 84 . . . . . . . 0.600 0.400 0.300 . 97
 #
 """)
 

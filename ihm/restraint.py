@@ -298,17 +298,35 @@ class DistanceRestraint:
     #: or None if unconstrained
     distance_upper_limit = None
 
+    #: The estimated standard deviation of :attr:`distance_lower_limit`,
+    #: or None if not applicable
+    distance_lower_limit_esd = None
+
+    #: The estimated standard deviation of :attr:`distance_upper_limit`,
+    #: or None if not applicable
+    distance_upper_limit_esd = None
+
+    #: The mean of a harmonic distance restraint, or None if not applicable
+    distance_threshold_mean = None
+
+    #: The estimated standard deviation of a harmonic distance restraint,
+    #: or None if not applicable
+    distance_threshold_esd = None
+
 
 class HarmonicDistanceRestraint(DistanceRestraint):
     """Harmonically restrain two objects to be close to a given distance apart.
        These objects are typically used in a :class:`DerivedDistanceRestraint`.
 
        :param float distance: Equilibrium distance
+       :param float esd: Estimated standard deviation of the distance,
+              if known
     """
     restraint_type = 'harmonic'
 
-    def __init__(self, distance):
+    def __init__(self, distance, esd=None):
         self.distance = distance
+        self.esd = esd
 
     #: The equilibrium distance
     distance_lower_limit = property(lambda self: self.distance)
@@ -316,20 +334,32 @@ class HarmonicDistanceRestraint(DistanceRestraint):
     #: The equilibrium distance
     distance_upper_limit = distance_lower_limit
 
+    #: The equilibrium distance
+    distance_threshold_mean = distance_lower_limit
+
+    #: The estimated standard deviation of the distance
+    distance_threshold_esd = property(lambda self: self.esd)
+
 
 class UpperBoundDistanceRestraint(DistanceRestraint):
     """Harmonically restrain two objects to be below a given distance apart.
        These objects are typically used in a :class:`DerivedDistanceRestraint`.
 
        :param float distance: Distance threshold
+       :param float esd: Estimated standard deviation of the threshold,
+              if known
     """
     restraint_type = 'upper bound'
 
-    def __init__(self, distance):
+    def __init__(self, distance, esd=None):
         self.distance = distance
+        self.esd = esd
 
     #: The maximum distance allowed by this restraint
     distance_upper_limit = property(lambda self: self.distance)
+
+    #: The estimated standard deviation of the maximum distance
+    distance_upper_limit_esd = property(lambda self: self.esd)
 
     #: Minimum distance (unconstrained, so always None)
     distance_lower_limit = None
@@ -340,14 +370,20 @@ class LowerBoundDistanceRestraint(DistanceRestraint):
        These objects are typically used in a :class:`DerivedDistanceRestraint`.
 
        :param float distance: Distance threshold
+       :param float esd: Estimated standard deviation of the threshold,
+              if known
     """
     restraint_type = 'lower bound'
 
-    def __init__(self, distance):
+    def __init__(self, distance, esd=None):
         self.distance = distance
+        self.esd = esd
 
     #: The minimum distance allowed by this restraint
     distance_lower_limit = property(lambda self: self.distance)
+
+    #: The estimated standard deviation of the minimum distance
+    distance_lower_limit_esd = property(lambda self: self.esd)
 
     #: Maximum distance (unconstrained, so always None)
     distance_upper_limit = None
@@ -360,15 +396,27 @@ class LowerUpperBoundDistanceRestraint(DistanceRestraint):
 
        :param float distance_lower_limit: Lower bound on the distance.
        :param float distance_upper_limit: Upper bound on the distance.
+       :param float distance_lower_limit_esd: Estimated standard deviation
+              of the lower bound, if known.
+       :param float distance_upper_limit_esd: Estimated standard deviation
+              of the upper bound, if known.
     """
     restraint_type = 'lower and upper bound'
 
-    def __init__(self, distance_lower_limit, distance_upper_limit):
+    def __init__(self, distance_lower_limit, distance_upper_limit,
+                 distance_lower_limit_esd=None,
+                 distance_upper_limit_esd=None):
         #: The minimum distance allowed by this restraint
         self.distance_lower_limit = distance_lower_limit
 
         #: The maximum distance allowed by this restraint
         self.distance_upper_limit = distance_upper_limit
+
+        #: The estimated standard deviation of the minimum distance
+        self.distance_lower_limit_esd = distance_lower_limit_esd
+
+        #: The estimated standard deviation of the maximum distance
+        self.distance_upper_limit_esd = distance_upper_limit_esd
 
 
 class CrossLink:
