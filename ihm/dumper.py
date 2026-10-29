@@ -2821,6 +2821,7 @@ class _DerivedDistanceRestraintDumper(Dumper):
                          ["id", "group_id", "feature_id_1", "feature_id_2",
                           "restraint_type", "distance_lower_limit",
                           "distance_upper_limit", "probability", "mic_value",
+                          "random_exclusion_fraction",
                           "group_conditionality", "dataset_list_id"]) as lp:
             for r in self._restraints_by_id:
                 lp.write(id=r._id, feature_id_1=r.feature1._id,
@@ -2830,6 +2831,7 @@ class _DerivedDistanceRestraintDumper(Dumper):
                          distance_lower_limit=r.distance.distance_lower_limit,
                          distance_upper_limit=r.distance.distance_upper_limit,
                          probability=r.probability, mic_value=r.mic_value,
+                         random_exclusion_fraction=r.random_exclusion_fraction,
                          group_conditionality=condmap[r.restrain_all],
                          dataset_list_id=r.dataset._id if r.dataset else None)
 

@@ -867,16 +867,21 @@ class DerivedDistanceRestraint(Restraint):
        :param bool restrain_all: If True, all distances are restrained.
        :param float mic_value: Value of the Maximal Information Coefficient
               (MIC) for this interaction, if applicable.
+       :param float random_exclusion_fraction: Fraction of the restraints
+              that were randomly excluded during modeling, if applicable
+              (for example, HADDOCK ambiguous interaction restraints).
     """
     assembly = None  # no struct_assembly_id for derived distance restraints
 
     def __init__(self, dataset, feature1, feature2, distance,
-                 probability=None, restrain_all=None, mic_value=None):
+                 probability=None, restrain_all=None, mic_value=None,
+                 random_exclusion_fraction=None):
         self.dataset = dataset
         self.feature1, self.feature2 = feature1, feature2
         self.distance, self.restrain_all = distance, restrain_all
         self.probability = probability
         self.mic_value = mic_value
+        self.random_exclusion_fraction = random_exclusion_fraction
     _all_features = property(lambda self: (self.feature1, self.feature2))
 
 

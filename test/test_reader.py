@@ -2764,13 +2764,14 @@ _ihm_derived_distance_restraint.distance_lower_limit
 _ihm_derived_distance_restraint.distance_upper_limit
 _ihm_derived_distance_restraint.probability
 _ihm_derived_distance_restraint.mic_value
+_ihm_derived_distance_restraint.random_exclusion_fraction
 _ihm_derived_distance_restraint.group_conditionality
 _ihm_derived_distance_restraint.dataset_list_id
-1 . 1 2 'lower bound' 25.000 . 0.800 0.400 . 97
-2 . 1 4 'upper bound' . 45.000 0.800 . ALL 98
-3 1 1 2 'lower and upper bound' 22.000 45.000 0.800 . ANY 99
-4 1 5 3 'harmonic' 35.000 35.000 0.800 . ALL .
-5 . 6 3 . ? ? ? . ALL .
+1 . 1 2 'lower bound' 25.000 . 0.800 0.400 0.500 . 97
+2 . 1 4 'upper bound' . 45.000 0.800 . . ALL 98
+3 1 1 2 'lower and upper bound' 22.000 45.000 0.800 . . ANY 99
+4 1 5 3 'harmonic' 35.000 35.000 0.800 . . ALL .
+5 . 6 3 . ? ? ? . ? ALL .
 """
         # Test both ways to make sure features still work if they are
         # referenced by ID before their type is known, or if ResidueFeature
@@ -2810,6 +2811,8 @@ _ihm_derived_distance_restraint.dataset_list_id
             self.assertAlmostEqual(r1.distance.distance, 25.000, delta=0.1)
             self.assertAlmostEqual(r1.probability, 0.8000, delta=0.1)
             self.assertAlmostEqual(r1.mic_value, 0.4000, delta=0.1)
+            self.assertAlmostEqual(r1.random_exclusion_fraction, 0.5000,
+                                   delta=0.1)
             self.assertIsNone(r1.restrain_all)
             self.assertEqual(r2.restrain_all, True)
             self.assertEqual(r3.restrain_all, False)
@@ -2822,6 +2825,7 @@ _ihm_derived_distance_restraint.dataset_list_id
             self.assertIsInstance(r2.distance,
                                   ihm.restraint.UpperBoundDistanceRestraint)
             self.assertIsNone(r2.mic_value)
+            self.assertIsNone(r2.random_exclusion_fraction)
             self.assertIsInstance(
                 r3.distance, ihm.restraint.LowerUpperBoundDistanceRestraint)
             self.assertIsInstance(r4.distance,

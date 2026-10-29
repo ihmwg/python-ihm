@@ -2628,6 +2628,7 @@ class _DerivedDistanceRestraintHandler(Handler):
     def __call__(self, id, group_id, dataset_list_id, feature_id_1,
                  feature_id_2, restraint_type, group_conditionality,
                  probability: float, mic_value: float,
+                 random_exclusion_fraction: float,
                  distance_lower_limit: float, distance_upper_limit: float):
         r = self.sysr.dist_restraints.get_by_id(id)
         if group_id is not None:
@@ -2641,6 +2642,7 @@ class _DerivedDistanceRestraintHandler(Handler):
         r.restrain_all = self._cond_map[group_conditionality]
         r.probability = probability
         r.mic_value = mic_value
+        r.random_exclusion_fraction = random_exclusion_fraction
 
 
 class _HDXRestraintHandler(Handler):
