@@ -2673,6 +2673,35 @@ HETATM 2 C C . BGC . 53 ? A 10.000 10.000 10.000 . 1 A . 1 1
                          {1: 501, 2: 502, 3: 503})
         self.assertEqual(a1.asym_unit.num_map, {1: 2, 2: 3})
 
+    def test_derived_distance_restraint_handler_harmonic(self):
+        """Test DerivedDistanceRestraintHandler with threshold mean/esd"""
+        rsr = """
+loop_
+_ihm_derived_distance_restraint.id
+_ihm_derived_distance_restraint.feature_id_1
+_ihm_derived_distance_restraint.feature_id_2
+_ihm_derived_distance_restraint.restraint_type
+_ihm_derived_distance_restraint.distance_lower_limit
+_ihm_derived_distance_restraint.distance_upper_limit
+_ihm_derived_distance_restraint.distance_threshold_mean
+_ihm_derived_distance_restraint.distance_threshold_esd
+1 1 2 harmonic . . 6.400 0.500
+2 1 2 harmonic 35.000 35.000 30.000 .
+3 1 2 harmonic . 35.000 . .
+"""
+        s, = ihm.reader.read(StringIO(rsr))
+        r1, r2, r3 = s.restraints
+        for r in r1, r2, r3:
+            self.assertIsInstance(r.distance,
+                                  ihm.restraint.HarmonicDistanceRestraint)
+        # Distance should be taken from the threshold mean if present,
+        # otherwise from the lower or upper limit
+        self.assertAlmostEqual(r1.distance.distance, 6.400, delta=0.1)
+        self.assertAlmostEqual(r1.distance.esd, 0.500, delta=0.1)
+        self.assertAlmostEqual(r2.distance.distance, 30.000, delta=0.1)
+        self.assertIsNone(r2.distance.esd)
+        self.assertAlmostEqual(r3.distance.distance, 35.000, delta=0.1)
+
     def test_derived_distance_restraint_handler(self):
         """Test DerivedDistanceRestraintHandler"""
         feats = """
@@ -2762,16 +2791,18 @@ _ihm_derived_distance_restraint.feature_id_2
 _ihm_derived_distance_restraint.restraint_type
 _ihm_derived_distance_restraint.distance_lower_limit
 _ihm_derived_distance_restraint.distance_upper_limit
+_ihm_derived_distance_restraint.distance_lower_limit_esd
+_ihm_derived_distance_restraint.distance_upper_limit_esd
 _ihm_derived_distance_restraint.probability
 _ihm_derived_distance_restraint.mic_value
 _ihm_derived_distance_restraint.random_exclusion_fraction
 _ihm_derived_distance_restraint.group_conditionality
 _ihm_derived_distance_restraint.dataset_list_id
-1 . 1 2 'lower bound' 25.000 . 0.800 0.400 0.500 . 97
-2 . 1 4 'upper bound' . 45.000 0.800 . . ALL 98
-3 1 1 2 'lower and upper bound' 22.000 45.000 0.800 . . ANY 99
-4 1 5 3 'harmonic' 35.000 35.000 0.800 . . ALL .
-5 . 6 3 . ? ? ? . ? ALL .
+1 . 1 2 'lower bound' 25.000 . 1.500 . 0.800 0.400 0.500 . 97
+2 . 1 4 'upper bound' . 45.000 . 2.500 0.800 . . ALL 98
+3 1 1 2 'lower and upper bound' 22.000 45.000 1.000 2.000 0.800 . . ANY 99
+4 1 5 3 'harmonic' 35.000 35.000 . . 0.800 . . ALL .
+5 . 6 3 . ? ? ? ? ? . ? ALL .
 """
         # Test both ways to make sure features still work if they are
         # referenced by ID before their type is known, or if ResidueFeature
@@ -2809,6 +2840,7 @@ _ihm_derived_distance_restraint.dataset_list_id
             self.assertIsInstance(r1.distance,
                                   ihm.restraint.LowerBoundDistanceRestraint)
             self.assertAlmostEqual(r1.distance.distance, 25.000, delta=0.1)
+            self.assertAlmostEqual(r1.distance.esd, 1.500, delta=0.1)
             self.assertAlmostEqual(r1.probability, 0.8000, delta=0.1)
             self.assertAlmostEqual(r1.mic_value, 0.4000, delta=0.1)
             self.assertAlmostEqual(r1.random_exclusion_fraction, 0.5000,
@@ -2824,12 +2856,19 @@ _ihm_derived_distance_restraint.dataset_list_id
             self.assertIsInstance(r2.feature2.objs[1], ihm.Entity)
             self.assertIsInstance(r2.distance,
                                   ihm.restraint.UpperBoundDistanceRestraint)
+            self.assertAlmostEqual(r2.distance.esd, 2.500, delta=0.1)
             self.assertIsNone(r2.mic_value)
             self.assertIsNone(r2.random_exclusion_fraction)
             self.assertIsInstance(
                 r3.distance, ihm.restraint.LowerUpperBoundDistanceRestraint)
+            self.assertAlmostEqual(r3.distance.distance_lower_limit_esd,
+                                   1.000, delta=0.1)
+            self.assertAlmostEqual(r3.distance.distance_upper_limit_esd,
+                                   2.000, delta=0.1)
             self.assertIsInstance(r4.distance,
                                   ihm.restraint.HarmonicDistanceRestraint)
+            self.assertAlmostEqual(r4.distance.distance, 35.000, delta=0.1)
+            self.assertIsNone(r4.distance.esd)
             self.assertIsInstance(r4.feature2,
                                   ihm.restraint.AtomFeature)
             self.assertIsNone(r4.feature2.atoms[0].residue.entity)

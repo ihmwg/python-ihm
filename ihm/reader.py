@@ -2593,24 +2593,32 @@ class _PseudoSiteHandler(Handler):
         p.description = description
 
 
-def _make_harmonic(low, up):
-    return ihm.restraint.HarmonicDistanceRestraint(up if low is None else low)
+def _make_harmonic(low, up, low_esd=None, up_esd=None, mean=None,
+                   mean_esd=None):
+    if mean is None:
+        mean = up if low is None else low
+    return ihm.restraint.HarmonicDistanceRestraint(mean, esd=mean_esd)
 
 
-def _make_upper_bound(low, up):
-    return ihm.restraint.UpperBoundDistanceRestraint(up)
+def _make_upper_bound(low, up, low_esd=None, up_esd=None, mean=None,
+                      mean_esd=None):
+    return ihm.restraint.UpperBoundDistanceRestraint(up, esd=up_esd)
 
 
-def _make_lower_bound(low, up):
-    return ihm.restraint.LowerBoundDistanceRestraint(low)
+def _make_lower_bound(low, up, low_esd=None, up_esd=None, mean=None,
+                      mean_esd=None):
+    return ihm.restraint.LowerBoundDistanceRestraint(low, esd=low_esd)
 
 
-def _make_lower_upper_bound(low, up):
+def _make_lower_upper_bound(low, up, low_esd=None, up_esd=None, mean=None,
+                            mean_esd=None):
     return ihm.restraint.LowerUpperBoundDistanceRestraint(
-        distance_lower_limit=low, distance_upper_limit=up)
+        distance_lower_limit=low, distance_upper_limit=up,
+        distance_lower_limit_esd=low_esd, distance_upper_limit_esd=up_esd)
 
 
-def _make_unknown_distance(low, up):
+def _make_unknown_distance(low, up, low_esd=None, up_esd=None, mean=None,
+                           mean_esd=None):
     return ihm.restraint.DistanceRestraint()
 
 
@@ -2629,7 +2637,11 @@ class _DerivedDistanceRestraintHandler(Handler):
                  feature_id_2, restraint_type, group_conditionality,
                  probability: float, mic_value: float,
                  random_exclusion_fraction: float,
-                 distance_lower_limit: float, distance_upper_limit: float):
+                 distance_lower_limit: float, distance_upper_limit: float,
+                 distance_lower_limit_esd: float,
+                 distance_upper_limit_esd: float,
+                 distance_threshold_mean: float,
+                 distance_threshold_esd: float):
         r = self.sysr.dist_restraints.get_by_id(id)
         if group_id is not None:
             rg = self.sysr.dist_restraint_groups.get_by_id(group_id)
@@ -2637,8 +2649,10 @@ class _DerivedDistanceRestraintHandler(Handler):
         r.dataset = self.sysr.datasets.get_by_id_or_none(dataset_list_id)
         r.feature1 = self.sysr.features.get_by_id(feature_id_1)
         r.feature2 = self.sysr.features.get_by_id(feature_id_2)
-        r.distance = _handle_distance[restraint_type](distance_lower_limit,
-                                                      distance_upper_limit)
+        r.distance = _handle_distance[restraint_type](
+            distance_lower_limit, distance_upper_limit,
+            distance_lower_limit_esd, distance_upper_limit_esd,
+            distance_threshold_mean, distance_threshold_esd)
         r.restrain_all = self._cond_map[group_conditionality]
         r.probability = probability
         r.mic_value = mic_value
