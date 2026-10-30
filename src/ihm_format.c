@@ -1950,8 +1950,8 @@ static struct bcif_column *bcif_column_new()
 static void bcif_column_free(struct bcif_column *col)
 {
   free(col->name);
-  bcif_data_init(&col->data);
-  bcif_data_init(&col->mask_data);
+  bcif_data_free(&col->data);
+  bcif_data_free(&col->mask_data);
 
   while(col->first_encoding) {
     struct bcif_encoding *enc = col->first_encoding;
