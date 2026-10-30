@@ -1893,16 +1893,18 @@ class ChemDescriptor:
        :param str smiles_canonical: Canonical SMILES string
        :param str inchi: IUPAC INCHI descriptor
        :param str inchi_key: Hashed INCHI key
+       :param str details: Any additional free text information
 
        See also :attr:`System.orphan_chem_descriptors`.
     """
     def __init__(self, auth_name, chem_comp_id=None, chemical_name=None,
                  common_name=None, smiles=None, smiles_canonical=None,
-                 inchi=None, inchi_key=None):
+                 inchi=None, inchi_key=None, details=None):
         self.auth_name, self.chem_comp_id = auth_name, chem_comp_id
         self.chemical_name, self.common_name = chemical_name, common_name
         self.smiles, self.smiles_canonical = smiles, smiles_canonical
         self.inchi, self.inchi_key = inchi, inchi_key
+        self.details = details
 
 
 class Collection:

@@ -376,7 +376,7 @@ class _ChemDescriptorDumper(Dumper):
                 "_ihm_chemical_component_descriptor",
                 ["id", "auth_name", "chemical_name",
                  "common_name", "smiles", "smiles_canonical", "inchi",
-                 "inchi_key"]) as lp:
+                 "inchi_key", "details"]) as lp:
             # note that we don't write out chem_comp_id; this is no longer
             # present in the dictionary
             for d in self._descriptor_by_id:
@@ -384,7 +384,7 @@ class _ChemDescriptorDumper(Dumper):
                          chemical_name=d.chemical_name,
                          common_name=d.common_name, smiles=d.smiles,
                          smiles_canonical=d.smiles_canonical, inchi=d.inchi,
-                         inchi_key=d.inchi_key)
+                         inchi_key=d.inchi_key, details=d.details)
 
 
 class _EntityDumper(Dumper):

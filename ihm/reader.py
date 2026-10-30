@@ -1305,13 +1305,13 @@ class _ChemDescriptorHandler(Handler):
     category = '_ihm_chemical_component_descriptor'
 
     def __call__(self, id, auth_name, chemical_name, common_name,
-                 smiles, smiles_canonical, inchi, inchi_key):
+                 smiles, smiles_canonical, inchi, inchi_key, details):
         d = self.sysr.chem_descriptors.get_by_id(id)
         self.copy_if_present(
             d, locals(),
             keys=('auth_name', 'chemical_name',
                   'common_name', 'smiles', 'smiles_canonical', 'inchi',
-                  'inchi_key'))
+                  'inchi_key', 'details'))
 
 
 class _EntityHandler(Handler):

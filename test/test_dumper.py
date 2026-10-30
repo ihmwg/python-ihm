@@ -1150,7 +1150,8 @@ THR 'L-peptide linking' THREONINE 'C4 H9 N O3' 119.119
         """Test ChemDescriptorDumper"""
         system = ihm.System()
         d1 = ihm.ChemDescriptor('EDC', smiles='CCN=C=NCCCN(C)C',
-                                inchi_key='LMDZBCPBFSXMTL-UHFFFAOYSA-N')
+                                inchi_key='LMDZBCPBFSXMTL-UHFFFAOYSA-N',
+                                details='foo')
         system.orphan_chem_descriptors.append(d1)
         dumper = ihm.dumper._ChemDescriptorDumper()
         dumper.finalize(system)  # Assign descriptor IDs
@@ -1165,7 +1166,8 @@ _ihm_chemical_component_descriptor.smiles
 _ihm_chemical_component_descriptor.smiles_canonical
 _ihm_chemical_component_descriptor.inchi
 _ihm_chemical_component_descriptor.inchi_key
-1 EDC . . CCN=C=NCCCN(C)C . . LMDZBCPBFSXMTL-UHFFFAOYSA-N
+_ihm_chemical_component_descriptor.details
+1 EDC . . CCN=C=NCCCN(C)C . . LMDZBCPBFSXMTL-UHFFFAOYSA-N foo
 #
 """)
 

@@ -622,7 +622,8 @@ _%(cat)s.smiles
 _%(cat)s.smiles_canonical
 _%(cat)s.inchi
 _%(cat)s.inchi_key
-1 EDC "test-chem-EDC" . "CCN=C=NCCCN(C)C" . test-inchi test-inchi-key
+_%(cat)s.details
+1 EDC "test-chem-EDC" . "CCN=C=NCCCN(C)C" . test-inchi test-inchi-key foo
 """ % {'cat': cat}
             for fh in cif_file_handles(cif):
                 s, = ihm.reader.read(fh)
@@ -634,6 +635,7 @@ _%(cat)s.inchi_key
                 self.assertIsNone(d1.smiles_canonical)
                 self.assertEqual(d1.inchi, 'test-inchi')
                 self.assertEqual(d1.inchi_key, 'test-inchi-key')
+                self.assertEqual(d1.details, 'foo')
 
     def test_entity_handler(self):
         """Test EntityHandler"""
