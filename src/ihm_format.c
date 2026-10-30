@@ -2245,8 +2245,8 @@ static bool handle_byte_array_size(struct bcif_data *d, size_t type_size,
     for (i = 0, start = 0; i < d->size; ++i, start += type_size) {
       for (j = 0; j < type_size / 2; ++j) {
         char tmp = d->data.raw[start + j];
-        d->data.raw[start + j] = d->data.raw[start + type_size - j];
-        d->data.raw[start + type_size - j] = tmp;
+        d->data.raw[start + j] = d->data.raw[start + type_size - 1 - j];
+        d->data.raw[start + type_size - 1 - j] = tmp;
       }
     }
   }
