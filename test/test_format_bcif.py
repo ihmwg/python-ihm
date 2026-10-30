@@ -287,12 +287,12 @@ class Tests(unittest.TestCase):
                 return {'data': self.raw_data,
                         'encoding': enc}, None
 
-        def get_decoded(data_type, raw_data, enc=None):
-            cat = MyCategory('_exptl', {'method': []}, raw_data, data_type,
+        def get_decoded(data_type, raw_data, enc=None, key='method'):
+            cat = MyCategory('_exptl', {key: []}, raw_data, data_type,
                              enc=enc)
             h = GenericHandler()
             self._read_bcif([Block([cat])], {'_exptl': h})
-            return [x['method'] for x in h.data]
+            return [x[key] for x in h.data]
 
         # type 3 (signed int)
         data = get_decoded(ihm.format_bcif._Int32, b'\x00\x01\x01\x05')
@@ -345,10 +345,22 @@ class Tests(unittest.TestCase):
         self.assertIsInstance(data[0], str)
         self.assertAlmostEqual(float(data[0]), 42.0, delta=0.1)
 
-        # unsupported type (32-bit unsigned int)
-        self.assertRaises(_format.FileFormatError,
-                          get_decoded, ihm.format_bcif._Uint32,
-                          struct.pack('<I', 5))
+        # type 6 (32-bit unsigned int)
+        data = get_decoded(ihm.format_bcif._Uint32,
+                           struct.pack('<3I', 5, 2**31, 2**32 - 1))
+        self.assertEqual(data, ['5', '2147483648', '4294967295'])
+
+        # 32-bit unsigned int can be coerced to int or float
+        data = get_decoded(ihm.format_bcif._Uint32,
+                           struct.pack('<2I', 5, 2**31 - 1), key='intkey1')
+        self.assertEqual(data, [5, 2**31 - 1])
+        data = get_decoded(ihm.format_bcif._Uint32,
+                           struct.pack('<2I', 5, 2**32 - 1), key='floatkey1')
+        self.assertEqual(data, [5.0, 4294967295.0])
+        # Values too large for int cannot be coerced to int
+        self.assertRaises(ValueError, get_decoded,
+                          ihm.format_bcif._Uint32, struct.pack('<I', 2**31),
+                          key='intkey1')
 
     def test_integer_packing_decoder_signed(self):
         """Test IntegerPacking decoder with signed data"""

@@ -24,6 +24,7 @@
 # include <unistd.h>
 #endif
 #include <errno.h>
+#include <limits.h>
 #include <assert.h>
 #include "cmp.h"
 
@@ -2770,6 +2771,7 @@ static bool process_column_data(struct bcif_column *col,
   if (!decode_bcif_data(&col->data, col->first_encoding, err)) return false;
   switch(col->data.type) {
   case BCIF_DATA_INT32:
+  case BCIF_DATA_UINT32:
   case BCIF_DATA_INT8:
   case BCIF_DATA_UINT8:
   case BCIF_DATA_INT16:
@@ -2916,6 +2918,37 @@ static void set_value_from_bcif_int(struct ihm_keyword *key, int32_t ival,
   }
 }
 
+static void set_value_from_bcif_uint(struct ihm_keyword *key, uint32_t uval,
+                                     char *buffer, struct ihm_error **err)
+{
+  /* Values too large for an int cannot be stored in an integer keyword */
+  if (key->type == IHM_INT && uval > INT_MAX) {
+    ihm_error_set(err, IHM_ERROR_VALUE,
+                  "Value %lu is out of range for an integer in file",
+                  (unsigned long)uval);
+    return;
+  }
+  key->omitted = key->unknown = false;
+  key->in_file = true;
+  switch(key->type) {
+  case IHM_STRING:
+    /* We (not the keyword) own buffer */
+    key->own_data = false;
+    key->str_len = sprintf(buffer, "%lu", (unsigned long)uval);
+    key->data.str = buffer;
+    break;
+  case IHM_INT:
+    key->data.ival = uval;
+    break;
+  case IHM_FLOAT:
+    key->data.fval = uval;
+    break;
+  case IHM_BOOL:
+    key->omitted = true;
+    break;
+  }
+}
+
 /* Set the value of a given keyword from the given BinaryCIF data */
 static void set_value_from_data(struct ihm_reader *reader,
                                 struct ihm_category *category,
@@ -2960,6 +2993,9 @@ static void set_value_from_data(struct ihm_reader *reader,
     break;
   case BCIF_DATA_INT32:
     set_value_from_bcif_int(key, data->data.int32[irow], buffer);
+    break;
+  case BCIF_DATA_UINT32:
+    set_value_from_bcif_uint(key, data->data.uint32[irow], buffer, err);
     break;
   default:
     ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
