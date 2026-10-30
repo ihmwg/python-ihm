@@ -79,6 +79,9 @@ struct ihm_keyword {
     double fval;
     bool bval;
   } data;
+  /* The length of data.str (not including the null terminator), if
+     this is a string keyword with a value */
+  size_t str_len;
   /* If true, we own the memory for data */
   bool own_data;
   /* true iff this keyword is in the file (not necessarily with a value) */

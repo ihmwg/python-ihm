@@ -311,7 +311,8 @@ static void handle_category_data(struct ihm_reader *reader, int linenum,
     } else {
       switch((*keys)->type) {
       case IHM_STRING:
-        val = PyUnicode_FromString((*keys)->data.str);
+        val = PyUnicode_FromStringAndSize((*keys)->data.str,
+                                          (*keys)->str_len);
         if (!val) {
           ihm_error_set(err, IHM_ERROR_VALUE, "string creation failed");
           Py_DECREF(tuple);

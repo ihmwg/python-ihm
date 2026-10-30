@@ -442,6 +442,8 @@ typedef enum {
 struct ihm_token {
   ihm_token_type type;
   char *str;
+  /* The length of str (not including the null terminator) */
+  size_t len;
 };
 
 /* Free memory used by a struct ihm_category */
@@ -535,11 +537,12 @@ static void set_keyword_to_default(struct ihm_keyword *key)
   key->own_data = false;
 }
 
-/* Set the value of a given keyword from the given string */
+/* Set the value of a given keyword from the given string of length len */
 static void set_value_from_string(struct ihm_reader *reader,
                                   struct ihm_category *category,
                                   struct ihm_keyword *key, char *str,
-                                  bool own_data, struct ihm_error **err)
+                                  size_t len, bool own_data,
+                                  struct ihm_error **err)
 {
   char *ch;
   /* If a key is duplicated, overwrite it with the new value */
@@ -552,10 +555,12 @@ static void set_value_from_string(struct ihm_reader *reader,
   case IHM_STRING:
     key->own_data = own_data;
     if (own_data) {
-      key->data.str = strdup(str);
+      key->data.str = (char *)ihm_malloc(len + 1);
+      memcpy(key->data.str, str, len + 1);
     } else {
       key->data.str = str;
     }
+    key->str_len = len;
     key->omitted = key->unknown = false;
     break;
   case IHM_INT:
@@ -860,6 +865,7 @@ static size_t handle_quoted_token(struct ihm_reader *reader,
        "?" or ".", not an unknown/omitted value */
     t.type = MMCIF_TOKEN_VALUE;
     t.str = line + start_pos + 1;
+    t.len = tok_end - start_pos - 1;
     line[tok_end] = '\0';
     ihm_array_append(reader->tokens, &t);
     return tok_end + 1;         /* step past the closing quote */
@@ -893,18 +899,19 @@ static size_t get_next_token(struct ihm_reader *reader, char *line,
     struct ihm_token t;
     int tok_end = start_pos + strcspn(pt, " \t");
     t.str = line + start_pos;
+    t.len = tok_end - start_pos;
     line[tok_end] = '\0';
-    if (strcmp(t.str, "loop_") == 0) {
+    if (t.len == 5 && memcmp(t.str, "loop_", 5) == 0) {
       t.type = MMCIF_TOKEN_LOOP;
-    } else if (strncmp(t.str, "data_", 5) == 0) {
+    } else if (t.len >= 5 && memcmp(t.str, "data_", 5) == 0) {
       t.type = MMCIF_TOKEN_DATA;
-    } else if (strncmp(t.str, "save_", 5) == 0) {
+    } else if (t.len >= 5 && memcmp(t.str, "save_", 5) == 0) {
       t.type = MMCIF_TOKEN_SAVE;
     } else if (t.str[0] == '_') {
       t.type = MMCIF_TOKEN_VARIABLE;
-    } else if (t.str[0] == '.' && t.str[1] == '\0') {
+    } else if (t.len == 1 && t.str[0] == '.') {
       t.type = MMCIF_TOKEN_OMITTED;
-    } else if (t.str[0] == '?' && t.str[1] == '\0') {
+    } else if (t.len == 1 && t.str[0] == '?') {
       t.type = MMCIF_TOKEN_UNKNOWN;
     } else {
       /* Note that we do no special processing for other reserved words
@@ -955,6 +962,7 @@ static void read_multiline_token(struct ihm_reader *reader,
       struct ihm_token t;
       t.type = MMCIF_TOKEN_VALUE;
       t.str = reader->tmp_str->str;
+      t.len = reader->tmp_str->len;
       ihm_array_clear(reader->tokens);
       ihm_array_append(reader->tokens, &t);
       reader->token_index = 0;
@@ -1067,7 +1075,8 @@ static void read_value(struct ihm_reader *reader,
     if (key) {
       struct ihm_token *val_token = get_token(reader, false, err);
       if (val_token && val_token->type == MMCIF_TOKEN_VALUE) {
-        set_value_from_string(reader, category, key, val_token->str, true, err);
+        set_value_from_string(reader, category, key, val_token->str,
+                              val_token->len, true, err);
       } else if (val_token && val_token->type == MMCIF_TOKEN_OMITTED) {
         set_omitted_value(key);
       } else if (val_token && val_token->type == MMCIF_TOKEN_UNKNOWN) {
@@ -1240,7 +1249,7 @@ static void read_loop_data(struct ihm_reader *reader,
       if (token && token->type == MMCIF_TOKEN_VALUE) {
         if (keywords[i]) {
           set_value_from_string(reader, category, keywords[i], token->str,
-                                !oneline, err);
+                                token->len, !oneline, err);
         }
       } else if (token && token->type == MMCIF_TOKEN_OMITTED) {
         if (keywords[i]) {
@@ -2819,6 +2828,7 @@ static void set_value_from_bcif_string(struct ihm_keyword *key, char *str,
        not the keyword */
     key->own_data = false;
     key->data.str = str;
+    key->str_len = strlen(str);
     key->omitted = false;
     break;
   case IHM_INT:
@@ -2865,7 +2875,7 @@ static void set_value_from_bcif_double(struct ihm_keyword *key, double fval,
   case IHM_STRING:
     /* We (not the keyword) own buffer */
     key->own_data = false;
-    sprintf(buffer, "%g", fval);
+    key->str_len = sprintf(buffer, "%g", fval);
     key->data.str = buffer;
     break;
   case IHM_INT:
@@ -2891,7 +2901,7 @@ static void set_value_from_bcif_int(struct ihm_keyword *key, int32_t ival,
   case IHM_STRING:
     /* We (not the keyword) own buffer */
     key->own_data = false;
-    sprintf(buffer, "%d", ival);
+    key->str_len = sprintf(buffer, "%d", ival);
     key->data.str = buffer;
     break;
   case IHM_INT:
