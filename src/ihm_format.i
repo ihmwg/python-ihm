@@ -266,19 +266,54 @@ struct category_handler_data {
   int num_keywords;
   /* Array of the keywords */
   struct ihm_keyword **keywords;
+  /* Array of the last Python string value seen for each keyword (or NULL),
+     so that the object can be reused if the value is repeated */
+  PyObject **last_str;
 };
 
 static void category_handler_data_free(void *data)
 {
+  int i;
   struct category_handler_data *hd = data;
   Py_DECREF(hd->callable);
   Py_XDECREF(hd->not_in_file);
   Py_XDECREF(hd->omitted);
   Py_XDECREF(hd->unknown);
+  for (i = 0; i < hd->num_keywords; ++i) {
+    Py_XDECREF(hd->last_str[i]);
+  }
+  free(hd->last_str);
   /* Don't need to free each hd->keywords[i] as the ihm_reader owns
      these pointers */
   free(hd->keywords);
   free(hd);
+}
+
+/* Get a Python string for the value of the given string keyword. Loop data
+   often contains the same value in successive rows (e.g. label_asym_id),
+   so if the value matches the last one seen for this keyword, reuse that
+   object rather than making a new one. Return NULL on failure. */
+static PyObject *get_keyword_str(struct ihm_keyword *key, PyObject **last)
+{
+  PyObject *val;
+  if (*last) {
+    Py_ssize_t last_len;
+    const char *last_str = PyUnicode_AsUTF8AndSize(*last, &last_len);
+    if (!last_str) {
+      PyErr_Clear();
+    } else if ((size_t)last_len == key->str_len
+               && memcmp(last_str, key->data.str, key->str_len) == 0) {
+      Py_INCREF(*last);
+      return *last;
+    }
+  }
+  val = PyUnicode_FromStringAndSize(key->data.str, key->str_len);
+  if (val) {
+    Py_XDECREF(*last);
+    Py_INCREF(val);
+    *last = val;
+  }
+  return val;
 }
 
 /* Called for each category (or loop construct data line) with data */
@@ -311,8 +346,7 @@ static void handle_category_data(struct ihm_reader *reader, int linenum,
     } else {
       switch((*keys)->type) {
       case IHM_STRING:
-        val = PyUnicode_FromStringAndSize((*keys)->data.str,
-                                          (*keys)->str_len);
+        val = get_keyword_str(*keys, &hd->last_str[i]);
         if (!val) {
           ihm_error_set(err, IHM_ERROR_VALUE, "string creation failed");
           Py_DECREF(tuple);
@@ -406,6 +440,7 @@ static struct category_handler_data *do_add_handler(
   hd->unknown = NULL;
   hd->num_keywords = seqlen;
   hd->keywords = malloc(sizeof(struct ihm_keyword *) * seqlen);
+  hd->last_str = calloc(seqlen, sizeof(PyObject *));
   category = ihm_category_new(reader, name, data_callback, end_frame_callback,
                               finalize_callback, hd,
                               category_handler_data_free);

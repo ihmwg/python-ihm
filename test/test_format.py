@@ -534,6 +534,24 @@ save_
             self.assertEqual(h2.data, [{'var2': 'solo1'}, {'var2': 'solo2'},
                                        {'var2': 'solo\n3'}])
 
+    def test_loop_repeated_values(self):
+        """Check handling of values repeated in successive loop rows"""
+        cif = ("loop_\n_foo.bar\n_foo.baz\n"
+               "abc xyz\nabc xyz\nabcd uvw\nabc ?\n'' .\nabc xyz\n")
+        for real_file in (True, False):
+            h = GenericHandler()
+            self._read_cif(cif, real_file, {'_foo': h})
+            self.assertEqual(h.data, [
+                {'bar': 'abc', 'baz': 'xyz'}, {'bar': 'abc', 'baz': 'xyz'},
+                {'bar': 'abcd', 'baz': 'uvw'},
+                {'bar': 'abc', 'baz': ihm.unknown}, {'bar': ''},
+                {'bar': 'abc', 'baz': 'xyz'}])
+            if _format is not None:
+                # The C parser should reuse the same object for a
+                # repeated value
+                self.assertIs(h.data[0]['bar'], h.data[1]['bar'])
+                self.assertIs(h.data[0]['baz'], h.data[1]['baz'])
+
     def test_keyword_free(self):
         """Make sure keyword data is cleaned up"""
         for real_file in (True, False):
