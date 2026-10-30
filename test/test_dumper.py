@@ -5086,14 +5086,10 @@ _ihm_kinetic_rate.scheme_connectivity_id
 _ihm_kinetic_rate.dataset_group_id
 _ihm_kinetic_rate.external_file_id
 1 3.000 . . . 'transition rate constant 1' 1 . .
-2 . 4.000 'equilibrium constant is determined from population' unit_placeholder
-'equilibrium constant 2' 2 1 2
-3 6.000 5.000 'equilibrium constant is determined from population' .
-'equilibrium constant 3' 3 1 .
-4 . 6.000 'equilibrium constant is determined from kinetic rates, kAB/kBA' .
-'equilibrium constant 4' 4 . .
-5 . 7.000 'equilibrium constant is determined from another method not listed'
-unit7 'equilibrium constant 5' 5 . .
+2 . 4.000 'from population' unit_placeholder 'equilibrium constant 2' 2 1 2
+3 6.000 5.000 'from population' . 'equilibrium constant 3' 3 1 .
+4 . 6.000 'from kinetic rates' . 'equilibrium constant 4' 4 . .
+5 . 7.000 other unit7 'equilibrium constant 5' 5 . .
 #
 """)
         f = ihm.flr.FLRData()
@@ -5126,14 +5122,10 @@ _ihm_kinetic_rate.scheme_connectivity_id
 _ihm_kinetic_rate.dataset_group_id
 _ihm_kinetic_rate.external_file_id
 1 3.000 . . . 'transition rate constant 1' 1 . .
-2 . 4.000 'equilibrium constant is determined from population' unit_placeholder
-'equilibrium constant 2' 2 1 2
-3 6.000 5.000 'equilibrium constant is determined from population' .
-'equilibrium constant 3' 3 1 .
-4 . 6.000 'equilibrium constant is determined from kinetic rates, kAB/kBA' .
-'equilibrium constant 4' 4 . .
-5 . 7.000 'equilibrium constant is determined from another method not listed'
-unit7 'equilibrium constant 5' 5 . .
+2 . 4.000 'from population' unit_placeholder 'equilibrium constant 2' 2 1 2
+3 6.000 5.000 'from population' . 'equilibrium constant 3' 3 1 .
+4 . 6.000 'from kinetic rates' . 'equilibrium constant 4' 4 . .
+5 . 7.000 other unit7 'equilibrium constant 5' 5 . .
 6 4.000 . . . 'transition rate constant 4' . . .
 #
 """)

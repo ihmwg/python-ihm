@@ -3390,6 +3390,12 @@ class _MultiStateSchemeConnectivityHandler(Handler):
 class _KineticRateHandler(Handler):
     category = '_ihm_kinetic_rate'
 
+    # Map equilibrium type to EquilibriumConstant subclass
+    _eq_type_map = dict(
+        (x[1].method.lower(), x[1])
+        for x in inspect.getmembers(ihm.multi_state_scheme, inspect.isclass)
+        if issubclass(x[1], ihm.multi_state_scheme.EquilibriumConstant))
+
     def __call__(self, id,
                  transition_rate_constant,
                  equilibrium_constant,
@@ -3403,31 +3409,14 @@ class _KineticRateHandler(Handler):
         k = self.sysr.kinetic_rates.get_by_id(id)
         # if information for an equilibrium is given, create an object
         eq_const = None
-        if (equilibrium_constant is not None) \
-                and (equilibrium_constant_determination_method is not None):
-            if equilibrium_constant_determination_method == 'equilibrium ' \
-                                                            'constant is ' \
-                                                            'determined from '\
-                                                            'population':
-                eq_const = \
-                    ihm.multi_state_scheme.PopulationEquilibriumConstant(
-                        value=equilibrium_constant,
-                        unit=equilibrium_constant_unit)
-            elif equilibrium_constant_determination_method == 'equilibrium ' \
-                                                              'constant is ' \
-                                                              'determined ' \
-                                                              'from kinetic ' \
-                                                              'rates, ' \
-                                                              'kAB/kBA':
-                eq_const = \
-                    ihm.multi_state_scheme.KineticRateEquilibriumConstant(
-                        value=equilibrium_constant,
-                        unit=equilibrium_constant_unit)
-            else:
-                eq_const = \
-                    ihm.multi_state_scheme.EquilibriumConstant(
-                        value=equilibrium_constant,
-                        unit=equilibrium_constant_unit)
+        if (equilibrium_constant is not None
+                and equilibrium_constant_determination_method is not None):
+            typ = (equilibrium_constant_determination_method.lower()
+                   if equilibrium_constant_determination_method else 'other')
+            cls = self._eq_type_map.get(
+                typ, ihm.multi_state_scheme.EquilibriumConstant)
+            eq_const = cls(value=equilibrium_constant,
+                           unit=equilibrium_constant_unit)
         # Add the content
         k.transition_rate_constant = transition_rate_constant
         k.equilibrium_constant = eq_const

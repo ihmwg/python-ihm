@@ -4221,12 +4221,9 @@ _ihm_kinetic_rate.scheme_connectivity_id
 _ihm_kinetic_rate.dataset_group_id
 _ihm_kinetic_rate.external_file_id
 1 3.0 . . . 'rate1' 1 4 5
-2 . 6.5 'equilibrium constant is determined from population' . 'rate2' 2  . .
-3 7.0 . . . 'rate3' 3 8 9
-4 . 8.5 'equilibrium constant is determined from kinetic rates, kAB/kBA'
- 'unit' 'rate4' 4 . .
-5 . 9.5 'equilibrium constant is determined from another method not listed' .
- 'rate5' 5 . .
+2 . 6.5 'from population' . 'rate2' 2  . . 3 7.0 . . . 'rate3' 3 8 9
+4 . 8.5 'from kinetic rates' 'unit' 'rate4' 4 . .
+5 . 9.5 other . 'rate5' 5 . .
 """
         # Order of categories should not matter
         for cif in (mss_cif + rate_cif, rate_cif + mss_cif):
@@ -4256,8 +4253,7 @@ _ihm_kinetic_rate.external_file_id
                     ihm.multi_state_scheme.PopulationEquilibriumConstant)
                 self.assertEqual(k2.equilibrium_constant.value, '6.5')
                 self.assertEqual(
-                    k2.equilibrium_constant.method,
-                    'equilibrium constant is determined from population')
+                    k2.equilibrium_constant.method, 'from population')
                 self.assertIsNone(k2.equilibrium_constant.unit)
                 self.assertEqual(k2.details, 'rate2')
                 self.assertIsNone(k2.dataset_group)
@@ -4283,9 +4279,7 @@ _ihm_kinetic_rate.external_file_id
                     ihm.multi_state_scheme.KineticRateEquilibriumConstant)
                 self.assertEqual(k4.equilibrium_constant.value, '8.5')
                 self.assertEqual(
-                    k4.equilibrium_constant.method,
-                    'equilibrium constant is determined from kinetic '
-                    'rates, kAB/kBA')
+                    k4.equilibrium_constant.method, 'from kinetic rates')
                 self.assertEqual(k4.equilibrium_constant.unit, 'unit')
                 self.assertEqual(k4.details, 'rate4')
                 self.assertIsNone(k4.dataset_group)
@@ -4299,9 +4293,7 @@ _ihm_kinetic_rate.external_file_id
                     ihm.multi_state_scheme.EquilibriumConstant)
                 self.assertEqual(k5.equilibrium_constant.value, '9.5')
                 self.assertEqual(
-                    k5.equilibrium_constant.method,
-                    'equilibrium constant is determined from another '
-                    'method not listed')
+                    k5.equilibrium_constant.method, 'other')
                 self.assertIsNone(k5.equilibrium_constant.unit)
                 self.assertEqual(k5.details, 'rate5')
                 self.assertIsNone(k5.dataset_group)
