@@ -1869,9 +1869,10 @@ _ihm_residues_not_modeled.seq_id_end
 _ihm_residues_not_modeled.comp_id_begin
 _ihm_residues_not_modeled.comp_id_end
 _ihm_residues_not_modeled.reason
-1 1 Nup84 9 X 1 2 ALA CYS .
-2 1 Nup84 9 X 3 4 GLY THR 'Highly variable models with poor precision'
-3 1 Nup84 9 X 5 6 ALA CYS INVALID
+_ihm_residues_not_modeled.details
+1 1 Nup84 9 X 1 2 ALA CYS . .
+2 1 Nup84 9 X 3 4 GLY THR 'Highly variable models with poor precision' foo
+3 1 Nup84 9 X 5 6 ALA CYS INVALID .
 #
 """
         for fh in cif_file_handles(cif):
@@ -1882,11 +1883,13 @@ _ihm_residues_not_modeled.reason
             self.assertEqual(rr1.seq_id_begin, 1)
             self.assertEqual(rr1.seq_id_end, 2)
             self.assertIsNone(rr1.reason)
+            self.assertIsNone(rr1.details)
             self.assertEqual(rr2.asym_unit._id, 'X')
             self.assertEqual(rr2.seq_id_begin, 3)
             self.assertEqual(rr2.seq_id_end, 4)
             self.assertEqual(rr2.reason,
                              "Highly variable models with poor precision")
+            self.assertEqual(rr2.details, 'foo')
             self.assertEqual(rr3.reason, "Other")
 
     def test_ensemble_handler(self):

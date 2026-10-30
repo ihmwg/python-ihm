@@ -2184,12 +2184,12 @@ class _NotModeledResidueRangeHandler(Handler):
     category = '_ihm_residues_not_modeled'
 
     def __call__(self, model_id, asym_id, seq_id_begin, seq_id_end,
-                 reason):
+                 reason, details):
         model = self.sysr.models.get_by_id(model_id)
         asym = self.sysr.asym_units.get_by_id(asym_id)
         # Allow for out-of-range seq_ids for now
         rr = ihm.model.NotModeledResidueRange(
-            asym, int(seq_id_begin), int(seq_id_end))
+            asym, int(seq_id_begin), int(seq_id_end), details=details)
         # Default to "Other" if invalid reason read
         try:
             rr.reason = reason

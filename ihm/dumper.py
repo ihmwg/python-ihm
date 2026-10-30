@@ -2097,7 +2097,8 @@ class _NotModeledResidueRangeDumper(Dumper):
         with writer.loop("_ihm_residues_not_modeled",
                          ["id", "model_id", "entity_description",
                           "entity_id", "asym_id", "seq_id_begin", "seq_id_end",
-                          "comp_id_begin", "comp_id_end", "reason"]) as lp:
+                          "comp_id_begin", "comp_id_end", "reason",
+                          "details"]) as lp:
             for group, model in system._all_models():
                 for rr in model.not_modeled_residue_ranges:
                     e = rr.asym_unit.entity
@@ -2112,7 +2113,7 @@ class _NotModeledResidueRangeDumper(Dumper):
                              seq_id_end=rr.seq_id_end,
                              comp_id_begin=_get_comp_id(e, rr.seq_id_begin),
                              comp_id_end=_get_comp_id(e, rr.seq_id_end),
-                             reason=rr.reason)
+                             reason=rr.reason, details=rr.details)
 
 
 class _EnsembleDumper(Dumper):

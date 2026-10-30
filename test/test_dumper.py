@@ -3183,7 +3183,8 @@ N
 
         rr1 = ihm.model.NotModeledResidueRange(asym, 1, 2)
         rr2 = ihm.model.NotModeledResidueRange(
-            asym, 3, 4, reason="Highly variable models with poor precision")
+            asym, 3, 4, reason="Highly variable models with poor precision",
+            details='foo')
         model.not_modeled_residue_ranges.extend((rr1, rr2))
 
         dumper = ihm.dumper._ModelDumper()
@@ -3203,8 +3204,9 @@ _ihm_residues_not_modeled.seq_id_end
 _ihm_residues_not_modeled.comp_id_begin
 _ihm_residues_not_modeled.comp_id_end
 _ihm_residues_not_modeled.reason
-1 1 Nup84 9 X 1 2 ALA CYS .
-2 1 Nup84 9 X 3 4 GLY THR 'Highly variable models with poor precision'
+_ihm_residues_not_modeled.details
+1 1 Nup84 9 X 1 2 ALA CYS . .
+2 1 Nup84 9 X 3 4 GLY THR 'Highly variable models with poor precision' foo
 #
 """)
 
