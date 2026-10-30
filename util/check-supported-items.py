@@ -51,17 +51,23 @@ DICTIONARIES = [
 IHM_LITERAL = re.compile(r"""["'](_?[a-z0-9_]*ihm_[a-z0-9_]*)["']""")
 
 
-def is_ihm_category(name):
-    """Return True iff the given category is an IHM category that we should
-       warn about if it is missing"""
-    return 'ihm_' in name
-
+EX_CATEGORIES = frozenset(
+    # Don't complain about missing deprecated categories
+    ('ihm_ordered_ensemble',))
 
 EX_KEYWORDS = frozenset(
     # Don't complain about entity or assembly descriptions (they are just
     # copies of descriptions in the entity/assembly tables already)
     ('struct_assembly_description', 'entity_description',
      'entity_description_1', 'entity_description_2'))
+
+
+def is_ihm_category(name):
+    """Return True iff the given category is an IHM category that we should
+       warn about if it is missing"""
+    if name in EX_CATEGORIES:
+        return False
+    return 'ihm_' in name
 
 
 def is_ihm_keyword(cat_name, key_name):
