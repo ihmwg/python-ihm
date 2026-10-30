@@ -51,8 +51,25 @@ DICTIONARIES = [
 IHM_LITERAL = re.compile(r"""["'](_?[a-z0-9_]*ihm_[a-z0-9_]*)["']""")
 
 
-def is_ihm(name):
+def is_ihm_category(name):
+    """Return True iff the given category is an IHM category that we should
+       warn about if it is missing"""
     return 'ihm_' in name
+
+
+EX_KEYWORDS = frozenset(
+    # Don't complain about entity or assembly descriptions (they are just
+    # copies of descriptions in the entity/assembly tables already)
+    ('struct_assembly_description', 'entity_description',
+     'entity_description_1', 'entity_description_2'))
+
+
+def is_ihm_keyword(cat_name, key_name):
+    """Return True iff the given keyword is an IHM keyword that we should
+       warn about if it is missing"""
+    if key_name in EX_KEYWORDS:
+        return False
+    return is_ihm_category(cat_name) or 'ihm_' in key_name
 
 
 class DummyStartingModel(ihm.startmodel.StartingModel):
@@ -594,9 +611,8 @@ def main():
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter("always", ihm.dictionary.ValidatorWarning)
         try:
-            d.validate(fh, warn_missing_category=is_ihm,
-                       warn_missing_keyword=lambda cat, key: is_ihm(cat)
-                       or is_ihm(key))
+            d.validate(fh, warn_missing_category=is_ihm_category,
+                       warn_missing_keyword=is_ihm_keyword)
         except ihm.dictionary.ValidatorError as exc:
             valid = False
             print("The dummy output failed to validate:\n%s\n" % exc)
