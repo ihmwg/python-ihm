@@ -709,7 +709,7 @@ static ssize_t expand_buffer(struct ihm_file *fh, struct ihm_error **err)
    the end of the file.
    On error, false is returned and err is set.
  */
-static bool ihm_file_read_line(struct ihm_file *fh, int *eof,
+static bool ihm_file_read_line(struct ihm_file *fh, bool *eof,
                                struct ihm_error **err)
 {
   size_t line_end;
@@ -958,7 +958,7 @@ static char *line_pt(struct ihm_reader *reader)
 static void read_multiline_token(struct ihm_reader *reader,
                                  int ignore_multiline, struct ihm_error **err)
 {
-  int eof = 0;
+  bool eof = false;
   int start_linenum = reader->linenum;
   while (!eof) {
     reader->linenum++;
@@ -1006,7 +1006,7 @@ static struct ihm_token *get_token(struct ihm_reader *reader,
                                    int ignore_multiline,
                                    struct ihm_error **err)
 {
-  int eof = 0;
+  bool eof = false;
   if (reader->tokens->len <= reader->token_index) {
     do {
       /* No tokens left - read the next non-blank line in */
@@ -1240,7 +1240,7 @@ static void read_loop_data(struct ihm_reader *reader,
   while (!*err) {
     /* Does the current line contain an entire row in the loop? If so, values
        can point directly into the line buffer rather than being copied. */
-    int oneline = 0;
+    bool oneline = false;
     unsigned i;
     for (i = 0; !*err && i < len; ++i) {
       struct ihm_token *token = get_token(reader, false, err);
@@ -1382,7 +1382,8 @@ static void sort_mappings(struct ihm_reader *reader)
 static bool read_mmcif_file(struct ihm_reader *reader, bool *more_data,
                             struct ihm_error **err)
 {
-  int ndata = 0, in_save = 0;
+  int ndata = 0;
+  bool in_save = false;
   struct ihm_token *token;
   sort_mappings(reader);
   while (!*err && (token = get_token(reader, true, err))) {
