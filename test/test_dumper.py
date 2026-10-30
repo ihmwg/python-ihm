@@ -2193,7 +2193,7 @@ _ihm_model_representation_details.description
             dataset=dstemplate, asym_id='C',
             seq_id_range=(-9, 0),  # 1,10 in IHM numbering
             template_seq_id_range=(101, 110),
-            sequence_identity=30.)
+            sequence_identity=30., details='foo')
         s2 = ihm.startmodel.Template(
             dataset=dstemplate, asym_id='D',
             seq_id_range=(-5, 2),  # 5,12 in IHM numbering
@@ -2286,10 +2286,11 @@ _ihm_starting_comparative_models.template_sequence_identity
 _ihm_starting_comparative_models.template_sequence_identity_denominator
 _ihm_starting_comparative_models.template_dataset_list_id
 _ihm_starting_comparative_models.alignment_file_id
-1 1 A 1 10 C 101 110 30.000 1 101 .
-2 1 A 5 12 D 201 210 40.000 . 101 5
-3 1 A 5 12 D 201 210 ? ? 101 5
-4 1 A . . D . . . . 101 5
+_ihm_starting_comparative_models.details
+1 1 A 1 10 C 101 110 30.000 1 101 . foo
+2 1 A 5 12 D 201 210 40.000 . 101 5 .
+3 1 A 5 12 D 201 210 ? ? 101 5 .
+4 1 A . . D . . . . 101 5 .
 #
 #
 loop_

@@ -1525,12 +1525,13 @@ _ihm_starting_comparative_models.template_sequence_identity
 _ihm_starting_comparative_models.template_sequence_identity_denominator
 _ihm_starting_comparative_models.template_dataset_list_id
 _ihm_starting_comparative_models.alignment_file_id
-1 1 A 7 436 C 9 438 90.000 1 3 2
-2 1 A 33 424 C 33 424 100.000 1 1 .
-3 1 A 33 424 C . ? 100.000 1 1 .
-4 1 A . . C . . . . 1 .
-5 2 A 33 424 C . ? 100.000 1 1 .
-6 2 A . . C . ? 100.000 1 1 .
+_ihm_starting_comparative_models.details
+1 1 A 7 436 C 9 438 90.000 1 3 2 foo
+2 1 A 33 424 C 33 424 100.000 1 1 . .
+3 1 A 33 424 C . ? 100.000 1 1 . .
+4 1 A . . C . . . . 1 . .
+5 2 A 33 424 C . ? 100.000 1 1 . .
+6 2 A . . C . ? 100.000 1 1 . .
 """
         for fh in cif_file_handles(cif):
             s, = ihm.reader.read(fh)
@@ -1544,7 +1545,9 @@ _ihm_starting_comparative_models.alignment_file_id
                                    delta=0.1)
             self.assertEqual(t1.sequence_identity.denominator, 1)
             self.assertEqual(t1.alignment_file._id, '2')
+            self.assertEqual(t1.details, 'foo')
             self.assertIsNone(t2.alignment_file)
+            self.assertIsNone(t2.details)
             self.assertEqual(t3.template_seq_id_range, (None, ihm.unknown))
             self.assertEqual(t4.seq_id_range, (None, None))
             self.assertEqual(t4.template_seq_id_range, (None, None))

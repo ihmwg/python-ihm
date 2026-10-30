@@ -1541,7 +1541,7 @@ class _StartingModelDumper(Dumper):
                  "template_seq_id_end", "template_sequence_identity",
                  "template_sequence_identity_denominator",
                  "template_dataset_list_id",
-                 "alignment_file_id"]) as lp:
+                 "alignment_file_id", "details"]) as lp:
             ordinal = itertools.count(1)
             for sm in self._starting_models_by_id:
                 for template in sm.templates:
@@ -1572,7 +1572,8 @@ class _StartingModelDumper(Dumper):
                  template_dataset_list_id=template.dataset._id
                  if template.dataset else None,
                  alignment_file_id=template.alignment_file._id
-                 if template.alignment_file else None)
+                 if template.alignment_file else None,
+                 details=template.details)
 
     def dump_coords(self, system, writer):
         """Write out coordinate information"""

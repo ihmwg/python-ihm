@@ -1911,7 +1911,8 @@ class _StartingComparativeModelsHandler(Handler):
                  starting_model_seq_id_end: int,
                  template_seq_id_begin: int, template_seq_id_end: int,
                  template_sequence_identity: float,
-                 template_sequence_identity_denominator: int):
+                 template_sequence_identity_denominator: int,
+                 details):
         m = self.sysr.starting_models.get_by_id(starting_model_id)
         dataset = self.sysr.datasets.get_by_id(template_dataset_list_id)
         aln = self.sysr.external_files.get_by_id_or_none(alignment_file_id)
@@ -1922,7 +1923,7 @@ class _StartingComparativeModelsHandler(Handler):
             template_sequence_identity, template_sequence_identity_denominator)
         t = ihm.startmodel.Template(
             dataset, asym_id, seq_id_range, template_seq_id_range,
-            identity, aln)
+            identity, aln, details=details)
         m.templates.append(t)
 
     def finalize(self):
