@@ -2643,7 +2643,7 @@ static bool decode_bcif_string_array(struct bcif_data *d,
         || get_int_data(&enc->offsets, i) > stringsz) {
       ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
                     "StringArray offset %d out of range 0-%d",
-                    get_int_data(&enc->offsets, i), 0, stringsz);
+                    get_int_data(&enc->offsets, i), stringsz);
       return false;
     }
   }
