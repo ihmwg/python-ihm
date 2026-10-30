@@ -2238,6 +2238,9 @@ static bool handle_byte_array_size(struct bcif_data *d, size_t type_size,
     return false;
   }
 
+  // size should now be number of types, not number of raw bytes
+  d->size /= type_size;
+
   /* If we're on a bigendian platform, byteswap the array (ByteArray is
      always little endian) */
   if ((int)(*((unsigned char *)&ul)) == 0 && type_size > 1) {
@@ -2251,7 +2254,6 @@ static bool handle_byte_array_size(struct bcif_data *d, size_t type_size,
     }
   }
 
-  d->size /= type_size;
   return true;
 }
 
