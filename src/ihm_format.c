@@ -1223,14 +1223,21 @@ static void read_loop_data(struct ihm_reader *reader,
                            struct ihm_error **err)
 {
   while (!*err) {
-    /* Does the current line contain an entire row in the loop? */
-    int oneline = get_num_line_tokens(reader) >= len;
+    /* Does the current line contain an entire row in the loop? If so, values
+       can point directly into the line buffer rather than being copied. */
+    int oneline = 0;
     unsigned i;
     for (i = 0; !*err && i < len; ++i) {
       struct ihm_token *token = get_token(reader, false, err);
       if (*err) {
         break;
-      } else if (token && token->type == MMCIF_TOKEN_VALUE) {
+      }
+      /* Check only after reading the first token of the row, since that
+         may have required reading in a new line */
+      if (i == 0 && token) {
+        oneline = get_num_line_tokens(reader) + 1 >= len;
+      }
+      if (token && token->type == MMCIF_TOKEN_VALUE) {
         if (keywords[i]) {
           set_value_from_string(reader, category, keywords[i], token->str,
                                 !oneline, err);
