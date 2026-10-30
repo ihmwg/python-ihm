@@ -57,10 +57,23 @@ class GenericHandler:
         self.data.append(d)
 
 
+class EncodeAsUint32:
+    """Request that a value be encoded by BinaryCIF as 32-bit unsigned"""
+    def __init__(self, val):
+        self.val = val
+
+
 def _encode_int(rows):
     d = {'data': struct.pack('%db' % len(rows), *rows),
          'encoding': [{'kind': 'ByteArray',
                        'type': ihm.format_bcif._Uint8}]}
+    return d, None
+
+
+def _encode_uint32(rows):
+    d = {'data': struct.pack('<%di' % len(rows), *rows),
+         'encoding': [{'kind': 'ByteArray',
+                       'type': ihm.format_bcif._Uint32}]}
     return d, None
 
 
@@ -120,6 +133,8 @@ class Category:
     def _encode_rows(self, rows):
         if len(rows) and isinstance(rows[0], int):
             return _encode_int(rows)
+        elif len(rows) and isinstance(rows[0], EncodeAsUint32):
+            return _encode_uint32([r.val for r in rows])
         elif len(rows) and isinstance(rows[0], float):
             return _encode_float(rows)
         else:
@@ -529,25 +544,17 @@ class Tests(unittest.TestCase):
                                   {'boolkey1': False},
                                   {'boolkey1': 'OM'}])
 
-        # Float will be mapped to omitted (None, or handler.omitted)
-        cat = Category('_foo', {'boolkey1': [42.34]})
-        h = GenericHandler()
-        self._read_bcif([Block([cat])], {'_foo': h})
-        self.assertEqual(h.data, [{}])
-        h = GenericHandler()
-        h.omitted = 'OM'
-        self._read_bcif([Block([cat])], {'_foo': h})
-        self.assertEqual(h.data, [{'boolkey1': 'OM'}])
-
-        # Int will be mapped to omitted (None)
-        cat = Category('_foo', {'boolkey1': [42]})
-        h = GenericHandler()
-        self._read_bcif([Block([cat])], {'_foo': h})
-        self.assertEqual(h.data, [{}])
-        h = GenericHandler()
-        h.omitted = 'OM'
-        self._read_bcif([Block([cat])], {'_foo': h})
-        self.assertEqual(h.data, [{'boolkey1': 'OM'}])
+        # Float, Int and UInt32 will be mapped to omitted
+        # (None, or handler.omitted)
+        for val in (42.34, 42, EncodeAsUint32(42)):
+            cat = Category('_foo', {'boolkey1': [val]})
+            h = GenericHandler()
+            self._read_bcif([Block([cat])], {'_foo': h})
+            self.assertEqual(h.data, [{}])
+            h = GenericHandler()
+            h.omitted = 'OM'
+            self._read_bcif([Block([cat])], {'_foo': h})
+            self.assertEqual(h.data, [{'boolkey1': 'OM'}])
 
     def test_omitted_unknown(self):
         """Test handling of omitted/unknown data"""
