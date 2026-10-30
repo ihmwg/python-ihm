@@ -426,6 +426,8 @@ struct ihm_reader {
   int num_blocks_left;
   /* Any errors raised in the CMP read callback */
   struct ihm_error *cmp_read_err;
+  /* The ID of the last BinaryCIF StringArray dictionary read */
+  unsigned long str_dict_id;
 };
 
 typedef enum {
@@ -489,6 +491,7 @@ static struct ihm_keyword *ihm_keyword_new(struct ihm_category *category,
   key->name = strdup(name);
   key->own_data = false;
   key->in_file = false;
+  key->str_index = -1;
   ihm_mapping_insert(category->keyword_map, key->name, key);
   key->own_data = false;
   return key;
@@ -562,6 +565,7 @@ static void set_value_from_string(struct ihm_reader *reader,
       key->data.str = str;
     }
     key->str_len = len;
+    key->str_index = -1;
     key->omitted = key->unknown = false;
     break;
   case IHM_INT:
@@ -770,6 +774,7 @@ struct ihm_reader *ihm_reader_new(struct ihm_file *fh, bool binary)
   reader->unknown_keyword_free_func = NULL;
 
   reader->num_blocks_left = -1;
+  reader->str_dict_id = 0;
   reader->cmp_read_err = NULL;
   return reader;
 }
@@ -1784,6 +1789,13 @@ struct bcif_data {
   union bcif_data_c data;
   /* The size of the data (e.g. array dimension) */
   size_t size;
+  /* For string data decoded from a StringArray: the index of each element
+     in the string dictionary (or -1 if it is not in the dictionary), the
+     number of entries in the dictionary, and an ID unique to the dictionary.
+     str_index is NULL for any other data. */
+  int32_t *str_index;
+  size_t str_dict_size;
+  unsigned long str_dict_id;
 };
 
 /* Initialize a new bcif_data */
@@ -1791,6 +1803,9 @@ static void bcif_data_init(struct bcif_data *d)
 {
   d->type = BCIF_DATA_NULL;
   d->size = 0;
+  d->str_index = NULL;
+  d->str_dict_size = 0;
+  d->str_dict_id = 0;
 }
 
 /* Free memory used by a bcif_data */
@@ -1830,6 +1845,8 @@ static void bcif_data_free(struct bcif_data *d)
     free(d->data.string);
     break;
   }
+  free(d->str_index);
+  d->str_index = NULL;
 }
 
 /* Overwrite bcif_data with new raw data */
@@ -2642,8 +2659,8 @@ static bool decode_bcif_string_array(struct bcif_data *d,
                                      struct ihm_error **err)
 {
   char *newstring, **strarr;
-  int32_t stringsz;
-  size_t i;
+  int32_t stringsz, *str_index;
+  size_t i, num_strings;
   int *starts, start;
   if (!require_bcif_data_is_int32(d)) {
     ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
@@ -2653,6 +2670,10 @@ static bool decode_bcif_string_array(struct bcif_data *d,
   if (!require_bcif_data_is_int32(&enc->offsets)) {
     ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
                   "StringArray not given integers as offsets");
+    return false;
+  }
+  if (enc->offsets.size == 0) {
+    ihm_error_set(err, IHM_ERROR_FILE_FORMAT, "StringArray has no offsets");
     return false;
   }
   /* Make sure offsets are in range */
@@ -2686,21 +2707,28 @@ static bool decode_bcif_string_array(struct bcif_data *d,
   }
   free(enc->string_data);
   enc->string_data = newstring;
+  /* n+1 offsets delimit n strings */
+  num_strings = enc->offsets.size - 1;
   strarr = (char **)ihm_malloc(d->size * sizeof(char *));
+  str_index = (int32_t *)ihm_malloc(d->size * sizeof(int32_t));
   for (i = 0; i < d->size; ++i) {
     int32_t strnum = get_int_data(d, i);
     /* If strnum out of range, return a null string (this usually corresponds
        to masked data) */
-    if (strnum < 0 || (size_t)strnum >= enc->offsets.size) {
+    if (strnum < 0 || (size_t)strnum >= num_strings) {
       strarr[i] = "";
+      str_index[i] = -1;
     } else {
       strarr[i] = enc->string_data + starts[strnum];
+      str_index[i] = strnum;
     }
   }
   free(starts);
   bcif_data_free(d);
   d->type = BCIF_DATA_STRING;
   d->data.string = strarr;
+  d->str_index = str_index;
+  d->str_dict_size = num_strings;
   return true;
 }
 
@@ -2765,10 +2793,14 @@ static bool check_bcif_columns(struct ihm_reader *reader,
 }
 
 /* Decode and check the column's data */
-static bool process_column_data(struct bcif_column *col,
+static bool process_column_data(struct ihm_reader *reader,
+                                struct bcif_column *col,
                                 struct ihm_error **err)
 {
   if (!decode_bcif_data(&col->data, col->first_encoding, err)) return false;
+  if (col->data.str_index) {
+    col->data.str_dict_id = ++reader->str_dict_id;
+  }
   switch(col->data.type) {
   case BCIF_DATA_INT32:
   case BCIF_DATA_UINT32:
@@ -2962,11 +2994,17 @@ static void set_value_from_data(struct ihm_reader *reader,
     key->data.str = NULL;
   }
 
+  key->str_index = -1;
   /* BinaryCIF data is typed (not always a string like mmCIF), so we may
      need to convert to the desired output type. */
   switch(data->type) {
   case BCIF_DATA_STRING:
     set_value_from_bcif_string(key, data->data.string[irow], err);
+    if (key->type == IHM_STRING && data->str_index) {
+      key->str_index = data->str_index[irow];
+      key->str_dict_size = data->str_dict_size;
+      key->str_dict_id = data->str_dict_id;
+    }
     break;
   case BCIF_DATA_FLOAT:
     /* promote to double */
@@ -3052,7 +3090,7 @@ static bool process_bcif_category(struct ihm_reader *reader,
   if (!check_bcif_columns(reader, cat, ihm_cat, err)) return false;
   for (col = cat->first_column; col; col = col->next) {
     if (!col->keyword) continue;
-    if (!process_column_data(col, err)
+    if (!process_column_data(reader, col, err)
         || !process_column_mask(col, err)) return false;
     /* Make buffer for value as a string; should be long enough to
        store any int or double */

@@ -939,14 +939,50 @@ class Tests(unittest.TestCase):
         self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
                           d, {'_foo': h})
 
-        # Out-of-range indices return empty strings
-        for data in (struct.pack('b', 40), struct.pack('b', -32)):
+        # Offsets cannot be empty
+        d = make_bcif(data=b'\x00\x01', data_type=ihm.format_bcif._Uint8,
+                      offsets=b'', offsets_type=ihm.format_bcif._Uint8)
+        h = GenericHandler()
+        self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
+                          d, {'_foo': h})
+
+        # Out-of-range indices return empty strings (3 offsets delimit
+        # only 2 strings, so index 2 is out of range)
+        for data in (struct.pack('b', 40), struct.pack('b', -32),
+                     struct.pack('b', 2)):
             d = make_bcif(data=data, data_type=ihm.format_bcif._Int8,
                           offsets=b'\x00\x01\x03',
                           offsets_type=ihm.format_bcif._Uint8)
             h = GenericHandler()
             self._read_bcif_raw(d, {'_foo': h})
             self.assertEqual(h.data, [{'bar': ''}])
+
+    @unittest.skipIf(_format is None, "No C tokenizer")
+    def test_string_array_dictionary_c(self):
+        """Test reuse of strings from a BinaryCIF StringArray dictionary"""
+        def make_category(string_data, indices):
+            uint8 = {'kind': 'ByteArray', 'type': ihm.format_bcif._Uint8}
+            c = {'name': 'bar',
+                 'data': {'data': bytes(indices),
+                          'encoding':
+                          [{'kind': 'StringArray', 'stringData': string_data,
+                            'dataEncoding': [uint8],
+                            'offsetEncoding': [uint8],
+                            'offsets': b'\x00\x01\x03'}]}}
+            return {'name': '_foo', 'columns': [c]}
+
+        # Two categories with different dictionaries, so strings from the
+        # first must not be reused for the second
+        d = {'dataBlocks': [{'categories': [make_category('aAB', [1, 0, 1]),
+                                            make_category('xYZ', [1, 0, 1])]}]}
+        h = GenericHandler()
+        self._read_bcif_raw(d, {'_foo': h})
+        self.assertEqual(h.data, [{'bar': 'AB'}, {'bar': 'a'}, {'bar': 'AB'},
+                                  {'bar': 'YZ'}, {'bar': 'x'}, {'bar': 'YZ'}])
+        # The same dictionary entry should be the same Python object, even
+        # if not in successive rows
+        self.assertIs(h.data[0]['bar'], h.data[2]['bar'])
+        self.assertIs(h.data[3]['bar'], h.data[5]['bar'])
 
     @unittest.skipIf(_format is None, "No C tokenizer")
     def test_fixed_point_encoding_c(self):

@@ -253,6 +253,28 @@ struct ihm_file *ihm_file_new_from_python(PyObject *pyfile, bool binary,
 %}
 
 %{
+/* Python strings for each entry in a BinaryCIF StringArray dictionary */
+struct str_dict_cache {
+  /* The ID of the dictionary (0 if none) */
+  unsigned long id;
+  /* The number of entries in the dictionary */
+  size_t size;
+  /* Python string for each entry, or NULL if not created yet */
+  PyObject **strs;
+};
+
+static void str_dict_cache_clear(struct str_dict_cache *c)
+{
+  size_t i;
+  for (i = 0; i < c->size; ++i) {
+    Py_XDECREF(c->strs[i]);
+  }
+  free(c->strs);
+  c->strs = NULL;
+  c->size = 0;
+  c->id = 0;
+}
+
 struct category_handler_data {
   /* The Python callable object that is given the data */
   PyObject *callable;
@@ -269,6 +291,9 @@ struct category_handler_data {
   /* Array of the last Python string value seen for each keyword (or NULL),
      so that the object can be reused if the value is repeated */
   PyObject **last_str;
+  /* Array of the Python strings for the current BinaryCIF StringArray
+     dictionary for each keyword */
+  struct str_dict_cache *dict_str;
 };
 
 static void category_handler_data_free(void *data)
@@ -281,8 +306,10 @@ static void category_handler_data_free(void *data)
   Py_XDECREF(hd->unknown);
   for (i = 0; i < hd->num_keywords; ++i) {
     Py_XDECREF(hd->last_str[i]);
+    str_dict_cache_clear(&hd->dict_str[i]);
   }
   free(hd->last_str);
+  free(hd->dict_str);
   /* Don't need to free each hd->keywords[i] as the ihm_reader owns
      these pointers */
   free(hd->keywords);
@@ -316,6 +343,35 @@ static PyObject *get_keyword_str(struct ihm_keyword *key, PyObject **last)
   return val;
 }
 
+/* Get a Python string for the value of the given string keyword, which
+   is an entry in a BinaryCIF StringArray dictionary. Only one Python string
+   is made for each dictionary entry, no matter how many rows use it.
+   Return NULL on failure. */
+static PyObject *get_keyword_dict_str(struct ihm_keyword *key,
+                                      struct str_dict_cache *c)
+{
+  PyObject **pt;
+  if (c->id != key->str_dict_id) {
+    /* New dictionary, so discard strings from the old one */
+    str_dict_cache_clear(c);
+    c->strs = calloc(key->str_dict_size, sizeof(PyObject *));
+    if (!c->strs) {
+      return PyErr_NoMemory();
+    }
+    c->size = key->str_dict_size;
+    c->id = key->str_dict_id;
+  }
+  pt = &c->strs[key->str_index];
+  if (!*pt) {
+    *pt = PyUnicode_FromStringAndSize(key->data.str, key->str_len);
+    if (!*pt) {
+      return NULL;
+    }
+  }
+  Py_INCREF(*pt);
+  return *pt;
+}
+
 /* Called for each category (or loop construct data line) with data */
 static void handle_category_data(struct ihm_reader *reader, int linenum,
                                  void *data, struct ihm_error **err)
@@ -346,7 +402,11 @@ static void handle_category_data(struct ihm_reader *reader, int linenum,
     } else {
       switch((*keys)->type) {
       case IHM_STRING:
-        val = get_keyword_str(*keys, &hd->last_str[i]);
+        if ((*keys)->str_index >= 0) {
+          val = get_keyword_dict_str(*keys, &hd->dict_str[i]);
+        } else {
+          val = get_keyword_str(*keys, &hd->last_str[i]);
+        }
         if (!val) {
           ihm_error_set(err, IHM_ERROR_VALUE, "string creation failed");
           Py_DECREF(tuple);
@@ -441,6 +501,7 @@ static struct category_handler_data *do_add_handler(
   hd->num_keywords = seqlen;
   hd->keywords = malloc(sizeof(struct ihm_keyword *) * seqlen);
   hd->last_str = calloc(seqlen, sizeof(PyObject *));
+  hd->dict_str = calloc(seqlen, sizeof(struct str_dict_cache));
   category = ihm_category_new(reader, name, data_callback, end_frame_callback,
                               finalize_callback, hd,
                               category_handler_data_free);
