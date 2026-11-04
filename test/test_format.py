@@ -720,7 +720,8 @@ oneval
                 h = GenericHandler()
                 self._read_cif("_foo.floatkey1 %s" % val, real_file,
                                {'_foo': h})
-                # Compare reprs so that exact value and sign of zero are checked
+                # Compare reprs so that exact value and sign of zero are
+                # checked
                 self.assertEqual(repr(h.data[0]['floatkey1']),
                                  repr(float(val)))
             for val in ints:
