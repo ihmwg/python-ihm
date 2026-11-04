@@ -2105,12 +2105,14 @@ class _MultiStateHandler(Handler):
     category = '_ihm_multi_state_modeling'
 
     def __call__(self, state_group_id, state_id, population_fraction: float,
+                 population_fraction_sd: float,
                  experiment_type, details, state_name, state_type):
         state_group = self.sysr.state_groups.get_by_id(state_group_id)
         state = self.sysr.states.get_by_id(state_id)
         state_group.append(state)
 
         state.population_fraction = population_fraction
+        state.population_fraction_sd = population_fraction_sd
         # If an invalid experiment_type is present, preserve it
         self.copy_if_present(
             state, locals(),

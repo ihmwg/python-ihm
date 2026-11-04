@@ -221,12 +221,16 @@ class State(list):
               states at different time points.
        :param float population_fraction: The fraction of the population
               that is described by this state.
+       :param float population_fraction_sd: The standard deviation of the
+              population fraction.
     """
     def __init__(self, elements=(), type=None, name=None, details=None,
-                 experiment_type=None, population_fraction=None):
+                 experiment_type=None, population_fraction=None,
+                 population_fraction_sd=None):
         self.type, self.name, self.details = type, name, details
         self.experiment_type = experiment_type
         self.population_fraction = population_fraction
+        self.population_fraction_sd = population_fraction_sd
         super().__init__(elements)
 
     experiment_type = _text_choice_property(
