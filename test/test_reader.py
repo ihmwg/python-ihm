@@ -1830,7 +1830,7 @@ _ihm_multi_state_modeling.experiment_type
 _ihm_multi_state_modeling.details
 1 1 0.4 'complex formation' 'unbound' 'Fraction of bulk'  'unbound molecule 1'
 2 1 .  'complex formation' 'unbound' 'Fraction of bulk'  'unbound molecule 2'
-3 1 .  'complex formation' 'bound' 'Fraction of bulk'
+3 1 .  'complex formation' 'bound' 'Invalid experiment type'
 'bound molecules 1 and 2'
 #
 loop_
@@ -1857,6 +1857,7 @@ _ihm_multi_state_model_group_link.model_group_id
             self.assertIsNone(s2.population_fraction)
             self.assertEqual(len(s2), 1)
             self.assertEqual(len(s3), 2)
+            self.assertEqual(s3.experiment_type, 'Invalid experiment type')
 
     def test_not_modeled_residue_range_handler(self):
         """Test NotModeledResidueRangeHandler"""

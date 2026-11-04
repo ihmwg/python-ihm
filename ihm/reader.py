@@ -2111,10 +2111,12 @@ class _MultiStateHandler(Handler):
         state_group.append(state)
 
         state.population_fraction = population_fraction
+        # If an invalid experiment_type is present, preserve it
         self.copy_if_present(
             state, locals(),
-            keys=['experiment_type', 'details'],
-            mapkeys={'state_name': 'name', 'state_type': 'type'})
+            keys=['details'],
+            mapkeys={'state_name': 'name', 'state_type': 'type',
+                     'experiment_type': '_experiment_type'})
 
 
 class _MultiStateLinkHandler(Handler):

@@ -209,6 +209,18 @@ class State(list):
 
        :param elements: The initial set of :class:`ModelGroup` objects in
               this state.
+       :param str type: Classification of the state, such as
+              "complex formation", "ligand binding".
+       :param str name: A descriptive name, such as "open", "closed",
+              "bound", "unbound".
+       :param str details: Additional free text to describe the state.
+       :param str experiment_type: The type of multi-state modeling
+              experiment. This can be "Fraction of bulk" to describe a bulk
+              sample where a fraction of molecules are in each state,
+              or "Single molecule" where a single molecule adapts different
+              states at different time points.
+       :param float population_fraction: The fraction of the population
+              that is described by this state.
     """
     def __init__(self, elements=(), type=None, name=None, details=None,
                  experiment_type=None, population_fraction=None):
@@ -216,6 +228,10 @@ class State(list):
         self.experiment_type = experiment_type
         self.population_fraction = population_fraction
         super().__init__(elements)
+
+    experiment_type = _text_choice_property(
+        "experiment_type", ["Fraction of bulk", "Single molecule"],
+        doc="The type of multi-state modeling experiment")
 
 
 class StateGroup(list):
