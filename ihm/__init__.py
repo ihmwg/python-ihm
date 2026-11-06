@@ -91,6 +91,37 @@ class _StateGroupsView(collections.abc.Sequence):
     def __getitem__(self, index):
         return list(self)[index]
 
+    def _iter_positions(self):
+        """Yield a (parent, index) pair for each object in the view, where
+           parent[index] is the object."""
+        parents = self._system.state_groups
+        for _ in range(self._depth - 1):
+            parents = itertools.chain.from_iterable(parents)
+        for parent in parents:
+            for i in range(len(parent)):
+                yield parent, i
+
+    def __delitem__(self, index):
+        """Remove one object (or a slice of objects) from the view, by
+           removing it from its immediate parent in the hierarchy.
+           Higher levels of the hierarchy are left in place, even if
+           they become empty."""
+        positions = list(self._iter_positions())
+        if isinstance(index, slice):
+            to_delete = [positions[i]
+                         for i in range(*index.indices(len(positions)))]
+        else:
+            to_delete = [positions[index]]
+        # The same parent object may appear more than once in the hierarchy,
+        # so group by parent identity, ignore duplicate positions, and delete
+        # from the end of each parent so that earlier indices remain valid
+        by_parent = {}
+        for parent, i in to_delete:
+            by_parent.setdefault(id(parent), (parent, set()))[1].add(i)
+        for parent, indices in by_parent.values():
+            for i in sorted(indices, reverse=True):
+                del parent[i]
+
     def __eq__(self, other):
         if isinstance(other, _StateGroupsView):
             other = list(other)

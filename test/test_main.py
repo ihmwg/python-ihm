@@ -222,6 +222,71 @@ class Tests(unittest.TestCase):
         self.assertIs(mg[2], m2)
         self.assertIs(mg[3], m3)
 
+    def test_system_views_delitem(self):
+        """Test deletion from System flat views"""
+        def make_system():
+            m1, m2, m3 = [ihm.model.Model(None, None, None)
+                          for _ in range(3)]
+            mg1 = ihm.model.ModelGroup([m1, m2])
+            mg2 = ihm.model.ModelGroup([m3])
+            mg3 = ihm.model.ModelGroup()
+            st1 = ihm.model.State([mg1])
+            st2 = ihm.model.State([mg2, mg3])
+            st3 = ihm.model.State()
+            s = ihm.System()
+            s.state_groups.extend([ihm.model.StateGroup([st1]),
+                                   ihm.model.StateGroup([st2, st3])])
+            return (s, (m1, m2, m3), (mg1, mg2, mg3), (st1, st2, st3))
+
+        # Delete a single model by positive or negative index
+        s, (m1, m2, m3), (mg1, mg2, mg3), _ = make_system()
+        del s.models[1]
+        self.assertEqual(s.models, [m1, m3])
+        self.assertEqual(mg1, [m1])
+        del s.models[-1]
+        self.assertEqual(s.models, [m1])
+        # Empty parents should be left in place
+        self.assertEqual(mg2, [])
+        self.assertEqual(len(s.model_groups), 3)
+        self.assertRaises(IndexError, s.models.__delitem__, 1)
+        self.assertRaises(IndexError, s.models.__delitem__, -2)
+        self.assertEqual(s.models, [m1])
+
+        # Delete a slice spanning multiple parents
+        s, (m1, m2, m3), (mg1, mg2, mg3), _ = make_system()
+        del s.models[1:]
+        self.assertEqual(s.models, [m1])
+        self.assertEqual(mg1, [m1])
+        self.assertEqual(mg2, [])
+        s, (m1, m2, m3), _, _ = make_system()
+        del s.models[::2]
+        self.assertEqual(s.models, [m2])
+        s, _, _, _ = make_system()
+        del s.models[:]
+        self.assertEqual(s.models, [])
+        self.assertEqual(len(s.model_groups), 3)
+
+        # Delete model groups and states
+        s, (m1, m2, m3), (mg1, mg2, mg3), (st1, st2, st3) = make_system()
+        del s.model_groups[1]
+        self.assertEqual(s.model_groups, [mg1, mg3])
+        self.assertEqual(st2, [mg3])
+        self.assertEqual(s.models, [m1, m2])
+        del s.states[0]
+        self.assertEqual(s.states, [st2, st3])
+        self.assertEqual(s.state_groups[0], [])
+        self.assertEqual(s.models, [])
+
+        # The same parent may appear more than once in the hierarchy
+        m1, m2, m3 = [ihm.model.Model(None, None, None) for _ in range(3)]
+        mg = ihm.model.ModelGroup([m1, m2, m3])
+        s = ihm.System()
+        s.state_groups.append(ihm.model.StateGroup([ihm.model.State([mg]),
+                                                    ihm.model.State([mg])]))
+        self.assertEqual(len(s.models), 6)
+        del s.models[1:5]
+        self.assertEqual(mg, [])
+
     def test_chem_comp(self):
         """Test ChemComp class"""
         cc1 = ihm.ChemComp(id='GLY', code='G', code_canonical='G')
