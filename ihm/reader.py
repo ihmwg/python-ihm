@@ -1818,7 +1818,8 @@ class _ModelRepresentationDetailsHandler(Handler):
     category = '_ihm_model_representation_details'
     ignored_keywords = ['entity_description']
 
-    _rigid_map = {'rigid': True, 'flexible': False, None: None}
+    _rigid_map = {'rigid': True, 'flexible': False, None: None,
+                  ihm.unknown: ihm.unknown}
     _segment_factory = {'by-atom': _make_atom_segment,
                         'by-residue': _make_residue_segment,
                         'multi-residue': _make_multi_residue_segment,
@@ -1875,7 +1876,7 @@ class _StartingModelDetailsHandler(Handler):
         self.copy_if_present(
             m, locals(), keys=('description',),
             mapkeys={'starting_model_auth_asym_id': 'asym_id'})
-        if starting_model_sequence_offset is not None:
+        if starting_model_sequence_offset not in (None, ihm.unknown):
             m.offset = int(starting_model_sequence_offset)
 
     def finalize(self):
@@ -2636,7 +2637,8 @@ _handle_distance = {'harmonic': _make_harmonic,
 
 class _DerivedDistanceRestraintHandler(Handler):
     category = '_ihm_derived_distance_restraint'
-    _cond_map = {'ALL': True, 'ANY': False, None: None}
+    _cond_map = {'ALL': True, 'ANY': False, None: None,
+                 ihm.unknown: ihm.unknown}
 
     def __call__(self, id, group_id, dataset_list_id, feature_id_1,
                  feature_id_2, restraint_type, group_conditionality,
@@ -2842,7 +2844,8 @@ class _PlaneHandler(Handler):
 class _GeometricRestraintHandler(Handler):
     category = '_ihm_geometric_object_distance_restraint'
 
-    _cond_map = {'ALL': True, 'ANY': False, None: None}
+    _cond_map = {'ALL': True, 'ANY': False, None: None,
+                 ihm.unknown: ihm.unknown}
 
     # Map object_characteristic to corresponding subclass
     _type_map = dict((x[1].object_characteristic.lower(), x[1])
@@ -3194,7 +3197,8 @@ class _CrossLinkListHandler(Handler):
 class _CrossLinkRestraintHandler(Handler):
     category = '_ihm_cross_link_restraint'
 
-    _cond_map = {'ALL': True, 'ANY': False, None: None}
+    _cond_map = {'ALL': True, 'ANY': False, None: None,
+                 ihm.unknown: ihm.unknown}
     _distance_map = {'harmonic': ihm.restraint.HarmonicDistanceRestraint,
                      'lower bound': ihm.restraint.LowerBoundDistanceRestraint,
                      'upper bound': ihm.restraint.UpperBoundDistanceRestraint}
