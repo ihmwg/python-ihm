@@ -1401,6 +1401,8 @@ _ihm_model_representation_details.description
 2 1 1 Nup84 A 2 sphere 1 rigid by-residue . .
 3 2 1 Nup84 A . atomistic . . by-atom . .
 4 3 2 Nup85 B . sphere . ? multi-residue . .
+5 3 2 Nup85 B . sphere . ? ? 42 "unknown granularity"
+6 3 2 Nup85 B . sphere . ? . 42 "omitted granularity"
 """
         # Order of categories should not matter
         for cif in (range_cif + repr_cif, repr_cif + range_cif):
@@ -1433,11 +1435,13 @@ _ihm_model_representation_details.description
                                  ihm.representation.AtomicSegment)
                 self.assertIsNone(s1.rigid)
 
-                self.assertEqual(len(r3), 1)
-                s1, = r3
+                self.assertEqual(len(r3), 3)
+                s1, s2, s3 = r3
                 self.assertEqual(s1.__class__,
                                  ihm.representation.MultiResidueSegment)
                 self.assertIs(s1.rigid, ihm.unknown)
+                self.assertIs(s2.granularity, ihm.unknown)
+                self.assertIsNone(s3.granularity, 'x')
 
     def test_starting_model_details_handler(self):
         """Test StartingModelDetailsHandler"""

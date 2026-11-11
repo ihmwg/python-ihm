@@ -1814,6 +1814,20 @@ def _make_feature_segment(asym, rigid, primitive, count, smodel, description):
         count=count, starting_model=smodel, description=description)
 
 
+def _make_omitted_segment(asym, rigid, primitive, count, smodel, description):
+    return ihm.representation._UnknownSegment(
+        asym_unit=asym, rigid=rigid, primitive=primitive,
+        count=count, starting_model=smodel, description=description,
+        granularity=None)
+
+
+def _make_unknown_segment(asym, rigid, primitive, count, smodel, description):
+    return ihm.representation._UnknownSegment(
+        asym_unit=asym, rigid=rigid, primitive=primitive,
+        count=count, starting_model=smodel, description=description,
+        granularity=ihm.unknown)
+
+
 class _ModelRepresentationDetailsHandler(Handler):
     category = '_ihm_model_representation_details'
     ignored_keywords = ['entity_description']
@@ -1823,7 +1837,9 @@ class _ModelRepresentationDetailsHandler(Handler):
     _segment_factory = {'by-atom': _make_atom_segment,
                         'by-residue': _make_residue_segment,
                         'multi-residue': _make_multi_residue_segment,
-                        'by-feature': _make_feature_segment}
+                        'by-feature': _make_feature_segment,
+                        None: _make_omitted_segment,
+                        ihm.unknown: _make_unknown_segment}
 
     def __init__(self, *args):
         super().__init__(*args)
