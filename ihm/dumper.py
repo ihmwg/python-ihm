@@ -1697,10 +1697,11 @@ class _PostProcessDumper(Dumper):
         for p in system._all_protocols():
             for na, a in enumerate(p.analyses):
                 a._id = na + 1
-                for ns, s in enumerate(a.steps):
-                    s._id = ns + 1
-                    # Assign globally unique postproc id
-                    s._post_proc_id = next(pp_id)
+                for s in a.steps:
+                    # Assign globally unique postproc id. This (not the
+                    # number of the step within its analysis) is what
+                    # _ihm_ensemble_info.post_process_id refers to
+                    s._id = next(pp_id)
 
     def dump(self, system, writer):
         with writer.loop("_ihm_modeling_post_process",
@@ -1711,10 +1712,10 @@ class _PostProcessDumper(Dumper):
                           "script_file_id", "details"]) as lp:
             for p in system._all_protocols():
                 for a in p.analyses:
-                    for s in a.steps:
+                    for ns, s in enumerate(a.steps):
                         lp.write(
-                            id=s._post_proc_id, protocol_id=p._id,
-                            analysis_id=a._id, step_id=s._id, type=s.type,
+                            id=s._id, protocol_id=p._id,
+                            analysis_id=a._id, step_id=ns + 1, type=s.type,
                             feature=s.feature,
                             num_models_begin=s.num_models_begin,
                             num_models_end=s.num_models_end,
