@@ -1106,6 +1106,34 @@ _struct_ref_seq_dif.details
 #
 """)
 
+    def test_struct_ref_negative_strand(self):
+        """Test StructRefDumper with alignment to negative strand"""
+        system = ihm.System()
+        r1 = ihm.reference.Sequence(
+            db_name='GB', db_code='testcode', accession='testacc',
+            sequence=None)
+        r1.alignments.append(ihm.reference.Alignment(
+            db_begin=3950328, db_end=3948799, entity_begin=1,
+            entity_end=1530))
+        # Sequence is not checked for negative strand alignments
+        r2 = ihm.reference.Sequence(
+            db_name='GB', db_code='testcode2', accession='testacc2',
+            sequence='ACGU')
+        r2.alignments.append(ihm.reference.Alignment(
+            db_begin=4, db_end=1))
+        system.entities.append(ihm.Entity('A' * 1530, references=[r1]))
+        system.entities.append(ihm.Entity('UGCA', references=[r2]))
+        dumper = ihm.dumper._EntityDumper()
+        dumper.finalize(system)  # Assign entity IDs
+
+        dumper = ihm.dumper._StructRefDumper()
+        dumper.finalize(system)  # Assign IDs
+        out = _get_dumper_output(dumper, system)
+        self.assertIn("""_struct_ref_seq.db_align_end
+1 1 1 1530 3950328 3948799
+2 2 1 4 4 1
+#""", out)
+
     def test_chem_comp_dumper(self):
         """Test ChemCompDumper"""
         system = ihm.System()

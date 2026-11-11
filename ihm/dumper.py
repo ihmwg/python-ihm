@@ -682,6 +682,10 @@ class _StructRefDumper(Dumper):
         entity_rng, db_rng = self._get_ranges(entity, fullrefseq, align)
         check_rng(entity_rng, entseq, "entity_begin,entity_end", entity)
         check_rng(db_rng, fullrefseq, "db_begin,db_end", ref)
+        if db_rng[1] < db_rng[0]:
+            # Alignment to the negative strand (e.g. of a genome); we don't
+            # currently check these against the reference sequence
+            return
 
         entseq, refseq = self._get_gapped_alignment(
             entity_rng, db_rng, entseq, fullrefseq, insertions, deletions)
@@ -739,13 +743,15 @@ class _StructRefDumper(Dumper):
             for e, r, a in _all_alignments():
                 fullrefseq = list(util._get_codes(r.sequence))
                 entity_rng, db_rng = self._get_ranges(e, fullrefseq, a)
+                # db_end < db_begin denotes the negative strand
+                db_dir = -1 if db_rng[1] < db_rng[0] else 1
                 matchlen = min(entity_rng[1] - entity_rng[0],
-                               db_rng[1] - db_rng[0])
+                               abs(db_rng[1] - db_rng[0]))
                 lp.write(align_id=a._id, ref_id=r._id,
                          seq_align_beg=entity_rng[0],
                          seq_align_end=entity_rng[0] + matchlen,
                          db_align_beg=db_rng[0],
-                         db_align_end=db_rng[0] + matchlen)
+                         db_align_end=db_rng[0] + db_dir * matchlen)
 
     def dump_seq_dif(self, system, writer):
         ordinal = itertools.count(1)
