@@ -125,7 +125,7 @@ def check_item(category, keyword, value, verbose):
             ihm.dumper.write(io.StringIO(), systems, check=False)
     except Exception:
         msg = "%s failed for _%s.%s = %s" % (stage, category.name,
-                                              keyword.name, value)
+                                             keyword.name, value)
         if verbose:
             msg += "\nInput file:\n" + cif + traceback.format_exc()
         else:
