@@ -1758,6 +1758,10 @@ _ihm_struct_assembly_details.entity_poly_segment_id
         loc = ihm.location.InputFileLocation(repo=repo3, path=None,
                                              details='EM micrographs')
         system.locations.append(loc)
+        # Dictionary allows for path to be ? also
+        loc = ihm.location.InputFileLocation(repo=repo3, path=ihm.unknown,
+                                             details='EM micrographs')
+        system.locations.append(loc)
 
         with utils.temporary_directory('') as tmpdir:
             # Force tmpdir to be a relative path (in Python 3.12 or later
@@ -1774,11 +1778,11 @@ _ihm_struct_assembly_details.entity_poly_segment_id
 
             d = ihm.dumper._ExternalReferenceDumper()
             d.finalize(system)
-            self.assertEqual(len(d._ref_by_id), 6)
+            self.assertEqual(len(d._ref_by_id), 7)
             self.assertEqual(len(d._repo_by_id), 4)
             # Repeated calls to finalize() should yield identical results
             d.finalize(system)
-            self.assertEqual(len(d._ref_by_id), 6)
+            self.assertEqual(len(d._ref_by_id), 7)
             self.assertEqual(len(d._repo_by_id), 4)
             out = _get_dumper_output(d, system)
             self.assertEqual(out, """#
@@ -1809,7 +1813,8 @@ _ihm_external_files.details
 3 2 foo/bar/baz 'Modeling or post-processing output' . . .
 4 3 foo.spd 'Input data or restraints' . . 'EM micrographs'
 5 3 . 'Input data or restraints' . . 'EM micrographs'
-6 4 %s 'Modeling workflow or script' . 4 .
+6 3 ? 'Input data or restraints' . . 'EM micrographs'
+7 4 %s 'Modeling workflow or script' . 4 .
 #
 """ % bar.replace(os.sep, '/'))
 

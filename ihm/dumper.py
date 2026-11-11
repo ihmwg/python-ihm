@@ -1274,8 +1274,8 @@ class _ExternalReferenceDumper(Dumper):
                           "file_format", "file_size_bytes", "details"]) as lp:
             for r in self._ref_by_id:
                 repo = r.repo or self._local_files
-                if r.path is None:
-                    file_path = None
+                if r.path in (None, ihm.unknown):
+                    file_path = r.path
                 else:
                     file_path = self._posix_path(repo._get_full_path(r.path))
                 lp.write(id=r._id, reference_id=repo._id,
