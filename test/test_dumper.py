@@ -4395,9 +4395,25 @@ _ihm_pseudo_site.description
         dataset._id = 97
 
         dist = ihm.restraint.UpperBoundDistanceRestraint(25.0)
-        r = ihm.restraint.CenterGeometricRestraint(
+        for restrain_all in (True, ihm.unknown):
+            r = ihm.restraint.CenterGeometricRestraint(
+                dataset=dataset, geometric_object=geom, feature=feat,
+                distance=dist, harmonic_force_constant=2.0,
+                restrain_all=restrain_all)
+            system.restraints.append(r)
+
+        dist = ihm.restraint.LowerBoundDistanceRestraint(25.0)
+        r = ihm.restraint.InnerSurfaceGeometricRestraint(
             dataset=dataset, geometric_object=geom, feature=feat,
-            distance=dist, harmonic_force_constant=2.0, restrain_all=False)
+            distance=dist, harmonic_force_constant=2.0,
+            restrain_all=False)
+        system.restraints.append(r)
+
+        dist = ihm.restraint.LowerUpperBoundDistanceRestraint(15.0, 22.0)
+        r = ihm.restraint.OuterSurfaceGeometricRestraint(
+            dataset=dataset, geometric_object=geom, feature=feat,
+            distance=dist, harmonic_force_constant=2.0,
+            restrain_all=None)
         system.restraints.append(r)
 
         dumper = ihm.dumper._GeometricRestraintDumper()
@@ -4416,7 +4432,10 @@ _ihm_geometric_object_distance_restraint.distance_lower_limit
 _ihm_geometric_object_distance_restraint.distance_upper_limit
 _ihm_geometric_object_distance_restraint.group_conditionality
 _ihm_geometric_object_distance_restraint.dataset_list_id
-1 23 44 center 'upper bound' 2.000 . 25.000 ANY 97
+1 23 44 center 'upper bound' 2.000 . 25.000 ALL 97
+2 23 44 center 'upper bound' 2.000 . 25.000 ? 97
+3 23 44 'inner surface' 'lower bound' 2.000 25.000 . ANY 97
+4 23 44 'outer surface' 'lower and upper bound' 2.000 15.000 22.000 . 97
 #
 """)
 
@@ -4438,16 +4457,16 @@ _ihm_geometric_object_distance_restraint.dataset_list_id
         harmdist = ihm.restraint.HarmonicDistanceRestraint(6.4, esd=0.5)
         r1 = ihm.restraint.DerivedDistanceRestraint(
             dataset=dataset, feature1=feat1, feature2=feat2, distance=dist,
-            probability=0.8)
+            probability=0.8, restrain_all=True)
         r2 = ihm.restraint.DerivedDistanceRestraint(
             dataset=dataset, feature1=feat1, feature2=feat2, distance=dist,
-            probability=0.4)
+            probability=0.4, restrain_all=False)
         r3 = ihm.restraint.DerivedDistanceRestraint(
             dataset=dataset, feature1=feat1, feature2=feat2, distance=unkdist,
             probability=0.6, mic_value=0.4, random_exclusion_fraction=0.3)
         r4 = ihm.restraint.DerivedDistanceRestraint(
             dataset=dataset, feature1=feat1, feature2=feat2,
-            distance=harmdist)
+            distance=harmdist, restrain_all=ihm.unknown)
         rg = ihm.restraint.RestraintGroup((r2, r3))
         # r2 is in restraints and groups
         system.restraints.extend((r1, r2, r4))
@@ -4475,9 +4494,9 @@ _ihm_derived_distance_restraint.mic_value
 _ihm_derived_distance_restraint.random_exclusion_fraction
 _ihm_derived_distance_restraint.group_conditionality
 _ihm_derived_distance_restraint.dataset_list_id
-1 . 44 84 'lower bound' 25.000 . 1.500 . . . 0.800 . . . 97
-2 1 44 84 'lower bound' 25.000 . 1.500 . . . 0.400 . . . 97
-3 . 44 84 harmonic 6.400 6.400 . . 6.400 0.500 . . . . 97
+1 . 44 84 'lower bound' 25.000 . 1.500 . . . 0.800 . . ALL 97
+2 1 44 84 'lower bound' 25.000 . 1.500 . . . 0.400 . . ANY 97
+3 . 44 84 harmonic 6.400 6.400 . . 6.400 0.500 . . . ? 97
 4 1 44 84 . . . . . . . 0.600 0.400 0.300 . 97
 #
 """)

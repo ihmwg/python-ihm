@@ -2766,7 +2766,8 @@ class _GeometricRestraintDumper(Dumper):
             r._id = nr + 1
 
     def dump(self, system, writer):
-        condmap = {True: 'ALL', False: 'ANY', None: None}
+        condmap = {True: 'ALL', False: 'ANY', None: None,
+                   ihm.unknown: ihm.unknown}
         with writer.loop("_ihm_geometric_object_distance_restraint",
                          ["id", "object_id", "feature_id",
                           "object_characteristic", "restraint_type",
@@ -2821,7 +2822,8 @@ class _DerivedDistanceRestraintDumper(Dumper):
             system, restraint.DerivedDistanceRestraint)
 
     def dump(self, system, writer):
-        condmap = {True: 'ALL', False: 'ANY', None: None}
+        condmap = {True: 'ALL', False: 'ANY', None: None,
+                   ihm.unknown: ihm.unknown}
         with writer.loop("_ihm_derived_distance_restraint",
                          ["id", "group_id", "feature_id_1", "feature_id_2",
                           "restraint_type", "distance_lower_limit",
