@@ -2780,7 +2780,8 @@ class _GeometricRestraintDumper(Dumper):
                          ["id", "object_id", "feature_id",
                           "object_characteristic", "restraint_type",
                           "harmonic_force_constant",
-                          "distance_lower_limit", "distance_upper_limit",
+                          "distance_lower_limit", "distance_lower_limit_esd",
+                          "distance_upper_limit", "distance_upper_limit_esd",
                           "group_conditionality", "dataset_list_id"]) as lp:
             for r in self._all_restraints(system):
                 lp.write(id=r._id, object_id=r.geometric_object._id,
@@ -2788,7 +2789,11 @@ class _GeometricRestraintDumper(Dumper):
                          object_characteristic=r.object_characteristic,
                          restraint_type=r.distance.restraint_type,
                          distance_lower_limit=r.distance.distance_lower_limit,
+                         distance_lower_limit_esd=(
+                             r.distance.distance_lower_limit_esd),
                          distance_upper_limit=r.distance.distance_upper_limit,
+                         distance_upper_limit_esd=(
+                             r.distance.distance_upper_limit_esd),
                          harmonic_force_constant=r.harmonic_force_constant,
                          group_conditionality=condmap[r.restrain_all],
                          dataset_list_id=r.dataset._id if r.dataset else None)

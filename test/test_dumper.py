@@ -4427,7 +4427,7 @@ _ihm_pseudo_site.description
         dataset = MockObject()
         dataset._id = 97
 
-        dist = ihm.restraint.UpperBoundDistanceRestraint(25.0)
+        dist = ihm.restraint.UpperBoundDistanceRestraint(25.0, esd=2.0)
         for restrain_all in (True, ihm.unknown):
             r = ihm.restraint.CenterGeometricRestraint(
                 dataset=dataset, geometric_object=geom, feature=feat,
@@ -4435,7 +4435,7 @@ _ihm_pseudo_site.description
                 restrain_all=restrain_all)
             system.restraints.append(r)
 
-        dist = ihm.restraint.LowerBoundDistanceRestraint(25.0)
+        dist = ihm.restraint.LowerBoundDistanceRestraint(25.0, esd=1.0)
         r = ihm.restraint.InnerSurfaceGeometricRestraint(
             dataset=dataset, geometric_object=geom, feature=feat,
             distance=dist, harmonic_force_constant=2.0,
@@ -4462,13 +4462,15 @@ _ihm_geometric_object_distance_restraint.object_characteristic
 _ihm_geometric_object_distance_restraint.restraint_type
 _ihm_geometric_object_distance_restraint.harmonic_force_constant
 _ihm_geometric_object_distance_restraint.distance_lower_limit
+_ihm_geometric_object_distance_restraint.distance_lower_limit_esd
 _ihm_geometric_object_distance_restraint.distance_upper_limit
+_ihm_geometric_object_distance_restraint.distance_upper_limit_esd
 _ihm_geometric_object_distance_restraint.group_conditionality
 _ihm_geometric_object_distance_restraint.dataset_list_id
-1 23 44 center 'upper bound' 2.000 . 25.000 ALL 97
-2 23 44 center 'upper bound' 2.000 . 25.000 ? 97
-3 23 44 'inner surface' 'lower bound' 2.000 25.000 . ANY 97
-4 23 44 'outer surface' 'lower and upper bound' 2.000 15.000 22.000 . 97
+1 23 44 center 'upper bound' 2.000 . . 25.000 2.000 ALL 97
+2 23 44 center 'upper bound' 2.000 . . 25.000 2.000 ? 97
+3 23 44 'inner surface' 'lower bound' 2.000 25.000 1.000 . . ANY 97
+4 23 44 'outer surface' 'lower and upper bound' 2.000 15.000 . 22.000 . . 97
 #
 """)
 

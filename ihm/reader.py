@@ -2872,7 +2872,9 @@ class _GeometricRestraintHandler(Handler):
     def __call__(self, object_characteristic, id, dataset_list_id, object_id,
                  feature_id, restraint_type, harmonic_force_constant: float,
                  group_conditionality, distance_lower_limit: float,
-                 distance_upper_limit: float):
+                 distance_upper_limit: float,
+                 distance_lower_limit_esd: float,
+                 distance_upper_limit_esd: float):
         typ = (object_characteristic or 'other').lower()
         r = self.sysr.geom_restraints.get_by_id(
             id, self._type_map.get(typ, ihm.restraint.GeometricRestraint))
@@ -2881,6 +2883,9 @@ class _GeometricRestraintHandler(Handler):
         r.feature = self.sysr.features.get_by_id(feature_id)
         r.distance = _handle_distance[restraint_type](distance_lower_limit,
                                                       distance_upper_limit)
+        r.distance = _handle_distance[restraint_type](
+            distance_lower_limit, distance_upper_limit,
+            distance_lower_limit_esd, distance_upper_limit_esd)
         r.harmonic_force_constant = harmonic_force_constant
         r.restrain_all = self._cond_map[group_conditionality]
 

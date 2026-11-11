@@ -3143,13 +3143,15 @@ _ihm_geometric_object_distance_restraint.object_characteristic
 _ihm_geometric_object_distance_restraint.restraint_type
 _ihm_geometric_object_distance_restraint.harmonic_force_constant
 _ihm_geometric_object_distance_restraint.distance_lower_limit
+_ihm_geometric_object_distance_restraint.distance_lower_limit_esd
 _ihm_geometric_object_distance_restraint.distance_upper_limit
+_ihm_geometric_object_distance_restraint.distance_upper_limit_esd
 _ihm_geometric_object_distance_restraint.group_conditionality
 _ihm_geometric_object_distance_restraint.dataset_list_id
-1 23 44 other 'upper bound' 2.000 . 25.000 ANY 97
-2 23 44 center 'lower bound' 2.000 15.000 . ALL .
-3 23 44 'inner surface' 'lower and upper bound' 2.000 10.000 25.000 . 97
-4 23 44 'outer surface' 'harmonic' 2.000 . 25.000 ? 97
+1 23 44 other 'upper bound' 2.000 . . 25.000 1.000 ANY 97
+2 23 44 center 'lower bound' 2.000 15.000 2.000 . . ALL .
+3 23 44 'inner surface' 'lower and upper bound' 2.000 10.000 . 25.000 . . 97
+4 23 44 'outer surface' 'harmonic' 2.000 . . 25.000 . ? 97
 #
 """)
         s, = ihm.reader.read(fh)
@@ -3161,11 +3163,14 @@ _ihm_geometric_object_distance_restraint.dataset_list_id
         self.assertIsInstance(r1.distance,
                               ihm.restraint.UpperBoundDistanceRestraint)
         self.assertAlmostEqual(r1.distance.distance, 25.000, delta=0.1)
+        self.assertAlmostEqual(r1.distance.esd, 1.000, delta=0.1)
         self.assertAlmostEqual(r1.harmonic_force_constant, 2.000, delta=0.1)
         self.assertEqual(r1.restrain_all, False)
         self.assertEqual(r2.restrain_all, True)
         self.assertIsNone(r3.restrain_all)
         self.assertIs(r4.restrain_all, ihm.unknown)
+        self.assertAlmostEqual(r2.distance.distance, 15.000, delta=0.1)
+        self.assertAlmostEqual(r2.distance.esd, 2.000, delta=0.1)
 
         self.assertIsInstance(r2, ihm.restraint.CenterGeometricRestraint)
         self.assertIsInstance(r3, ihm.restraint.InnerSurfaceGeometricRestraint)
