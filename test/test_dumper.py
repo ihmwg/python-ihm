@@ -3340,6 +3340,61 @@ _ihm_ensemble_sub_sample.file_id
 #
 """)
 
+    def test_ensemble_dumper_post_process(self):
+        """Test EnsembleDumper reference to a post-process step"""
+        system = ihm.System()
+        p1 = ihm.protocol.Protocol('refinement')
+        system.orphan_protocols.append(p1)
+
+        a1 = ihm.analysis.Analysis()
+        a1.steps.append(ihm.analysis.EmptyStep())
+        a2 = ihm.analysis.Analysis()
+        a2.steps.append(ihm.analysis.FilterStep(
+            feature='energy/score', num_models_begin=1000,
+            num_models_end=200))
+        a2.steps.append(ihm.analysis.ClusterStep(
+            feature='RMSD', num_models_begin=200, num_models_end=42))
+        p1.analyses.extend((a1, a2))
+
+        # Each ensemble is the output of a different step of the second
+        # analysis
+        e1 = ihm.model.Ensemble(model_group=None, num_models=200,
+                                post_process=a2.steps[0])
+        e2 = ihm.model.Ensemble(model_group=None, num_models=42,
+                                post_process=a2.steps[1])
+        system.ensembles.extend((e1, e2))
+
+        dumper = ihm.dumper._PostProcessDumper()
+        dumper.finalize(system)  # assign analysis step IDs
+
+        dumper = ihm.dumper._EnsembleDumper()
+        dumper.finalize(system)  # assign ensemble IDs
+
+        # post_process_id should be the _ihm_modeling_post_process.id of
+        # each step (2, 3), not the number of the step within its
+        # analysis (step_id; 1, 2)
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_ihm_ensemble_info.ensemble_id
+_ihm_ensemble_info.ensemble_name
+_ihm_ensemble_info.post_process_id
+_ihm_ensemble_info.model_group_id
+_ihm_ensemble_info.ensemble_clustering_method
+_ihm_ensemble_info.ensemble_clustering_feature
+_ihm_ensemble_info.num_ensemble_models
+_ihm_ensemble_info.num_ensemble_models_deposited
+_ihm_ensemble_info.ensemble_precision_value
+_ihm_ensemble_info.ensemble_file_id
+_ihm_ensemble_info.details
+_ihm_ensemble_info.model_group_superimposed_flag
+_ihm_ensemble_info.sub_sample_flag
+_ihm_ensemble_info.sub_sampling_type
+1 . 2 . . . 200 . . . . . NO .
+2 . 3 . . . 42 . . . . . NO .
+#
+""")
+
     def test_density_dumper(self):
         """Test DensityDumper"""
         class MockObject:
