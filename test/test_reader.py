@@ -1653,8 +1653,8 @@ _ihm_modeling_post_process.script_file_id
 _ihm_modeling_post_process.details
 1  1   1   1   'filter'  'energy/score'  15000   6520 . . 401 501 .
 2  1   1   2   'cluster' 'invalid'       6520    6520 . . . . .
-3  1   2   1   'filter'  'energy/score'  16000   7520 . . . . .
-4  1   2   2   'filter'  'composition'   7520    5520 . . . . .
+3  1   2   1   .         'energy/score'  16000   7520 . . . . .
+4  1   2   2   ?         'composition'   7520    5520 . . . . .
 5  1   2   3   'cluster' 'dRMSD'         5520    6520 . . . . .
 6  2   1   1   'filter'  'energy/score'  17000   6520 . . 401 501 .
 7  3   1   1   'none' .         .    . . . . . 'empty step'
@@ -1685,6 +1685,9 @@ _ihm_modeling_post_process.details
             self.assertIsNone(a1.steps[1].script_file)
             self.assertIsNone(a1.steps[1].details)
             self.assertEqual(len(a2.steps), 3)
+            # . or ? types should map to 'other'
+            self.assertEqual(a2.steps[0].type, 'other')
+            self.assertEqual(a2.steps[1].type, 'other')
             self.assertEqual([step.num_models_begin for step in a2.steps],
                              [16000, 7520, 5520])
 

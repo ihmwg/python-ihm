@@ -2019,7 +2019,7 @@ class _PostProcessHandler(Handler):
         if analysis._id not in [a._id for a in protocol.analyses]:
             protocol.analyses.append(analysis)
 
-        typ = type.lower() if type is not None else 'other'
+        typ = type.lower() if type not in (None, ihm.unknown) else 'other'
         step = self.sysr.analysis_steps.get_by_id(
             id, self.type_map.get(typ, ihm.analysis.Step))
         analysis.steps.append(step)
