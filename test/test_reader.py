@@ -1644,6 +1644,7 @@ _ihm_modeling_post_process.analysis_id
 _ihm_modeling_post_process.step_id
 _ihm_modeling_post_process.type
 _ihm_modeling_post_process.feature
+_ihm_modeling_post_process.feature_name
 _ihm_modeling_post_process.num_models_begin
 _ihm_modeling_post_process.num_models_end
 _ihm_modeling_post_process.struct_assembly_id
@@ -1651,13 +1652,15 @@ _ihm_modeling_post_process.dataset_group_id
 _ihm_modeling_post_process.software_id
 _ihm_modeling_post_process.script_file_id
 _ihm_modeling_post_process.details
-1  1   1   1   'filter'  'energy/score'  15000   6520 . . 401 501 .
-2  1   1   2   'cluster' 'invalid'       6520    6520 . . . . .
-3  1   2   1   .         'energy/score'  16000   7520 . . . . .
-4  1   2   2   ?         'composition'   7520    5520 . . . . .
-5  1   2   3   'cluster' 'dRMSD'         5520    6520 . . . . .
-6  2   1   1   'filter'  'energy/score'  17000   6520 . . 401 501 .
-7  3   1   1   'none' .         .    . . . . . 'empty step'
+1  1   1   1   'filter'  'energy/score'  . 15000   6520 . . 401 501 .
+2  1   1   2   'cluster' 'invalid'       . 6520    6520 . . . . .
+3  1   2   1   .         'energy/score'  . 16000   7520 . . . . .
+4  1   2   2   ?         'composition'   . 7520    5520 . . . . .
+5  1   2   3   'cluster' 'dRMSD'         . 5520    6520 . . . . .
+6  2   1   1   'filter'  'energy/score' 'custom score' 17000 6520 . . 401 501 .
+7  3   1   1   'none'    .               .    . . . . . . 'empty step'
+8  3   1   2   'none'    ?               .    . . . . . . 'empty step'
+9  3   1   3   'none'    'none'          .    . . . . . . 'empty step'
 """
         for fh in cif_file_handles(cif):
             s, = ihm.reader.read(fh)
@@ -1672,14 +1675,15 @@ _ihm_modeling_post_process.details
             a1, a2 = p1.analyses
             self.assertEqual(len(a1.steps), 2)
             self.assertEqual(a1.steps[0].__class__, ihm.analysis.FilterStep)
-            self.assertEqual(a1.steps[0].feature, 'energy/score')
+            self.assertEqual(a1.steps[0].feature.type, 'energy/score')
+            self.assertIsNone(a1.steps[0].feature.name)
             self.assertEqual(a1.steps[0].num_models_begin, 15000)
             self.assertEqual(a1.steps[0].num_models_end, 6520)
             self.assertEqual(a1.steps[0].software._id, '401')
             self.assertEqual(a1.steps[0].script_file._id, '501')
             self.assertEqual(a1.steps[1].__class__, ihm.analysis.ClusterStep)
             # invalid feature should be mapped to default
-            self.assertEqual(a1.steps[1].feature, 'other')
+            self.assertEqual(a1.steps[1].feature.type, 'other')
             self.assertEqual(a1.steps[1].num_models_begin, 6520)
             self.assertIsNone(a1.steps[1].software)
             self.assertIsNone(a1.steps[1].script_file)
@@ -1694,13 +1698,17 @@ _ihm_modeling_post_process.details
             a1, = p2.analyses
             self.assertEqual(len(a1.steps), 1)
             self.assertEqual(a1.steps[0].__class__, ihm.analysis.FilterStep)
-            self.assertEqual(a1.steps[0].feature, 'energy/score')
+            self.assertEqual(a1.steps[0].feature.type, 'energy/score')
+            self.assertEqual(a1.steps[0].feature.name, 'custom score')
             self.assertEqual(a1.steps[0].num_models_begin, 17000)
 
             a1, = p3.analyses
-            self.assertEqual(len(a1.steps), 1)
+            self.assertEqual(len(a1.steps), 3)
             self.assertEqual(a1.steps[0].__class__, ihm.analysis.EmptyStep)
-            self.assertEqual(a1.steps[0].feature, 'none')
+            # Feature should accept ? or . special values
+            self.assertIsNone(a1.steps[0].feature)
+            self.assertIs(a1.steps[1].feature, ihm.unknown)
+            self.assertIsInstance(a1.steps[2].feature, ihm.analysis.NoFeature)
             self.assertIsNone(a1.steps[0].num_models_begin)
             self.assertIsNone(a1.steps[0].num_models_end)
             self.assertEqual(a1.steps[0].details, 'empty step')

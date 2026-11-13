@@ -2010,10 +2010,17 @@ class _PostProcessHandler(Handler):
                              if issubclass(x[1], ihm.analysis.Step)
                              and x[1] is not ihm.analysis.Step)
 
+        # Map _ihm_modeling_post_process.feature to corresponding subclass
+        # of ihm.analysis.Feature
+        self.feat_map = {x[1].type.lower(): x[1]
+                         for x in inspect.getmembers(ihm.analysis,
+                                                     inspect.isclass)
+                         if issubclass(x[1], ihm.analysis.Feature)}
+
     def __call__(self, protocol_id, analysis_id, type, id,
                  num_models_begin: int, num_models_end: int,
                  struct_assembly_id, dataset_group_id,
-                 software_id, script_file_id, feature, details):
+                 software_id, script_file_id, feature, feature_name, details):
         protocol = self.sysr.protocols.get_by_id(protocol_id)
         analysis = self.sysr.analyses.get_by_id((protocol_id, analysis_id))
         if analysis._id not in [a._id for a in protocol.analyses]:
@@ -2024,11 +2031,15 @@ class _PostProcessHandler(Handler):
             id, self.type_map.get(typ, ihm.analysis.Step))
         analysis.steps.append(step)
         step.details = details
+        if feature not in (None, ihm.unknown):
+            # Default invalid feature type to 'other'
+            feat_cls = self.feat_map.get(feature.lower(), ihm.analysis.Feature)
+            feature = feat_cls(name=feature_name)
 
         if typ == 'none':
             # If this step was forward referenced, feature will have been set
-            # to Python None - set it to explicit 'none' instead
-            step.feature = 'none'
+            # to Python None - set it to the correct value
+            step.feature = feature
         else:
             step.num_models_begin = num_models_begin
             step.num_models_end = num_models_end
@@ -2039,11 +2050,7 @@ class _PostProcessHandler(Handler):
             step.software = self.sysr.software.get_by_id_or_none(software_id)
             step.script_file = self.sysr.external_files.get_by_id_or_none(
                 script_file_id)
-            # Default to "other" if invalid method/feature read
-            try:
-                self.copy_if_present(step, locals(), keys=['feature'])
-            except ValueError:
-                step.feature = "other"
+            step.feature = feature
 
 
 class _ModelListHandler(Handler):
