@@ -2881,7 +2881,8 @@ class _GeometricRestraintHandler(Handler):
                  group_conditionality, distance_lower_limit: float,
                  distance_upper_limit: float,
                  distance_lower_limit_esd: float,
-                 distance_upper_limit_esd: float):
+                 distance_upper_limit_esd: float,
+                 distance_probability: float, details):
         typ = (object_characteristic or 'other').lower()
         r = self.sysr.geom_restraints.get_by_id(
             id, self._type_map.get(typ, ihm.restraint.GeometricRestraint))
@@ -2895,6 +2896,8 @@ class _GeometricRestraintHandler(Handler):
             distance_lower_limit_esd, distance_upper_limit_esd)
         r.harmonic_force_constant = harmonic_force_constant
         r.restrain_all = self._cond_map[group_conditionality]
+        r.probability = distance_probability
+        r.details = details
 
 
 class _PolySeqSchemeHandler(Handler):

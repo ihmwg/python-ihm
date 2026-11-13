@@ -4503,7 +4503,7 @@ _ihm_pseudo_site.description
         r = ihm.restraint.OuterSurfaceGeometricRestraint(
             dataset=dataset, geometric_object=geom, feature=feat,
             distance=dist, harmonic_force_constant=2.0,
-            restrain_all=None)
+            restrain_all=None, probability=0.1, details='some details')
         system.restraints.append(r)
 
         dumper = ihm.dumper._GeometricRestraintDumper()
@@ -4522,12 +4522,15 @@ _ihm_geometric_object_distance_restraint.distance_lower_limit
 _ihm_geometric_object_distance_restraint.distance_lower_limit_esd
 _ihm_geometric_object_distance_restraint.distance_upper_limit
 _ihm_geometric_object_distance_restraint.distance_upper_limit_esd
+_ihm_geometric_object_distance_restraint.distance_probability
 _ihm_geometric_object_distance_restraint.group_conditionality
 _ihm_geometric_object_distance_restraint.dataset_list_id
-1 23 44 center 'upper bound' 2.000 . . 25.000 2.000 ALL 97
-2 23 44 center 'upper bound' 2.000 . . 25.000 2.000 ? 97
-3 23 44 'inner surface' 'lower bound' 2.000 25.000 1.000 . . ANY 97
-4 23 44 'outer surface' 'lower and upper bound' 2.000 15.000 . 22.000 . . 97
+_ihm_geometric_object_distance_restraint.details
+1 23 44 center 'upper bound' 2.000 . . 25.000 2.000 . ALL 97 .
+2 23 44 center 'upper bound' 2.000 . . 25.000 2.000 . ? 97 .
+3 23 44 'inner surface' 'lower bound' 2.000 25.000 1.000 . . . ANY 97 .
+4 23 44 'outer surface' 'lower and upper bound' 2.000 15.000 . 22.000 . 0.100 .
+97 'some details'
 #
 """)
 

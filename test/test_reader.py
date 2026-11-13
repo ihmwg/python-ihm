@@ -3154,12 +3154,15 @@ _ihm_geometric_object_distance_restraint.distance_lower_limit
 _ihm_geometric_object_distance_restraint.distance_lower_limit_esd
 _ihm_geometric_object_distance_restraint.distance_upper_limit
 _ihm_geometric_object_distance_restraint.distance_upper_limit_esd
+_ihm_geometric_object_distance_restraint.distance_probability
 _ihm_geometric_object_distance_restraint.group_conditionality
 _ihm_geometric_object_distance_restraint.dataset_list_id
-1 23 44 other 'upper bound' 2.000 . . 25.000 1.000 ANY 97
-2 23 44 center 'lower bound' 2.000 15.000 2.000 . . ALL .
-3 23 44 'inner surface' 'lower and upper bound' 2.000 10.000 . 25.000 . . 97
-4 23 44 'outer surface' 'harmonic' 2.000 . . 25.000 . ? 97
+_ihm_geometric_object_distance_restraint.details
+1 23 44 other 'upper bound' 2.000 . . 25.000 1.000 . ANY 97 .
+2 23 44 center 'lower bound' 2.000 15.000 2.000 . . ? ALL . .
+3 23 44 'inner surface' 'lower and upper bound' 2.000 10.000 .
+25.000 . 0.100 . 97 'some details'
+4 23 44 'outer surface' 'harmonic' 2.000 . . 25.000 . . ? 97 .
 #
 """)
         s, = ihm.reader.read(fh)
@@ -3168,6 +3171,8 @@ _ihm_geometric_object_distance_restraint.dataset_list_id
         self.assertEqual(r1.dataset._id, '97')
         self.assertEqual(r1.geometric_object._id, '23')
         self.assertEqual(r1.feature._id, '44')
+        self.assertIsNone(r1.details)
+        self.assertIsNone(r1.probability)
         self.assertIsInstance(r1.distance,
                               ihm.restraint.UpperBoundDistanceRestraint)
         self.assertAlmostEqual(r1.distance.distance, 25.000, delta=0.1)
@@ -3179,6 +3184,7 @@ _ihm_geometric_object_distance_restraint.dataset_list_id
         self.assertIs(r4.restrain_all, ihm.unknown)
         self.assertAlmostEqual(r2.distance.distance, 15.000, delta=0.1)
         self.assertAlmostEqual(r2.distance.esd, 2.000, delta=0.1)
+        self.assertIs(r2.probability, ihm.unknown)
 
         self.assertIsInstance(r2, ihm.restraint.CenterGeometricRestraint)
         self.assertIsInstance(r3, ihm.restraint.InnerSurfaceGeometricRestraint)
@@ -3190,6 +3196,8 @@ _ihm_geometric_object_distance_restraint.dataset_list_id
                               ihm.restraint.LowerUpperBoundDistanceRestraint)
         self.assertIsInstance(r4.distance,
                               ihm.restraint.HarmonicDistanceRestraint)
+        self.assertEqual(r3.details, 'some details')
+        self.assertAlmostEqual(r3.probability, 0.1, delta=0.01)
 
     def test_poly_seq_scheme_handler_offset(self):
         """Test PolySeqSchemeHandler with constant offset"""
