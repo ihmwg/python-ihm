@@ -33,6 +33,8 @@ class _KeywordEnumeration(set):
         super().__init__()
         self.case_sensitive = True
         self._upper_set = None
+        #: Mapping from enumerated value to its detail text (if any)
+        self.details = {}
 
     def add(self, item):
         self._upper_set = None  # Invalidate upper_set
@@ -243,6 +245,10 @@ class Dictionary:
         #: '_struct_asym.id'``
         self.linked_items = {}
 
+        #: Mapping from name to :class:`ItemType` objects, for all item
+        #: types defined in the dictionary
+        self.item_types = {}
+
     def __iadd__(self, other):
         for name, cat in other.categories.items():
             if name in self.categories:
@@ -252,6 +258,7 @@ class Dictionary:
             else:
                 self.categories[name] = cat
         self.linked_items.update(other.linked_items)
+        self.item_types.update(other.item_types)
         return self
 
     def __add__(self, other):
@@ -451,10 +458,12 @@ class _ItemHandler(Handler):
 class _ItemEnumerationHandler(Handler):
     category = '_item_enumeration'
 
-    def __call__(self, value):
+    def __call__(self, value, detail):
         if self.sysr._keyword_enumeration is None:
             self.sysr._keyword_enumeration = _KeywordEnumeration()
         self.sysr._keyword_enumeration.add(value)
+        if detail is not None and detail is not ihm.unknown:
+            self.sysr._keyword_enumeration.details[value] = detail
 
 
 class _ItemTypeListHandler(Handler):
@@ -507,4 +516,5 @@ def read(fh):
     r.read_file()
     for h in handlers:
         h.finalize()
+    s.dictionary.item_types.update(s.item_types)
     return s.dictionary

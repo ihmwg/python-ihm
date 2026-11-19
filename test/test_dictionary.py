@@ -146,8 +146,9 @@ save_baz
   _item_linked.parent_name   '_test_category1.bar'
   loop_
     _item_enumeration.value
-    "enum 1"
-    "enum 2"
+    _item_enumeration.detail
+    "enum 1" "detail 1"
+    "enum 2" ?
 save_
 
 save_foo
@@ -187,6 +188,8 @@ save_
         self.assertEqual(c2.keywords['baz'].enumeration,
                          set(('enum 1', 'enum 2')))
         self.assertFalse(c2.keywords['baz'].enumeration.case_sensitive)
+        self.assertEqual(c2.keywords['baz'].enumeration.details,
+                         {'enum 1': 'detail 1'})
         self.assertFalse(c2.keywords['baz'].item_type.case_sensitive)
 
         c3 = d.categories['test_category3']
@@ -202,6 +205,7 @@ save_
 
         self.assertEqual(d.linked_items,
                          {'_test_category2.baz': '_test_category1.bar'})
+        self.assertEqual(sorted(d.item_types.keys()), ['code', 'ucode'])
 
         # Make sure that files can be read in binary mode
         d = ihm.dictionary.read(BytesIO(cif.encode('latin-1')))
@@ -213,7 +217,10 @@ save_
         """Test adding two Dictionaries"""
         d1 = make_test_dictionary()
         d2 = make_other_test_dictionary()
+        d1.item_types['foo'] = ihm.dictionary.ItemType('foo', 'char', 'x')
+        d2.item_types['bar'] = ihm.dictionary.ItemType('bar', 'char', 'y')
         d = d1 + d2
+        self.assertEqual(sorted(d.item_types.keys()), ['bar', 'foo'])
         self._check_test_dictionary(d1)
         self._check_other_test_dictionary(d2)
         self._check_summed_dictionary(d)
