@@ -192,6 +192,37 @@ _pdbx_deposition_rule.message msg
         self.assertFalse(r1.join_flag)
         self.assertFalse(r1.row_selection_flag)
 
+    def test_read_ordinals_and_flags(self):
+        """Test read() with non-integer ordinals and unknown flags"""
+        rules = make_rules(
+            "R1 format ERROR foo . msg ? ? ? ?\n", """
+R1 b THEN '_foo.x' NOT_EMPTY . . . . .
+R1 a THEN '_foo.y' NOT_EMPTY . . . . .
+R1 2 THEN '_foo.z' NOT_EMPTY . . . . .
+R1 ? THEN '_foo.w' NOT_EMPTY . . . . .
+""")
+        r1 = rules.rules['R1']
+        # Integer ordinals sort before non-integer ones
+        self.assertEqual([c.ordinal for c in r1.conditions],
+                         [2, None, 'a', 'b'])
+        # Unknown flags take their default values
+        self.assertTrue(r1.enabled)
+        self.assertFalse(r1.param_flag)
+        self.assertFalse(r1.join_flag)
+        self.assertFalse(r1.row_selection_flag)
+
+    def test_read_multiple_blocks(self):
+        """Test read() of rules spread over multiple data blocks"""
+        cif = ("data_a\n" + RULE_HEADER
+               + "R1 format ERROR foo . msg YES NO NO NO\n"
+               + "data_b\n" + RULE_HEADER
+               + "R2 format ERROR foo . msg YES NO NO NO\n"
+               + CONDITION_HEADER
+               + "R1 1 THEN '_foo.x' NOT_EMPTY . . . . .\n")
+        rules = ihm.deposition.read(StringIO(cif))
+        self.assertEqual(sorted(rules.rules.keys()), ['R1', 'R2'])
+        self.assertEqual(len(rules.rules['R1'].conditions), 1)
+
     def test_read_bad_rule_id(self):
         """Test read() with a condition referring to an undefined rule"""
         self.assertRaises(ValueError, make_rules,
@@ -693,6 +724,116 @@ B 1 ? yes
 """
         self.assertEqual(run_validate(rules, cif),
                          [('R1', 'group of 3 foo rows (foo.a=A, foo.b=3)')])
+
+    def test_validate_aggregate_join(self):
+        """Test aggregate rules with joins and partner conditions"""
+        params = """
+loop_
+_pdbx_deposition_rule_param.rule_id
+_pdbx_deposition_rule_param.name
+_pdbx_deposition_rule_param.value
+R1 aggregate SUM
+#
+loop_
+_pdbx_deposition_rule_join.rule_id
+_pdbx_deposition_rule_join.ordinal
+_pdbx_deposition_rule_join.scope_item_names
+_pdbx_deposition_rule_join.partner_item_names
+_pdbx_deposition_rule_join.on_no_match
+R1 1 '_foo.id' '_bar.foo_id' FAIL
+"""
+        rules = make_rule('foo', """
+R1 1 THEN '_foo.occ' LE 1.0 . . . .
+R1 2 THEN '_bar.x' NOT_EMPTY . . . ANY .
+""", family='aggregate', flags='YES YES NO', extra=params)
+        cif = """
+loop_
+_foo.id
+_foo.occ
+1 0.4
+2 0.4
+3 0.4
+loop_
+_bar.foo_id
+_bar.x
+1 a
+2 b
+"""
+        # Row 3 has no partner, so is excluded from the sum
+        self.assertEqual(run_validate(rules, cif), [])
+        # Partner conditions are checked using the first row's partners
+        self.assertEqual(run_validate(rules, cif.replace("1 a", "1 .")),
+                         [('R1', 'group of 2 foo rows ()')])
+        # Sum includes all rows that have partners
+        self.assertEqual(run_validate(rules, cif + "3 c\n"),
+                         [('R1', 'group of 3 foo rows ()')])
+
+    def test_validate_join_fail_detail(self):
+        """Test reporting of failed joins"""
+        joins = """
+_pdbx_deposition_rule_join.rule_id R1
+_pdbx_deposition_rule_join.ordinal 1
+_pdbx_deposition_rule_join.scope_item_names '_foo.id'
+_pdbx_deposition_rule_join.partner_item_names '_bar.foo_id'
+_pdbx_deposition_rule_join.on_no_match FAIL
+"""
+        rules = make_rule('foo', "R1 1 THEN '_bar.x' NOT_EMPTY . . . . .\n",
+                          flags='NO YES NO', extra=joins)
+        with self.assertRaises(ihm.deposition.RuleError) as cm:
+            rules.validate(StringIO("_foo.id 1\n_bar.foo_id 2\n_bar.x a"))
+        v, = cm.exception.violations
+        self.assertEqual(v.detail, "no matching row in bar")
+        self.assertEqual(str(v), "ERROR R1: test message [foo row 1] "
+                                 "(no matching row in bar)")
+
+    def test_validate_missing_condition_value(self):
+        """Test that operators lacking a value are skipped"""
+        for op in ('EQ', 'IN', 'NOT_IN', 'MATCHES', 'NOT_MATCHES'):
+            rules = make_rule('foo', "R1 1 THEN '_foo.x' %s . . . . .\n" % op)
+            self.assertEqual(run_validate(rules, "_foo.x a"), [], op)
+
+    def test_validate_regex_cache(self):
+        """Test that a regex is applied correctly to multiple rows"""
+        rules = make_rule('foo', "R1 1 THEN '_foo.x' MATCHES '^a' "
+                          ". . . .\n")
+        cif = "loop_\n_foo.x\nab\nba\nac\n"
+        self.assertEqual(run_validate(rules, cif), [('R1', 'foo row 2')])
+
+    def test_validate_item_name_no_underscore(self):
+        """Test item names given without a leading underscore"""
+        rules = make_rule('FOO', "R1 1 THEN 'Foo.X' EQ a . . . .\n")
+        self.assertEqual(run_validate(rules, "_foo.x a"), [])
+        self.assertEqual(run_validate(rules, "_foo.x b"),
+                         [('R1', 'foo row 1')])
+
+    def test_validate_category_not_in_dictionary(self):
+        """Test items whose category is not in the dictionary"""
+        d = make_dictionary()
+        rules = make_rule('bar', "R1 1 THEN '_bar.x' EQ abc . . . .\n")
+        # No type information, so compared case-insensitively
+        self.assertEqual(run_validate(rules, "_bar.x ABC", d), [])
+        self.assertEqual(run_validate(rules, "_bar.x xyz", d),
+                         [('R1', 'bar row 1')])
+
+    def test_validate_bad_rules(self):
+        """Test validation with malformed rules"""
+        # Unknown condition role
+        rules = make_rule('foo', "R1 1 MAYBE '_foo.x' EQ a . . . .\n"
+                          "R1 2 THEN '_foo.x' EQ a . . . .\n")
+        self.assertRaises(ValueError, rules.validate, StringIO("_foo.x a"))
+        # Unknown operator
+        rules = make_rule('foo', "R1 1 THEN '_foo.x' FROB a . . . .\n")
+        self.assertRaises(ValueError, rules.validate, StringIO("_foo.x a"))
+        # Unknown row selector
+        sel = """
+_pdbx_deposition_rule_row_selection.rule_id R1
+_pdbx_deposition_rule_row_selection.category_id foo
+_pdbx_deposition_rule_row_selection.selector MEDIAN
+_pdbx_deposition_rule_row_selection.selector_item '_foo.x'
+"""
+        rules = make_rule('foo', "R1 1 THEN '_foo.x' EQ a . . . .\n",
+                          flags='NO NO YES', extra=sel)
+        self.assertRaises(ValueError, rules.validate, StringIO("_foo.x a"))
 
     def test_validate_real_rules(self):
         """Test validation using rules similar to the IHM rules"""
