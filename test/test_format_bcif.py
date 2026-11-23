@@ -722,6 +722,15 @@ class Tests(unittest.TestCase):
         h = GenericHandler()
         self._read_bcif_raw(d, {'_foo': h})
 
+        # Mask encoded as RunLength of unsigned 32-bit ints
+        d = make_bcif({'data': struct.pack('<2I', 2, 1),
+                       'encoding': [{'kind': 'RunLength'},
+                                    {'kind': 'ByteArray',
+                                     'type': ihm.format_bcif._Uint32}]})
+        h = GenericHandler()
+        self._read_bcif_raw(d, {'_foo': h})
+        self.assertEqual(h.data, [{'bar': '?'}])
+
         # Error trying to read mask map (or nil)
         d = make_bcif(BAD_MSGPACK_TYPE)
         h = GenericHandler()
@@ -911,13 +920,30 @@ class Tests(unittest.TestCase):
                 (b'\x00\x01', ihm.format_bcif._Int8),
                 (b'\x00\x00\x01\x00', ihm.format_bcif._Uint16),
                 (b'\x00\x00\x01\x00', ihm.format_bcif._Int16),
-                (b'\x00\x00\x00\x00\x01\x00\x00\x00', ihm.format_bcif._Int32)):
+                (struct.pack('<2i', 0, 1), ihm.format_bcif._Int32),
+                (struct.pack('<2I', 0, 1), ihm.format_bcif._Uint32)):
             d = make_bcif(data=data, data_type=data_type,
                           offsets=b'\x00\x01\x03',
                           offsets_type=ihm.format_bcif._Uint8)
             h = GenericHandler()
             self._read_bcif_raw(d, {'_foo': h})
             self.assertEqual(h.data, [{'bar': 'a'}, {'bar': 'AB'}])
+
+        # Offsets can also be unsigned 32-bit ints
+        d = make_bcif(data=b'\x00\x01', data_type=ihm.format_bcif._Uint8,
+                      offsets=struct.pack('<3I', 0, 1, 3),
+                      offsets_type=ihm.format_bcif._Uint32)
+        h = GenericHandler()
+        self._read_bcif_raw(d, {'_foo': h})
+        self.assertEqual(h.data, [{'bar': 'a'}, {'bar': 'AB'}])
+
+        # Unsigned 32-bit offsets too large for a signed int are out of range
+        d = make_bcif(data=b'\x00\x01', data_type=ihm.format_bcif._Uint8,
+                      offsets=struct.pack('<3I', 0, 1, 0xFFFFFFFF),
+                      offsets_type=ihm.format_bcif._Uint32)
+        h = GenericHandler()
+        self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
+                          d, {'_foo': h})
 
         # StringArray decoding can't be used for offset or data
         d = make_bcif(data=b'\x00\x01', data_type=ihm.format_bcif._Uint8,
@@ -961,9 +987,13 @@ class Tests(unittest.TestCase):
 
         # Out-of-range indices return empty strings (3 offsets delimit
         # only 2 strings, so index 2 is out of range)
-        for data in (struct.pack('b', 40), struct.pack('b', -32),
-                     struct.pack('b', 2)):
-            d = make_bcif(data=data, data_type=ihm.format_bcif._Int8,
+        for data, data_type in (
+                (struct.pack('b', 40), ihm.format_bcif._Int8),
+                (struct.pack('b', -32), ihm.format_bcif._Int8),
+                (struct.pack('b', 2), ihm.format_bcif._Int8),
+                (struct.pack('<I', 2), ihm.format_bcif._Uint32),
+                (struct.pack('<I', 0xFFFFFFFF), ihm.format_bcif._Uint32)):
+            d = make_bcif(data=data, data_type=data_type,
                           offsets=b'\x00\x01\x03',
                           offsets_type=ihm.format_bcif._Uint8)
             h = GenericHandler()
@@ -1086,6 +1116,22 @@ class Tests(unittest.TestCase):
         self._read_bcif_raw(d, {'_foo': h})
         self.assertEqual(h.data, [{'bar': '5'}] * 3)
 
+        # Test normal usage with unsigned 32-bit integer data
+        d = make_bcif(data=struct.pack('<2I', 5, 3),
+                      data_type=ihm.format_bcif._Uint32)
+        h = GenericHandler()
+        self._read_bcif_raw(d, {'_foo': h})
+        self.assertEqual(h.data, [{'bar': '5'}] * 3)
+
+        # Unsigned 32-bit values too large for a signed int should be
+        # handled correctly
+        d = make_bcif(data=struct.pack('<4I', 0xFFFFFFFF, 2, 2**31, 1),
+                      data_type=ihm.format_bcif._Uint32)
+        h = GenericHandler()
+        self._read_bcif_raw(d, {'_foo': h})
+        self.assertEqual(h.data, [{'bar': '4294967295'}] * 2
+                         + [{'bar': '2147483648'}])
+
         # Data size should be even
         d = make_bcif(data=struct.pack('<3H', 5, 3, 8),
                       data_type=ihm.format_bcif._Uint16)
@@ -1113,6 +1159,14 @@ class Tests(unittest.TestCase):
         h = GenericHandler()
         self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
                           d, {'_foo': h})
+
+        # Very large unsigned counts should be rejected
+        for count in (int(1e8), 0xFFFFFFFF):
+            d = make_bcif(data=struct.pack('<2I', 5, count),
+                          data_type=ihm.format_bcif._Uint32)
+            h = GenericHandler()
+            self.assertRaises(_format.FileFormatError, self._read_bcif_raw,
+                              d, {'_foo': h})
 
     @unittest.skipIf(_format is None, "No C tokenizer")
     def test_delta_encoding_c(self):
@@ -1160,6 +1214,21 @@ class Tests(unittest.TestCase):
         h = GenericHandler()
         self._read_bcif_raw(d, {'_foo': h})
         self.assertEqual(h.data, [{'bar': '55'}, {'bar': '75'}])
+
+        # Test normal usage, 32-bit unsigned int
+        d = make_bcif(data=struct.pack('<2I', 5, 20),
+                      data_type=ihm.format_bcif._Uint32, origin=50)
+        h = GenericHandler()
+        self._read_bcif_raw(d, {'_foo': h})
+        self.assertEqual(h.data, [{'bar': '55'}, {'bar': '75'}])
+
+        # 32-bit unsigned int, with values too large for a signed int
+        d = make_bcif(data=struct.pack('<2I', 2**31, 2**31 - 100),
+                      data_type=ihm.format_bcif._Uint32, origin=10)
+        h = GenericHandler()
+        self._read_bcif_raw(d, {'_foo': h})
+        self.assertEqual(h.data, [{'bar': '2147483658'},
+                                  {'bar': '4294967206'}])
 
         # Bad input type
         d = make_bcif(data=struct.pack('<f', 42.0),

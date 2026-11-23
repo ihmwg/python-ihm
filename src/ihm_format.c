@@ -2489,21 +2489,21 @@ static bool decode_bcif_integer_packing(struct bcif_data *d,
   return true;
 }
 
-#define DECODE_BCIF_DELTA(datapt, outpt, datatyp) \
+#define DECODE_BCIF_DELTA(datapt, outpt, acctyp) \
   {                                        \
-    int32_t value;                         \
+    acctyp value;                          \
     size_t i;                              \
-    value = enc->origin;                   \
+    value = (acctyp)enc->origin;           \
     for (i = 0; i < d->size; ++i) {        \
       value += datapt[i];                  \
       outpt[i] = value;                    \
     }                                      \
   }
 
-#define DECODE_BCIF_DELTA_PROMOTE(datapt, datatyp)                       \
+#define DECODE_BCIF_DELTA_PROMOTE(datapt)                                \
   {                                                                      \
     int32_t *outdata = (int32_t *)ihm_malloc(d->size * sizeof(int32_t)); \
-    DECODE_BCIF_DELTA(datapt, outdata, datatyp)                          \
+    DECODE_BCIF_DELTA(datapt, outdata, int32_t)                          \
     bcif_data_free(d);                                                   \
     d->type = BCIF_DATA_INT32;                                           \
     d->data.int32 = outdata;                                             \
@@ -2516,19 +2516,23 @@ static bool decode_bcif_delta(struct bcif_data *d,
 {
   switch (d->type) {
   case BCIF_DATA_INT8:
-    DECODE_BCIF_DELTA_PROMOTE(d->data.int8, int8_t);
+    DECODE_BCIF_DELTA_PROMOTE(d->data.int8);
     break;
   case BCIF_DATA_UINT8:
-    DECODE_BCIF_DELTA_PROMOTE(d->data.uint8, uint8_t);
+    DECODE_BCIF_DELTA_PROMOTE(d->data.uint8);
     break;
   case BCIF_DATA_INT16:
-    DECODE_BCIF_DELTA_PROMOTE(d->data.int16, int16_t);
+    DECODE_BCIF_DELTA_PROMOTE(d->data.int16);
     break;
   case BCIF_DATA_UINT16:
-    DECODE_BCIF_DELTA_PROMOTE(d->data.uint16, uint16_t);
+    DECODE_BCIF_DELTA_PROMOTE(d->data.uint16);
     break;
   case BCIF_DATA_INT32:
     DECODE_BCIF_DELTA(d->data.int32, d->data.int32, int32_t);
+    break;
+  case BCIF_DATA_UINT32:
+    /* Unsigned 32-bit data is decoded in place, and stays unsigned */
+    DECODE_BCIF_DELTA(d->data.uint32, d->data.uint32, uint32_t);
     break;
   default:
     ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
@@ -2538,37 +2542,43 @@ static bool decode_bcif_delta(struct bcif_data *d,
   return true;
 }
 
-#define DECODE_BCIF_RUN_LENGTH(datapt, datatyp)                               \
+/* Decode RunLength data from datapt into an array of outtyp, which is
+   stored in the outfield member of bcif_data with type outenum */
+#define DECODE_BCIF_RUN_LENGTH(datapt, outtyp, outfield, outenum)             \
   {                                                                           \
-  size_t i, k;                                                                \
-  int32_t outsz, j, *outdata;                                                 \
+  size_t i, k, outsz;                                                         \
+  int64_t j;                                                                  \
+  outtyp *outdata;                                                            \
   outsz = 0;                                                                  \
   for (i = 1; i < d->size; i += 2) {                                          \
-    int32_t ts = datapt[i];                                                   \
+    int64_t ts = datapt[i];                                                   \
     /* Try to catch invalid (or malicious) counts. Counts cannot be negative
        and the largest count seen in a very large PDB structure (3j3q) is
        about 2.4m, so we are unlikely to see counts of 40m in real systems */ \
     if (ts < 0 || ts > 40000000) {                                            \
       ihm_error_set(err, IHM_ERROR_FILE_FORMAT,                               \
-                    "Bad run length repeat count %d", ts);                    \
+                    "Bad run length repeat count %lld", (long long)ts);       \
       return false;                                                           \
     }                                                                         \
     outsz += ts;                                                              \
   }                                                                           \
   assert(outsz > 0);                                                          \
-  outdata = (int32_t *)ihm_malloc(outsz * sizeof(int32_t));                   \
+  outdata = (outtyp *)ihm_malloc(outsz * sizeof(outtyp));                     \
   for (i = 0, k = 0; i < d->size; i += 2) {                                   \
-    int32_t value = datapt[i];                                                \
-    int32_t n_repeats = datapt[i + 1];                                        \
+    outtyp value = datapt[i];                                                 \
+    int64_t n_repeats = datapt[i + 1];                                        \
     for (j = 0; j < n_repeats; ++j) {                                         \
       outdata[k++] = value;                                                   \
     }                                                                         \
   }                                                                           \
   bcif_data_free(d);                                                          \
-  d->type = BCIF_DATA_INT32;                                                  \
+  d->type = outenum;                                                          \
   d->size = outsz;                                                            \
-  d->data.int32 = outdata;                                                    \
+  d->data.outfield = outdata;                                                 \
 }
+
+#define DECODE_BCIF_RUN_LENGTH_INT32(datapt) \
+  DECODE_BCIF_RUN_LENGTH(datapt, int32_t, int32, BCIF_DATA_INT32)
 
 /* Decode data using BinaryCIF RunLength encoding */
 static bool decode_bcif_run_length(struct bcif_data *d,
@@ -2582,19 +2592,24 @@ static bool decode_bcif_run_length(struct bcif_data *d,
   }
   switch (d->type) {
   case BCIF_DATA_INT8:
-    DECODE_BCIF_RUN_LENGTH(d->data.int8, int8_t);
+    DECODE_BCIF_RUN_LENGTH_INT32(d->data.int8);
     break;
   case BCIF_DATA_UINT8:
-    DECODE_BCIF_RUN_LENGTH(d->data.uint8, uint8_t);
+    DECODE_BCIF_RUN_LENGTH_INT32(d->data.uint8);
     break;
   case BCIF_DATA_INT16:
-    DECODE_BCIF_RUN_LENGTH(d->data.int16, int16_t);
+    DECODE_BCIF_RUN_LENGTH_INT32(d->data.int16);
     break;
   case BCIF_DATA_UINT16:
-    DECODE_BCIF_RUN_LENGTH(d->data.uint16, uint16_t);
+    DECODE_BCIF_RUN_LENGTH_INT32(d->data.uint16);
     break;
   case BCIF_DATA_INT32:
-    DECODE_BCIF_RUN_LENGTH(d->data.int32, int32_t);
+    DECODE_BCIF_RUN_LENGTH_INT32(d->data.int32);
+    break;
+  case BCIF_DATA_UINT32:
+    /* Values may not fit in int32, so keep them unsigned */
+    DECODE_BCIF_RUN_LENGTH(d->data.uint32, uint32_t, uint32,
+                           BCIF_DATA_UINT32);
     break;
   default:
     ihm_error_set(err, IHM_ERROR_FILE_FORMAT,
@@ -2702,7 +2717,8 @@ static bool decode_bcif_interval_quant(struct bcif_data *d,
 }
 
 /* Return true iff the data type is int32, or another integer that
-   can be promoted to that type */
+   can be promoted to that type (uint32 is also accepted; values too large
+   to fit in int32 are mapped to -1 by get_int_data) */
 static bool require_bcif_data_is_int32(struct bcif_data *d)
 {
   switch(d->type) {
@@ -2711,6 +2727,7 @@ static bool require_bcif_data_is_int32(struct bcif_data *d)
   case BCIF_DATA_INT16:
   case BCIF_DATA_UINT16:
   case BCIF_DATA_INT32:
+  case BCIF_DATA_UINT32:
     return true;
   default:
     return false;
@@ -2732,6 +2749,9 @@ static int32_t get_int_data(struct bcif_data *d, int i)
     return d->data.uint16[i];
   case BCIF_DATA_INT32:
     return d->data.int32[i];
+  case BCIF_DATA_UINT32:
+    /* Map out-of-range values to -1, which callers treat as invalid */
+    return d->data.uint32[i] > INT32_MAX ? -1 : (int32_t)d->data.uint32[i];
   default:
     return 0;
   }
@@ -2915,15 +2935,18 @@ static bool process_column_mask(struct bcif_column *col,
                         err)) return false;
 
   /* Masks are supposed to be uint8 but some of our decoders return int32
-     for simplicity. If this happened, map back to uint8 */
-  if (col->mask_data.type == BCIF_DATA_INT32) {
+     (or uint32) for simplicity. If this happened, map back to uint8 */
+  if (col->mask_data.type == BCIF_DATA_INT32
+      || col->mask_data.type == BCIF_DATA_UINT32) {
     uint8_t *newdata;
     size_t i;
+    bool is_signed = (col->mask_data.type == BCIF_DATA_INT32);
     newdata = (uint8_t *)ihm_malloc(col->mask_data.size * sizeof(uint8_t));
     for (i = 0; i < col->mask_data.size; ++i) {
-      newdata[i] = (uint8_t)col->mask_data.data.int32[i];
+      newdata[i] = is_signed ? (uint8_t)col->mask_data.data.int32[i]
+                             : (uint8_t)col->mask_data.data.uint32[i];
     }
-    free(col->mask_data.data.int32);
+    bcif_data_free(&col->mask_data);
     col->mask_data.data.uint8 = newdata;
     col->mask_data.type = BCIF_DATA_UINT8;
   }
