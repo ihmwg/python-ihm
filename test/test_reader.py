@@ -2378,11 +2378,12 @@ _atom_site.Cartn_z
 _atom_site.occupancy
 _atom_site.label_entity_id
 _atom_site.auth_asym_id
+_atom_site.auth_atom_id
 _atom_site.B_iso_or_equiv
 _atom_site.pdbx_PDB_model_num
 _atom_site.ihm_model_id
-ATOM 1 N N . SER 1 A 54.401 -49.984 -35.287 . 1 A . 1 1
-HETATM 2 C CA A SER . B 54.452 -48.492 -35.210 0.200 1 A 42.0 1 1
+ATOM 1 N N . SER 1 A 54.401 -49.984 -35.287 . 1 A N2 . 1 1
+HETATM 2 C CA A SER . B 54.452 -48.492 -35.210 0.200 1 A CA 42.0 1 1
 """)
         s, = ihm.reader.read(fh)
         m = s.state_groups[0][0][0][0]
@@ -2390,6 +2391,7 @@ HETATM 2 C CA A SER . B 54.452 -48.492 -35.210 0.200 1 A 42.0 1 1
         self.assertEqual(a1.asym_unit._id, 'A')
         self.assertEqual(a1.seq_id, 1)
         self.assertEqual(a1.atom_id, 'N')
+        self.assertEqual(a1.auth_atom_id, 'N2')
         self.assertEqual(a1.type_symbol, 'N')
         self.assertAlmostEqual(a1.x, 54.401, delta=0.01)
         self.assertAlmostEqual(a1.y, -49.984, delta=0.01)
@@ -2402,6 +2404,7 @@ HETATM 2 C CA A SER . B 54.452 -48.492 -35.210 0.200 1 A 42.0 1 1
         self.assertEqual(a2.asym_unit._id, 'B')
         self.assertEqual(a2.seq_id, 1)
         self.assertEqual(a2.atom_id, 'CA')
+        self.assertEqual(a2.auth_atom_id, 'CA')
         self.assertEqual(a2.type_symbol, 'C')
         self.assertEqual(a2.het, True)
         self.assertAlmostEqual(a2.biso, 42.0, delta=1.0)

@@ -22,6 +22,7 @@ class Tests(unittest.TestCase):
                            type_symbol='N', x=1.0, y=2.0, z=3.0)
         self.assertEqual(s.asym_unit, 'foo')
         self.assertEqual(s.seq_id, 1)
+        self.assertIsNone(s.auth_atom_id)
 
     def test_model(self):
         """Test Model class"""

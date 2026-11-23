@@ -2455,7 +2455,7 @@ class _AtomSiteHandler(Handler):
                  b_iso_or_equiv: float, label_seq_id: int, label_atom_id,
                  type_symbol, cartn_x: float, cartn_y: float, cartn_z: float,
                  occupancy: float, group_pdb, auth_seq_id, pdbx_pdb_ins_code,
-                 auth_asym_id, label_comp_id, label_alt_id):
+                 auth_asym_id, label_comp_id, label_alt_id, auth_atom_id):
         # seq_id can be None for non-polymers (HETATM)
         seq_id = label_seq_id
         # todo: handle fields other than those output by us
@@ -2486,7 +2486,8 @@ class _AtomSiteHandler(Handler):
             asym_unit=asym, seq_id=our_seq_id, atom_id=label_atom_id,
             type_symbol=type_symbol, x=cartn_x, y=cartn_y,
             z=cartn_z, het=het, biso=b_iso_or_equiv,
-            occupancy=occupancy, alt_id=label_alt_id)
+            occupancy=occupancy, alt_id=label_alt_id,
+            auth_atom_id=auth_atom_id)
         model.add_atom(a)
 
         # Note any residues that have different seq_id and auth_seq_id

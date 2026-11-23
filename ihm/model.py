@@ -58,14 +58,18 @@ class Atom:
               (if applicable)
        :param float alt_id: Alternate conformation indicator
               (if applicable)
+       :param str auth_atom_id: Author-provided name of the atom
+              (if applicable)
     """
 
     # Reduce memory usage
     __slots__ = ['asym_unit', 'seq_id', 'atom_id', 'type_symbol',
-                 'x', 'y', 'z', 'het', 'biso', 'occupancy', 'alt_id']
+                 'x', 'y', 'z', 'het', 'biso', 'occupancy', 'alt_id',
+                 'auth_atom_id']
 
     def __init__(self, asym_unit, seq_id, atom_id, type_symbol, x, y, z,
-                 het=False, biso=None, occupancy=None, alt_id=None):
+                 het=False, biso=None, occupancy=None, alt_id=None,
+                 auth_atom_id=None):
         self.asym_unit = asym_unit
         self.seq_id, self.atom_id = seq_id, atom_id
         self.type_symbol = type_symbol
@@ -73,6 +77,7 @@ class Atom:
         self.het, self.biso = het, biso
         self.occupancy = occupancy
         self.alt_id = alt_id
+        self.auth_atom_id = auth_atom_id
 
 
 class Model:
