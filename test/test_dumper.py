@@ -2203,8 +2203,11 @@ _ihm_model_representation_details.description
 
             def get_seq_dif(self):
                 return [ihm.startmodel.MSESeqDif(db_seq_id=5, seq_id=7),
+                        ihm.startmodel.MSESeqDif(db_seq_id=4, seq_id=6,
+                                                 db_entity_id=99),
                         ihm.startmodel.SeqDif(db_seq_id=6, seq_id=8,
                                               db_comp_id='LEU',
+                                              db_entity_id=98,
                                               details='LEU -> GLY')]
 
         system = ihm.System()
@@ -2355,11 +2358,14 @@ _ihm_starting_model_seq_dif.starting_model_id
 _ihm_starting_model_seq_dif.db_asym_id
 _ihm_starting_model_seq_dif.db_seq_id
 _ihm_starting_model_seq_dif.db_comp_id
+_ihm_starting_model_seq_dif.db_entity_id
 _ihm_starting_model_seq_dif.details
-1 42 99 7 MET 1 A 5 MSE 'Conversion of modified residue MSE to MET'
-2 42 99 8 GLY 1 A 6 LEU 'LEU -> GLY'
-3 42 99 7 MET 2 A 5 MSE 'Conversion of modified residue MSE to MET'
-4 42 99 8 GLY 2 A 6 LEU 'LEU -> GLY'
+1 42 99 7 MET 1 A 5 MSE . 'Conversion of modified residue MSE to MET'
+2 42 99 6 ALA 1 A 4 MSE 99 'Conversion of modified residue MSE to MET'
+3 42 99 8 GLY 1 A 6 LEU 98 'LEU -> GLY'
+4 42 99 7 MET 2 A 5 MSE . 'Conversion of modified residue MSE to MET'
+5 42 99 6 ALA 2 A 4 MSE 99 'Conversion of modified residue MSE to MET'
+6 42 99 8 GLY 2 A 6 LEU 98 'LEU -> GLY'
 #
 """)
 

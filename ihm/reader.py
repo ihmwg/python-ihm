@@ -2545,10 +2545,11 @@ class _StartingModelSeqDifHandler(Handler):
     category = '_ihm_starting_model_seq_dif'
 
     def __call__(self, starting_model_id, db_seq_id: int, seq_id: int,
-                 db_comp_id, details):
+                 db_comp_id, db_entity_id, details):
         model = self.sysr.starting_models.get_by_id(starting_model_id)
         sd = ihm.startmodel.SeqDif(db_seq_id=db_seq_id, seq_id=seq_id,
                                    db_comp_id=db_comp_id,
+                                   db_entity_id=db_entity_id,
                                    details=details)
         model.add_seq_dif(sd)
 

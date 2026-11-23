@@ -1615,7 +1615,7 @@ class _StartingModelDumper(Dumper):
                 "_ihm_starting_model_seq_dif",
                 ["id", "entity_id", "asym_id",
                  "seq_id", "comp_id", "starting_model_id",
-                 "db_asym_id", "db_seq_id", "db_comp_id",
+                 "db_asym_id", "db_seq_id", "db_comp_id", "db_entity_id",
                  "details"]) as lp:
             for model in self._starting_models_by_id:
                 for sd in model.get_seq_dif():
@@ -1627,6 +1627,7 @@ class _StartingModelDumper(Dumper):
                         seq_id=sd.seq_id, comp_id=comp.id,
                         db_asym_id=model.asym_id, db_seq_id=sd.db_seq_id,
                         db_comp_id=sd.db_comp_id, starting_model_id=model._id,
+                        db_entity_id=sd.db_entity_id,
                         details=sd.details)
 
 

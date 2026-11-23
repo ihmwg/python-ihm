@@ -4286,9 +4286,10 @@ _ihm_starting_model_seq_dif.starting_model_id
 _ihm_starting_model_seq_dif.db_asym_id
 _ihm_starting_model_seq_dif.db_seq_id
 _ihm_starting_model_seq_dif.db_comp_id
+_ihm_starting_model_seq_dif.db_entity_id
 _ihm_starting_model_seq_dif.details
-1 7 G 11 LEU 9 D 12 MSE 'Mutation of MSE to LEU'
-2 7 G 17 LEU 9 D 18 MSE 'Mutation of MSE to LEU'
+1 7 G 11 LEU 9 D 12 MSE 99 'Mutation of MSE to LEU'
+2 7 G 17 LEU 9 D 18 MSE ? 'Mutation of MSE to LEU'
 """)
         s, = ihm.reader.read(fh)
         sm, = s.orphan_starting_models
@@ -4296,7 +4297,9 @@ _ihm_starting_model_seq_dif.details
         self.assertEqual(sd1.seq_id, 11)
         self.assertEqual(sd1.db_seq_id, 12)
         self.assertEqual(sd1.db_comp_id, "MSE")
+        self.assertEqual(sd1.db_entity_id, '99')
         self.assertEqual(sd1.details, "Mutation of MSE to LEU")
+        self.assertIs(sd2.db_entity_id, ihm.unknown)
 
     def test_multi_state_scheme_handler(self):
         """Test MultiStateSchemeHandler"""

@@ -184,17 +184,22 @@ class SeqDif:
               normally be `db_seq_id + offset`.
        :param str db_comp_id: The name of the residue in the dataset.
        :param str details: Descriptive text for the sequence difference.
+       :param int db_entity_id: The entity ID in the dataset, if known.
     """
-    def __init__(self, db_seq_id, seq_id, db_comp_id, details=None):
+    def __init__(self, db_seq_id, seq_id, db_comp_id, details=None,
+                 db_entity_id=None):
         self.db_seq_id, self.seq_id = db_seq_id, seq_id
         self.db_comp_id, self.details = db_comp_id, details
+        self.db_entity_id = db_entity_id
 
 
-class MSESeqDif:
+class MSESeqDif(SeqDif):
     """Denote that a residue was mutated from MSE to MET.
        See :class:`SeqDif` for a description of the parameters.
     """
     def __init__(self, db_seq_id, seq_id,
-                 details="Conversion of modified residue MSE to MET"):
-        self.db_seq_id, self.seq_id = db_seq_id, seq_id
-        self.db_comp_id, self.details = 'MSE', details
+                 details="Conversion of modified residue MSE to MET",
+                 db_entity_id=None):
+        super().__init__(db_seq_id=db_seq_id, seq_id=seq_id,
+                         db_comp_id='MSE', details=details,
+                         db_entity_id=db_entity_id)
