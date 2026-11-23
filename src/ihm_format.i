@@ -414,7 +414,7 @@ static void handle_category_data(struct ihm_reader *reader, int linenum,
         }
         break;
       case IHM_INT:
-        val = PyLong_FromLong((*keys)->data.ival);
+        val = PyLong_FromLongLong((*keys)->data.ival);
         break;
       case IHM_FLOAT:
         val = PyFloat_FromDouble((*keys)->data.fval);

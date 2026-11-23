@@ -17,6 +17,12 @@ HEAD
     ``upper_limit``, ``lower_limit_esd``, ``upper_limit_esd``,
     ``threshold_mean`` and ``threshold_esd`` attributes (the existing
     ``distance_*`` attributes are aliases for these).
+  - The C-accelerated mmCIF and BinaryCIF readers now store integer values
+    as 64-bit integers, so the full range of BinaryCIF Uint32 values can be
+    read into integer keywords. Bugfix: integers too large to be represented
+    in mmCIF files (or as BinaryCIF strings or floats) now raise a
+    ValueError rather than silently wrapping around (previously, any value
+    outside of the 32-bit signed int range would be read incorrectly).
 
 2.13 - 2026-11-11
 =================

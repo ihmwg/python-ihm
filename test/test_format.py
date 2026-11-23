@@ -720,7 +720,13 @@ oneval
                   '0.9999999999999999', '.000000000000001',
                   '0.30000000000000004', '1.5e3', '1E-2', '-2.5e+2']
         ints = ['0', '-0', '+5', '-5', '007', '999999999', '-999999999',
-                '1234567890', '2147483647', '-2147483647']
+                '1234567890', '2147483647', '-2147483647',
+                # Beyond the range of a 32-bit int
+                '2147483648', '-2147483649', '4294967295', '4294967296',
+                '999999999999999999', '-999999999999999999',
+                '1000000000000000000', '9223372036854775807',
+                '-9223372036854775808', '+9223372036854775807',
+                '0009223372036854775807']
         for real_file in (True, False):
             for val in floats:
                 h = GenericHandler()
@@ -742,6 +748,26 @@ oneval
                 self.assertRaises(ValueError, self._read_cif,
                                   "_foo.intkey1 %s" % val, real_file,
                                   {'_foo': h})
+
+    @unittest.skipIf(_format is None, "No C tokenizer")
+    def test_int_out_of_range(self):
+        """Check that integers that don't fit in 64 bits are rejected"""
+        for real_file in (True, False):
+            for val in ('9223372036854775808', '-9223372036854775809',
+                        '18446744073709551616',
+                        '99999999999999999999999999999'):
+                h = GenericHandler()
+                with self.assertRaises(ValueError) as cm:
+                    self._read_cif("_foo.intkey1 %s" % val, real_file,
+                                   {'_foo': h})
+                self.assertIn("Integer '%s' is out of range in file, line 1"
+                              % val, str(cm.exception))
+                # Not a problem if the value is read as a string or float
+                h = GenericHandler()
+                self._read_cif("_foo.var1 %s\n_foo.floatkey1 %s"
+                               % (val, val), real_file, {'_foo': h})
+                self.assertEqual(h.data[0]['var1'], val)
+                self.assertEqual(h.data[0]['floatkey1'], float(val))
 
     def test_float_keys_loop(self):
         """Check handling of float keywords in loop construct"""

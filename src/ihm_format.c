@@ -549,16 +549,20 @@ static void set_keyword_to_default(struct ihm_keyword *key)
 }
 
 /* Set the value of a given keyword from the given string of length len */
-/* Equivalent to strtol(str, endptr, 10), but much faster for the plain integers
-   that make up most mmCIF files. Up to 9 digits always fits in an int (which
-   is what the value is stored in). Anything else, including invalid input,
-   is handled by strtol. */
-static long ihm_strtol(const char *str, char **endptr)
+/* Equivalent to strtoll(str, endptr, 10), but much faster for the plain
+   integers that make up most mmCIF files. Up to 9 digits always fits in an
+   int64_t (which is what the value is stored in). Anything else, including
+   invalid input, is handled by strtoll. (Up to 18 digits would also fit, but
+   allowing that many here makes the common case of short integers measurably
+   slower, and longer integers are rare.) If the value does not fit in an
+   int64_t, *overflow is set to true. */
+static int64_t ihm_strtoi64(const char *str, char **endptr, bool *overflow)
 {
   const char *pt = str;
-  long value = 0;
+  int64_t value = 0;
   int ndigit = 0;
   bool negative = (*pt == '-');
+  *overflow = false;
   if (negative || *pt == '+') {
     pt++;
   }
@@ -566,7 +570,17 @@ static long ihm_strtol(const char *str, char **endptr)
     value = value * 10 + (*pt - '0');
   }
   if (*pt || ndigit == 0) {
-    return strtol(str, endptr, 10);
+    long long llval;
+    errno = 0;
+    llval = strtoll(str, endptr, 10);
+    if (errno == ERANGE
+#if LLONG_MAX > INT64_MAX
+        || llval > INT64_MAX || llval < INT64_MIN
+#endif
+       ) {
+      *overflow = true;
+    }
+    return (int64_t)llval;
   }
   *endptr = (char *)pt;
   return negative ? -value : value;
@@ -619,6 +633,7 @@ static void set_value_from_string(struct ihm_reader *reader,
                                   struct ihm_error **err)
 {
   char *ch;
+  bool overflow;
   /* If a key is duplicated, overwrite it with the new value */
   if (key->in_file && key->type == IHM_STRING && key->own_data) {
     free(key->data.str);
@@ -639,10 +654,15 @@ static void set_value_from_string(struct ihm_reader *reader,
     key->omitted = key->unknown = false;
     break;
   case IHM_INT:
-    key->data.ival = ihm_strtol(str, &ch);
+    key->data.ival = ihm_strtoi64(str, &ch, &overflow);
     if (*ch) {
       ihm_error_set(err, IHM_ERROR_VALUE,
                     "Cannot parse '%s' as integer in file, line %d",
+                    str, reader->linenum);
+      return;
+    } else if (overflow) {
+      ihm_error_set(err, IHM_ERROR_VALUE,
+                    "Integer '%s' is out of range in file, line %d",
                     str, reader->linenum);
       return;
     }
@@ -2963,6 +2983,7 @@ static void set_value_from_bcif_string(struct ihm_keyword *key, char *str,
                                        struct ihm_error **err)
 {
   char *ch;
+  bool overflow;
   switch(key->type) {
   case IHM_STRING:
     /* In BinaryCIF the string is always owned by the file buffer,
@@ -2973,10 +2994,13 @@ static void set_value_from_bcif_string(struct ihm_keyword *key, char *str,
     key->omitted = false;
     break;
   case IHM_INT:
-    key->data.ival = ihm_strtol(str, &ch);
+    key->data.ival = ihm_strtoi64(str, &ch, &overflow);
     if (*ch) {
       ihm_error_set(err, IHM_ERROR_VALUE,
                     "Cannot parse '%s' as integer in file", str);
+    } else if (overflow) {
+      ihm_error_set(err, IHM_ERROR_VALUE,
+                    "Integer '%s' is out of range in file", str);
     } else {
       key->omitted = false;
     }
@@ -3008,8 +3032,17 @@ static void set_value_from_bcif_string(struct ihm_keyword *key, char *str,
 }
 
 static void set_value_from_bcif_double(struct ihm_keyword *key, double fval,
-                                       char *buffer)
+                                       char *buffer, struct ihm_error **err)
 {
+  /* Values that cannot be truncated to an int64_t (including NaN and
+     infinity) cannot be stored in an integer keyword. Note that both limits
+     here (-2^63 and 2^63) are exactly representable as doubles. */
+  if (key->type == IHM_INT && !(fval >= -9223372036854775808.0
+                                && fval < 9223372036854775808.0)) {
+    ihm_error_set(err, IHM_ERROR_VALUE,
+                  "Value %g is out of range for an integer in file", fval);
+    return;
+  }
   key->omitted = key->unknown = false;
   key->in_file = true;
   switch(key->type) {
@@ -3022,7 +3055,7 @@ static void set_value_from_bcif_double(struct ihm_keyword *key, double fval,
   case IHM_INT:
     /* Truncate float to int. This matches Python's behavior
        of int(some_float) */
-    key->data.ival = (int)fval;
+    key->data.ival = (int64_t)fval;
     break;
   case IHM_FLOAT:
     key->data.fval = fval;
@@ -3058,15 +3091,8 @@ static void set_value_from_bcif_int(struct ihm_keyword *key, int32_t ival,
 }
 
 static void set_value_from_bcif_uint(struct ihm_keyword *key, uint32_t uval,
-                                     char *buffer, struct ihm_error **err)
+                                     char *buffer)
 {
-  /* Values too large for an int cannot be stored in an integer keyword */
-  if (key->type == IHM_INT && uval > INT_MAX) {
-    ihm_error_set(err, IHM_ERROR_VALUE,
-                  "Value %lu is out of range for an integer in file",
-                  (unsigned long)uval);
-    return;
-  }
   key->omitted = key->unknown = false;
   key->in_file = true;
   switch(key->type) {
@@ -3115,10 +3141,12 @@ static void set_value_from_data(struct ihm_reader *reader,
     break;
   case BCIF_DATA_FLOAT:
     /* promote to double */
-    set_value_from_bcif_double(key, data->data.float32[irow], buffer);
+    set_value_from_bcif_double(key, data->data.float32[irow], buffer,
+                               err);
     break;
   case BCIF_DATA_DOUBLE:
-    set_value_from_bcif_double(key, data->data.float64[irow], buffer);
+    set_value_from_bcif_double(key, data->data.float64[irow], buffer,
+                               err);
     break;
   case BCIF_DATA_INT8:
     /* promote to int32 */
@@ -3140,7 +3168,7 @@ static void set_value_from_data(struct ihm_reader *reader,
     set_value_from_bcif_int(key, data->data.int32[irow], buffer);
     break;
   case BCIF_DATA_UINT32:
-    set_value_from_bcif_uint(key, data->data.uint32[irow], buffer, err);
+    set_value_from_bcif_uint(key, data->data.uint32[irow], buffer);
     break;
   default:
     ihm_error_set(err, IHM_ERROR_FILE_FORMAT,

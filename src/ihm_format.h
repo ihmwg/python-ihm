@@ -16,6 +16,7 @@
 #define IHM_FORMAT_H
 
 #include <stdlib.h> /* For size_t */
+#include <stdint.h> /* For int64_t */
 #if defined(_MSC_VER)
 #include <BaseTsd.h>
 typedef SSIZE_T ssize_t;
@@ -75,7 +76,7 @@ struct ihm_keyword {
   /* Last value read from the file */
   union {
     char *str;
-    int ival;
+    int64_t ival;
     double fval;
     bool bval;
   } data;

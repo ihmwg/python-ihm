@@ -365,17 +365,34 @@ class Tests(unittest.TestCase):
                            struct.pack('<3I', 5, 2**31, 2**32 - 1))
         self.assertEqual(data, ['5', '2147483648', '4294967295'])
 
-        # 32-bit unsigned int can be coerced to int or float
+        # 32-bit unsigned int can be coerced to int or float; the
+        # full range of values can be represented
         data = get_decoded(ihm.format_bcif._Uint32,
-                           struct.pack('<2I', 5, 2**31 - 1), key='intkey1')
-        self.assertEqual(data, [5, 2**31 - 1])
+                           struct.pack('<5I', 0, 5, 2**31 - 1, 2**31,
+                                       2**32 - 1), key='intkey1')
+        self.assertEqual(data, [0, 5, 2**31 - 1, 2**31, 2**32 - 1])
         data = get_decoded(ihm.format_bcif._Uint32,
                            struct.pack('<2I', 5, 2**32 - 1), key='floatkey1')
         self.assertEqual(data, [5.0, 4294967295.0])
-        # Values too large for int cannot be coerced to int
-        self.assertRaises(ValueError, get_decoded,
-                          ihm.format_bcif._Uint32, struct.pack('<I', 2**31),
-                          key='intkey1')
+
+        # Full range of 32-bit signed int can be coerced to int
+        data = get_decoded(ihm.format_bcif._Int32,
+                           struct.pack('<3i', -2**31, 0, 2**31 - 1),
+                           key='intkey1')
+        self.assertEqual(data, [-2**31, 0, 2**31 - 1])
+
+        # 64-bit floats are truncated to int, if in range
+        vals = [-2.**63, -42.7, 42.7, 2.**32, 2.**62, 2.**63 - 1024.]
+        data = get_decoded(ihm.format_bcif._Float64,
+                           struct.pack('<6d', *vals), key='intkey1')
+        self.assertEqual(data, [int(v) for v in vals])
+        # Floats out of int64 range, inf and NaN cannot be coerced to int
+        for val in (2.**63, -2.**63 - 2048., 1e30, -1e30, float('inf'),
+                    float('-inf'), float('nan')):
+            with self.assertRaises(ValueError) as cm:
+                get_decoded(ihm.format_bcif._Float64, struct.pack('<d', val),
+                            key='intkey1')
+            self.assertIn('out of range for an integer', str(cm.exception))
 
     def test_integer_packing_decoder_signed(self):
         """Test IntegerPacking decoder with signed data"""
@@ -497,6 +514,27 @@ class Tests(unittest.TestCase):
         h = GenericHandler()
         self.assertRaises(ValueError, self._read_bcif,
                           [Block([cat])], {'_foo': h})
+
+        # Can coerce a string to int if it fits in 64 bits
+        cat = Category('_foo', {'intkey1': ["9223372036854775807",
+                                            "-9223372036854775808",
+                                            "4294967296"]})
+        h = GenericHandler()
+        self._read_bcif([Block([cat])], {'_foo': h})
+        self.assertEqual(h.data, [{'intkey1': 2**63 - 1},
+                                  {'intkey1': -2**63},
+                                  {'intkey1': 2**32}])
+
+    @unittest.skipIf(_format is None, "No C tokenizer")
+    def test_int_keys_string_out_of_range(self):
+        """Check that intlike strings outside of int64 range are rejected"""
+        for val in ("9223372036854775808", "-9223372036854775809"):
+            cat = Category('_foo', {'intkey1': [val]})
+            h = GenericHandler()
+            with self.assertRaises(ValueError) as cm:
+                self._read_bcif([Block([cat])], {'_foo': h})
+            self.assertIn("Integer '%s' is out of range" % val,
+                          str(cm.exception))
 
     def test_float_keys(self):
         """Check handling of floating-point keywords"""
