@@ -395,8 +395,9 @@ def _get_int_float_type(data):
     max_val = max(data)
     if min_val >= 0:
         # Unsigned types
+        # Prefer Int32 over Uint32 if possible since it is more widely used
         for typ, limit in [(_Uint8, 0xFF), (_Uint16, 0xFFFF),
-                           (_Uint32, 0xFFFFFFFF)]:
+                           (_Int32, 0x7FFFFFFF), (_Uint32, 0xFFFFFFFF)]:
             if max_val <= limit:
                 return typ
     else:

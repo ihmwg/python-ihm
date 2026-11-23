@@ -1581,6 +1581,11 @@ class Tests(unittest.TestCase):
         self.assertEqual(data, b'\x00\xff\xfe\xfa')
         self.assertEqual(encd, {'kind': 'ByteArray',
                                 'type': ihm.format_bcif._Int32})
+        # signed int is also used for values less than 2^31
+        data, encd = d([83951872])
+        self.assertEqual(data, b'\x00\x01\x01\x05')
+        self.assertEqual(encd, {'kind': 'ByteArray',
+                                'type': ihm.format_bcif._Int32})
 
         # type 4 (unsigned char)
         data, encd = d([0, 255])
