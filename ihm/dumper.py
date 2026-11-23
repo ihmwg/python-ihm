@@ -2873,6 +2873,79 @@ class _DerivedDistanceRestraintDumper(Dumper):
                          dataset_list_id=r.dataset._id if r.dataset else None)
 
 
+class _DerivedAngleRestraintDumper(Dumper):
+    def finalize(self, system):
+        (self._restraints_by_id,
+         self._group_for_id) = _finalize_restraints_and_groups(
+            system, restraint.DerivedAngleRestraint)
+
+    def dump(self, system, writer):
+        condmap = {True: 'ALL', False: 'ANY', None: None,
+                   ihm.unknown: ihm.unknown}
+        with writer.loop("_ihm_derived_angle_restraint",
+                         ["id", "group_id", "feature_id_1", "feature_id_2",
+                          "feature_id_3", "restraint_type",
+                          "angle_lower_limit", "angle_upper_limit",
+                          "angle_lower_limit_esd", "angle_upper_limit_esd",
+                          "angle_threshold_mean", "angle_threshold_esd",
+                          "probability", "group_conditionality",
+                          "dataset_list_id"]) as lp:
+            for r in self._restraints_by_id:
+                lp.write(id=r._id,
+                         group_id=self._group_for_id.get(r._id, None),
+                         feature_id_1=r.feature1._id,
+                         feature_id_2=r.feature2._id,
+                         feature_id_3=r.feature3._id,
+                         restraint_type=r.angle.restraint_type,
+                         angle_lower_limit=r.angle.lower_limit,
+                         angle_upper_limit=r.angle.upper_limit,
+                         angle_lower_limit_esd=r.angle.lower_limit_esd,
+                         angle_upper_limit_esd=r.angle.upper_limit_esd,
+                         angle_threshold_mean=r.angle.threshold_mean,
+                         angle_threshold_esd=r.angle.threshold_esd,
+                         probability=r.probability,
+                         group_conditionality=condmap[r.restrain_all],
+                         dataset_list_id=r.dataset._id if r.dataset else None)
+
+
+class _DerivedDihedralRestraintDumper(Dumper):
+    def finalize(self, system):
+        (self._restraints_by_id,
+         self._group_for_id) = _finalize_restraints_and_groups(
+            system, restraint.DerivedDihedralRestraint)
+
+    def dump(self, system, writer):
+        condmap = {True: 'ALL', False: 'ANY', None: None,
+                   ihm.unknown: ihm.unknown}
+        with writer.loop("_ihm_derived_dihedral_restraint",
+                         ["id", "group_id", "feature_id_1", "feature_id_2",
+                          "feature_id_3", "feature_id_4", "restraint_type",
+                          "dihedral_lower_limit", "dihedral_upper_limit",
+                          "dihedral_lower_limit_esd",
+                          "dihedral_upper_limit_esd",
+                          "dihedral_threshold_mean", "dihedral_threshold_esd",
+                          "probability", "group_conditionality",
+                          "dataset_list_id"]) as lp:
+            for r in self._restraints_by_id:
+                d = r.dihedral
+                lp.write(id=r._id,
+                         group_id=self._group_for_id.get(r._id, None),
+                         feature_id_1=r.feature1._id,
+                         feature_id_2=r.feature2._id,
+                         feature_id_3=r.feature3._id,
+                         feature_id_4=r.feature4._id,
+                         restraint_type=d.restraint_type,
+                         dihedral_lower_limit=d.lower_limit,
+                         dihedral_upper_limit=d.upper_limit,
+                         dihedral_lower_limit_esd=d.lower_limit_esd,
+                         dihedral_upper_limit_esd=d.upper_limit_esd,
+                         dihedral_threshold_mean=d.threshold_mean,
+                         dihedral_threshold_esd=d.threshold_esd,
+                         probability=r.probability,
+                         group_conditionality=condmap[r.restrain_all],
+                         dataset_list_id=r.dataset._id if r.dataset else None)
+
+
 class _HDXRestraintDumper(Dumper):
     def _all_restraints(self, system):
         return [r for r in system._all_restraints()
@@ -4307,6 +4380,7 @@ class IHMVariant(Variant):
         _ProtocolDumper, _PostProcessDumper, _PseudoSiteDumper,
         _GeometricObjectDumper, _FeatureDumper, _CrossLinkDumper,
         _GeometricRestraintDumper, _DerivedDistanceRestraintDumper,
+        _DerivedAngleRestraintDumper, _DerivedDihedralRestraintDumper,
         _HDXRestraintDumper, _HydroxylRadicalRestraintDumper,
         _PredictedContactRestraintDumper, _EM3DDumper, _EM2DDumper, _SASDumper,
         _ProbeDumper, _EPRDumper,

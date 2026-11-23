@@ -81,6 +81,41 @@ class Tests(unittest.TestCase):
         self.assertIsNone(r.distance_upper_limit_esd)
         self.assertIsNone(r.distance_threshold_mean)
         self.assertIsNone(r.distance_threshold_esd)
+        self.assertIsNone(r.lower_limit)
+        self.assertIsNone(r.upper_limit)
+        self.assertIsNone(r.lower_limit_esd)
+        self.assertIsNone(r.upper_limit_esd)
+        self.assertIsNone(r.threshold_mean)
+        self.assertIsNone(r.threshold_esd)
+
+    def test_distance_restraint_generic_names(self):
+        """Test generic (non-distance) names in DistanceRestraint classes"""
+        r = ihm.restraint.HarmonicDistanceRestraint(114.6, esd=1.0)
+        self.assertAlmostEqual(r.lower_limit, 114.6, delta=0.1)
+        self.assertAlmostEqual(r.upper_limit, 114.6, delta=0.1)
+        self.assertAlmostEqual(r.threshold_mean, 114.6, delta=0.1)
+        self.assertAlmostEqual(r.threshold_esd, 1.0, delta=0.1)
+        r = ihm.restraint.UpperBoundDistanceRestraint(90.0, esd=2.0)
+        self.assertIsNone(r.lower_limit)
+        self.assertAlmostEqual(r.upper_limit, 90.0, delta=0.1)
+        self.assertAlmostEqual(r.upper_limit_esd, 2.0, delta=0.1)
+        r = ihm.restraint.LowerBoundDistanceRestraint(90.0, esd=2.0)
+        self.assertAlmostEqual(r.lower_limit, 90.0, delta=0.1)
+        self.assertAlmostEqual(r.lower_limit_esd, 2.0, delta=0.1)
+        self.assertIsNone(r.upper_limit)
+        r = ihm.restraint.LowerUpperBoundDistanceRestraint(
+            -60.0, 60.0, 1.0, 2.0)
+        self.assertAlmostEqual(r.lower_limit, -60.0, delta=0.1)
+        self.assertAlmostEqual(r.upper_limit, 60.0, delta=0.1)
+        self.assertAlmostEqual(r.lower_limit_esd, 1.0, delta=0.1)
+        self.assertAlmostEqual(r.upper_limit_esd, 2.0, delta=0.1)
+        # Old distance_* names should be read/write aliases
+        r.distance_lower_limit = -50.0
+        r.distance_upper_limit_esd = 3.0
+        self.assertAlmostEqual(r.lower_limit, -50.0, delta=0.1)
+        self.assertAlmostEqual(r.upper_limit_esd, 3.0, delta=0.1)
+        r.upper_limit = 70.0
+        self.assertAlmostEqual(r.distance_upper_limit, 70.0, delta=0.1)
 
     def test_harmonic_distance_restraint(self):
         """Test HarmonicDistanceRestraint class"""
@@ -299,6 +334,35 @@ class Tests(unittest.TestCase):
         self.assertEqual(f.feature1, 'feat1')
         self.assertEqual(f.feature2, 'feat2')
         self.assertEqual(f._all_features, ('feat1', 'feat2'))
+
+    def test_derived_angle_restraint(self):
+        """Test DerivedAngleRestraint class"""
+        f = ihm.restraint.DerivedAngleRestraint(
+            dataset='foo', feature1='feat1', feature2='feat2',
+            feature3='feat3', angle='angle', probability=0.5,
+            restrain_all=True)
+        self.assertEqual(f.dataset, 'foo')
+        self.assertIsNone(f.assembly)
+        self.assertEqual(f.feature1, 'feat1')
+        self.assertEqual(f.feature2, 'feat2')
+        self.assertEqual(f.feature3, 'feat3')
+        self.assertEqual(f.angle, 'angle')
+        self.assertAlmostEqual(f.probability, 0.5, delta=0.01)
+        self.assertTrue(f.restrain_all)
+        self.assertEqual(f._all_features, ('feat1', 'feat2', 'feat3'))
+
+    def test_derived_dihedral_restraint(self):
+        """Test DerivedDihedralRestraint class"""
+        f = ihm.restraint.DerivedDihedralRestraint(
+            dataset='foo', feature1='feat1', feature2='feat2',
+            feature3='feat3', feature4='feat4', dihedral='dihed')
+        self.assertEqual(f.dataset, 'foo')
+        self.assertIsNone(f.assembly)
+        self.assertEqual(f.dihedral, 'dihed')
+        self.assertIsNone(f.probability)
+        self.assertIsNone(f.restrain_all)
+        self.assertEqual(f._all_features,
+                         ('feat1', 'feat2', 'feat3', 'feat4'))
 
     def test_pseudo_site_signature(self):
         """Test signature of PseudoSite"""

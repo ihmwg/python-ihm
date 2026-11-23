@@ -617,6 +617,18 @@ class SystemReader:
             self.system.restraints, ihm.restraint.DerivedDistanceRestraint,
             *(None,) * 4)
 
+        #: Mapping from ID to :class:`ihm.restraint.DerivedAngleRestraint`
+        #: objects
+        self.angle_restraints = IDMapper(
+            self.system.restraints, ihm.restraint.DerivedAngleRestraint,
+            *(None,) * 5)
+
+        #: Mapping from ID to :class:`ihm.restraint.DerivedDihedralRestraint`
+        #: objects
+        self.dihedral_restraints = IDMapper(
+            self.system.restraints, ihm.restraint.DerivedDihedralRestraint,
+            *(None,) * 6)
+
         #: Mapping from ID to :class:`ihm.restraint.HDXRestraint` objects
         self.hdx_restraints = IDMapper(
             self.system.restraints, ihm.restraint.HDXRestraint,
@@ -637,6 +649,16 @@ class SystemReader:
         #: Mapping from ID to :class:`ihm.restraint.RestraintGroup` of
         #: :class:`ihm.restraint.DerivedDistanceRestraint` objects
         self.dist_restraint_groups = IDMapper(
+            self.system.restraint_groups, ihm.restraint.RestraintGroup)
+
+        #: Mapping from ID to :class:`ihm.restraint.RestraintGroup` of
+        #: :class:`ihm.restraint.DerivedAngleRestraint` objects
+        self.angle_restraint_groups = IDMapper(
+            self.system.restraint_groups, ihm.restraint.RestraintGroup)
+
+        #: Mapping from ID to :class:`ihm.restraint.RestraintGroup` of
+        #: :class:`ihm.restraint.DerivedDihedralRestraint` objects
+        self.dihedral_restraint_groups = IDMapper(
             self.system.restraint_groups, ihm.restraint.RestraintGroup)
 
         #: Mapping from ID to :class:`ihm.restraint.RestraintGroup` of
@@ -2689,6 +2711,65 @@ class _DerivedDistanceRestraintHandler(Handler):
         r.random_exclusion_fraction = random_exclusion_fraction
 
 
+class _DerivedAngleRestraintHandler(Handler):
+    category = '_ihm_derived_angle_restraint'
+    _cond_map = {'ALL': True, 'ANY': False, None: None,
+                 ihm.unknown: ihm.unknown}
+
+    def __call__(self, id, group_id, dataset_list_id, feature_id_1,
+                 feature_id_2, feature_id_3, restraint_type,
+                 group_conditionality, probability: float,
+                 angle_lower_limit: float, angle_upper_limit: float,
+                 angle_lower_limit_esd: float,
+                 angle_upper_limit_esd: float,
+                 angle_threshold_mean: float,
+                 angle_threshold_esd: float):
+        r = self.sysr.angle_restraints.get_by_id(id)
+        if group_id is not None:
+            rg = self.sysr.angle_restraint_groups.get_by_id(group_id)
+            rg.append(r)
+        r.dataset = self.sysr.datasets.get_by_id_or_none(dataset_list_id)
+        r.feature1 = self.sysr.features.get_by_id(feature_id_1)
+        r.feature2 = self.sysr.features.get_by_id(feature_id_2)
+        r.feature3 = self.sysr.features.get_by_id(feature_id_3)
+        r.angle = _handle_distance[restraint_type](
+            angle_lower_limit, angle_upper_limit,
+            angle_lower_limit_esd, angle_upper_limit_esd,
+            angle_threshold_mean, angle_threshold_esd)
+        r.restrain_all = self._cond_map[group_conditionality]
+        r.probability = probability
+
+
+class _DerivedDihedralRestraintHandler(Handler):
+    category = '_ihm_derived_dihedral_restraint'
+    _cond_map = {'ALL': True, 'ANY': False, None: None,
+                 ihm.unknown: ihm.unknown}
+
+    def __call__(self, id, group_id, dataset_list_id, feature_id_1,
+                 feature_id_2, feature_id_3, feature_id_4, restraint_type,
+                 group_conditionality, probability: float,
+                 dihedral_lower_limit: float, dihedral_upper_limit: float,
+                 dihedral_lower_limit_esd: float,
+                 dihedral_upper_limit_esd: float,
+                 dihedral_threshold_mean: float,
+                 dihedral_threshold_esd: float):
+        r = self.sysr.dihedral_restraints.get_by_id(id)
+        if group_id is not None:
+            rg = self.sysr.dihedral_restraint_groups.get_by_id(group_id)
+            rg.append(r)
+        r.dataset = self.sysr.datasets.get_by_id_or_none(dataset_list_id)
+        r.feature1 = self.sysr.features.get_by_id(feature_id_1)
+        r.feature2 = self.sysr.features.get_by_id(feature_id_2)
+        r.feature3 = self.sysr.features.get_by_id(feature_id_3)
+        r.feature4 = self.sysr.features.get_by_id(feature_id_4)
+        r.dihedral = _handle_distance[restraint_type](
+            dihedral_lower_limit, dihedral_upper_limit,
+            dihedral_lower_limit_esd, dihedral_upper_limit_esd,
+            dihedral_threshold_mean, dihedral_threshold_esd)
+        r.restrain_all = self._cond_map[group_conditionality]
+        r.probability = probability
+
+
 class _HDXRestraintHandler(Handler):
     category = '_ihm_hdx_restraint'
 
@@ -4242,7 +4323,8 @@ class IHMVariant(Variant):
         _PolyResidueFeatureHandler, _PolyAtomFeatureHandler,
         _InterfaceResidueFeatureHandler,
         _NonPolyFeatureHandler, _PseudoSiteFeatureHandler, _PseudoSiteHandler,
-        _DerivedDistanceRestraintHandler, _HDXRestraintHandler,
+        _DerivedDistanceRestraintHandler, _DerivedAngleRestraintHandler,
+        _DerivedDihedralRestraintHandler, _HDXRestraintHandler,
         _PredictedContactRestraintHandler,
         _HydroxylRadicalRestraintHandler, _EPRRestraintHandler,
         _CenterHandler, _TransformationHandler, _GeometricObjectHandler,

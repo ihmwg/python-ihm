@@ -6,6 +6,17 @@ HEAD
     reporting errors and warnings for any violated rules.
   - :class:`ihm.dictionary.Dictionary` now also stores all item types
     defined in the dictionary, and the detail text of enumerated values.
+  - New :class:`ihm.restraint.DerivedAngleRestraint` and
+    :class:`ihm.restraint.DerivedDihedralRestraint` classes allow for
+    restraints on angles and dihedrals between features (mapping to the
+    ``ihm_derived_angle_restraint`` and ``ihm_derived_dihedral_restraint``
+    categories). These use the existing
+    :class:`ihm.restraint.DistanceRestraint` subclasses (e.g.
+    :class:`~ihm.restraint.HarmonicDistanceRestraint`) to describe the
+    restraint, which now also provide generic ``lower_limit``,
+    ``upper_limit``, ``lower_limit_esd``, ``upper_limit_esd``,
+    ``threshold_mean`` and ``threshold_esd`` attributes (the existing
+    ``distance_*`` attributes are aliases for these).
 
 2.13 - 2026-11-11
 =================

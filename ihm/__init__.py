@@ -879,7 +879,8 @@ class System:
                     "of Restraints. Due to limitations of the underlying "
                     "dictionary, all objects in a RestraintGroup must be of "
                     "the same type, and only certain types (currently only "
-                    "DerivedDistanceRestraint, PredictedContactRestraint "
+                    "DerivedDistanceRestraint, DerivedAngleRestraint, "
+                    "DerivedDihedralRestraint, PredictedContactRestraint "
                     "or HydroxylRadicalFPRestraint) can be grouped." % g)
 
 

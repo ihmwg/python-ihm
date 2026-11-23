@@ -43,6 +43,7 @@ class RestraintGroup(list):
        certain combinations of restraints can be placed in groups.
        In particular, all objects in a group must be of the same type, and
        only certain types (currently only :class:`DerivedDistanceRestraint`,
+       :class:`DerivedAngleRestraint`, :class:`DerivedDihedralRestraint`,
        :class:`PredictedContactRestraint` and
        :class:`HydroxylRadicalFPRestraint`) can be grouped.
 
@@ -278,9 +279,20 @@ class ExperimentalCrossLink:
         self.details = details
 
 
+def _alias_property(name, doc):
+    """Make a read/write property that is an alias for attribute `name`"""
+    return property(lambda self: getattr(self, name),
+                    lambda self, val: setattr(self, name, val), doc=doc)
+
+
 class DistanceRestraint:
     """Base class for all distance restraints. These are typically
        used in a :class:`DerivedDistanceRestraint`.
+
+       Despite the name, these classes are generic restraints on a single
+       quantity, and so can also be used to restrain an angle or dihedral
+       (in degrees), for example in a :class:`DerivedAngleRestraint` or
+       :class:`DerivedDihedralRestraint`.
 
        Do not use this class directly but instead use a derived class
        such as :class:`HarmonicDistanceRestraint`,
@@ -290,37 +302,53 @@ class DistanceRestraint:
     """
     restraint_type = None
 
-    #: The minimum distance allowed for this restraint,
-    #: or None if unconstrained
-    distance_lower_limit = None
+    #: The minimum value (distance, angle or dihedral) allowed for this
+    #: restraint, or None if unconstrained
+    lower_limit = None
 
-    #: The maximum distance allowed for this restraint,
-    #: or None if unconstrained
-    distance_upper_limit = None
+    #: The maximum value (distance, angle or dihedral) allowed for this
+    #: restraint, or None if unconstrained
+    upper_limit = None
 
-    #: The estimated standard deviation of :attr:`distance_lower_limit`,
+    #: The estimated standard deviation of :attr:`lower_limit`,
     #: or None if not applicable
-    distance_lower_limit_esd = None
+    lower_limit_esd = None
 
-    #: The estimated standard deviation of :attr:`distance_upper_limit`,
+    #: The estimated standard deviation of :attr:`upper_limit`,
     #: or None if not applicable
-    distance_upper_limit_esd = None
+    upper_limit_esd = None
 
-    #: The mean of a harmonic distance restraint, or None if not applicable
-    distance_threshold_mean = None
+    #: The mean of a harmonic restraint, or None if not applicable
+    threshold_mean = None
 
-    #: The estimated standard deviation of a harmonic distance restraint,
+    #: The estimated standard deviation of a harmonic restraint,
     #: or None if not applicable
-    distance_threshold_esd = None
+    threshold_esd = None
+
+    distance_lower_limit = _alias_property(
+        'lower_limit', "Alias for :attr:`lower_limit`")
+    distance_upper_limit = _alias_property(
+        'upper_limit', "Alias for :attr:`upper_limit`")
+    distance_lower_limit_esd = _alias_property(
+        'lower_limit_esd', "Alias for :attr:`lower_limit_esd`")
+    distance_upper_limit_esd = _alias_property(
+        'upper_limit_esd', "Alias for :attr:`upper_limit_esd`")
+    distance_threshold_mean = _alias_property(
+        'threshold_mean', "Alias for :attr:`threshold_mean`")
+    distance_threshold_esd = _alias_property(
+        'threshold_esd', "Alias for :attr:`threshold_esd`")
 
 
 class HarmonicDistanceRestraint(DistanceRestraint):
     """Harmonically restrain two objects to be close to a given distance apart.
        These objects are typically used in a :class:`DerivedDistanceRestraint`.
+       They can also be used to harmonically restrain an angle or dihedral
+       (in degrees), in a :class:`DerivedAngleRestraint` or
+       :class:`DerivedDihedralRestraint`.
 
-       :param float distance: Equilibrium distance
-       :param float esd: Estimated standard deviation of the distance,
-              if known
+       :param float distance: Equilibrium distance (or angle)
+       :param float esd: Estimated standard deviation of the distance
+              (or angle), if known
     """
     restraint_type = 'harmonic'
 
@@ -328,24 +356,27 @@ class HarmonicDistanceRestraint(DistanceRestraint):
         self.distance = distance
         self.esd = esd
 
-    #: The equilibrium distance
-    distance_lower_limit = property(lambda self: self.distance)
+    #: The equilibrium distance (or angle)
+    lower_limit = property(lambda self: self.distance)
 
-    #: The equilibrium distance
-    distance_upper_limit = distance_lower_limit
+    #: The equilibrium distance (or angle)
+    upper_limit = lower_limit
 
-    #: The equilibrium distance
-    distance_threshold_mean = distance_lower_limit
+    #: The equilibrium distance (or angle)
+    threshold_mean = lower_limit
 
-    #: The estimated standard deviation of the distance
-    distance_threshold_esd = property(lambda self: self.esd)
+    #: The estimated standard deviation of the distance (or angle)
+    threshold_esd = property(lambda self: self.esd)
 
 
 class UpperBoundDistanceRestraint(DistanceRestraint):
     """Harmonically restrain two objects to be below a given distance apart.
        These objects are typically used in a :class:`DerivedDistanceRestraint`.
+       They can also be used to restrain an angle or dihedral (in degrees)
+       to be below a given value, in a :class:`DerivedAngleRestraint` or
+       :class:`DerivedDihedralRestraint`.
 
-       :param float distance: Distance threshold
+       :param float distance: Distance (or angle) threshold
        :param float esd: Estimated standard deviation of the threshold,
               if known
     """
@@ -355,21 +386,24 @@ class UpperBoundDistanceRestraint(DistanceRestraint):
         self.distance = distance
         self.esd = esd
 
-    #: The maximum distance allowed by this restraint
-    distance_upper_limit = property(lambda self: self.distance)
+    #: The maximum distance (or angle) allowed by this restraint
+    upper_limit = property(lambda self: self.distance)
 
-    #: The estimated standard deviation of the maximum distance
-    distance_upper_limit_esd = property(lambda self: self.esd)
+    #: The estimated standard deviation of the maximum distance (or angle)
+    upper_limit_esd = property(lambda self: self.esd)
 
     #: Minimum distance (unconstrained, so always None)
-    distance_lower_limit = None
+    lower_limit = None
 
 
 class LowerBoundDistanceRestraint(DistanceRestraint):
     """Harmonically restrain two objects to be above a given distance apart.
        These objects are typically used in a :class:`DerivedDistanceRestraint`.
+       They can also be used to restrain an angle or dihedral (in degrees)
+       to be above a given value, in a :class:`DerivedAngleRestraint` or
+       :class:`DerivedDihedralRestraint`.
 
-       :param float distance: Distance threshold
+       :param float distance: Distance (or angle) threshold
        :param float esd: Estimated standard deviation of the threshold,
               if known
     """
@@ -379,23 +413,28 @@ class LowerBoundDistanceRestraint(DistanceRestraint):
         self.distance = distance
         self.esd = esd
 
-    #: The minimum distance allowed by this restraint
-    distance_lower_limit = property(lambda self: self.distance)
+    #: The minimum distance (or angle) allowed by this restraint
+    lower_limit = property(lambda self: self.distance)
 
-    #: The estimated standard deviation of the minimum distance
-    distance_lower_limit_esd = property(lambda self: self.esd)
+    #: The estimated standard deviation of the minimum distance (or angle)
+    lower_limit_esd = property(lambda self: self.esd)
 
     #: Maximum distance (unconstrained, so always None)
-    distance_upper_limit = None
+    upper_limit = None
 
 
 class LowerUpperBoundDistanceRestraint(DistanceRestraint):
     """Harmonically restrain two objects to be above a given distance
        and below another distance apart.
        These objects are typically used in a :class:`DerivedDistanceRestraint`.
+       They can also be used to restrain an angle or dihedral (in degrees)
+       to lie within a given range, in a :class:`DerivedAngleRestraint` or
+       :class:`DerivedDihedralRestraint`.
 
-       :param float distance_lower_limit: Lower bound on the distance.
-       :param float distance_upper_limit: Upper bound on the distance.
+       :param float distance_lower_limit: Lower bound on the distance
+              (or angle).
+       :param float distance_upper_limit: Upper bound on the distance
+              (or angle).
        :param float distance_lower_limit_esd: Estimated standard deviation
               of the lower bound, if known.
        :param float distance_upper_limit_esd: Estimated standard deviation
@@ -406,17 +445,17 @@ class LowerUpperBoundDistanceRestraint(DistanceRestraint):
     def __init__(self, distance_lower_limit, distance_upper_limit,
                  distance_lower_limit_esd=None,
                  distance_upper_limit_esd=None):
-        #: The minimum distance allowed by this restraint
-        self.distance_lower_limit = distance_lower_limit
+        #: The minimum distance (or angle) allowed by this restraint
+        self.lower_limit = distance_lower_limit
 
-        #: The maximum distance allowed by this restraint
-        self.distance_upper_limit = distance_upper_limit
+        #: The maximum distance (or angle) allowed by this restraint
+        self.upper_limit = distance_upper_limit
 
-        #: The estimated standard deviation of the minimum distance
-        self.distance_lower_limit_esd = distance_lower_limit_esd
+        #: The estimated standard deviation of the minimum distance (or angle)
+        self.lower_limit_esd = distance_lower_limit_esd
 
-        #: The estimated standard deviation of the maximum distance
-        self.distance_upper_limit_esd = distance_upper_limit_esd
+        #: The estimated standard deviation of the maximum distance (or angle)
+        self.upper_limit_esd = distance_upper_limit_esd
 
 
 class CrossLink:
@@ -934,6 +973,72 @@ class DerivedDistanceRestraint(Restraint):
         self.mic_value = mic_value
         self.random_exclusion_fraction = random_exclusion_fraction
     _all_features = property(lambda self: (self.feature1, self.feature2))
+
+
+class DerivedAngleRestraint(Restraint):
+    """A restraint on the angle between three parts of the system, derived
+       from experimental data. The angle is that formed by the first,
+       second, and third features, with the second feature at the vertex.
+
+       :param dataset: Reference to the data from which the restraint is
+              derived.
+       :type dataset: :class:`~ihm.dataset.Dataset`
+       :param feature1: The first part of the system to restrain.
+       :type feature1: :class:`Feature`
+       :param feature2: The second part of the system to restrain.
+       :type feature2: :class:`Feature`
+       :param feature3: The third part of the system to restrain.
+       :type feature3: :class:`Feature`
+       :param angle: Restraint on the angle (in degrees).
+       :type angle: :class:`DistanceRestraint`
+       :param float probability: Likelihood that restraint is correct (0. - 1.)
+       :param bool restrain_all: If True, all angles are restrained.
+    """
+    assembly = None  # no struct_assembly_id for derived angle restraints
+
+    def __init__(self, dataset, feature1, feature2, feature3, angle,
+                 probability=None, restrain_all=None):
+        self.dataset = dataset
+        self.feature1, self.feature2 = feature1, feature2
+        self.feature3 = feature3
+        self.angle, self.restrain_all = angle, restrain_all
+        self.probability = probability
+    _all_features = property(
+        lambda self: (self.feature1, self.feature2, self.feature3))
+
+
+class DerivedDihedralRestraint(Restraint):
+    """A restraint on the dihedral angle between four parts of the system,
+       derived from experimental data.
+
+       :param dataset: Reference to the data from which the restraint is
+              derived.
+       :type dataset: :class:`~ihm.dataset.Dataset`
+       :param feature1: The first part of the system to restrain.
+       :type feature1: :class:`Feature`
+       :param feature2: The second part of the system to restrain.
+       :type feature2: :class:`Feature`
+       :param feature3: The third part of the system to restrain.
+       :type feature3: :class:`Feature`
+       :param feature4: The fourth part of the system to restrain.
+       :type feature4: :class:`Feature`
+       :param dihedral: Restraint on the dihedral angle (in degrees).
+       :type dihedral: :class:`DistanceRestraint`
+       :param float probability: Likelihood that restraint is correct (0. - 1.)
+       :param bool restrain_all: If True, all dihedrals are restrained.
+    """
+    assembly = None  # no struct_assembly_id for derived dihedral restraints
+
+    def __init__(self, dataset, feature1, feature2, feature3, feature4,
+                 dihedral, probability=None, restrain_all=None):
+        self.dataset = dataset
+        self.feature1, self.feature2 = feature1, feature2
+        self.feature3, self.feature4 = feature3, feature4
+        self.dihedral, self.restrain_all = dihedral, restrain_all
+        self.probability = probability
+    _all_features = property(
+        lambda self: (self.feature1, self.feature2, self.feature3,
+                      self.feature4))
 
 
 class PredictedContactRestraint(Restraint):

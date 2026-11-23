@@ -4618,6 +4618,147 @@ _ihm_derived_distance_restraint.dataset_list_id
         # r1 cannot be in multiple groups (rg1 and rg2)
         self.assertRaises(ValueError, dumper.finalize, system)
 
+    def test_derived_angle_restraint_dumper(self):
+        """Test DerivedAngleRestraintDumper"""
+        class MockObject:
+            pass
+        system = ihm.System()
+
+        feat1 = MockObject()
+        feat1._id = 44
+        feat2 = MockObject()
+        feat2._id = 84
+        feat3 = MockObject()
+        feat3._id = 12
+        dataset = MockObject()
+        dataset._id = 97
+
+        lowang = ihm.restraint.LowerBoundDistanceRestraint(90.0, esd=1.5)
+        unkang = ihm.restraint.DistanceRestraint()
+        harmang = ihm.restraint.HarmonicDistanceRestraint(114.6, esd=1.0)
+        luang = ihm.restraint.LowerUpperBoundDistanceRestraint(
+            100.0, 120.0, 2.0, 3.0)
+        r1 = ihm.restraint.DerivedAngleRestraint(
+            dataset=dataset, feature1=feat1, feature2=feat2, feature3=feat3,
+            angle=lowang, probability=0.8, restrain_all=True)
+        r2 = ihm.restraint.DerivedAngleRestraint(
+            dataset=dataset, feature1=feat1, feature2=feat2, feature3=feat3,
+            angle=luang, probability=0.4, restrain_all=False)
+        r3 = ihm.restraint.DerivedAngleRestraint(
+            dataset=None, feature1=feat1, feature2=feat2, feature3=feat3,
+            angle=unkang)
+        r4 = ihm.restraint.DerivedAngleRestraint(
+            dataset=dataset, feature1=feat1, feature2=feat2, feature3=feat3,
+            angle=harmang, restrain_all=ihm.unknown)
+        rg = ihm.restraint.RestraintGroup((r2, r3))
+        # r2 is in restraints and groups
+        system.restraints.extend((r1, r2, r4))
+        system.restraint_groups.append(rg)
+
+        dumper = ihm.dumper._DerivedAngleRestraintDumper()
+        dumper.finalize(system)  # assign IDs
+
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_ihm_derived_angle_restraint.id
+_ihm_derived_angle_restraint.group_id
+_ihm_derived_angle_restraint.feature_id_1
+_ihm_derived_angle_restraint.feature_id_2
+_ihm_derived_angle_restraint.feature_id_3
+_ihm_derived_angle_restraint.restraint_type
+_ihm_derived_angle_restraint.angle_lower_limit
+_ihm_derived_angle_restraint.angle_upper_limit
+_ihm_derived_angle_restraint.angle_lower_limit_esd
+_ihm_derived_angle_restraint.angle_upper_limit_esd
+_ihm_derived_angle_restraint.angle_threshold_mean
+_ihm_derived_angle_restraint.angle_threshold_esd
+_ihm_derived_angle_restraint.probability
+_ihm_derived_angle_restraint.group_conditionality
+_ihm_derived_angle_restraint.dataset_list_id
+1 . 44 84 12 'lower bound' 90.000 . 1.500 . . . 0.800 ALL 97
+2 1 44 84 12 'lower and upper bound' 100.000 120.000 2.000 3.000 . . 0.400 ANY
+97
+3 . 44 84 12 harmonic 114.600 114.600 . . 114.600 1.000 . ? 97
+4 1 44 84 12 . . . . . . . . . .
+#
+""")
+
+    def test_derived_angle_restraint_dumper_fail(self):
+        """Test DerivedAngleRestraintDumper multi-group failure"""
+        class MockObject:
+            pass
+        system = ihm.System()
+        feat = MockObject()
+        ang = ihm.restraint.LowerBoundDistanceRestraint(25.0)
+        r1 = ihm.restraint.DerivedAngleRestraint(
+            dataset=None, feature1=feat, feature2=feat, feature3=feat,
+            angle=ang)
+        rg1 = ihm.restraint.RestraintGroup([r1])
+        rg2 = ihm.restraint.RestraintGroup([r1])
+        system.restraint_groups.extend((rg1, rg2))
+
+        dumper = ihm.dumper._DerivedAngleRestraintDumper()
+        # r1 cannot be in multiple groups (rg1 and rg2)
+        self.assertRaises(ValueError, dumper.finalize, system)
+
+    def test_derived_dihedral_restraint_dumper(self):
+        """Test DerivedDihedralRestraintDumper"""
+        class MockObject:
+            pass
+        system = ihm.System()
+
+        feats = []
+        for i in range(4):
+            feat = MockObject()
+            feat._id = 10 + i
+            feats.append(feat)
+        dataset = MockObject()
+        dataset._id = 97
+
+        upang = ihm.restraint.UpperBoundDistanceRestraint(-30.0, esd=1.5)
+        unkang = ihm.restraint.DistanceRestraint()
+        harmang = ihm.restraint.HarmonicDistanceRestraint(-52.7, esd=2.3)
+        r1 = ihm.restraint.DerivedDihedralRestraint(
+            dataset, *feats, dihedral=upang, probability=0.8,
+            restrain_all=True)
+        r2 = ihm.restraint.DerivedDihedralRestraint(
+            dataset, *feats, dihedral=harmang, probability=0.4,
+            restrain_all=False)
+        r3 = ihm.restraint.DerivedDihedralRestraint(
+            None, *feats, dihedral=unkang)
+        rg = ihm.restraint.RestraintGroup((r2, r3))
+        system.restraints.extend((r1, r2))
+        system.restraint_groups.append(rg)
+
+        dumper = ihm.dumper._DerivedDihedralRestraintDumper()
+        dumper.finalize(system)  # assign IDs
+
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_ihm_derived_dihedral_restraint.id
+_ihm_derived_dihedral_restraint.group_id
+_ihm_derived_dihedral_restraint.feature_id_1
+_ihm_derived_dihedral_restraint.feature_id_2
+_ihm_derived_dihedral_restraint.feature_id_3
+_ihm_derived_dihedral_restraint.feature_id_4
+_ihm_derived_dihedral_restraint.restraint_type
+_ihm_derived_dihedral_restraint.dihedral_lower_limit
+_ihm_derived_dihedral_restraint.dihedral_upper_limit
+_ihm_derived_dihedral_restraint.dihedral_lower_limit_esd
+_ihm_derived_dihedral_restraint.dihedral_upper_limit_esd
+_ihm_derived_dihedral_restraint.dihedral_threshold_mean
+_ihm_derived_dihedral_restraint.dihedral_threshold_esd
+_ihm_derived_dihedral_restraint.probability
+_ihm_derived_dihedral_restraint.group_conditionality
+_ihm_derived_dihedral_restraint.dataset_list_id
+1 . 10 11 12 13 'upper bound' . -30.000 . 1.500 . . 0.800 ALL 97
+2 1 10 11 12 13 harmonic -52.700 -52.700 . . -52.700 2.300 0.400 ANY 97
+3 1 10 11 12 13 . . . . . . . . . .
+#
+""")
+
     def test_hdx_restraint_dumper(self):
         """Test HDXRestraintDumper"""
         class MockObject:

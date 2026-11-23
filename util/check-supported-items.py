@@ -317,6 +317,26 @@ def make_system():
             1., 10., 0.1, 0.2),
         probability=0.8, restrain_all=False, mic_value=0.5,
         random_exclusion_fraction=0.1))
+    system.restraints.append(ihm.restraint.DerivedAngleRestraint(
+        dataset=xl_ds, feature1=res_feature, feature2=atom_feature,
+        feature3=nonpoly_feature,
+        angle=ihm.restraint.LowerUpperBoundDistanceRestraint(
+            90., 120., 1., 2.),
+        probability=0.8, restrain_all=False))
+    system.restraints.append(ihm.restraint.DerivedAngleRestraint(
+        dataset=xl_ds, feature1=res_feature, feature2=atom_feature,
+        feature3=nonpoly_feature,
+        angle=ihm.restraint.HarmonicDistanceRestraint(114.6, 1.0)))
+    system.restraints.append(ihm.restraint.DerivedDihedralRestraint(
+        dataset=xl_ds, feature1=res_feature, feature2=atom_feature,
+        feature3=nonpoly_feature, feature4=pseudo_feature,
+        dihedral=ihm.restraint.LowerUpperBoundDistanceRestraint(
+            -60., 60., 1., 2.),
+        probability=0.8, restrain_all=True))
+    system.restraints.append(ihm.restraint.DerivedDihedralRestraint(
+        dataset=xl_ds, feature1=res_feature, feature2=atom_feature,
+        feature3=nonpoly_feature, feature4=pseudo_feature,
+        dihedral=ihm.restraint.HarmonicDistanceRestraint(56.1, 2.3)))
     system.restraints.append(ihm.restraint.PredictedContactRestraint(
         dataset=contact_ds, resatom1=asym_a.residue(1),
         resatom2=asym_b.residue(2),

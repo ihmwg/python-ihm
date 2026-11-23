@@ -2928,6 +2928,175 @@ _ihm_derived_distance_restraint.dataset_list_id
                                   ihm.AsymUnit)
             self.assertEqual(r5.feature1.binding_partners[1]._id, 'C')
 
+    def test_derived_angle_restraint_handler(self):
+        """Test DerivedAngleRestraintHandler"""
+        rsr = """
+loop_
+_ihm_feature_list.feature_id
+_ihm_feature_list.feature_type
+_ihm_feature_list.entity_type
+1 atom polymer
+2 atom polymer
+3 atom polymer
+#
+loop_
+_ihm_derived_angle_restraint.id
+_ihm_derived_angle_restraint.group_id
+_ihm_derived_angle_restraint.feature_id_1
+_ihm_derived_angle_restraint.feature_id_2
+_ihm_derived_angle_restraint.feature_id_3
+_ihm_derived_angle_restraint.restraint_type
+_ihm_derived_angle_restraint.angle_lower_limit
+_ihm_derived_angle_restraint.angle_upper_limit
+_ihm_derived_angle_restraint.angle_lower_limit_esd
+_ihm_derived_angle_restraint.angle_upper_limit_esd
+_ihm_derived_angle_restraint.angle_threshold_mean
+_ihm_derived_angle_restraint.angle_threshold_esd
+_ihm_derived_angle_restraint.probability
+_ihm_derived_angle_restraint.group_conditionality
+_ihm_derived_angle_restraint.dataset_list_id
+1 . 1 2 3 'lower bound' 90.000 . 1.500 . . . 0.800 . 97
+2 . 1 2 3 'upper bound' . 120.000 . 2.500 . . . ALL 98
+3 1 1 2 3 'lower and upper bound' 90.000 120.000 1.000 2.000 . . . ANY 99
+4 1 1 2 3 harmonic . . . . 114.600 1.000 . ? .
+5 . 3 2 1 . . . . . . . . . .
+"""
+        s, = ihm.reader.read(StringIO(rsr))
+        self.assertEqual(len(s.orphan_features), 3)
+        r1, r2, r3, r4, r5 = s.restraints
+        for r in s.restraints:
+            self.assertIsInstance(r, ihm.restraint.DerivedAngleRestraint)
+        rg1, = s.restraint_groups
+        self.assertEqual(list(rg1), [r3, r4])
+        self.assertEqual(r1.dataset._id, '97')
+        self.assertIsNone(r4.dataset)
+        self.assertEqual([f._id for f in r1._all_features], ['1', '2', '3'])
+        self.assertEqual([f._id for f in r5._all_features], ['3', '2', '1'])
+        self.assertIsInstance(r1.angle,
+                              ihm.restraint.LowerBoundDistanceRestraint)
+        self.assertAlmostEqual(r1.angle.lower_limit, 90.0, delta=0.1)
+        self.assertAlmostEqual(r1.angle.lower_limit_esd, 1.5, delta=0.1)
+        self.assertAlmostEqual(r1.probability, 0.8, delta=0.1)
+        self.assertIsNone(r1.restrain_all)
+        self.assertIsInstance(r2.angle,
+                              ihm.restraint.UpperBoundDistanceRestraint)
+        self.assertAlmostEqual(r2.angle.upper_limit, 120.0, delta=0.1)
+        self.assertAlmostEqual(r2.angle.upper_limit_esd, 2.5, delta=0.1)
+        self.assertIsNone(r2.probability)
+        self.assertTrue(r2.restrain_all)
+        self.assertIsInstance(
+            r3.angle, ihm.restraint.LowerUpperBoundDistanceRestraint)
+        self.assertAlmostEqual(r3.angle.lower_limit, 90.0, delta=0.1)
+        self.assertAlmostEqual(r3.angle.upper_limit, 120.0, delta=0.1)
+        self.assertAlmostEqual(r3.angle.lower_limit_esd, 1.0, delta=0.1)
+        self.assertAlmostEqual(r3.angle.upper_limit_esd, 2.0, delta=0.1)
+        self.assertFalse(r3.restrain_all)
+        self.assertIsInstance(r4.angle,
+                              ihm.restraint.HarmonicDistanceRestraint)
+        self.assertAlmostEqual(r4.angle.threshold_mean, 114.6, delta=0.1)
+        self.assertAlmostEqual(r4.angle.threshold_esd, 1.0, delta=0.1)
+        self.assertIs(r4.restrain_all, ihm.unknown)
+        self.assertIs(type(r5.angle), ihm.restraint.DistanceRestraint)
+
+    def test_derived_dihedral_restraint_handler(self):
+        """Test DerivedDihedralRestraintHandler"""
+        rsr = """
+loop_
+_ihm_feature_list.feature_id
+_ihm_feature_list.feature_type
+_ihm_feature_list.entity_type
+1 atom polymer
+2 atom polymer
+3 atom polymer
+4 atom polymer
+#
+loop_
+_ihm_derived_dihedral_restraint.id
+_ihm_derived_dihedral_restraint.group_id
+_ihm_derived_dihedral_restraint.feature_id_1
+_ihm_derived_dihedral_restraint.feature_id_2
+_ihm_derived_dihedral_restraint.feature_id_3
+_ihm_derived_dihedral_restraint.feature_id_4
+_ihm_derived_dihedral_restraint.restraint_type
+_ihm_derived_dihedral_restraint.dihedral_lower_limit
+_ihm_derived_dihedral_restraint.dihedral_upper_limit
+_ihm_derived_dihedral_restraint.dihedral_lower_limit_esd
+_ihm_derived_dihedral_restraint.dihedral_upper_limit_esd
+_ihm_derived_dihedral_restraint.dihedral_threshold_mean
+_ihm_derived_dihedral_restraint.dihedral_threshold_esd
+_ihm_derived_dihedral_restraint.probability
+_ihm_derived_dihedral_restraint.group_conditionality
+_ihm_derived_dihedral_restraint.dataset_list_id
+1 1 1 2 3 4 harmonic . . . . 56.100 2.300 0.800 ALL 97
+2 1 1 2 3 4 'lower and upper bound' -60.000 60.000 1.000 . . . . ALL 97
+3 . 4 3 2 1 . . . . . . . . . .
+"""
+        s, = ihm.reader.read(StringIO(rsr))
+        r1, r2, r3 = s.restraints
+        for r in s.restraints:
+            self.assertIsInstance(r, ihm.restraint.DerivedDihedralRestraint)
+        rg1, = s.restraint_groups
+        self.assertEqual(list(rg1), [r1, r2])
+        self.assertEqual(r1.dataset._id, '97')
+        self.assertIsNone(r3.dataset)
+        self.assertEqual([f._id for f in r1._all_features],
+                         ['1', '2', '3', '4'])
+        self.assertEqual([f._id for f in r3._all_features],
+                         ['4', '3', '2', '1'])
+        self.assertIsInstance(r1.dihedral,
+                              ihm.restraint.HarmonicDistanceRestraint)
+        self.assertAlmostEqual(r1.dihedral.threshold_mean, 56.1, delta=0.1)
+        self.assertAlmostEqual(r1.dihedral.threshold_esd, 2.3, delta=0.1)
+        self.assertAlmostEqual(r1.probability, 0.8, delta=0.1)
+        self.assertTrue(r1.restrain_all)
+        self.assertIsInstance(
+            r2.dihedral, ihm.restraint.LowerUpperBoundDistanceRestraint)
+        self.assertAlmostEqual(r2.dihedral.lower_limit, -60.0, delta=0.1)
+        self.assertAlmostEqual(r2.dihedral.upper_limit, 60.0, delta=0.1)
+        self.assertAlmostEqual(r2.dihedral.lower_limit_esd, 1.0, delta=0.1)
+        self.assertIsNone(r2.dihedral.upper_limit_esd)
+        self.assertIs(type(r3.dihedral), ihm.restraint.DistanceRestraint)
+        self.assertIsNone(r3.restrain_all)
+
+    def test_derived_restraint_groups_distinct(self):
+        """Test that distance/angle/dihedral groups with same ID differ"""
+        rsr = """
+loop_
+_ihm_derived_distance_restraint.id
+_ihm_derived_distance_restraint.group_id
+_ihm_derived_distance_restraint.feature_id_1
+_ihm_derived_distance_restraint.feature_id_2
+_ihm_derived_distance_restraint.restraint_type
+_ihm_derived_distance_restraint.distance_upper_limit
+1 1 1 2 'upper bound' 10.0
+#
+loop_
+_ihm_derived_angle_restraint.id
+_ihm_derived_angle_restraint.group_id
+_ihm_derived_angle_restraint.feature_id_1
+_ihm_derived_angle_restraint.feature_id_2
+_ihm_derived_angle_restraint.feature_id_3
+_ihm_derived_angle_restraint.restraint_type
+_ihm_derived_angle_restraint.angle_upper_limit
+1 1 1 2 3 'upper bound' 120.0
+#
+loop_
+_ihm_derived_dihedral_restraint.id
+_ihm_derived_dihedral_restraint.group_id
+_ihm_derived_dihedral_restraint.feature_id_1
+_ihm_derived_dihedral_restraint.feature_id_2
+_ihm_derived_dihedral_restraint.feature_id_3
+_ihm_derived_dihedral_restraint.feature_id_4
+_ihm_derived_dihedral_restraint.restraint_type
+_ihm_derived_dihedral_restraint.dihedral_upper_limit
+1 1 1 2 3 4 'upper bound' 60.0
+"""
+        s, = ihm.reader.read(StringIO(rsr))
+        self.assertEqual(len(s.restraints), 3)
+        self.assertEqual(len(s.restraint_groups), 3)
+        for rg, r in zip(s.restraint_groups, s.restraints):
+            self.assertEqual(list(rg), [r])
+
     def test_hdx_restraint_handler(self):
         """Test HDXRestraintHandler"""
         rsr = """
