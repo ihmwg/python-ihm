@@ -1,0 +1,75 @@
+name: wheels
+
+# Build binary wheels for Windows, macOS and Linux whenever a release is
+# made on GitHub. The wheels use the Python limited API (abi3), so a single
+# wheel per platform works with Python 3.11 and later. Wheels are made
+# available as workflow artifacts (they are not uploaded to PyPI).
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sdist:
+    name: Build sdist (with SWIG wrapper)
+    runs-on: ubuntu-latest
+    outputs:
+      sdist: ${{ steps.sdist.outputs.sdist }}
+    steps:
+    - uses: actions/checkout@v7
+    - uses: actions/setup-python@v7
+      with:
+        python-version: '3.x'
+    - name: Install dependencies
+      run: python -m pip install build swig
+    - name: Generate SWIG wrapper so wheel builds don't need SWIG
+      run: |
+        VERSION=$(python setup.py --version)
+        swig -python -keyword -nodefaultctor -nodefaultdtor -noproxy \
+             -o "src/ihm_format_wrap_${VERSION}.c" src/ihm_format.i
+    - name: Build sdist
+      id: sdist
+      run: |
+        python -m build --sdist
+        echo "sdist=$(cd dist && ls ihm-*.tar.gz)" >> "$GITHUB_OUTPUT"
+    - uses: actions/upload-artifact@v7
+      with:
+        name: sdist
+        path: dist/*.tar.gz
+
+  wheels:
+    name: Build wheels on ${{ matrix.os }}
+    needs: sdist
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/download-artifact@v8
+      with:
+        name: sdist
+        path: dist
+    - name: Build wheels
+      uses: pypa/cibuildwheel@v4.3.5
+      with:
+        package-dir: dist/${{ needs.sdist.outputs.sdist }}
+        output-dir: wheelhouse
+      env:
+        # One abi3 wheel built with the oldest supported Python works
+        # for all later versions too
+        CIBW_BUILD: "cp311-*"
+        CIBW_CONFIG_SETTINGS: "--build-option=--py_limited_api"
+        CIBW_ARCHS_MACOS: "x86_64 arm64"
+        # The C extension is optional in setup.py, so make sure it was
+        # actually built and included in the wheel
+        CIBW_TEST_COMMAND: >-
+          python -c "import ihm._format, ihm.format_bcif"
+    - uses: actions/upload-artifact@v7
+      with:
+        name: wheels-${{ matrix.os }}
+        path: wheelhouse/*.whl
