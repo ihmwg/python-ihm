@@ -517,6 +517,10 @@ class SystemReader:
         #: Mapping from ID to :class:`ihm.Assembly` objects
         self.assemblies = IDMapper(self.system.orphan_assemblies, ihm.Assembly)
 
+        #: Mapping from ID to :class:`ihm.AssemblyClass` objects
+        self.assembly_classes = IDMapper(self.system.assembly_classes,
+                                         ihm.AssemblyClass)
+
         #: Mapping from ID to :class:`ihm.AsymUnitRange`
         #: or :class:`ihm.EntityRange` objects
         self.ranges = RangeIDMapper()
@@ -1627,6 +1631,24 @@ class _AssemblyDetailsHandler(Handler):
             return comp.asym
         else:
             return comp
+
+
+class _AssemblyClassHandler(Handler):
+    category = '_ihm_struct_assembly_class'
+
+    def __call__(self, id, name, type, description):
+        c = self.sysr.assembly_classes.get_by_id(id)
+        c.name, c.type = name, type
+        c.description = description
+
+
+class _AssemblyClassLinkHandler(Handler):
+    category = '_ihm_struct_assembly_class_link'
+
+    def __call__(self, class_id, assembly_id):
+        c = self.sysr.assembly_classes.get_by_id(class_id)
+        a = self.sysr.assemblies.get_by_id(assembly_id)
+        c.append(a)
 
 
 class _LocalFiles(ihm.location.Repository):
@@ -4308,7 +4330,8 @@ class IHMVariant(Variant):
         _StructRefHandler, _StructRefSeqHandler, _StructRefSeqDifHandler,
         _EntityPolyHandler, _EntityPolySeqHandler, _EntityNonPolyHandler,
         _EntityPolySegmentHandler, _StructAsymHandler, _AssemblyDetailsHandler,
-        _AssemblyHandler, _ExtRefHandler, _ExtFileHandler, _DatasetListHandler,
+        _AssemblyHandler, _AssemblyClassHandler, _AssemblyClassLinkHandler,
+        _ExtRefHandler, _ExtFileHandler, _DatasetListHandler,
         _DatasetGroupHandler, _DatasetGroupLinkHandler, _DatasetExtRefHandler,
         _DatasetDBRefHandler, _DataTransformationHandler,
         _RelatedDatasetsHandler, _ModelRepresentationHandler,

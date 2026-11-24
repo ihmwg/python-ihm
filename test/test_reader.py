@@ -1066,6 +1066,47 @@ _ihm_struct_assembly_details.entity_poly_segment_id
                 self.assertEqual(s.complete_assembly.description,
                                  a4.description)
 
+    def test_assembly_class_handler(self):
+        """Test AssemblyClassHandler"""
+        cif = """
+loop_
+_ihm_struct_assembly_class.id
+_ihm_struct_assembly_class.name
+_ihm_struct_assembly_class.type
+_ihm_struct_assembly_class.description
+1 class1 'Structural Hierarchy' desc1
+2 class2 Functional desc2
+3 class3 Other .
+4 class4 . .
+5 class5 ? .
+#
+#
+loop_
+_ihm_struct_assembly_class_link.class_id
+_ihm_struct_assembly_class_link.assembly_id
+1 1
+2 1
+2 2
+3 2
+#
+"""
+        for fh in cif_file_handles(cif):
+            s, = ihm.reader.read(fh)
+            c1, c2, c3, c4, c5 = s.assembly_classes
+            self.assertEqual(c1._id, '1')
+            self.assertEqual(c1.name, 'class1')
+            self.assertEqual(c1.type, 'Structural Hierarchy')
+            self.assertEqual(c1.description, 'desc1')
+            self.assertEqual(len(c1), 1)
+            self.assertEqual([a._id for a in c1], ['1'])
+            self.assertEqual(len(c2), 2)
+            self.assertEqual([a._id for a in c2], ['1', '2'])
+            self.assertEqual(c2.type, 'Functional')
+            self.assertEqual(c3.type, 'Other')
+            self.assertIsNone(c4.type)
+            self.assertIs(c5.type, ihm.unknown)
+            self.assertEqual(len(c5), 0)
+
     def test_external_file_handler(self):
         """Test ExtRef and ExtFileHandler"""
         ext_ref_cat = """

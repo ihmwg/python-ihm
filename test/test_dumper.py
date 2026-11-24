@@ -1756,6 +1756,56 @@ _ihm_struct_assembly_details.entity_poly_segment_id
 #
 """)
 
+    def test_assembly_class(self):
+        """Test AssemblyClassDumper"""
+        system = ihm.System()
+        e1 = ihm.Entity('ACG', description='foo')
+        e2 = ihm.Entity('AW', description='baz')
+        a1 = ihm.AsymUnit(e1)
+        a2 = ihm.AsymUnit(e1)
+        a3 = ihm.AsymUnit(e2)
+        system.entities.extend((e1, e2))
+        system.asym_units.extend((a1, a2, a3))
+
+        asmb1 = ihm.Assembly([a1, a2(2, 3)])
+        asmb2 = ihm.Assembly([a1, a2])
+        cls1 = ihm.AssemblyClass(
+            [asmb1], name="class1", type="Structural Hierarchy",
+            description="desc1")
+        cls2 = ihm.AssemblyClass(
+            [asmb1, asmb2], name="class2", type="Functional",
+            description="desc2")
+        cls3 = ihm.AssemblyClass(
+            [asmb2], name="class3")
+        system.assembly_classes.extend((cls1, cls2, cls3))
+
+        asmb1._id = 1
+        asmb2._id = 2
+
+        dumper = ihm.dumper._AssemblyClassDumper()
+        dumper.finalize(system)
+        out = _get_dumper_output(dumper, system)
+        self.assertEqual(out, """#
+loop_
+_ihm_struct_assembly_class.id
+_ihm_struct_assembly_class.name
+_ihm_struct_assembly_class.type
+_ihm_struct_assembly_class.description
+1 class1 'Structural Hierarchy' desc1
+2 class2 Functional desc2
+3 class3 Other .
+#
+#
+loop_
+_ihm_struct_assembly_class_link.class_id
+_ihm_struct_assembly_class_link.assembly_id
+1 1
+2 1
+2 2
+3 2
+#
+""")
+
     def test_external_reference_dumper(self):
         """Test ExternalReferenceDumper"""
         system = ihm.System()

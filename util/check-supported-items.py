@@ -151,6 +151,10 @@ def make_system():
                             description='Part of the system')
     system.orphan_assemblies.append(assembly)
 
+    # Assembly class
+    acls = ihm.AssemblyClass([assembly], name="Assembly class")
+    system.assembly_classes.append(acls)
+
     # Datasets, with related datasets, transformations and groups
     pdb_loc = ihm.location.PDBLocation('1abc', version='1.0',
                                        details='PDB entry')

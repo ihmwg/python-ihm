@@ -266,6 +266,9 @@ class System:
         self.complete_assembly = Assembly((), name='Complete assembly',
                                           description='All known components')
 
+        #: Sets of related assemblies. See :class:`AssemblyClass`.
+        self.assembly_classes = []
+
         #: Locations of all extra resources.
         #: See :class:`~ihm.location.Location`.
         self.locations = []
@@ -2025,6 +2028,27 @@ class Assembly(list):
             else:
                 ret.append((asym, tuple(util._combine_ranges(d[asym]))))
         return tuple(ret)
+
+
+class AssemblyClass(list):
+    """A set of related assemblies. See :class:`Assembly`. It is implemented
+       as a simple list of the assemblies.
+
+       These are generally added to :attr:`System.assembly_classes`.
+
+       :param elements: Initial set of assemblies in the class.
+       :param str name: Descriptive name for the class.
+       :param str type: The type of classification.
+       :param str description: Additional text describing the class.
+    """
+    def __init__(self, elements=(), name=None, type='Other', description=None):
+        super().__init__(elements)
+        self.name, self.description = name, description
+        self.type = type
+
+    type = util._text_choice_property(
+        "type", ["Structural Hierarchy", "Functional", "Other"],
+        doc="The type of classifier")
 
 
 class ChemDescriptor:

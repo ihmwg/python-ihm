@@ -1224,6 +1224,25 @@ class _AssemblyDumper(_AssemblyDumperBase):
                         entity_poly_segment_id=comp._range_id)
 
 
+class _AssemblyClassDumper(Dumper):
+    def finalize(self, system):
+        # Assign IDs to classes
+        for nc, c in enumerate(system.assembly_classes):
+            c._id = nc + 1
+
+    def dump(self, system, writer):
+        with writer.loop("_ihm_struct_assembly_class",
+                         ["id", "name", "type", "description"]) as lp:
+            for c in system.assembly_classes:
+                lp.write(id=c._id, name=c.name, type=c.type,
+                         description=c.description)
+        with writer.loop("_ihm_struct_assembly_class_link",
+                         ["class_id", "assembly_id"]) as lp:
+            for c in system.assembly_classes:
+                for a in c:
+                    lp.write(class_id=c._id, assembly_id=a._id)
+
+
 class _ExternalReferenceDumper(Dumper):
     """Output information on externally referenced files
        (i.e. anything that refers to a Location that isn't
@@ -4378,7 +4397,8 @@ class IHMVariant(Variant):
         _EntityPolySegmentDumper, _EntityBranchListDumper, _EntityBranchDumper,
         _StructAsymDumper, _IHMPolySeqSchemeDumper,
         _NonPolySchemeDumper, _BranchSchemeDumper, _BranchDescriptorDumper,
-        _BranchLinkDumper, _AssemblyDumper, _ExternalReferenceDumper,
+        _BranchLinkDumper, _AssemblyDumper, _AssemblyClassDumper,
+        _ExternalReferenceDumper,
         _DatasetDumper, _ModelRepresentationDumper, _StartingModelDumper,
         _ProtocolDumper, _PostProcessDumper, _PseudoSiteDumper,
         _GeometricObjectDumper, _FeatureDumper, _CrossLinkDumper,
