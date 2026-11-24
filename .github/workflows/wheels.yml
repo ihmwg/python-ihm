@@ -25,7 +25,7 @@ jobs:
       with:
         python-version: '3.x'
     - name: Install dependencies
-      run: python -m pip install build swig
+      run: python -m pip install build swig setuptools
     - name: Generate SWIG wrapper so wheel builds don't need SWIG
       run: |
         VERSION=$(python setup.py --version)
