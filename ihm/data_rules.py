@@ -1,13 +1,18 @@
-"""Classes to read in and apply a set of deposition rules.
+"""Classes to read in and apply a set of data rules.
 
-   Deposition rules describe constraints on the content of an mmCIF file
+   Data rules describe constraints on the content of an mmCIF file
    that go beyond what can be expressed in an mmCIF dictionary, such as
    requiring that certain categories be present only when some condition
    holds (for example, that ``ihm_3dem_restraint`` be provided if a
    dataset of type '3DEM volume' is present). The rules themselves are
-   stored in mmCIF (or BinaryCIF) format, using the ``pdbx_deposition_rule``
+   stored in mmCIF (or BinaryCIF) format, using the ``pdbx_data_rule``
    family of categories defined in the
-   `deposition rules extension dictionary <https://github.com/ihmwg/IHMCIF/blob/master/extensions/mmcif_pdbx_deposition_rules_ext.dic>`_.
+   `data rules extension dictionary <https://github.com/ihmwg/IHMCIF/blob/master/extensions/mmcif_pdbx_data_rules_ext.dic>`_.
+
+   Each rule is evaluated only in the contexts listed for it (for
+   example, 'deposition' for data submitted for deposition, or 'archive'
+   for data in the public archive), and may have a different severity
+   in each context.
 
    See :func:`read` to read a set of rules from a file, and
    :meth:`Rules.validate` to check an mmCIF or BinaryCIF file against
@@ -27,7 +32,7 @@ import re
 
 
 class RuleError(ihm.dictionary.ValidatorError):
-    """Exception raised if a file violates one or more deposition rules
+    """Exception raised if a file violates one or more data rules
        with severity ERROR. See :meth:`Rules.validate`.
 
        The violations themselves are available as the `violations`
@@ -38,7 +43,7 @@ class RuleError(ihm.dictionary.ValidatorError):
 
 
 class RuleWarning(ihm.dictionary.ValidatorWarning):
-    """Warning emitted if a file violates a deposition rule with severity
+    """Warning emitted if a file violates a data rule with severity
        WARNING. See :meth:`Rules.validate`.
 
        The violation itself is available as the `violation` attribute
@@ -49,14 +54,14 @@ class RuleWarning(ihm.dictionary.ValidatorWarning):
 
 
 class RuleInfo(RuleWarning):
-    """Warning emitted if a file violates a deposition rule with severity
+    """Warning emitted if a file violates a data rule with severity
        INFO. These are typically suggestions for data that is relevant
        and should be provided if available. See :meth:`Rules.validate`."""
     pass
 
 
 class UnsupportedRuleWarning(UserWarning):
-    """Warning emitted for a deposition rule that cannot be evaluated by
+    """Warning emitted for a data rule that cannot be evaluated by
        this module, for example a rule of the ``procedural`` family."""
     pass
 
@@ -176,25 +181,36 @@ class RowSelection:
         self.exclude_items = exclude_items
 
 
+class RuleContext:
+    """A context in which a :class:`Rule` is evaluated."""
+    def __init__(self, context, severity, enabled=True):
+        #: Context name (e.g. 'deposition' or 'archive')
+        self.context = context
+        #: Severity of a violation of the rule in this context
+        #: (ERROR, WARNING, or INFO)
+        self.severity = severity
+        #: True iff the rule should be checked in this context
+        self.enabled = enabled
+
+
 class Rule:
-    """A single deposition rule in a :class:`Rules` object."""
-    def __init__(self, id, family, severity, scope_category, message,
-                 procedural_method=None, enabled=True, param_flag=False,
+    """A single data rule in a :class:`Rules` object."""
+    def __init__(self, id, family, scope_category, message,
+                 procedural_method=None, param_flag=False,
                  join_flag=False, row_selection_flag=False):
         #: Unique identifier
         self.id = id
         #: Rule family (e.g. conditional_presence, pairwise_order)
         self.family = family
-        #: Rule severity (ERROR, WARNING, or INFO)
-        self.severity = severity
         #: Category in which each violation is assessed and reported
         self.scope_category = scope_category
         #: Human-readable message reported when the rule is violated
         self.message = message
         #: Name of the built-in check, for procedural rules
         self.procedural_method = procedural_method
-        #: True iff the rule should be checked
-        self.enabled = enabled
+        #: Mapping from context name (in lowercase) to
+        #: :class:`RuleContext` object
+        self.contexts = {}
         #: True iff the rule's parameters (:attr:`params`) are used
         self.param_flag = param_flag
         #: True iff the rule's joins (:attr:`joins`) are used
@@ -215,7 +231,7 @@ class Rule:
 class Violation:
     """A violation of a single :class:`Rule` by a file.
        See :meth:`Rules.validate`."""
-    def __init__(self, rule, data_block, row, detail=None):
+    def __init__(self, rule, data_block, row, detail=None, severity=None):
         #: The :class:`Rule` that was violated
         self.rule = rule
         #: Index (starting at 1) of the data block in the file
@@ -225,12 +241,12 @@ class Violation:
         self.row = row
         #: Additional detail about the violation, or None
         self.detail = detail
-
-    severity = property(lambda self: self.rule.severity)
+        #: Severity of the violation (ERROR, WARNING, or INFO), as given
+        #: for the context in which the rule was evaluated
+        self.severity = severity
 
     def __str__(self):
-        s = "%s %s: %s" % (self.rule.severity, self.rule.id,
-                           self.rule.message)
+        s = "%s %s: %s" % (self.severity, self.rule.id, self.rule.message)
         loc = self.row
         if self.data_block > 1:
             loc = "data block %d, %s" % (self.data_block, loc)
@@ -241,7 +257,7 @@ class Violation:
 
 
 class Rules:
-    """Representation of a set of deposition rules.
+    """Representation of a set of data rules.
        See :func:`read` to create a Rules object from a file.
 
        Multiple Rules objects can be added together to yield a Rules
@@ -260,11 +276,15 @@ class Rules:
         r += other
         return r
 
-    def validate(self, fh, format='mmCIF', dictionary=None):
-        """Validate the given file against these deposition rules.
+    def validate(self, fh, format='mmCIF', dictionary=None,
+                 context='deposition'):
+        """Validate the given file against these data rules.
 
            Each data block in the file is checked independently against
-           every enabled rule. A violation of a rule with severity ERROR is
+           every rule that is listed for, and enabled in, the given
+           context; other rules are ignored. Each violation takes the
+           severity given for the rule in that context.
+           A violation of a rule with severity ERROR is
            collected and, once the entire file has been checked, a
            :class:`RuleError` containing all such violations is raised.
            Violations of rules with severity WARNING or INFO are reported
@@ -300,6 +320,9 @@ class Rules:
            :param dictionary: The main mmCIF dictionary that describes
               the file (usually PDBx plus extensions such as IHM).
            :type dictionary: :class:`ihm.dictionary.Dictionary`
+           :param str context: The context in which the rules are
+              evaluated (e.g. 'deposition' or 'archive'). This is compared
+              case-insensitively.
            :return: A list of all :class:`Violation` objects (if no
               errors were found).
            :raises: :class:`RuleError` if the file violates any rule
@@ -307,11 +330,13 @@ class Rules:
         """
         reader_map = {'mmCIF': ihm.format.CifReader,
                       'BCIF': ihm.format_bcif.BinaryCifReader}
-        rules = [r for r in self.rules.values() if r.enabled]
+        context = context.lower()
+        rules = [r for r in self.rules.values()
+                 if context in r.contexts and r.contexts[context].enabled]
         for r in rules:
             reason = _get_unsupported_reason(r)
             if reason:
-                warnings.warn("Deposition rule %s cannot be checked: %s"
+                warnings.warn("Data rule %s cannot be checked: %s"
                               % (r.id, reason), UnsupportedRuleWarning,
                               stacklevel=2)
         rules = [r for r in rules if not _get_unsupported_reason(r)]
@@ -331,8 +356,10 @@ class Rules:
             store.finalize_block()
             ev = _Evaluator(store.tables, dictionary)
             for rule in rules:
+                severity = rule.contexts[context].severity
                 for row, detail in ev.check_rule(rule):
-                    violations.append(Violation(rule, block, row, detail))
+                    violations.append(Violation(rule, block, row, detail,
+                                                severity))
             store.reset()
         for v in violations:
             sev = v.severity.upper() if v.severity else ''
@@ -919,6 +946,7 @@ class _RulesReader:
     """Track information for Rules being read from a file."""
     def __init__(self):
         self.rules = Rules()
+        self.contexts = []
         self.conditions = []
         self.params = []
         self.joins = []
@@ -928,21 +956,28 @@ class _RulesReader:
         try:
             return self.rules.rules[rule_id]
         except KeyError:
-            raise ValueError("%s refers to undefined deposition rule %s"
+            raise ValueError("%s refers to undefined data rule %s"
                              % (category, rule_id))
 
     def finalize(self):
+        for rule_id, ctx in self.contexts:
+            r = self._get_rule(rule_id, 'pdbx_data_rule_context')
+            r.contexts[ctx.context.lower()] = ctx
+        for r in self.rules.rules.values():
+            if not r.contexts:
+                raise ValueError("Data rule %s has no pdbx_data_rule_context "
+                                 "record" % r.id)
         for rule_id, cond in self.conditions:
-            r = self._get_rule(rule_id, 'pdbx_deposition_rule_condition')
+            r = self._get_rule(rule_id, 'pdbx_data_rule_condition')
             r.conditions.append(cond)
         for rule_id, name, value in self.params:
-            r = self._get_rule(rule_id, 'pdbx_deposition_rule_param')
+            r = self._get_rule(rule_id, 'pdbx_data_rule_param')
             r.params[name] = value
         for rule_id, join in self.joins:
-            r = self._get_rule(rule_id, 'pdbx_deposition_rule_join')
+            r = self._get_rule(rule_id, 'pdbx_data_rule_join')
             r.joins.append(join)
         for rule_id, rs in self.row_selections:
-            r = self._get_rule(rule_id, 'pdbx_deposition_rule_row_selection')
+            r = self._get_rule(rule_id, 'pdbx_data_rule_row_selection')
             r.row_selections.append(rs)
 
         def sort_key(x):
@@ -955,27 +990,35 @@ class _RulesReader:
 
 
 class _RuleHandler(Handler):
-    category = '_pdbx_deposition_rule'
+    category = '_pdbx_data_rule'
 
-    def __call__(self, id, family, severity, scope_category,
-                 procedural_method, message, enabled: bool,
+    def __call__(self, id, family, scope_category,
+                 procedural_method, message,
                  param_flag: bool, join_flag: bool,
                  row_selection_flag: bool):
-        severity = _get_str(severity)
         r = Rule(id=id, family=_get_str(family),
-                 severity=severity.upper() if severity else None,
                  scope_category=_get_str(scope_category),
                  message=_get_str(message),
                  procedural_method=_get_str(procedural_method),
-                 enabled=_get_flag(enabled, True),
                  param_flag=_get_flag(param_flag, False),
                  join_flag=_get_flag(join_flag, False),
                  row_selection_flag=_get_flag(row_selection_flag, False))
         self.sysr.rules.rules[r.id] = r
 
 
+class _ContextHandler(Handler):
+    category = '_pdbx_data_rule_context'
+
+    def __call__(self, rule_id, context, severity, enabled: bool):
+        severity = _get_str(severity)
+        ctx = RuleContext(context=context,
+                          severity=severity.upper() if severity else None,
+                          enabled=_get_flag(enabled, True))
+        self.sysr.contexts.append((rule_id, ctx))
+
+
 class _ConditionHandler(Handler):
-    category = '_pdbx_deposition_rule_condition'
+    category = '_pdbx_data_rule_condition'
 
     def __call__(self, rule_id, ordinal, role, item_name, operator, value,
                  compare_item_name, group_operator, quantifier,
@@ -994,14 +1037,14 @@ class _ConditionHandler(Handler):
 
 
 class _ParamHandler(Handler):
-    category = '_pdbx_deposition_rule_param'
+    category = '_pdbx_data_rule_param'
 
     def __call__(self, rule_id, name, value):
         self.sysr.params.append((rule_id, name, _get_str(value)))
 
 
 class _JoinHandler(Handler):
-    category = '_pdbx_deposition_rule_join'
+    category = '_pdbx_data_rule_join'
 
     def __call__(self, rule_id, ordinal, scope_item_names,
                  partner_item_names, on_no_match):
@@ -1013,7 +1056,7 @@ class _JoinHandler(Handler):
 
 
 class _RowSelectionHandler(Handler):
-    category = '_pdbx_deposition_rule_row_selection'
+    category = '_pdbx_data_rule_row_selection'
 
     def __call__(self, rule_id, category_id, selector, selector_item,
                  group_by, exclude_items):
@@ -1026,20 +1069,20 @@ class _RowSelectionHandler(Handler):
 
 
 def read(fh, format='mmCIF'):
-    """Read deposition rules from the given file handle.
+    """Read data rules from the given file handle.
 
        :param file fh: The file handle to read from.
        :param str format: The format of the file. This can be 'mmCIF' (the
           default) for the (text-based) mmCIF format or 'BCIF' for
           BinaryCIF.
-       :return: The deposition rules.
+       :return: The data rules.
        :rtype: :class:`Rules`
     """
     reader_map = {'mmCIF': ihm.format.CifReader,
                   'BCIF': ihm.format_bcif.BinaryCifReader}
     s = _RulesReader()
-    handlers = [_RuleHandler(s), _ConditionHandler(s), _ParamHandler(s),
-                _JoinHandler(s), _RowSelectionHandler(s)]
+    handlers = [_RuleHandler(s), _ContextHandler(s), _ConditionHandler(s),
+                _ParamHandler(s), _JoinHandler(s), _RowSelectionHandler(s)]
     r = reader_map[format](fh, dict((h.category, h) for h in handlers))
     # Read all data blocks
     while r.read_file():

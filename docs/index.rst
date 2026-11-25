@@ -47,7 +47,7 @@ API Reference:
    dumper
    reader
    dictionary
-   deposition
+   data_rules
    flr
    multi_state_scheme
 

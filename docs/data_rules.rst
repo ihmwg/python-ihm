@@ -1,16 +1,19 @@
 .. highlight:: rest
 
-.. _deposition_module:
+.. _data_rules_module:
 
-The :mod:`ihm.deposition` Python module
+The :mod:`ihm.data_rules` Python module
 =======================================
 
-.. automodule:: ihm.deposition
+.. automodule:: ihm.data_rules
 
 .. autoclass:: Rules
    :members:
 
 .. autoclass:: Rule
+   :members:
+
+.. autoclass:: RuleContext
    :members:
 
 .. autoclass:: Condition

@@ -8,7 +8,7 @@ from test_format_bcif import MockMsgPack, MockFh, _add_msgpack
 
 TOPDIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 utils.set_search_paths(TOPDIR)
-import ihm.deposition
+import ihm.data_rules
 import ihm.dictionary
 import ihm.format_bcif
 
@@ -20,45 +20,57 @@ except ImportError:
 
 RULE_HEADER = """
 loop_
-_pdbx_deposition_rule.id
-_pdbx_deposition_rule.family
-_pdbx_deposition_rule.severity
-_pdbx_deposition_rule.scope_category
-_pdbx_deposition_rule.procedural_method
-_pdbx_deposition_rule.message
-_pdbx_deposition_rule.enabled
-_pdbx_deposition_rule.param_flag
-_pdbx_deposition_rule.join_flag
-_pdbx_deposition_rule.row_selection_flag
+_pdbx_data_rule.id
+_pdbx_data_rule.family
+_pdbx_data_rule.scope_category
+_pdbx_data_rule.procedural_method
+_pdbx_data_rule.message
+_pdbx_data_rule.param_flag
+_pdbx_data_rule.join_flag
+_pdbx_data_rule.row_selection_flag
+"""
+
+CONTEXT_HEADER = """
+loop_
+_pdbx_data_rule_context.rule_id
+_pdbx_data_rule_context.context
+_pdbx_data_rule_context.severity
+_pdbx_data_rule_context.enabled
 """
 
 CONDITION_HEADER = """
 loop_
-_pdbx_deposition_rule_condition.rule_id
-_pdbx_deposition_rule_condition.ordinal
-_pdbx_deposition_rule_condition.role
-_pdbx_deposition_rule_condition.item_name
-_pdbx_deposition_rule_condition.operator
-_pdbx_deposition_rule_condition.value
-_pdbx_deposition_rule_condition.compare_item_name
-_pdbx_deposition_rule_condition.group_operator
-_pdbx_deposition_rule_condition.quantifier
-_pdbx_deposition_rule_condition.value_transform
+_pdbx_data_rule_condition.rule_id
+_pdbx_data_rule_condition.ordinal
+_pdbx_data_rule_condition.role
+_pdbx_data_rule_condition.item_name
+_pdbx_data_rule_condition.operator
+_pdbx_data_rule_condition.value
+_pdbx_data_rule_condition.compare_item_name
+_pdbx_data_rule_condition.group_operator
+_pdbx_data_rule_condition.quantifier
+_pdbx_data_rule_condition.value_transform
 """
 
 
-def make_rules(rules, conditions, extra=""):
-    """Make a Rules object from rule and condition loop rows"""
-    cif = RULE_HEADER + rules + CONDITION_HEADER + conditions + extra
-    return ihm.deposition.read(StringIO(cif))
+def make_rules(rules, conditions, extra="", contexts=None):
+    """Make a Rules object from rule, condition and context loop rows.
+       If no context rows are given, every rule is enabled with severity
+       ERROR in the deposition context."""
+    if contexts is None:
+        contexts = "".join("%s deposition ERROR YES\n" % line.split()[0]
+                           for line in rules.split('\n') if line.strip())
+    cif = (RULE_HEADER + rules + CONTEXT_HEADER + contexts
+           + CONDITION_HEADER + conditions + extra)
+    return ihm.data_rules.read(StringIO(cif))
 
 
 def make_rule(scope, conditions, severity='ERROR', family='conditional_value',
               flags='NO NO NO', extra=""):
     """Make a Rules object containing a single rule R1"""
-    rules = ("R1 %s %s %s . 'test message' YES %s\n"
-             % (family, severity, scope, flags))
-    return make_rules(rules, conditions, extra)
+    rules = "R1 %s %s . 'test message' %s\n" % (family, scope, flags)
+    return make_rules(rules, conditions, extra,
+                      contexts="R1 deposition %s YES\n" % severity)
 
 
 def run_validate(rules, cif, dictionary=None):
@@ -68,11 +80,11 @@ def run_validate(rules, cif, dictionary=None):
         warnings.simplefilter("always")
         try:
             violations = rules.validate(StringIO(cif), dictionary=dictionary)
-        except ihm.deposition.RuleError as err:
+        except ihm.data_rules.RuleError as err:
             violations = err.violations
         violations = list(violations)
         for x in w:
-            if isinstance(x.message, ihm.deposition.RuleWarning):
+            if isinstance(x.message, ihm.data_rules.RuleWarning):
                 violations.append(x.message.violation)
     return sorted(set((v.rule.id, v.row) for v in violations))
 
@@ -105,45 +117,56 @@ class Tests(unittest.TestCase):
     def test_read(self):
         """Test read() function"""
         cif = RULE_HEADER + """
-R1 conditional_presence ERROR entry . 'msg 1' YES YES YES YES
-R2 procedural warning atom_site seq_check 'msg 2' NO NO NO NO
+R1 conditional_presence entry . 'msg 1' YES YES YES
+R2 procedural atom_site seq_check 'msg 2' NO NO NO
+""" + CONTEXT_HEADER + """
+R1 deposition ERROR YES
+R1 Archive info .
+R2 deposition warning NO
 """ + CONDITION_HEADER + """
 R1 2 THEN '_foo.x' NOT_EMPTY . . . ANY .
 R1 1 when '_bar.y' EQ 1 '_bar.z' OR . ABS
 #
 loop_
-_pdbx_deposition_rule_param.rule_id
-_pdbx_deposition_rule_param.name
-_pdbx_deposition_rule_param.value
+_pdbx_data_rule_param.rule_id
+_pdbx_data_rule_param.name
+_pdbx_data_rule_param.value
 R1 group_by '_foo.x,_foo.y'
 #
 loop_
-_pdbx_deposition_rule_join.rule_id
-_pdbx_deposition_rule_join.ordinal
-_pdbx_deposition_rule_join.scope_item_names
-_pdbx_deposition_rule_join.partner_item_names
-_pdbx_deposition_rule_join.on_no_match
+_pdbx_data_rule_join.rule_id
+_pdbx_data_rule_join.ordinal
+_pdbx_data_rule_join.scope_item_names
+_pdbx_data_rule_join.partner_item_names
+_pdbx_data_rule_join.on_no_match
 R1 2 '_entry.id' '_foo.x' .
 R1 1 '_entry.id' '_bar.y' FAIL
 #
 loop_
-_pdbx_deposition_rule_row_selection.rule_id
-_pdbx_deposition_rule_row_selection.category_id
-_pdbx_deposition_rule_row_selection.selector
-_pdbx_deposition_rule_row_selection.selector_item
-_pdbx_deposition_rule_row_selection.group_by
-_pdbx_deposition_rule_row_selection.exclude_items
+_pdbx_data_rule_row_selection.rule_id
+_pdbx_data_rule_row_selection.category_id
+_pdbx_data_rule_row_selection.selector
+_pdbx_data_rule_row_selection.selector_item
+_pdbx_data_rule_row_selection.group_by
+_pdbx_data_rule_row_selection.exclude_items
 R1 foo MIN '_foo.x' '_foo.y' .
 """
-        rules = ihm.deposition.read(StringIO(cif))
+        rules = ihm.data_rules.read(StringIO(cif))
         self.assertEqual(sorted(rules.rules.keys()), ['R1', 'R2'])
         r1 = rules.rules['R1']
         self.assertEqual(r1.family, 'conditional_presence')
-        self.assertEqual(r1.severity, 'ERROR')
+        self.assertEqual(sorted(r1.contexts.keys()), ['archive', 'deposition'])
+        ctx = r1.contexts['deposition']
+        self.assertEqual(ctx.context, 'deposition')
+        self.assertEqual(ctx.severity, 'ERROR')
+        self.assertTrue(ctx.enabled)
+        ctx = r1.contexts['archive']
+        self.assertEqual(ctx.context, 'Archive')
+        self.assertEqual(ctx.severity, 'INFO')
+        self.assertTrue(ctx.enabled)
         self.assertEqual(r1.scope_category, 'entry')
         self.assertIsNone(r1.procedural_method)
         self.assertEqual(r1.message, 'msg 1')
-        self.assertTrue(r1.enabled)
         self.assertTrue(r1.param_flag)
         self.assertTrue(r1.join_flag)
         self.assertTrue(r1.row_selection_flag)
@@ -171,23 +194,27 @@ R1 foo MIN '_foo.x' '_foo.y' .
         self.assertEqual(rs.group_by, '_foo.y')
         self.assertIsNone(rs.exclude_items)
         r2 = rules.rules['R2']
-        self.assertEqual(r2.severity, 'WARNING')
+        self.assertEqual(list(r2.contexts.keys()), ['deposition'])
+        self.assertEqual(r2.contexts['deposition'].severity, 'WARNING')
+        self.assertFalse(r2.contexts['deposition'].enabled)
         self.assertEqual(r2.procedural_method, 'seq_check')
-        self.assertFalse(r2.enabled)
         self.assertFalse(r2.param_flag)
 
     def test_read_defaults(self):
         """Test read() with default flag values"""
         cif = """
-_pdbx_deposition_rule.id R1
-_pdbx_deposition_rule.family format
-_pdbx_deposition_rule.severity ERROR
-_pdbx_deposition_rule.scope_category entry
-_pdbx_deposition_rule.message msg
+_pdbx_data_rule.id R1
+_pdbx_data_rule.family format
+_pdbx_data_rule.scope_category entry
+_pdbx_data_rule.message msg
+#
+_pdbx_data_rule_context.rule_id R1
+_pdbx_data_rule_context.context deposition
+_pdbx_data_rule_context.severity ERROR
 """
-        rules = ihm.deposition.read(StringIO(cif))
+        rules = ihm.data_rules.read(StringIO(cif))
         r1 = rules.rules['R1']
-        self.assertTrue(r1.enabled)
+        self.assertTrue(r1.contexts['deposition'].enabled)
         self.assertFalse(r1.param_flag)
         self.assertFalse(r1.join_flag)
         self.assertFalse(r1.row_selection_flag)
@@ -195,18 +222,18 @@ _pdbx_deposition_rule.message msg
     def test_read_ordinals_and_flags(self):
         """Test read() with non-integer ordinals and unknown flags"""
         rules = make_rules(
-            "R1 format ERROR foo . msg ? ? ? ?\n", """
+            "R1 format foo . msg ? ? ?\n", """
 R1 b THEN '_foo.x' NOT_EMPTY . . . . .
 R1 a THEN '_foo.y' NOT_EMPTY . . . . .
 R1 2 THEN '_foo.z' NOT_EMPTY . . . . .
 R1 ? THEN '_foo.w' NOT_EMPTY . . . . .
-""")
+""", contexts="R1 deposition ERROR ?\n")
         r1 = rules.rules['R1']
         # Integer ordinals sort before non-integer ones
         self.assertEqual([c.ordinal for c in r1.conditions],
                          [2, None, 'a', 'b'])
         # Unknown flags take their default values
-        self.assertTrue(r1.enabled)
+        self.assertTrue(r1.contexts['deposition'].enabled)
         self.assertFalse(r1.param_flag)
         self.assertFalse(r1.join_flag)
         self.assertFalse(r1.row_selection_flag)
@@ -214,19 +241,21 @@ R1 ? THEN '_foo.w' NOT_EMPTY . . . . .
     def test_read_multiple_blocks(self):
         """Test read() of rules spread over multiple data blocks"""
         cif = ("data_a\n" + RULE_HEADER
-               + "R1 format ERROR foo . msg YES NO NO NO\n"
+               + "R1 format foo . msg NO NO NO\n"
                + "data_b\n" + RULE_HEADER
-               + "R2 format ERROR foo . msg YES NO NO NO\n"
+               + "R2 format foo . msg NO NO NO\n"
+               + CONTEXT_HEADER
+               + "R1 deposition ERROR YES\nR2 deposition ERROR YES\n"
                + CONDITION_HEADER
                + "R1 1 THEN '_foo.x' NOT_EMPTY . . . . .\n")
-        rules = ihm.deposition.read(StringIO(cif))
+        rules = ihm.data_rules.read(StringIO(cif))
         self.assertEqual(sorted(rules.rules.keys()), ['R1', 'R2'])
         self.assertEqual(len(rules.rules['R1'].conditions), 1)
 
     def test_read_bad_rule_id(self):
         """Test read() with a condition referring to an undefined rule"""
         self.assertRaises(ValueError, make_rules,
-                          "R2 format ERROR foo . msg YES NO NO NO\n",
+                          "R2 format foo . msg NO NO NO\n",
                           "R1 1 THEN '_foo.x' NOT_EMPTY . . . . .\n")
 
     def test_read_binary_cif(self):
@@ -235,10 +264,13 @@ R1 ? THEN '_foo.w' NOT_EMPTY . . . . .
         fh = MockFh()
         writer = ihm.format_bcif.BinaryCifWriter(fh)
         writer.start_block('rules')
-        with writer.category('_pdbx_deposition_rule') as loc:
-            loc.write(id='R1', family='format', severity='WARNING',
-                      scope_category='foo', message='msg', enabled='YES')
-        with writer.loop('_pdbx_deposition_rule_condition',
+        with writer.category('_pdbx_data_rule') as loc:
+            loc.write(id='R1', family='format', scope_category='foo',
+                      message='msg')
+        with writer.category('_pdbx_data_rule_context') as loc:
+            loc.write(rule_id='R1', context='deposition', severity='WARNING',
+                      enabled='YES')
+        with writer.loop('_pdbx_data_rule_condition',
                          ['rule_id', 'ordinal', 'role', 'item_name',
                           'operator']) as lp:
             lp.write(rule_id='R1', ordinal=1, role='THEN',
@@ -249,16 +281,16 @@ R1 ? THEN '_foo.w' NOT_EMPTY . . . . .
             _add_msgpack(fh.data, bio)
             bio.seek(0)
             fh.data = bio
-        rules = ihm.deposition.read(fh.data, format='BCIF')
+        rules = ihm.data_rules.read(fh.data, format='BCIF')
         r1 = rules.rules['R1']
-        self.assertEqual(r1.severity, 'WARNING')
+        self.assertEqual(r1.contexts['deposition'].severity, 'WARNING')
         self.assertEqual(len(r1.conditions), 1)
         self.assertEqual(r1.conditions[0].operator, 'NOT_EMPTY')
 
     def test_add(self):
         """Test adding Rules objects"""
         r1 = make_rule('foo', "R1 1 THEN '_foo.x' NOT_EMPTY . . . . .\n")
-        r2 = make_rules("R2 format ERROR foo . msg YES NO NO NO\n",
+        r2 = make_rules("R2 format foo . msg NO NO NO\n",
                         "R2 1 THEN '_foo.x' NOT_EMPTY . . . . .\n")
         r = r1 + r2
         self.assertEqual(sorted(r.rules.keys()), ['R1', 'R2'])
@@ -268,7 +300,7 @@ R1 ? THEN '_foo.w' NOT_EMPTY . . . . .
         """Test validate() reporting of errors"""
         rules = make_rule('foo', "R1 1 THEN '_foo.x' NOT_EMPTY . . . . .\n")
         self.assertEqual(rules.validate(StringIO("_foo.x 1")), [])
-        with self.assertRaises(ihm.deposition.RuleError) as cm:
+        with self.assertRaises(ihm.data_rules.RuleError) as cm:
             rules.validate(StringIO("_foo.x ?"))
         self.assertEqual(str(cm.exception),
                          "ERROR R1: test message [foo row 1]")
@@ -276,8 +308,8 @@ R1 ? THEN '_foo.w' NOT_EMPTY . . . . .
 
     def test_validate_warning_info(self):
         """Test validate() reporting of warnings and info"""
-        for severity, cls in (('WARNING', ihm.deposition.RuleWarning),
-                              ('INFO', ihm.deposition.RuleInfo)):
+        for severity, cls in (('WARNING', ihm.data_rules.RuleWarning),
+                              ('INFO', ihm.data_rules.RuleInfo)):
             rules = make_rule('foo', "R1 1 THEN '_foo.x' NOT_EMPTY "
                               ". . . . .\n", severity=severity)
             with warnings.catch_warnings(record=True) as w:
@@ -292,21 +324,78 @@ R1 ? THEN '_foo.w' NOT_EMPTY . . . . .
 
     def test_validate_disabled(self):
         """Test that disabled rules are not checked"""
-        rules = make_rules("R1 format ERROR foo . msg NO NO NO NO\n",
-                           "R1 1 THEN '_foo.x' NOT_EMPTY . . . . .\n")
+        rules = make_rules("R1 format foo . msg NO NO NO\n",
+                           "R1 1 THEN '_foo.x' NOT_EMPTY . . . . .\n",
+                           contexts="R1 deposition ERROR NO\n")
         self.assertEqual(run_validate(rules, "_foo.x ?"), [])
+
+    def test_read_bad_context(self):
+        """Test read() with missing or bad context records"""
+        # Context record referring to an undefined rule
+        self.assertRaises(ValueError, make_rules,
+                          "R1 format foo . msg NO NO NO\n",
+                          "R1 1 THEN '_foo.x' NOT_EMPTY . . . . .\n",
+                          contexts="R1 deposition ERROR YES\n"
+                                   "R2 deposition ERROR YES\n")
+        # Rule without any context record
+        self.assertRaises(ValueError, make_rules,
+                          "R1 format foo . msg NO NO NO\n"
+                          "R2 format foo . msg NO NO NO\n",
+                          "R1 1 THEN '_foo.x' NOT_EMPTY . . . . .\n",
+                          contexts="R2 deposition ERROR YES\n")
+
+    def test_validate_context(self):
+        """Test validate() in different contexts"""
+        rules = make_rules("""
+R1 format foo . msg1 NO NO NO
+R2 format foo . msg2 NO NO NO
+R3 format foo . msg3 NO NO NO
+""", """
+R1 1 THEN '_foo.x' NOT_EMPTY . . . . .
+R2 1 THEN '_foo.x' NOT_EMPTY . . . . .
+R3 1 THEN '_foo.x' NOT_EMPTY . . . . .
+""", contexts="""
+R1 deposition ERROR YES
+R1 archive WARNING YES
+R2 deposition WARNING YES
+R2 archive WARNING NO
+R3 archive INFO YES
+""")
+        cif = "_foo.x ?"
+        # Default context is deposition; R3 is not checked
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            with self.assertRaises(ihm.data_rules.RuleError) as cm:
+                rules.validate(StringIO(cif))
+        self.assertEqual([str(v) for v in cm.exception.violations],
+                         ["ERROR R1: msg1 [foo row 1]"])
+        self.assertEqual([str(x.message) for x in w],
+                         ["WARNING R2: msg2 [foo row 1]"])
+
+        # In archive context, R1 is a warning and R2 is disabled
+        for context in ('archive', 'ARCHIVE'):
+            with warnings.catch_warnings(record=True) as w:
+                warnings.simplefilter("always")
+                v = rules.validate(StringIO(cif), context=context)
+            self.assertEqual(sorted(str(x) for x in v),
+                             ["INFO R3: msg3 [foo row 1]",
+                              "WARNING R1: msg1 [foo row 1]"])
+            self.assertEqual(len(w), 2)
+
+        # No rules are listed for an unknown context
+        self.assertEqual(rules.validate(StringIO(cif), context='other'), [])
 
     def test_validate_unsupported(self):
         """Test that unsupported rules are skipped with a warning"""
         rules = make_rules("""
-R1 procedural ERROR foo check msg YES NO NO NO
-R2 format ERROR foo . msg YES NO NO NO
-R3 aggregate ERROR foo . msg YES YES NO NO
+R1 procedural foo check msg NO NO NO
+R2 format foo . msg NO NO NO
+R3 aggregate foo . msg YES NO NO
 """, "R3 1 THEN '_foo.x' LE 1 . . . .", """
 loop_
-_pdbx_deposition_rule_param.rule_id
-_pdbx_deposition_rule_param.name
-_pdbx_deposition_rule_param.value
+_pdbx_data_rule_param.rule_id
+_pdbx_data_rule_param.name
+_pdbx_data_rule_param.value
 R3 aggregate MEDIAN
 """)
         with warnings.catch_warnings(record=True) as w:
@@ -314,7 +403,7 @@ R3 aggregate MEDIAN
             rules.validate(StringIO("_foo.x ?"))
         self.assertEqual(len(w), 3)
         for x in w:
-            self.assertIs(x.category, ihm.deposition.UnsupportedRuleWarning)
+            self.assertIs(x.category, ihm.data_rules.UnsupportedRuleWarning)
 
     def test_validate_absent_scope(self):
         """Test validation when the scope category is absent"""
@@ -355,7 +444,7 @@ d
     def test_validate_multiple_blocks(self):
         """Test validation of multiple data blocks"""
         rules = make_rule('foo', "R1 1 THEN '_foo.x' NOT_EMPTY . . . . .\n")
-        with self.assertRaises(ihm.deposition.RuleError) as cm:
+        with self.assertRaises(ihm.data_rules.RuleError) as cm:
             rules.validate(StringIO("data_a\n_foo.x 1\ndata_b\n_foo.x ."))
         self.assertEqual(len(cm.exception.violations), 1)
         v = cm.exception.violations[0]
@@ -560,11 +649,11 @@ R1 2 THEN '_foo.y' EQ 1 . %s . .
         """Test joins between scope and partner categories"""
         joins = """
 loop_
-_pdbx_deposition_rule_join.rule_id
-_pdbx_deposition_rule_join.ordinal
-_pdbx_deposition_rule_join.scope_item_names
-_pdbx_deposition_rule_join.partner_item_names
-_pdbx_deposition_rule_join.on_no_match
+_pdbx_data_rule_join.rule_id
+_pdbx_data_rule_join.ordinal
+_pdbx_data_rule_join.scope_item_names
+_pdbx_data_rule_join.partner_item_names
+_pdbx_data_rule_join.on_no_match
 R1 1 '_foo.id' '_bar.foo_id' %s
 """
         conds = "R1 1 THEN '_bar.x' NOT_EMPTY . . . ANY .\n"
@@ -598,11 +687,11 @@ _bar.x
         """Test joins with SINGLE_ROW_FALLBACK"""
         joins = """
 loop_
-_pdbx_deposition_rule_join.rule_id
-_pdbx_deposition_rule_join.ordinal
-_pdbx_deposition_rule_join.scope_item_names
-_pdbx_deposition_rule_join.partner_item_names
-_pdbx_deposition_rule_join.on_no_match
+_pdbx_data_rule_join.rule_id
+_pdbx_data_rule_join.ordinal
+_pdbx_data_rule_join.scope_item_names
+_pdbx_data_rule_join.partner_item_names
+_pdbx_data_rule_join.on_no_match
 R1 1 '_foo.id' '_bar.foo_id' SINGLE_ROW_FALLBACK
 """
         rules = make_rule('foo', "R1 1 THEN '_foo.x' LE_ITEM . '_bar.x' "
@@ -620,11 +709,11 @@ R1 1 '_foo.id' '_bar.foo_id' SINGLE_ROW_FALLBACK
         """Test MIN/MAX row selection"""
         sel = """
 loop_
-_pdbx_deposition_rule_row_selection.rule_id
-_pdbx_deposition_rule_row_selection.category_id
-_pdbx_deposition_rule_row_selection.selector
-_pdbx_deposition_rule_row_selection.selector_item
-_pdbx_deposition_rule_row_selection.group_by
+_pdbx_data_rule_row_selection.rule_id
+_pdbx_data_rule_row_selection.category_id
+_pdbx_data_rule_row_selection.selector
+_pdbx_data_rule_row_selection.selector_item
+_pdbx_data_rule_row_selection.group_by
 R1 foo %s '_foo.res' %s
 """
         conds = "R1 1 THEN '_foo.x' EQ ok . . . .\n"
@@ -657,10 +746,10 @@ B ? bad
     def test_validate_row_selection_partner(self):
         """Test row selection on a partner category"""
         sel = """
-_pdbx_deposition_rule_row_selection.rule_id R1
-_pdbx_deposition_rule_row_selection.category_id bar
-_pdbx_deposition_rule_row_selection.selector MAX
-_pdbx_deposition_rule_row_selection.selector_item '_bar.res'
+_pdbx_data_rule_row_selection.rule_id R1
+_pdbx_data_rule_row_selection.category_id bar
+_pdbx_data_rule_row_selection.selector MAX
+_pdbx_data_rule_row_selection.selector_item '_bar.res'
 """
         rules = make_rule('foo', "R1 1 THEN '_foo.x' GE_ITEM . '_bar.x' "
                           ". . .\n", flags='NO NO YES', extra=sel)
@@ -670,10 +759,10 @@ _pdbx_deposition_rule_row_selection.selector_item '_bar.res'
     def test_validate_row_selection_any_value(self):
         """Test ANY_VALUE row selection"""
         sel = """
-_pdbx_deposition_rule_row_selection.rule_id R1
-_pdbx_deposition_rule_row_selection.category_id foo
-_pdbx_deposition_rule_row_selection.selector ANY_VALUE
-_pdbx_deposition_rule_row_selection.exclude_items '_foo.cs'
+_pdbx_data_rule_row_selection.rule_id R1
+_pdbx_data_rule_row_selection.category_id foo
+_pdbx_data_rule_row_selection.selector ANY_VALUE
+_pdbx_data_rule_row_selection.exclude_items '_foo.cs'
 """
         rules = make_rule('foo', "R1 1 THEN '_foo.ci' NOT_EMPTY "
                           ". . . . .\n", flags='NO NO YES', extra=sel)
@@ -697,9 +786,9 @@ _foo.other
         """Test aggregate rules"""
         params = """
 loop_
-_pdbx_deposition_rule_param.rule_id
-_pdbx_deposition_rule_param.name
-_pdbx_deposition_rule_param.value
+_pdbx_data_rule_param.rule_id
+_pdbx_data_rule_param.name
+_pdbx_data_rule_param.value
 R1 group_by '_foo.a,_foo.b'
 R1 aggregate SUM
 """
@@ -729,17 +818,17 @@ B 1 ? yes
         """Test aggregate rules with joins and partner conditions"""
         params = """
 loop_
-_pdbx_deposition_rule_param.rule_id
-_pdbx_deposition_rule_param.name
-_pdbx_deposition_rule_param.value
+_pdbx_data_rule_param.rule_id
+_pdbx_data_rule_param.name
+_pdbx_data_rule_param.value
 R1 aggregate SUM
 #
 loop_
-_pdbx_deposition_rule_join.rule_id
-_pdbx_deposition_rule_join.ordinal
-_pdbx_deposition_rule_join.scope_item_names
-_pdbx_deposition_rule_join.partner_item_names
-_pdbx_deposition_rule_join.on_no_match
+_pdbx_data_rule_join.rule_id
+_pdbx_data_rule_join.ordinal
+_pdbx_data_rule_join.scope_item_names
+_pdbx_data_rule_join.partner_item_names
+_pdbx_data_rule_join.on_no_match
 R1 1 '_foo.id' '_bar.foo_id' FAIL
 """
         rules = make_rule('foo', """
@@ -771,15 +860,15 @@ _bar.x
     def test_validate_join_fail_detail(self):
         """Test reporting of failed joins"""
         joins = """
-_pdbx_deposition_rule_join.rule_id R1
-_pdbx_deposition_rule_join.ordinal 1
-_pdbx_deposition_rule_join.scope_item_names '_foo.id'
-_pdbx_deposition_rule_join.partner_item_names '_bar.foo_id'
-_pdbx_deposition_rule_join.on_no_match FAIL
+_pdbx_data_rule_join.rule_id R1
+_pdbx_data_rule_join.ordinal 1
+_pdbx_data_rule_join.scope_item_names '_foo.id'
+_pdbx_data_rule_join.partner_item_names '_bar.foo_id'
+_pdbx_data_rule_join.on_no_match FAIL
 """
         rules = make_rule('foo', "R1 1 THEN '_bar.x' NOT_EMPTY . . . . .\n",
                           flags='NO YES NO', extra=joins)
-        with self.assertRaises(ihm.deposition.RuleError) as cm:
+        with self.assertRaises(ihm.data_rules.RuleError) as cm:
             rules.validate(StringIO("_foo.id 1\n_bar.foo_id 2\n_bar.x a"))
         v, = cm.exception.violations
         self.assertEqual(v.detail, "no matching row in bar")
@@ -826,10 +915,10 @@ _pdbx_deposition_rule_join.on_no_match FAIL
         self.assertRaises(ValueError, rules.validate, StringIO("_foo.x a"))
         # Unknown row selector
         sel = """
-_pdbx_deposition_rule_row_selection.rule_id R1
-_pdbx_deposition_rule_row_selection.category_id foo
-_pdbx_deposition_rule_row_selection.selector MEDIAN
-_pdbx_deposition_rule_row_selection.selector_item '_foo.x'
+_pdbx_data_rule_row_selection.rule_id R1
+_pdbx_data_rule_row_selection.category_id foo
+_pdbx_data_rule_row_selection.selector MEDIAN
+_pdbx_data_rule_row_selection.selector_item '_foo.x'
 """
         rules = make_rule('foo', "R1 1 THEN '_foo.x' EQ a . . . .\n",
                           flags='NO NO YES', extra=sel)
@@ -838,8 +927,8 @@ _pdbx_deposition_rule_row_selection.selector_item '_foo.x'
     def test_validate_real_rules(self):
         """Test validation using rules similar to the IHM rules"""
         rules = make_rules("""
-D1 conditional_presence ERROR entry . 'struct must be provided.' YES NO NO NO
-D2 conditional_presence ERROR entity . 'entity_poly needed' YES NO NO NO
+D1 conditional_presence entry . 'struct must be provided.' NO NO NO
+D2 conditional_presence entity . 'entity_poly needed' NO NO NO
 """, """
 D1 1 THEN '_struct.entry_id' NOT_EMPTY . . . ANY .
 D2 1 WHEN '_entity.type' EQ POLYMER . AND . .
@@ -879,7 +968,7 @@ _entity.type
             _add_msgpack(fh.data, bio)
             bio.seek(0)
             fh.data = bio
-        with self.assertRaises(ihm.deposition.RuleError) as cm:
+        with self.assertRaises(ihm.data_rules.RuleError) as cm:
             rules.validate(fh.data, format='BCIF')
         self.assertEqual([v.row for v in cm.exception.violations],
                          ['foo row 2'])

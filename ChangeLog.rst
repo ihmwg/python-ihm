@@ -1,8 +1,9 @@
 HEAD
 ====
-  - The new :mod:`ihm.deposition` module can read a set of PDB-IHM
-    deposition rules (as defined by the ``pdbx_deposition_rule`` family of
-    categories) and validate mmCIF or BinaryCIF files against them,
+  - The new :mod:`ihm.data_rules` module can read a set of PDB-IHM
+    data rules (as defined by the ``pdbx_data_rule`` family of
+    categories) and validate mmCIF or BinaryCIF files against them
+    in a given context (e.g. deposition or archive),
     reporting errors and warnings for any violated rules.
   - :class:`ihm.dictionary.Dictionary` now also stores all item types
     defined in the dictionary, and the detail text of enumerated values.
