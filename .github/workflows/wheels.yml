@@ -68,7 +68,7 @@ jobs:
         # The C extension is optional in setup.py, so make sure it was
         # actually built and included in the wheel
         CIBW_TEST_COMMAND: >-
-          python -c "import ihm._format, ihm.format_bcif"
+          python -c "import ihm._format" && python -m ihm.test
     - uses: actions/upload-artifact@v7
       with:
         name: wheels-${{ matrix.os }}
