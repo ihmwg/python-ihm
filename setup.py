@@ -41,6 +41,8 @@ else:
 if build_ext:
     # Use pre-built SWIG wrappers for stable releases so that end users
     # don't need SWIG installed
+    # If you change this SWIG invocation, also update
+    # .github/workflows/wheels.yml
     wrap = "src/ihm_format_wrap_%s.c" % VERSION
     if not os.path.exists(wrap):
         wrap = "src/ihm_format.i"
