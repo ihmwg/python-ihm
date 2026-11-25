@@ -65,7 +65,8 @@ jobs:
         CIBW_BUILD: "cp311-*"
         CIBW_CONFIG_SETTINGS: "--build-option=--py_limited_api"
         CIBW_ARCHS_MACOS: "x86_64 arm64"
-        # The C extension is optional in setup.py, so make sure it was
+        # The C extension is optional in setup.py (although we try to make it
+        # mandatory when building wheels), so make sure it was
         # actually built and included in the wheel
         CIBW_TEST_COMMAND: >-
           python -c "import ihm._format" && python -m ihm.test

@@ -52,7 +52,8 @@ if build_ext:
                      extra_compile_args=cargs,
                      swig_opts=['-keyword', '-nodefaultctor',
                                 '-nodefaultdtor', '-noproxy'],
-                     optional=True,
+                     # Make mandatory when building wheels with cibuildwheel
+                     optional=os.environ.get("CIBUILDWHEEL", "0") != "1",
                      **ext_limited_args)]
 else:
     mod = []
