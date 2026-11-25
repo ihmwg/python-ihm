@@ -321,7 +321,7 @@ class Rules:
               the file (usually PDBx plus extensions such as IHM).
            :type dictionary: :class:`ihm.dictionary.Dictionary`
            :param str context: The context in which the rules are
-              evaluated (e.g. 'deposition' or 'archive'). This is compared
+              evaluated ('deposition' or 'archive'). This is compared
               case-insensitively.
            :return: A list of all :class:`Violation` objects (if no
               errors were found).
@@ -331,6 +331,10 @@ class Rules:
         reader_map = {'mmCIF': ihm.format.CifReader,
                       'BCIF': ihm.format_bcif.BinaryCifReader}
         context = context.lower()
+        ok_contexts = frozenset(('deposition', 'archive'))
+        if context not in ok_contexts:
+            raise ValueError("context must be one of %s"
+                             % ", ".join(sorted(ok_contexts)))
         rules = [r for r in self.rules.values()
                  if context in r.contexts and r.contexts[context].enabled]
         for r in rules:

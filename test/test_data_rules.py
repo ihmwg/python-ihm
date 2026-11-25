@@ -382,8 +382,9 @@ R3 archive INFO YES
                               "WARNING R1: msg1 [foo row 1]"])
             self.assertEqual(len(w), 2)
 
-        # No rules are listed for an unknown context
-        self.assertEqual(rules.validate(StringIO(cif), context='other'), [])
+        # unknown context should be rejected
+        self.assertRaises(ValueError, rules.validate,
+                          StringIO(cif), context='other')
 
     def test_validate_unsupported(self):
         """Test that unsupported rules are skipped with a warning"""
